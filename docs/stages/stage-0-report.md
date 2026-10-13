@@ -80,6 +80,7 @@ The pack's `00-kit.png` is a desktop component sheet laid out in columns; the `/
 
 Done here: everything that needs no key, no disk and no Docker daemon. Still to do on `tariff-order`, in this order, each from `~/ekbill` on `main`:
 
+0. `git tag stage-0-start 3ca28b4 && git push origin stage-0-start` — the tag exists in the build container, whose git proxy refuses tag pushes (rule 5 wants it on origin; `review:stage` diffs from it).
 1. Pastes 1–4 of `docs/MASTER-PROMPT.md` section 1 (gh, tag `mvp-final` and stop the MVP, clone, `.env`, tmux + Claude Code). Paste 2 keeps `ekbill_pgdata`.
 2. `npm ci && npm run review:stage -- --check-model` → records whether `OPENAI_REVIEW_MODEL` resolves; the build agent writes the ID into `docs/DECISIONS.md`.
 3. `df -h /` and `~/easybills/deploy/vm/free-space.sh` (before/after into this report). If under 15 GB: report "blocked on disk" with `docker system df`, and stop.
