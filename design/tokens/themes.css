@@ -9,6 +9,10 @@
   --eb-radius-field: 16px;
   --eb-radius-pill: 999px;
   --eb-radius-icon: 50%;
+  --eb-radius-tile: 28px;
+  --eb-radius-chip: 12px;
+  --eb-radius-small: 8px;
+  --eb-radius-tip: 6px;
   --eb-space-gutter: 12px;
   --eb-space-heading-gutter: 22px;
   --eb-space-card-pad: 20px;
@@ -85,6 +89,7 @@
   --eb-nav-active-bg: #FFB020;
   --eb-nav-active-fg: #16170F;
   --eb-focus: #16170F;
+  --eb-guide: rgba(255,176,32,.55);
   --eb-g-hero: radial-gradient(110% 70% at 100% 0%, #6B1F08 0%, rgba(107,31,8,0) 60%), radial-gradient(80% 60% at 0% 100%, #FFE2B8 0%, rgba(255,226,184,0) 70%), linear-gradient(170deg, #8A2C0B 0%, #C2410C 32%, #F2762E 62%, #FFA95C 86%, #FFE0BD 100%);
   --eb-g-hero-back: none;
   --eb-g-panel: radial-gradient(90% 50% at 85% 0%, rgba(255,255,255,.9) 0%, rgba(255,255,255,0) 70%), linear-gradient(172deg, #A7A3EC 0%, #D8D3F7 26%, #F5EFF8 52%, #F4DDF0 78%, #EAB4DE 100%);
@@ -96,6 +101,7 @@
   --eb-shadow-hero: 0 24px 40px -28px rgba(160,60,10,.6);
   --eb-shadow-cta: 0 20px 30px -18px rgba(200,110,10,.7);
   --eb-shadow-nav: 0 18px 40px -18px rgba(22,23,15,.45);
+  --eb-shadow-guide: 0 0 0 3px rgba(255,176,32,.55), 0 0 28px 4px rgba(255,176,32,.35);
   --eb-avatar-0: linear-gradient(140deg, #FFE6C7, #FDB27A);
   --eb-avatar-1: linear-gradient(140deg, #F6DDF0, #D9B8F2);
   --eb-avatar-2: linear-gradient(140deg, #D6F0EE, #9CCFD3);
@@ -136,6 +142,7 @@
   --eb-nav-active-fg: #F2F5F2;
   --eb-focus: #68E78E;
   --eb-brand-charcoal: #000B1A;
+  --eb-guide: rgba(104,231,142,.55);
   --eb-g-hero: radial-gradient(80% 30% at 85% 0%, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 70%), linear-gradient(180deg, #3E8650 0%, #3A7E4B 50%, #336F42 100%);
   --eb-g-hero-back: linear-gradient(180deg, #27573A 0%, #1E4530 100%);
   --eb-g-panel: rgba(255,255,255,.06);
@@ -147,6 +154,7 @@
   --eb-shadow-hero: 0 30px 50px -30px rgba(104,231,142,.45);
   --eb-shadow-cta: inset 0 1px 0 rgba(255,255,255,.25), 0 20px 40px -18px rgba(104,231,142,.6);
   --eb-shadow-nav: inset 0 0 0 1px rgba(255,255,255,.08), 0 20px 40px -16px rgba(0,0,0,.8);
+  --eb-shadow-guide: 0 0 0 3px rgba(104,231,142,.55), 0 0 28px 4px rgba(104,231,142,.35);
   --eb-avatar-0: linear-gradient(140deg, #DDF7E4, #68E78E);
   --eb-avatar-1: linear-gradient(140deg, #FFFFFF, #BFC9C2);
   --eb-avatar-2: linear-gradient(140deg, #CFF3E6, #7FD1B4);
@@ -188,6 +196,7 @@
     --eb-nav-active-fg: #F2F5F2;
     --eb-focus: #68E78E;
     --eb-brand-charcoal: #000B1A;
+    --eb-guide: rgba(104,231,142,.55);
     --eb-g-hero: radial-gradient(80% 30% at 85% 0%, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 70%), linear-gradient(180deg, #3E8650 0%, #3A7E4B 50%, #336F42 100%);
     --eb-g-hero-back: linear-gradient(180deg, #27573A 0%, #1E4530 100%);
     --eb-g-panel: rgba(255,255,255,.06);
@@ -199,6 +208,7 @@
     --eb-shadow-hero: 0 30px 50px -30px rgba(104,231,142,.45);
     --eb-shadow-cta: inset 0 1px 0 rgba(255,255,255,.25), 0 20px 40px -18px rgba(104,231,142,.6);
     --eb-shadow-nav: inset 0 0 0 1px rgba(255,255,255,.08), 0 20px 40px -16px rgba(0,0,0,.8);
+    --eb-shadow-guide: 0 0 0 3px rgba(104,231,142,.55), 0 0 28px 4px rgba(104,231,142,.35);
     --eb-avatar-0: linear-gradient(140deg, #DDF7E4, #68E78E);
     --eb-avatar-1: linear-gradient(140deg, #FFFFFF, #BFC9C2);
     --eb-avatar-2: linear-gradient(140deg, #CFF3E6, #7FD1B4);

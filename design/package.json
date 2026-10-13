@@ -1,0 +1,15 @@
+{
+  "name": "@ekbill/design",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The EkBill design pack: tokens, themes, fonts, copy seed, fixtures, component spec, reference screens. The visual law (master prompt rule 7).",
+  "exports": {
+    "./tokens/themes.css": "./tokens/themes.css",
+    "./tokens/fonts.css": "./tokens/fonts.css",
+    "./tokens": "./tokens/tokens.ts",
+    "./copy/strings.json": "./copy/strings.json",
+    "./copy/hi-Latn.json": "./copy/hi-Latn.json",
+    "./copy/en.json": "./copy/en.json",
+    "./fixtures/demo.json": "./fixtures/demo.json"
+  }
+}

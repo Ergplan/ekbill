@@ -1,0 +1,15 @@
+{
+  "name": "@ekbill/db",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "Drizzle schema, SQL migrations, repositories (TenantScope first), triggers and row-level security. The one place that writes the database.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./migrate": "./migrate.mjs"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.0",
+    "pg": "^8.16.0"
+  }
+}

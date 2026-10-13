@@ -1,0 +1,3 @@
+# written by deploy/vm/backup.sh; mounted read-only into the app container
+*
+!.gitignore

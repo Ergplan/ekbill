@@ -16,6 +16,7 @@ EkBill is a Hinglish billing app for small Indian businesses. The promise, in th
   ```
 
   Stage 2 is the one exception: its line is `Run Stage 2 of docs/MASTER-PROMPT.md — APPROVED`, typed by the operator only after the Stage 1 screen flow is approved. The agent records the line in the Stage 2 report; without the word it refuses to start.
+
 - The agent works until the stage's definition of done (section 9) is met, writes `docs/stages/stage-N-report.md`, commits, pushes, and **stops**. It never starts the next stage's work.
 - The operator reads the report, spot-checks one invariant by hand, and answers the open questions. For every stage but Stage 1 the answers are one numbered message; for Stage 1 they go in `docs/stages/stage-1-answers.md` (one channel, because Stage 1 repeats until approved).
 - The build runs on the existing shared VM `tariff-order` (asia-south2-b). Nothing new is provisioned. Disk is the scarce resource. The MVP's containers are stopped before Stage 0 (paste 2 below); its data volume `ekbill_pgdata` is kept.
@@ -160,33 +161,33 @@ Not reopened unless analysis of the MVP shows something materially better; then 
 
 ### 4.1 Stack
 
-| Area | Decision | Why |
-| --- | --- | --- |
-| Repository | **`Ergplan/ekbill`**, branch `main`; the MVP stays in `Ergplan/easybills` at tag `mvp-final`, checked out read-only at `~/easybills` | A clean history for the audit; the MVP readable on disk |
-| Layout | npm workspaces monorepo: `apps/web`, `apps/worker`, `packages/engine`, `packages/ai`, `packages/db`, `packages/copy`, `packages/render`, `packages/ui`, plus `design/` (the pack, imported as a workspace package `@ekbill/design`) | The engine stays pure and testable; UI primitives are the only consumers of tokens |
-| Language | TypeScript 5.x, strict | One language per layer; the proven engine is TypeScript |
-| Web app | Next.js 16 App Router, React 19, server actions for writes, route handlers for files, standalone output | Works on phones and on the VM; SSR for slow Android browsers |
-| UI | `packages/ui`: components from `design/components.md` plus the ones v2 adds (listed in Stage 1); CSS with the pack's tokens; no Tailwind, no component library; both themes always | The pack's depth, textures and glass are the quality bar |
-| Themes | Narangi (light, default) and Harmony (dark); `users.theme = narangi \| harmony \| system`; `data-theme` on `<html>` | From the pack |
-| Database | PostgreSQL 16 with pgvector, **relational columns**, not jsonb documents | 500 tenants need indexes, constraints, RLS and reporting |
-| ORM and migrations | Drizzle ORM with `drizzle-kit` SQL migrations in `packages/db/migrations`; drift check in the watcher and CI; triggers and RLS by hand in the same migrations | Typed schema in code, plain SQL on disk |
-| Background work | `apps/worker` with `pg-boss` (Postgres-backed queue): read-bill, render-other-sizes, index-search, reminders-due, backup-check | No Redis; jobs are rows, so they are auditable |
-| Auth | Firebase Auth phone OTP (as the MVP), server-minted session cookie; **during the build** `AUTH_MODE=switcher` (section 4.3) | OTP is what these users have |
-| Tenancy and roles | One business per tenant; memberships with role `owner`, `staff`, `accountant`; invite by phone | I1, I8 |
-| Models | OpenAI through `packages/ai`: a vision-capable model for photographed bills, a text model for Poocho, Realtime for voice; model IDs by environment variable; defaults recorded in the decisions log | The account and key exist; reviewer and auditor are OpenAI, the builder is not |
-| Reviewer | `OPENAI_REVIEW_MODEL` is the exact model ID the operator writes in `.env` (paste 3); Stage 0 only checks it resolves against the account's models list and records it | Rule 12; an agent cannot guess an ID from a nickname |
-| Printed-document OCR | docling-serve (existing image) for printed PDFs and scans; the vision model for handwriting, with Docling text as a hint | Docling is cheap and local |
-| PDF and images | Playwright Chromium in the app image: HTML → PDF (A4/A5/80mm/58mm) and JPEG; the InvoicePaper is theme-independent; **the chosen format is rendered synchronously at issue** (budget 3 s) so the done screen has it; other sizes by the worker on demand | The done screen is on the golden path |
-| Search / Poocho | Postgres full text + pgvector hybrid (MVP design), indexing in the worker | Local |
-| Voice | OpenAI Realtime over WebRTC, server-minted client secrets, tools that light up, fill and press navigation; never commits (I6, rule 17); wired in Stage 9 | MVP design |
-| Copy | `packages/copy`: one dictionary `{en, hi-Latn}` seeded from `design/copy/strings.json` and the MVP's dictionary, with the MVP's jargon and length tests | Rule 16 |
-| Logs and metrics | `pino` JSON logs with request id and business id, phones masked; `/api/health`; `/api/metrics` (Prometheus text, Stage 10) | Enough to run 500 businesses on one VM |
-| Deployment | Docker Compose project **`ekbill2`** on `tariff-order`: `db` (volume `pgdata` → `ekbill2_pgdata`), `docling`, `app` on 127.0.0.1:8080, `worker`, `caddy`; one image for app and worker; the MVP's `deploy/vm/*.sh` adapted with the project name changed | Separate from the MVP's `ekbill` project and its volume |
-| CI | GitHub Actions on push to `main`: the watcher's checks plus Playwright on a Postgres service (`@slow` excluded). Load at 1/10 scale and model evals run on `workflow_dispatch` only | The watcher is for the agent; CI for everyone; no recurring spend |
-| Testing | vitest (unit, integration), Playwright (journeys, visual snapshots, tap counts), k6 (load, Stage 10) | What the MVP used, plus load and visual |
-| Accountant exports | **One zip**: `workings.xlsx`, every PDF of the period, `gstr1.json` in the GSTN offline-tool format; "CA ko bhejo" opens the share sheet with the zip (WhatsApp, email, Drive) | Operator's answer |
-| Composition businesses | Bill of supply with the mandatory legend; the GST tab is hidden (Aap shows "Composition: bill of supply only · CA ko PDFs bhejo"); no workings | Operator's answer |
-| Debit notes | Out of scope for v2 (section 4.2) | Rare for these owners; a credit note and a new bill cover the cases |
+| Area                   | Decision                                                                                                                                                                                                                                                 | Why                                                                                |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Repository             | **`Ergplan/ekbill`**, branch `main`; the MVP stays in `Ergplan/easybills` at tag `mvp-final`, checked out read-only at `~/easybills`                                                                                                                     | A clean history for the audit; the MVP readable on disk                            |
+| Layout                 | npm workspaces monorepo: `apps/web`, `apps/worker`, `packages/engine`, `packages/ai`, `packages/db`, `packages/copy`, `packages/render`, `packages/ui`, plus `design/` (the pack, imported as a workspace package `@ekbill/design`)                      | The engine stays pure and testable; UI primitives are the only consumers of tokens |
+| Language               | TypeScript 5.x, strict                                                                                                                                                                                                                                   | One language per layer; the proven engine is TypeScript                            |
+| Web app                | Next.js 16 App Router, React 19, server actions for writes, route handlers for files, standalone output                                                                                                                                                  | Works on phones and on the VM; SSR for slow Android browsers                       |
+| UI                     | `packages/ui`: components from `design/components.md` plus the ones v2 adds (listed in Stage 1); CSS with the pack's tokens; no Tailwind, no component library; both themes always                                                                       | The pack's depth, textures and glass are the quality bar                           |
+| Themes                 | Narangi (light, default) and Harmony (dark); `users.theme = narangi \| harmony \| system`; `data-theme` on `<html>`                                                                                                                                      | From the pack                                                                      |
+| Database               | PostgreSQL 16 with pgvector, **relational columns**, not jsonb documents                                                                                                                                                                                 | 500 tenants need indexes, constraints, RLS and reporting                           |
+| ORM and migrations     | Drizzle ORM with `drizzle-kit` SQL migrations in `packages/db/migrations`; drift check in the watcher and CI; triggers and RLS by hand in the same migrations                                                                                            | Typed schema in code, plain SQL on disk                                            |
+| Background work        | `apps/worker` with `pg-boss` (Postgres-backed queue): read-bill, render-other-sizes, index-search, reminders-due, backup-check                                                                                                                           | No Redis; jobs are rows, so they are auditable                                     |
+| Auth                   | Firebase Auth phone OTP (as the MVP), server-minted session cookie; **during the build** `AUTH_MODE=switcher` (section 4.3)                                                                                                                              | OTP is what these users have                                                       |
+| Tenancy and roles      | One business per tenant; memberships with role `owner`, `staff`, `accountant`; invite by phone                                                                                                                                                           | I1, I8                                                                             |
+| Models                 | OpenAI through `packages/ai`: a vision-capable model for photographed bills, a text model for Poocho, Realtime for voice; model IDs by environment variable; defaults recorded in the decisions log                                                      | The account and key exist; reviewer and auditor are OpenAI, the builder is not     |
+| Reviewer               | `OPENAI_REVIEW_MODEL` is the exact model ID the operator writes in `.env` (paste 3); Stage 0 only checks it resolves against the account's models list and records it                                                                                    | Rule 12; an agent cannot guess an ID from a nickname                               |
+| Printed-document OCR   | docling-serve (existing image) for printed PDFs and scans; the vision model for handwriting, with Docling text as a hint                                                                                                                                 | Docling is cheap and local                                                         |
+| PDF and images         | Playwright Chromium in the app image: HTML → PDF (A4/A5/80mm/58mm) and JPEG; the InvoicePaper is theme-independent; **the chosen format is rendered synchronously at issue** (budget 3 s) so the done screen has it; other sizes by the worker on demand | The done screen is on the golden path                                              |
+| Search / Poocho        | Postgres full text + pgvector hybrid (MVP design), indexing in the worker                                                                                                                                                                                | Local                                                                              |
+| Voice                  | OpenAI Realtime over WebRTC, server-minted client secrets, tools that light up, fill and press navigation; never commits (I6, rule 17); wired in Stage 9                                                                                                 | MVP design                                                                         |
+| Copy                   | `packages/copy`: one dictionary `{en, hi-Latn}` seeded from `design/copy/strings.json` and the MVP's dictionary, with the MVP's jargon and length tests                                                                                                  | Rule 16                                                                            |
+| Logs and metrics       | `pino` JSON logs with request id and business id, phones masked; `/api/health`; `/api/metrics` (Prometheus text, Stage 10)                                                                                                                               | Enough to run 500 businesses on one VM                                             |
+| Deployment             | Docker Compose project **`ekbill2`** on `tariff-order`: `db` (volume `pgdata` → `ekbill2_pgdata`), `docling`, `app` on 127.0.0.1:8080, `worker`, `caddy`; one image for app and worker; the MVP's `deploy/vm/*.sh` adapted with the project name changed | Separate from the MVP's `ekbill` project and its volume                            |
+| CI                     | GitHub Actions on push to `main`: the watcher's checks plus Playwright on a Postgres service (`@slow` excluded). Load at 1/10 scale and model evals run on `workflow_dispatch` only                                                                      | The watcher is for the agent; CI for everyone; no recurring spend                  |
+| Testing                | vitest (unit, integration), Playwright (journeys, visual snapshots, tap counts), k6 (load, Stage 10)                                                                                                                                                     | What the MVP used, plus load and visual                                            |
+| Accountant exports     | **One zip**: `workings.xlsx`, every PDF of the period, `gstr1.json` in the GSTN offline-tool format; "CA ko bhejo" opens the share sheet with the zip (WhatsApp, email, Drive)                                                                           | Operator's answer                                                                  |
+| Composition businesses | Bill of supply with the mandatory legend; the GST tab is hidden (Aap shows "Composition: bill of supply only · CA ko PDFs bhejo"); no workings                                                                                                           | Operator's answer                                                                  |
+| Debit notes            | Out of scope for v2 (section 4.2)                                                                                                                                                                                                                        | Rare for these owners; a credit note and a new bill cover the cases                |
 
 ### 4.2 Product scope for v2
 
@@ -200,15 +201,15 @@ Out of scope for v2: filing on the GST portal; IRN generation through an IRP; e-
 
 The operator's instruction: keep security low during development and testing so the VM is never locked or stopped. Rule 18 lists what the agent may never run on the host.
 
-| Deferred | Until | Meanwhile |
-| --- | --- | --- |
-| Phone OTP sign-in | Stage 10 | `AUTH_MODE=switcher`: `/dev/switch` lists seeded users and sets the session cookie. Roles and tenancy are still enforced (I1, I8). Stage 10 turns OTP on with a one-line rollback. |
-| Rate limits | Stage 10 (60 writes/min per session; sign-in 30/min per IP, the gate user exempt) | Caddy's basic-auth gate stays in front of the app |
-| WAF, bot checks, secret rotation, KMS, DLP | Later | |
-| SSH restrictions, deny rules, IP allowlists, IAM changes | **Never in this build** | The firewall is not changed except the existing `ekbill-allow-web` rule. Where a later stage needs an IAM grant (Firebase Admin for OTP), the operator makes it; the agent asks in the report. |
-| Row-level security, audit log | **On from Stage 2** | Not deferred |
-| HTTPS | **On** | Caddy |
-| Backups | **On from Stage 0**: nightly cron, last dump checked non-empty by `/api/health`; restore drill in Stage 10 | |
+| Deferred                                                 | Until                                                                                                      | Meanwhile                                                                                                                                                                                      |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phone OTP sign-in                                        | Stage 10                                                                                                   | `AUTH_MODE=switcher`: `/dev/switch` lists seeded users and sets the session cookie. Roles and tenancy are still enforced (I1, I8). Stage 10 turns OTP on with a one-line rollback.             |
+| Rate limits                                              | Stage 10 (60 writes/min per session; sign-in 30/min per IP, the gate user exempt)                          | Caddy's basic-auth gate stays in front of the app                                                                                                                                              |
+| WAF, bot checks, secret rotation, KMS, DLP               | Later                                                                                                      |                                                                                                                                                                                                |
+| SSH restrictions, deny rules, IP allowlists, IAM changes | **Never in this build**                                                                                    | The firewall is not changed except the existing `ekbill-allow-web` rule. Where a later stage needs an IAM grant (Firebase Admin for OTP), the operator makes it; the agent asks in the report. |
+| Row-level security, audit log                            | **On from Stage 2**                                                                                        | Not deferred                                                                                                                                                                                   |
+| HTTPS                                                    | **On**                                                                                                     | Caddy                                                                                                                                                                                          |
+| Backups                                                  | **On from Stage 0**: nightly cron, last dump checked non-empty by `/api/health`; restore drill in Stage 10 |                                                                                                                                                                                                |
 
 Data on the VM during the build is test data. Every stage report repeats: "Sign-in is switched off; do not put a real business's books here yet."
 
@@ -261,7 +262,7 @@ ekbill/
 
 `npm run watch` starts beside the app in Stage 0 and stays running in a tmux window. On every save it runs, stopping at the first red: `eslint`, `prettier --check`, `tsc --noEmit` for every workspace, vitest unit tests for the changed package then the full unit suite, `drizzle-kit check`, `npm run rules:check`, `npm run tokens:check`, `npm run trace:check`, `npm run flow:check`, and the integration suite when `packages/db` or `apps/web/actions` changed. It writes `.watch/status.json` (`{ ok, failed: [...], at }`) and `.watch/log`. Playwright, load and paid-model calls are `@slow`: run at the stage boundary and on `workflow_dispatch`.
 
-`tokens:check` is exact: in `apps/web` and `packages/ui`, any `.css`, `.tsx` or `.ts` file matching `#[0-9a-fA-F]{3,8}\b`, `rgba?\(`, `hsla?\(`, `border-radius:\s*\d`, `box-shadow:\s*[^v]`, or `font-family:` fails, unless the file path is listed in `tokens-allow.txt` with a one-line reason (fonts.css, the InvoicePaper template which is theme-independent by design). Pixel sizes for layout are allowed.
+`tokens:check` is exact: in `apps/web` and `packages/ui`, any `.css`, `.tsx` or `.ts` file matching `#[0-9a-fA-F]{3,8}\b`, `rgba?\(`, `hsla?\(`, a `border-radius` with a `px` value, a `box-shadow` whose value is not `none`, a `var(--eb-…)` or an inset ring coloured by a token, or `font-family:` fails, unless the file path is listed in `tokens-allow.txt` with a one-line reason (fonts.css, the InvoicePaper template which is theme-independent by design). Pixel sizes for layout are allowed.
 
 ### 5.3 Living documents
 
@@ -275,20 +276,20 @@ ekbill/
 
 ## 6. Plan
 
-| Stage | Name | Creates | Stop point |
-| --- | --- | --- | --- |
-| 0 | Ground | Repo scaffold, `packages/ui` kit from the pack, watcher, review loop, CI, deploy, nightly backup | Kit on the VM in both themes; review ran; or "blocked on disk" |
-| 1 | **Screen flow** | Every screen in 8.0 as a clickable prototype on fixtures, both themes; `/flow`; tour highlight; tap counts | Operator approves; repeats until then |
-| 2 | Identity, tenancy, roles, audit | Users, businesses, memberships, sessions, audit, `ai_calls`, RLS, scope, switcher | Generated tenancy and roles tests green |
-| 3 | The engine | Money, tax, rule pack, document types, numbering, prepareIssue/issueDocument, workings | Engine ≥ MVP test parity; rule pack verified (≤ 3 unverified, accepted by the operator) |
-| 4 | Wire: profile and setup | PAN, GSTIN, composition, turnover band, logo, signature, bank/UPI, series, bill look, theme | Setup journey green with a signed, logo'd sample |
-| 5 | Wire: customers and items | Customers, items with HSN/SAC, import | MVP import fixtures reproduce |
-| 6 | Wire: bills, money, sharing | Documents, payments, credit notes, rendering, WhatsApp, dues, reminders | Golden paths (a) and (b) within budget on real data |
-| 7 | Photo → bill | Uploads, extractions, review screen, evaluation on the operator's photos | Eval numbers recorded; nothing commits without a tap |
-| 8 | GST compliance | Workings, per-bill checks, IRN field, CA pack, rule-update workflow | Workings match hand-computed fixtures |
-| 9 | Wire: the rest | Invites, voice (Realtime), guide tour, Poocho, contract helper, flow audit | Every journey green; flow audit green for every role |
-| 10 | 500 businesses | Performance, load (sized), backups drill, metrics, rate limits, OTP on | k6 within budget; restore drill passed; OTP on/off shown |
-| 11 | Audit pack and handover | `docs/audit/*`, release tag | A fresh clone passes the CI profile from the README alone |
+| Stage | Name                            | Creates                                                                                                    | Stop point                                                                              |
+| ----- | ------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 0     | Ground                          | Repo scaffold, `packages/ui` kit from the pack, watcher, review loop, CI, deploy, nightly backup           | Kit on the VM in both themes; review ran; or "blocked on disk"                          |
+| 1     | **Screen flow**                 | Every screen in 8.0 as a clickable prototype on fixtures, both themes; `/flow`; tour highlight; tap counts | Operator approves; repeats until then                                                   |
+| 2     | Identity, tenancy, roles, audit | Users, businesses, memberships, sessions, audit, `ai_calls`, RLS, scope, switcher                          | Generated tenancy and roles tests green                                                 |
+| 3     | The engine                      | Money, tax, rule pack, document types, numbering, prepareIssue/issueDocument, workings                     | Engine ≥ MVP test parity; rule pack verified (≤ 3 unverified, accepted by the operator) |
+| 4     | Wire: profile and setup         | PAN, GSTIN, composition, turnover band, logo, signature, bank/UPI, series, bill look, theme                | Setup journey green with a signed, logo'd sample                                        |
+| 5     | Wire: customers and items       | Customers, items with HSN/SAC, import                                                                      | MVP import fixtures reproduce                                                           |
+| 6     | Wire: bills, money, sharing     | Documents, payments, credit notes, rendering, WhatsApp, dues, reminders                                    | Golden paths (a) and (b) within budget on real data                                     |
+| 7     | Photo → bill                    | Uploads, extractions, review screen, evaluation on the operator's photos                                   | Eval numbers recorded; nothing commits without a tap                                    |
+| 8     | GST compliance                  | Workings, per-bill checks, IRN field, CA pack, rule-update workflow                                        | Workings match hand-computed fixtures                                                   |
+| 9     | Wire: the rest                  | Invites, voice (Realtime), guide tour, Poocho, contract helper, flow audit                                 | Every journey green; flow audit green for every role                                    |
+| 10    | 500 businesses                  | Performance, load (sized), backups drill, metrics, rate limits, OTP on                                     | k6 within budget; restore drill passed; OTP on/off shown                                |
+| 11    | Audit pack and handover         | `docs/audit/*`, release tag                                                                                | A fresh clone passes the CI profile from the README alone                               |
 
 ---
 
@@ -505,7 +506,7 @@ Done when: a fresh clone in a temporary directory on the VM passes the CI profil
 
 ### 8.0 The screen flow this prompt decides (input to Stage 1)
 
-The design pack is the quality bar for how it looks: the Narangi warmth and Harmony glass, the dot-grid ground, the folder with peeking bills, the 36px hero radius, the lavender money panel, Urbanist with tabular figures, 44px targets. Stage 1 builds to that bar. What follows is what the app *is*; Stage 1 turns it into screens, and the operator approves or changes it on `/flow`.
+The design pack is the quality bar for how it looks: the Narangi warmth and Harmony glass, the dot-grid ground, the folder with peeking bills, the 36px hero radius, the lavender money panel, Urbanist with tabular figures, 44px targets. Stage 1 builds to that bar. What follows is what the app _is_; Stage 1 turns it into screens, and the operator approves or changes it on `/flow`.
 
 **Principle:** one screen asks one question; the primary action is where the thumb rests; the words are the owner's words. Nothing on Home that is not one of the three questions.
 
@@ -549,23 +550,23 @@ The design pack is the quality bar for how it looks: the Narangi warmth and Harm
 
 ### 8.1 What to salvage from the MVP (tag `mvp-final`), and what not to
 
-| MVP path | Into | Note |
-| --- | --- | --- |
-| `src/lib/money/index.ts` | `packages/engine/money.ts` | Paise, formatting, words |
-| `src/lib/gst/tax-engine.ts`, `ruleset.ts` | `packages/engine/tax.ts`, rule pack | Ruleset becomes JSON |
-| `src/lib/gst/gstin.ts`, `state-codes.ts` | `packages/engine/ids.ts`, `states.ts` | |
-| `src/lib/gst/scenarios.ts` | `packages/engine/assess.ts` | |
-| `src/server/repos/invoices.ts` (numbering, issuance shape) | `packages/engine/numbering.ts`, `issue.ts`; `packages/db/repos/documents.ts` | Keep behaviour |
-| `src/lib/domain/bill-guard.ts`, `bill-form.ts`, `contract.ts`, `language-guess.ts`, `whatsapp.ts` | `packages/engine` | |
-| `src/lib/gst-returns/workings.ts`, `export.ts`, `qrmp.ts` | `packages/engine/workings.ts` | |
-| `src/lib/dates.ts` | `packages/engine/dates.ts` | |
-| `src/lib/copy/*` | `packages/copy` | Merged with `design/copy/strings.json`; tests kept |
-| `src/server/pdf/*` | `packages/render`, worker | Designs, papers, JPEG, UPI QR |
-| `src/lib/import/*`, `src/server/import/*`, `src/lib/search/*`, `src/server/search/*` | worker + engine | |
-| `src/lib/voice/*`, `src/components/voice/*`, `src/app/api/voice/*`, `src/lib/guide/*`, `src/components/guide/*` | `apps/web/lib`, `apps/web/server` | Restyled with tokens; Stage 9 |
-| `scripts/e2e-*.mjs`, `tests/integration/payments.test.ts` | `tests/e2e`, `tests/integration` | Ported journeys, the flow audit, the payment lifecycle |
-| `scripts/local-postgres.sh`, `deploy/*` | `scripts/`, `deploy/` | Adapted; project `ekbill2`; `infra/gcp` not re-applied |
-| `docs/gst-owner-guide.md`, `owner-guide.md` | `docs/` | Updated |
+| MVP path                                                                                                        | Into                                                                         | Note                                                   |
+| --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `src/lib/money/index.ts`                                                                                        | `packages/engine/money.ts`                                                   | Paise, formatting, words                               |
+| `src/lib/gst/tax-engine.ts`, `ruleset.ts`                                                                       | `packages/engine/tax.ts`, rule pack                                          | Ruleset becomes JSON                                   |
+| `src/lib/gst/gstin.ts`, `state-codes.ts`                                                                        | `packages/engine/ids.ts`, `states.ts`                                        |                                                        |
+| `src/lib/gst/scenarios.ts`                                                                                      | `packages/engine/assess.ts`                                                  |                                                        |
+| `src/server/repos/invoices.ts` (numbering, issuance shape)                                                      | `packages/engine/numbering.ts`, `issue.ts`; `packages/db/repos/documents.ts` | Keep behaviour                                         |
+| `src/lib/domain/bill-guard.ts`, `bill-form.ts`, `contract.ts`, `language-guess.ts`, `whatsapp.ts`               | `packages/engine`                                                            |                                                        |
+| `src/lib/gst-returns/workings.ts`, `export.ts`, `qrmp.ts`                                                       | `packages/engine/workings.ts`                                                |                                                        |
+| `src/lib/dates.ts`                                                                                              | `packages/engine/dates.ts`                                                   |                                                        |
+| `src/lib/copy/*`                                                                                                | `packages/copy`                                                              | Merged with `design/copy/strings.json`; tests kept     |
+| `src/server/pdf/*`                                                                                              | `packages/render`, worker                                                    | Designs, papers, JPEG, UPI QR                          |
+| `src/lib/import/*`, `src/server/import/*`, `src/lib/search/*`, `src/server/search/*`                            | worker + engine                                                              |                                                        |
+| `src/lib/voice/*`, `src/components/voice/*`, `src/app/api/voice/*`, `src/lib/guide/*`, `src/components/guide/*` | `apps/web/lib`, `apps/web/server`                                            | Restyled with tokens; Stage 9                          |
+| `scripts/e2e-*.mjs`, `tests/integration/payments.test.ts`                                                       | `tests/e2e`, `tests/integration`                                             | Ported journeys, the flow audit, the payment lifecycle |
+| `scripts/local-postgres.sh`, `deploy/*`                                                                         | `scripts/`, `deploy/`                                                        | Adapted; project `ekbill2`; `infra/gcp` not re-applied |
+| `docs/gst-owner-guide.md`, `owner-guide.md`                                                                     | `docs/`                                                                      | Updated                                                |
 
 Do not copy: the jsonb document store, Firestore remnants, the old settings page, the MVP's CSS (the pack replaces it), the single-test-user AUTH_BYPASS (replaced by the switcher with roles), `tests/global-setup.ts` as is.
 
@@ -573,36 +574,36 @@ Do not copy: the jsonb document store, Firestore remnants, the old settings page
 
 Status as of 13 October 2026 from secondary sources; each entry must be checked against its official source before `verifiedOn` is set. IMS, e-way bills and registration thresholds are prose in `GST-RULES.md`, not pack entries.
 
-| File | Entry | Value to verify | Source to cite |
-| --- | --- | --- | --- |
-| rates.json | Slabs from 2025-09-22 (56th Council) | 0%, 5%, 18%, 40%, plus 0.25% and 3% special | CBIC rate notifications Sept 2025; PIB |
-| rates.json | Slabs before 2025-09-22 | 0, 5, 12, 18, 28 (+0.25, 3) for earlier-dated documents | Earlier schedules |
-| rates.json | 57th Council, 2026-10-08 | Recommendations only, no rate change; compliance changes pending notification — add nothing until notified | PIB "Recommendations of the 57th Meeting" |
-| document-types.json | Tax invoice mandatory fields | Rule 46: supplier name/address/GSTIN; unique serial ≤16 chars per FY; date; recipient details, GSTIN if registered; HSN/SAC; description; qty+unit; total; taxable value; tax split CGST/SGST/IGST/cess; place of supply with state for inter-state; delivery address if different; reverse-charge indicator; signature (not on e-invoice) | CGST Rules, Rule 46 |
-| document-types.json | B2C recipient details | Required when invoice value ≥ ₹50,000 to an unregistered recipient | Rule 46(e)/(f) |
-| document-types.json | Bill of supply | Composition and exempt/nil; no tax lines; the composition legend | Rule 49; Sec 31(3)(c) |
-| document-types.json | Credit note | Sec 34; declare by 30 Nov after FY end or the annual return, whichever earlier; Rule 53 fields | Sec 34, Rule 53 |
-| hsn.json | Digits on invoices | Turnover ≤ ₹5 crore: 4 digits B2B mandatory, B2C optional; > ₹5 crore: 6 digits; SAC 6 digits starting 99 | Notification 78/2020-CT |
-| e-invoice.json | Applicability | Turnover > ₹5 crore in any FY from 2017-18, from 2023-08-01; sector exemptions | Notification 10/2023-CT |
-| e-invoice.json | 30-day reporting | ≥ ₹10 crore from 2025-04-01 (one secondary source shows 2026 — resolve from the GSTN advisory) | GSTN advisory |
-| composition.json | Limits and legend | Goods ₹1.5 crore (₹75 lakh special states); services ₹50 lakh; cannot collect tax | Sec 10; Rule 7 |
-| place-of-supply.json | Supported cases | B2B: recipient's state; B2C goods: delivery state; B2C services: supplier's state unless tied to property/event → ask | IGST Act Sec 10–12 |
-| returns-calendar.json | Due days and locks | GSTR-1 11th / QRMP 13th; 3B 20th (22nd/24th QRMP); 3B outward auto-population non-editable from July 2025 (GSTR-1A for corrections); ITC Table 4 lock status unverified; 3-year filing limit | GSTN advisory 2025-06-07 |
-| hsn-index.json | Chapter-level HSN and SAC headings | From the CBIC rate schedules and SAC list; fetch date recorded | cbic-gst.gov.in |
+| File                  | Entry                                | Value to verify                                                                                                                                                                                                                                                                                                                            | Source to cite                            |
+| --------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
+| rates.json            | Slabs from 2025-09-22 (56th Council) | 0%, 5%, 18%, 40%, plus 0.25% and 3% special                                                                                                                                                                                                                                                                                                | CBIC rate notifications Sept 2025; PIB    |
+| rates.json            | Slabs before 2025-09-22              | 0, 5, 12, 18, 28 (+0.25, 3) for earlier-dated documents                                                                                                                                                                                                                                                                                    | Earlier schedules                         |
+| rates.json            | 57th Council, 2026-10-08             | Recommendations only, no rate change; compliance changes pending notification — add nothing until notified                                                                                                                                                                                                                                 | PIB "Recommendations of the 57th Meeting" |
+| document-types.json   | Tax invoice mandatory fields         | Rule 46: supplier name/address/GSTIN; unique serial ≤16 chars per FY; date; recipient details, GSTIN if registered; HSN/SAC; description; qty+unit; total; taxable value; tax split CGST/SGST/IGST/cess; place of supply with state for inter-state; delivery address if different; reverse-charge indicator; signature (not on e-invoice) | CGST Rules, Rule 46                       |
+| document-types.json   | B2C recipient details                | Required when invoice value ≥ ₹50,000 to an unregistered recipient                                                                                                                                                                                                                                                                         | Rule 46(e)/(f)                            |
+| document-types.json   | Bill of supply                       | Composition and exempt/nil; no tax lines; the composition legend                                                                                                                                                                                                                                                                           | Rule 49; Sec 31(3)(c)                     |
+| document-types.json   | Credit note                          | Sec 34; declare by 30 Nov after FY end or the annual return, whichever earlier; Rule 53 fields                                                                                                                                                                                                                                             | Sec 34, Rule 53                           |
+| hsn.json              | Digits on invoices                   | Turnover ≤ ₹5 crore: 4 digits B2B mandatory, B2C optional; > ₹5 crore: 6 digits; SAC 6 digits starting 99                                                                                                                                                                                                                                  | Notification 78/2020-CT                   |
+| e-invoice.json        | Applicability                        | Turnover > ₹5 crore in any FY from 2017-18, from 2023-08-01; sector exemptions                                                                                                                                                                                                                                                             | Notification 10/2023-CT                   |
+| e-invoice.json        | 30-day reporting                     | ≥ ₹10 crore from 2025-04-01 (one secondary source shows 2026 — resolve from the GSTN advisory)                                                                                                                                                                                                                                             | GSTN advisory                             |
+| composition.json      | Limits and legend                    | Goods ₹1.5 crore (₹75 lakh special states); services ₹50 lakh; cannot collect tax                                                                                                                                                                                                                                                          | Sec 10; Rule 7                            |
+| place-of-supply.json  | Supported cases                      | B2B: recipient's state; B2C goods: delivery state; B2C services: supplier's state unless tied to property/event → ask                                                                                                                                                                                                                      | IGST Act Sec 10–12                        |
+| returns-calendar.json | Due days and locks                   | GSTR-1 11th / QRMP 13th; 3B 20th (22nd/24th QRMP); 3B outward auto-population non-editable from July 2025 (GSTR-1A for corrections); ITC Table 4 lock status unverified; 3-year filing limit                                                                                                                                               | GSTN advisory 2025-06-07                  |
+| hsn-index.json        | Chapter-level HSN and SAC headings   | From the CBIC rate schedules and SAC list; fetch date recorded                                                                                                                                                                                                                                                                             | cbic-gst.gov.in                           |
 
 ### 8.3 Roles
 
-| Action | owner | staff | accountant |
-| --- | --- | --- | --- |
-| Business profile, series, look, signature, logo, theme | ✓ | | |
-| Invite / remove members | ✓ | | |
-| Add / edit customers and items | ✓ | ✓ | |
-| Make bills, read photos, issue | ✓ | ✓ | |
-| Record money, reminders | ✓ | ✓ | |
-| Cancel, credit note | ✓ | | |
-| See bills, dues, GST workings | ✓ | ✓ | ✓ |
-| Export the CA pack | ✓ | | ✓ |
-| Delete anything | nobody (archive only) | | |
+| Action                                                 | owner                 | staff | accountant |
+| ------------------------------------------------------ | --------------------- | ----- | ---------- |
+| Business profile, series, look, signature, logo, theme | ✓                     |       |            |
+| Invite / remove members                                | ✓                     |       |            |
+| Add / edit customers and items                         | ✓                     | ✓     |            |
+| Make bills, read photos, issue                         | ✓                     | ✓     |            |
+| Record money, reminders                                | ✓                     | ✓     |            |
+| Cancel, credit note                                    | ✓                     |       |            |
+| See bills, dues, GST workings                          | ✓                     | ✓     | ✓          |
+| Export the CA pack                                     | ✓                     |       | ✓          |
+| Delete anything                                        | nobody (archive only) |       |            |
 
 ### 8.4 Budgets
 
@@ -612,20 +613,20 @@ Golden paths per I9; page ≤ 200 KB JavaScript on the bill form; first paint �
 
 ## 9. Definition of done
 
-| Stage | Checks before STOP |
-| --- | --- |
-| 0 | `.env` confirmed; reviewer model ID recorded; MVP containers absent, `ekbill_pgdata` present; watcher and CI green; `/api/health` and `/kit` on the VM, or "blocked on disk" with numbers; kit visual baseline in both themes; tokens:check passes; nightly backup scheduled; review script proved |
-| 1 | Every screen in 8.0 exists in both themes at 390px; manifests complete and consistent; ≤ 1 primary per screen state (DOM); `/flow` live on the VM; SCREEN-FLOW.md regenerates; golden-path tap counts within I9 with the sequences listed; pixel differences against the nine reference PNGs reported; open questions with proposals; **the operator's "— APPROVED" line before Stage 2** |
-| 2 | "— APPROVED" recorded; generated tenancy and roles tests green; cross-tenant SQL 0 rows; audit trigger one row per write; RLS and model-actor refusals proven on raw connections; `ai_calls` exists with RLS; switcher journey green; FIELD-TRACE has user/business fields |
-| 3 | rules:check passes with ≤ 3 unverified listed; engine tests ≥ MVP count (numbers); purity lint passes; concurrency 1…50; immutability trigger refuses; one-engine on 20 fixtures; I2–I5 cited file:line |
-| 4 | Setup journey with signature, composition and "Pata nahi" branches, both themes; PAN/GSTIN consistency tests; file limits; owner-only writes; sample shows logo + signature; Stage 1 visual baselines unchanged (I10) |
-| 5 | MVP import fixtures reproduce; items uniqueness; customers and import journeys green; Stage 1 baselines unchanged (I10) |
-| 6 | Smoke and bills journeys green, both themes; four papers × two formats; payment lifecycle; one-engine includes the form; issue-time render ≤ 3 s; golden paths (a) and (b) within budget on real data; Stage 1 baselines unchanged (I10) |
-| 7 | Eval numbers on the real set with counts stated (accuracy, recall, total-match, abstention separately); malformed output → error row; commit needs a tap; cost per read; golden path (c); Stage 1 baselines unchanged (I10) |
-| 8 | Workings fixtures hand-checked; drill-down sums; every check pass/fail tested; xlsx parses back; gstr1.json validates against the GSTN sample; GST-RULES.md regenerates; pack within the cap; Stage 1 baselines unchanged (I10) |
-| 9 | All journeys green, both themes; flow audit green for owner, staff, accountant, demo; invite lifecycle; voice sessions logged; routes = manifests = SCREEN-FLOW; golden path (d); Stage 1 baselines unchanged (I10) |
-| 10 | Disk estimate before seeding; k6 within budgets at 500 tenants or the gap listed; seed removed; restore drill time; rate limits; OTP on/off with rollback; metrics test |
-| 11 | Fresh clone passes the CI profile from the README alone; audit pack complete; tag `v2.0.0-rc1` |
+| Stage | Checks before STOP                                                                                                                                                                                                                                                                                                                                                                        |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | `.env` confirmed; reviewer model ID recorded; MVP containers absent, `ekbill_pgdata` present; watcher and CI green; `/api/health` and `/kit` on the VM, or "blocked on disk" with numbers; kit visual baseline in both themes; tokens:check passes; nightly backup scheduled; review script proved                                                                                        |
+| 1     | Every screen in 8.0 exists in both themes at 390px; manifests complete and consistent; ≤ 1 primary per screen state (DOM); `/flow` live on the VM; SCREEN-FLOW.md regenerates; golden-path tap counts within I9 with the sequences listed; pixel differences against the nine reference PNGs reported; open questions with proposals; **the operator's "— APPROVED" line before Stage 2** |
+| 2     | "— APPROVED" recorded; generated tenancy and roles tests green; cross-tenant SQL 0 rows; audit trigger one row per write; RLS and model-actor refusals proven on raw connections; `ai_calls` exists with RLS; switcher journey green; FIELD-TRACE has user/business fields                                                                                                                |
+| 3     | rules:check passes with ≤ 3 unverified listed; engine tests ≥ MVP count (numbers); purity lint passes; concurrency 1…50; immutability trigger refuses; one-engine on 20 fixtures; I2–I5 cited file:line                                                                                                                                                                                   |
+| 4     | Setup journey with signature, composition and "Pata nahi" branches, both themes; PAN/GSTIN consistency tests; file limits; owner-only writes; sample shows logo + signature; Stage 1 visual baselines unchanged (I10)                                                                                                                                                                     |
+| 5     | MVP import fixtures reproduce; items uniqueness; customers and import journeys green; Stage 1 baselines unchanged (I10)                                                                                                                                                                                                                                                                   |
+| 6     | Smoke and bills journeys green, both themes; four papers × two formats; payment lifecycle; one-engine includes the form; issue-time render ≤ 3 s; golden paths (a) and (b) within budget on real data; Stage 1 baselines unchanged (I10)                                                                                                                                                  |
+| 7     | Eval numbers on the real set with counts stated (accuracy, recall, total-match, abstention separately); malformed output → error row; commit needs a tap; cost per read; golden path (c); Stage 1 baselines unchanged (I10)                                                                                                                                                               |
+| 8     | Workings fixtures hand-checked; drill-down sums; every check pass/fail tested; xlsx parses back; gstr1.json validates against the GSTN sample; GST-RULES.md regenerates; pack within the cap; Stage 1 baselines unchanged (I10)                                                                                                                                                           |
+| 9     | All journeys green, both themes; flow audit green for owner, staff, accountant, demo; invite lifecycle; voice sessions logged; routes = manifests = SCREEN-FLOW; golden path (d); Stage 1 baselines unchanged (I10)                                                                                                                                                                       |
+| 10    | Disk estimate before seeding; k6 within budgets at 500 tenants or the gap listed; seed removed; restore drill time; rate limits; OTP on/off with rollback; metrics test                                                                                                                                                                                                                   |
+| 11    | Fresh clone passes the CI profile from the README alone; audit pack complete; tag `v2.0.0-rc1`                                                                                                                                                                                                                                                                                            |
 
 Two honest numbers beat one composite: every rate is reported with what was attempted and what was correctly abstained from.
 

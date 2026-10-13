@@ -11,7 +11,11 @@ export const shared = {
     "row": "22px",
     "field": "16px",
     "pill": "999px",
-    "icon": "50%"
+    "icon": "50%",
+    "tile": "28px",
+    "chip": "12px",
+    "small": "8px",
+    "tip": "6px"
   },
   "space": {
     "gutter": "12px",
@@ -117,7 +121,8 @@ export const themes = {
       "nav-fg": "#45463E",
       "nav-active-bg": "#FFB020",
       "nav-active-fg": "#16170F",
-      "focus": "#16170F"
+      "focus": "#16170F",
+      "guide": "rgba(255,176,32,.55)"
     },
     "gradient": {
       "hero": "radial-gradient(110% 70% at 100% 0%, #6B1F08 0%, rgba(107,31,8,0) 60%), radial-gradient(80% 60% at 0% 100%, #FFE2B8 0%, rgba(255,226,184,0) 70%), linear-gradient(170deg, #8A2C0B 0%, #C2410C 32%, #F2762E 62%, #FFA95C 86%, #FFE0BD 100%)",
@@ -132,7 +137,8 @@ export const themes = {
       "card": "0 1px 0 rgba(0,0,0,.03), 0 18px 30px -26px rgba(22,23,15,.35)",
       "hero": "0 24px 40px -28px rgba(160,60,10,.6)",
       "cta": "0 20px 30px -18px rgba(200,110,10,.7)",
-      "nav": "0 18px 40px -18px rgba(22,23,15,.45)"
+      "nav": "0 18px 40px -18px rgba(22,23,15,.45)",
+      "guide": "0 0 0 3px rgba(255,176,32,.55), 0 0 28px 4px rgba(255,176,32,.35)"
     },
     "avatar": ["linear-gradient(140deg, #FFE6C7, #FDB27A)", "linear-gradient(140deg, #F6DDF0, #D9B8F2)", "linear-gradient(140deg, #D6F0EE, #9CCFD3)", "linear-gradient(140deg, #E5E3FA, #B9B3F0)"],
     "hero-style": "gradient-card"
@@ -174,7 +180,8 @@ export const themes = {
       "nav-active-bg": "rgba(255,255,255,.09)",
       "nav-active-fg": "#F2F5F2",
       "focus": "#68E78E",
-      "brand-charcoal": "#000B1A"
+      "brand-charcoal": "#000B1A",
+      "guide": "rgba(104,231,142,.55)"
     },
     "gradient": {
       "hero": "radial-gradient(80% 30% at 85% 0%, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 70%), linear-gradient(180deg, #3E8650 0%, #3A7E4B 50%, #336F42 100%)",
@@ -189,7 +196,8 @@ export const themes = {
       "card": "inset 0 0 0 1px rgba(255,255,255,.08)",
       "hero": "0 30px 50px -30px rgba(104,231,142,.45)",
       "cta": "inset 0 1px 0 rgba(255,255,255,.25), 0 20px 40px -18px rgba(104,231,142,.6)",
-      "nav": "inset 0 0 0 1px rgba(255,255,255,.08), 0 20px 40px -16px rgba(0,0,0,.8)"
+      "nav": "inset 0 0 0 1px rgba(255,255,255,.08), 0 20px 40px -16px rgba(0,0,0,.8)",
+      "guide": "0 0 0 3px rgba(104,231,142,.55), 0 0 28px 4px rgba(104,231,142,.35)"
     },
     "avatar": ["linear-gradient(140deg, #DDF7E4, #68E78E)", "linear-gradient(140deg, #FFFFFF, #BFC9C2)", "linear-gradient(140deg, #CFF3E6, #7FD1B4)", "linear-gradient(140deg, #E8F6C9, #A9D97A)"],
     "hero-style": "folder"

@@ -1,0 +1,31 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "react", "react-dom", "vitest/globals"],
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@ekbill/engine": ["./packages/engine/src/index.ts"],
+      "@ekbill/copy": ["./packages/copy/src/index.ts"],
+      "@ekbill/db": ["./packages/db/src/index.ts"],
+      "@ekbill/ai": ["./packages/ai/src/index.ts"],
+      "@ekbill/render": ["./packages/render/src/index.ts"],
+      "@ekbill/ui": ["./packages/ui/src/index.ts"],
+      "@ekbill/design/*": ["./design/*"],
+      "@/*": ["./apps/web/*"]
+    }
+  },
+  "include": [
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
+    "tests/**/*.ts",
+    "scripts/**/*.d.mts",
+    "design/tokens/tokens.ts",
+    "vitest.config.mts",
+    "playwright.config.ts",
+    "apps/web/next-env.d.ts",
+    "apps/web/.next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules", "**/node_modules", "**/.next", "**/dist", "tests/e2e/__screenshots__"]
+}

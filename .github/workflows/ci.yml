@@ -1,0 +1,69 @@
+name: ci
+# Push to main and pull requests: the watcher's checks once (lint, format,
+# types, unit, drizzle, rules, tokens, trace, flow, integration) against a
+# Postgres service, then Playwright without @slow. Load and evals run from
+# slow.yml on workflow_dispatch.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: ekbill2_test
+        ports: ['5440:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://postgres@127.0.0.1:5440/ekbill2_test
+      DATABASE_URL_TEST: postgres://postgres@127.0.0.1:5440/ekbill2_test
+      AUTH_MODE: switcher
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Watcher checks, once
+        run: npm run watch -- --once
+      - name: Watcher status
+        if: always()
+        run: cat .watch/status.json
+      - name: Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Build
+        run: npm run build
+      - name: Playwright (phone, both themes; @slow excluded)
+        env:
+          E2E_BASE_URL: http://127.0.0.1:3000
+        run: |
+          npm run db:migrate
+          (npm run start -w apps/web >/tmp/web.log 2>&1 &)
+          for i in $(seq 1 60); do curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1 && break; sleep 2; done
+          npx playwright test
+      - name: Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watch-and-playwright
+          path: |
+            .watch/
+            test-results/
+          if-no-files-found: ignore

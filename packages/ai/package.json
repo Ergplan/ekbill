@@ -1,0 +1,13 @@
+{
+  "name": "@ekbill/ai",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "The one model client (rule 9): typed calls, versioned prompts, retries, timeouts, one ai_calls row per call. Stage 7 adds the first real call.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "zod": "^4.1.0"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "name": "ekbill",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "EkBill v2: Hinglish GST billing for small Indian businesses",
+  "workspaces": [
+    "design",
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "dev:worker": "npm run dev -w apps/worker",
+    "build": "npm run build -w apps/web",
+    "start": "npm run start -w apps/web",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:all": "vitest run",
+    "e2e": "playwright test",
+    "watch": "node scripts/watch.mjs",
+    "review:stage": "node scripts/review-stage.mjs",
+    "tokens:check": "node scripts/tokens-check.mjs",
+    "rules:check": "node scripts/rules-check.mjs",
+    "trace": "node scripts/trace.mjs",
+    "trace:check": "node scripts/trace.mjs --check",
+    "flow": "node scripts/flow-map.mjs",
+    "flow:check": "node scripts/flow-map.mjs --check",
+    "db:start": "scripts/local-postgres.sh start",
+    "db:migrate": "node packages/db/migrate.mjs",
+    "db:generate": "drizzle-kit generate --config packages/db/drizzle.config.ts",
+    "db:check": "drizzle-kit check --config packages/db/drizzle.config.ts",
+    "seed": "node scripts/seed.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^24.10.0",
+    "@types/pg": "^8.15.5",
+    "@types/pixelmatch": "^5.2.6",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "drizzle-kit": "^0.31.11",
+    "eslint": "^10.0.0",
+    "eslint-plugin-react-hooks": "^7.1.0",
+    "pixelmatch": "^8.0.0",
+    "pngjs": "^7.0.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.4"
+  }
+}

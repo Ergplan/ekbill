@@ -1,0 +1,18 @@
+{
+  "name": "@ekbill/ui",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "The components from design/components.md plus v2's additions, built from tokens only, in both themes.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/ui.css"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "dependencies": {
+    "@ekbill/design": "*"
+  }
+}

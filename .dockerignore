@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+.next
+**/.next
+.git
+.watch
+.env
+test-results
+tests/e2e/__screenshots__
+docs
+design/screens
+apps/web/public/fonts
+*.tsbuildinfo

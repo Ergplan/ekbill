@@ -1,0 +1,71 @@
+name: slow
+# On demand: the @slow Playwright journeys, the load test (Stage 10) and the
+# model evaluations (Stage 7 onward). Paid model calls need the secrets below
+# set on the repository; without them the eval step is skipped, not failed.
+on:
+  workflow_dispatch:
+    inputs:
+      load:
+        description: Run the k6 load test (Stage 10)
+        type: boolean
+        default: false
+      evals:
+        description: Run the model evaluations (paid calls)
+        type: boolean
+        default: false
+
+jobs:
+  slow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: ekbill2_test
+        ports: ['5440:5432']
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgres://postgres@127.0.0.1:5440/ekbill2_test
+      DATABASE_URL_TEST: postgres://postgres@127.0.0.1:5440/ekbill2_test
+      AUTH_MODE: switcher
+      SLOW: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Playwright including @slow
+        env:
+          E2E_BASE_URL: http://127.0.0.1:3000
+        run: |
+          npm run db:migrate
+          (npm run start -w apps/web >/tmp/web.log 2>&1 &)
+          for i in $(seq 1 60); do curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1 && break; sleep 2; done
+          npx playwright test
+      - name: Load test
+        if: ${{ inputs.load }}
+        run: |
+          if [ -f tests/load/run.sh ]; then tests/load/run.sh; else echo "tests/load arrives in Stage 10"; fi
+      - name: Model evaluations
+        if: ${{ inputs.evals }}
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_VISION_MODEL: ${{ secrets.OPENAI_VISION_MODEL }}
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then echo "OPENAI_API_KEY secret not set; evals skipped"; exit 0; fi
+          if [ -f tests/evals/run.mjs ]; then node tests/evals/run.mjs; else echo "tests/evals arrives in Stage 7"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: slow-reports
+          path: |
+            .watch/
+            test-results/
+          if-no-files-found: ignore

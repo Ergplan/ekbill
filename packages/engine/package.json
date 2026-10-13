@@ -1,0 +1,13 @@
+{
+  "name": "@ekbill/engine",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "Pure TypeScript: money, dates, ids, tax, GST rules, assessment, numbering, issuance preparation, workings. No I/O (invariant I4).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "zod": "^4.1.0"
+  }
+}

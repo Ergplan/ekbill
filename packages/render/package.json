@@ -1,0 +1,10 @@
+{
+  "name": "@ekbill/render",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "InvoicePaper: the HTML templates a bill is printed from (designs, papers). Theme-independent: white paper, ink text, formal English.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

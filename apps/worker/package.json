@@ -1,0 +1,17 @@
+{
+  "name": "@ekbill/worker",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "Background jobs on a Postgres-backed queue (pg-boss): read-bill, render-other-sizes, index-search, reminders-due, backup-check.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@ekbill/db": "*",
+    "pg-boss": "^12.0.0",
+    "pino": "^10.0.0",
+    "tsx": "^4.20.0"
+  }
+}
