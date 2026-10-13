@@ -74,7 +74,7 @@ The pack's `00-kit.png` is a desktop component sheet laid out in columns; the `/
 - `npm run watch -- --once`: GREEN (see the demo above for the run list and timings).
 - `npx next build` (apps/web): compiled; routes `/`, `/_not-found`, `/api/health`, `/kit`.
 - Dev server with `DATABASE_URL=…/ekbill2_dev`: `/api/health` → `{"ok":true,…,"schema":"0000_ground.sql","lastBackup":"none"}`.
-- `npm run review:stage -- 0 --dry`: builds the four-input prompt from `stage-0-start..HEAD` (size printed in the terminal; no call made here — this container has no `.env`).
+- `npm run review:stage -- 0 --dry` on commit e2eeb6e: the four-input prompt is 412,807 characters (diff 359,829 without the lockfile, PNGs and fonts; CLAUDE.md 35,683; stage prompt 5,287; report 10,564). No call was made here: this container has no `.env`; the real review runs on the VM (step 6 below).
 
 ## On the VM (the operator's part of Stage 0)
 
