@@ -390,7 +390,7 @@
   "aap.dukaan.turnover": "Yearly turnover",
   "aap.paise": "How they pay you",
   "aap.paise.upi": "UPI",
-  "aap.paise.bank": "Bank (folded)",
+  "aap.paise.bank": "Bank",
   "aap.series": "Bill number series",
   "aap.series.next": "Next: {number}",
   "aap.look": "How the bill looks",
