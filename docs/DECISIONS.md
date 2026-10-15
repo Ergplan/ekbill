@@ -158,7 +158,7 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 
 ### Reviewer model ID
 
-- Decision: recorded by `npm run review:stage -- --check-model` on the VM once `.env` is filled; the ID is written here by the build agent in the Stage 0 session on the VM (not from this container, which has no `.env`).
+- Decision: `gpt-6.1-sol`. Resolved against the account's models list by `node scripts/review-stage.mjs --check-model` on the VM "ekbill" on 2026-10-15.
 - Why: rule 12; the agent cannot guess an ID from a nickname.
 - Asked by: the master prompt.
 
