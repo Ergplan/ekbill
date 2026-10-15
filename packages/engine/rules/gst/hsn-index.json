@@ -1,0 +1,532 @@
+{
+  "_note": "HSN chapters (Customs Tariff, as the GST rate schedules use them) and SAC headings (the GST SAC list), for the item screen's lookup and the HSN summary. Chapter-level only: the owner types the full 4/6-digit code; Stage 5's item screen offers these headings. The source URLs and the fetch date are recorded; fetched=false means the text was written from the schedules as known, not downloaded (the build container has no outbound web): npm run rules:verify refreshes the fetch date where the web is reachable.",
+  "version": "2026.10.15-stage3",
+  "sources": [
+    {
+      "what": "HSN chapters: CBIC GST rate schedules for goods",
+      "url": "https://cbic-gst.gov.in/gst-goods-services-rates.html"
+    },
+    {
+      "what": "SAC headings: CBIC services rate schedule / SAC list",
+      "url": "https://cbic-gst.gov.in/gst-goods-services-rates.html"
+    }
+  ],
+  "fetchedOn": "2026-10-15",
+  "fetched": false,
+  "hsnChapters": [
+    {
+      "chapter": "01",
+      "heading": "Live animals"
+    },
+    {
+      "chapter": "02",
+      "heading": "Meat and edible meat offal"
+    },
+    {
+      "chapter": "03",
+      "heading": "Fish, crustaceans, molluscs"
+    },
+    {
+      "chapter": "04",
+      "heading": "Dairy produce; eggs; honey"
+    },
+    {
+      "chapter": "05",
+      "heading": "Products of animal origin, not elsewhere specified"
+    },
+    {
+      "chapter": "06",
+      "heading": "Live trees and plants; cut flowers"
+    },
+    {
+      "chapter": "07",
+      "heading": "Edible vegetables, roots and tubers"
+    },
+    {
+      "chapter": "08",
+      "heading": "Edible fruit and nuts; peel of citrus or melons"
+    },
+    {
+      "chapter": "09",
+      "heading": "Coffee, tea, maté and spices"
+    },
+    {
+      "chapter": "10",
+      "heading": "Cereals"
+    },
+    {
+      "chapter": "11",
+      "heading": "Milling products; malt; starches; wheat gluten"
+    },
+    {
+      "chapter": "12",
+      "heading": "Oil seeds and oleaginous fruits; miscellaneous grains, seeds; industrial or medicinal plants; straw and fodder"
+    },
+    {
+      "chapter": "13",
+      "heading": "Lac; gums, resins and other vegetable saps and extracts"
+    },
+    {
+      "chapter": "14",
+      "heading": "Vegetable plaiting materials; vegetable products not elsewhere specified"
+    },
+    {
+      "chapter": "15",
+      "heading": "Animal, vegetable or microbial fats and oils; prepared edible fats; waxes"
+    },
+    {
+      "chapter": "16",
+      "heading": "Preparations of meat, fish, crustaceans or molluscs"
+    },
+    {
+      "chapter": "17",
+      "heading": "Sugars and sugar confectionery"
+    },
+    {
+      "chapter": "18",
+      "heading": "Cocoa and cocoa preparations"
+    },
+    {
+      "chapter": "19",
+      "heading": "Preparations of cereals, flour, starch or milk; pastrycooks' products"
+    },
+    {
+      "chapter": "20",
+      "heading": "Preparations of vegetables, fruit, nuts or other parts of plants"
+    },
+    {
+      "chapter": "21",
+      "heading": "Miscellaneous edible preparations"
+    },
+    {
+      "chapter": "22",
+      "heading": "Beverages, spirits and vinegar"
+    },
+    {
+      "chapter": "23",
+      "heading": "Residues and waste from the food industries; prepared animal fodder"
+    },
+    {
+      "chapter": "24",
+      "heading": "Tobacco and manufactured tobacco substitutes"
+    },
+    {
+      "chapter": "25",
+      "heading": "Salt; sulphur; earths and stone; plastering materials, lime and cement"
+    },
+    {
+      "chapter": "26",
+      "heading": "Ores, slag and ash"
+    },
+    {
+      "chapter": "27",
+      "heading": "Mineral fuels, mineral oils and products of their distillation; bituminous substances; mineral waxes"
+    },
+    {
+      "chapter": "28",
+      "heading": "Inorganic chemicals; compounds of precious metals, rare-earth metals, radioactive elements or isotopes"
+    },
+    {
+      "chapter": "29",
+      "heading": "Organic chemicals"
+    },
+    {
+      "chapter": "30",
+      "heading": "Pharmaceutical products"
+    },
+    {
+      "chapter": "31",
+      "heading": "Fertilisers"
+    },
+    {
+      "chapter": "32",
+      "heading": "Tanning or dyeing extracts; tannins; dyes, pigments and colouring matter; paints and varnishes; putty; inks"
+    },
+    {
+      "chapter": "33",
+      "heading": "Essential oils and resinoids; perfumery, cosmetic or toilet preparations"
+    },
+    {
+      "chapter": "34",
+      "heading": "Soap, washing and lubricating preparations; waxes, candles, modelling pastes, dental preparations"
+    },
+    {
+      "chapter": "35",
+      "heading": "Albuminoidal substances; modified starches; glues; enzymes"
+    },
+    {
+      "chapter": "36",
+      "heading": "Explosives; pyrotechnic products; matches; pyrophoric alloys; combustible preparations"
+    },
+    {
+      "chapter": "37",
+      "heading": "Photographic or cinematographic goods"
+    },
+    {
+      "chapter": "38",
+      "heading": "Miscellaneous chemical products"
+    },
+    {
+      "chapter": "39",
+      "heading": "Plastics and articles thereof"
+    },
+    {
+      "chapter": "40",
+      "heading": "Rubber and articles thereof"
+    },
+    {
+      "chapter": "41",
+      "heading": "Raw hides and skins (other than furskins) and leather"
+    },
+    {
+      "chapter": "42",
+      "heading": "Articles of leather; saddlery and harness; travel goods, handbags; articles of animal gut"
+    },
+    {
+      "chapter": "43",
+      "heading": "Furskins and artificial fur; manufactures thereof"
+    },
+    {
+      "chapter": "44",
+      "heading": "Wood and articles of wood; wood charcoal"
+    },
+    {
+      "chapter": "45",
+      "heading": "Cork and articles of cork"
+    },
+    {
+      "chapter": "46",
+      "heading": "Manufactures of straw, esparto or other plaiting materials; basketware and wickerwork"
+    },
+    {
+      "chapter": "47",
+      "heading": "Pulp of wood or of other fibrous cellulosic material; recovered paper or paperboard"
+    },
+    {
+      "chapter": "48",
+      "heading": "Paper and paperboard; articles of paper pulp, paper or paperboard"
+    },
+    {
+      "chapter": "49",
+      "heading": "Printed books, newspapers, pictures and other products of the printing industry; manuscripts, typescripts and plans"
+    },
+    {
+      "chapter": "50",
+      "heading": "Silk"
+    },
+    {
+      "chapter": "51",
+      "heading": "Wool, fine or coarse animal hair; horsehair yarn and woven fabric"
+    },
+    {
+      "chapter": "52",
+      "heading": "Cotton"
+    },
+    {
+      "chapter": "53",
+      "heading": "Other vegetable textile fibres; paper yarn and woven fabrics of paper yarn"
+    },
+    {
+      "chapter": "54",
+      "heading": "Man-made filaments; strip and the like of man-made textile materials"
+    },
+    {
+      "chapter": "55",
+      "heading": "Man-made staple fibres"
+    },
+    {
+      "chapter": "56",
+      "heading": "Wadding, felt and nonwovens; special yarns; twine, cordage, ropes and cables"
+    },
+    {
+      "chapter": "57",
+      "heading": "Carpets and other textile floor coverings"
+    },
+    {
+      "chapter": "58",
+      "heading": "Special woven fabrics; tufted textile fabrics; lace; tapestries; trimmings; embroidery"
+    },
+    {
+      "chapter": "59",
+      "heading": "Impregnated, coated, covered or laminated textile fabrics; textile articles for industrial use"
+    },
+    {
+      "chapter": "60",
+      "heading": "Knitted or crocheted fabrics"
+    },
+    {
+      "chapter": "61",
+      "heading": "Articles of apparel and clothing accessories, knitted or crocheted"
+    },
+    {
+      "chapter": "62",
+      "heading": "Articles of apparel and clothing accessories, not knitted or crocheted"
+    },
+    {
+      "chapter": "63",
+      "heading": "Other made-up textile articles; sets; worn clothing and worn textile articles; rags"
+    },
+    {
+      "chapter": "64",
+      "heading": "Footwear, gaiters and the like; parts of such articles"
+    },
+    {
+      "chapter": "65",
+      "heading": "Headgear and parts thereof"
+    },
+    {
+      "chapter": "66",
+      "heading": "Umbrellas, sun umbrellas, walking sticks, seat-sticks, whips, riding-crops and parts thereof"
+    },
+    {
+      "chapter": "67",
+      "heading": "Prepared feathers and down; artificial flowers; articles of human hair"
+    },
+    {
+      "chapter": "68",
+      "heading": "Articles of stone, plaster, cement, asbestos, mica or similar materials"
+    },
+    {
+      "chapter": "69",
+      "heading": "Ceramic products"
+    },
+    {
+      "chapter": "70",
+      "heading": "Glass and glassware"
+    },
+    {
+      "chapter": "71",
+      "heading": "Natural or cultured pearls, precious or semi-precious stones, precious metals; imitation jewellery; coin"
+    },
+    {
+      "chapter": "72",
+      "heading": "Iron and steel"
+    },
+    {
+      "chapter": "73",
+      "heading": "Articles of iron or steel"
+    },
+    {
+      "chapter": "74",
+      "heading": "Copper and articles thereof"
+    },
+    {
+      "chapter": "75",
+      "heading": "Nickel and articles thereof"
+    },
+    {
+      "chapter": "76",
+      "heading": "Aluminium and articles thereof"
+    },
+    {
+      "chapter": "78",
+      "heading": "Lead and articles thereof"
+    },
+    {
+      "chapter": "79",
+      "heading": "Zinc and articles thereof"
+    },
+    {
+      "chapter": "80",
+      "heading": "Tin and articles thereof"
+    },
+    {
+      "chapter": "81",
+      "heading": "Other base metals; cermets; articles thereof"
+    },
+    {
+      "chapter": "82",
+      "heading": "Tools, implements, cutlery, spoons and forks, of base metal; parts thereof"
+    },
+    {
+      "chapter": "83",
+      "heading": "Miscellaneous articles of base metal"
+    },
+    {
+      "chapter": "84",
+      "heading": "Nuclear reactors, boilers, machinery and mechanical appliances; parts thereof"
+    },
+    {
+      "chapter": "85",
+      "heading": "Electrical machinery and equipment and parts thereof; sound and television recorders and reproducers"
+    },
+    {
+      "chapter": "86",
+      "heading": "Railway or tramway locomotives, rolling-stock and parts; track fixtures and fittings; signalling equipment"
+    },
+    {
+      "chapter": "87",
+      "heading": "Vehicles other than railway or tramway rolling-stock, and parts and accessories thereof"
+    },
+    {
+      "chapter": "88",
+      "heading": "Aircraft, spacecraft, and parts thereof"
+    },
+    {
+      "chapter": "89",
+      "heading": "Ships, boats and floating structures"
+    },
+    {
+      "chapter": "90",
+      "heading": "Optical, photographic, cinematographic, measuring, checking, precision, medical or surgical instruments; parts"
+    },
+    {
+      "chapter": "91",
+      "heading": "Clocks and watches and parts thereof"
+    },
+    {
+      "chapter": "92",
+      "heading": "Musical instruments; parts and accessories"
+    },
+    {
+      "chapter": "93",
+      "heading": "Arms and ammunition; parts and accessories"
+    },
+    {
+      "chapter": "94",
+      "heading": "Furniture; bedding, mattresses, cushions; lamps and lighting fittings; prefabricated buildings"
+    },
+    {
+      "chapter": "95",
+      "heading": "Toys, games and sports requisites; parts and accessories"
+    },
+    {
+      "chapter": "96",
+      "heading": "Miscellaneous manufactured articles"
+    },
+    {
+      "chapter": "97",
+      "heading": "Works of art, collectors' pieces and antiques"
+    },
+    {
+      "chapter": "98",
+      "heading": "Project imports; laboratory chemicals; passengers' baggage; personal importations by air or post; ship stores"
+    }
+  ],
+  "sacHeadings": [
+    {
+      "code": "9954",
+      "heading": "Construction services"
+    },
+    {
+      "code": "9961",
+      "heading": "Services in wholesale trade"
+    },
+    {
+      "code": "9962",
+      "heading": "Services in retail trade"
+    },
+    {
+      "code": "9963",
+      "heading": "Accommodation, food and beverage services"
+    },
+    {
+      "code": "9964",
+      "heading": "Passenger transport services"
+    },
+    {
+      "code": "9965",
+      "heading": "Goods transport services"
+    },
+    {
+      "code": "9966",
+      "heading": "Rental services of transport vehicles with operators"
+    },
+    {
+      "code": "9967",
+      "heading": "Supporting services in transport"
+    },
+    {
+      "code": "9968",
+      "heading": "Postal and courier services"
+    },
+    {
+      "code": "9969",
+      "heading": "Electricity, gas, water and other distribution services"
+    },
+    {
+      "code": "9971",
+      "heading": "Financial and related services"
+    },
+    {
+      "code": "9972",
+      "heading": "Real estate services"
+    },
+    {
+      "code": "9973",
+      "heading": "Leasing or rental services without operator"
+    },
+    {
+      "code": "9981",
+      "heading": "Research and development services"
+    },
+    {
+      "code": "9982",
+      "heading": "Legal and accounting services"
+    },
+    {
+      "code": "9983",
+      "heading": "Other professional, technical and business services"
+    },
+    {
+      "code": "9984",
+      "heading": "Telecommunications, broadcasting and information supply services"
+    },
+    {
+      "code": "9985",
+      "heading": "Support services (employment, security, cleaning, packaging, travel arrangement)"
+    },
+    {
+      "code": "9986",
+      "heading": "Support services to agriculture, hunting, forestry, fishing, mining and utilities"
+    },
+    {
+      "code": "9987",
+      "heading": "Maintenance, repair and installation (except construction) services"
+    },
+    {
+      "code": "9988",
+      "heading": "Manufacturing services on physical inputs (goods) owned by others"
+    },
+    {
+      "code": "9989",
+      "heading": "Other manufacturing services; publishing, printing and reproduction services; materials recovery services"
+    },
+    {
+      "code": "9991",
+      "heading": "Public administration and other services provided to the community as a whole; compulsory social security services"
+    },
+    {
+      "code": "9992",
+      "heading": "Education services"
+    },
+    {
+      "code": "9993",
+      "heading": "Human health and social care services"
+    },
+    {
+      "code": "9994",
+      "heading": "Sewage and waste collection, treatment and disposal and other environmental protection services"
+    },
+    {
+      "code": "9995",
+      "heading": "Services of membership organisations"
+    },
+    {
+      "code": "9996",
+      "heading": "Recreational, cultural and sporting services"
+    },
+    {
+      "code": "9997",
+      "heading": "Other services (washing, beauty, funeral, other)"
+    },
+    {
+      "code": "9998",
+      "heading": "Domestic services"
+    },
+    {
+      "code": "9999",
+      "heading": "Services provided by extraterritorial organisations and bodies"
+    }
+  ]
+}

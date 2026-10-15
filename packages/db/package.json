@@ -9,6 +9,7 @@
     "./migrate": "./migrate.mjs"
   },
   "dependencies": {
+    "@ekbill/engine": "2.0.0-dev",
     "drizzle-orm": "^0.45.0",
     "pg": "^8.16.0"
   }

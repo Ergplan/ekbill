@@ -149,3 +149,297 @@ describe('the rule pack (I5)', () => {
     expect(emptyTax()).toMatchObject({ totalPaise: 0, heads: [], rulesApplied: [] });
   });
 });
+
+/**
+ * Twenty fixtures through the one engine (I4): the figures a bill prints,
+ * the snapshot an issued document keeps, and the GSTR-1 table built from
+ * that snapshot are the same numbers, because the same code produced them.
+ */
+import { prepareIssue, type IssueBusiness, type IssueCustomer } from '../../packages/engine/src/issue';
+import { buildGstr1, outwardDocumentsFromSnapshots } from '../../packages/engine/src/workings';
+
+interface Fixture {
+  name: string;
+  input: TaxInput;
+  expect: Partial<
+    Pick<
+      TaxResult20,
+      | 'subtotalPaise'
+      | 'cgstPaise'
+      | 'statePaise'
+      | 'igstPaise'
+      | 'cessPaise'
+      | 'gstPaise'
+      | 'totalPaise'
+      | 'roundOffPaise'
+      | 'grossPaise'
+      | 'discountPaise'
+      | 'supply'
+      | 'stateHead'
+      | 'documentKind'
+    >
+  > & {
+    heads?: Array<{ label: string; paise: number }>;
+  };
+  /** When the fixture is also issued: the customer, with what the thresholds need. */
+  customer?: Partial<IssueCustomer>;
+  /** When issuing this fixture is rightly refused: the blocker's code. */
+  refused?: string;
+}
+type TaxResult20 = ReturnType<typeof computeTax>;
+
+const L = (description: string, pricePaise: number, gstBp: number, extra: Record<string, unknown> = {}) => ({
+  description,
+  quantityMilli: 1000,
+  unitPricePaise: pricePaise,
+  gstBp,
+  ...extra,
+});
+const FIXTURES: Fixture[] = [
+  {
+    name: '1 one line at 18% within the state',
+    input: { ...intra, lines: [L('AMC visit', 100000, 1800)] },
+    expect: {
+      subtotalPaise: 100000,
+      cgstPaise: 9000,
+      statePaise: 9000,
+      gstPaise: 18000,
+      totalPaise: 118000,
+      supply: 'intra',
+      documentKind: 'tax-invoice',
+      heads: [
+        { label: 'CGST 9%', paise: 9000 },
+        { label: 'SGST 9%', paise: 9000 },
+      ],
+    },
+  },
+  {
+    name: '2 the same line to another state',
+    input: { ...inter, lines: [L('AMC visit', 100000, 1800)] },
+    expect: {
+      igstPaise: 18000,
+      cgstPaise: 0,
+      statePaise: 0,
+      totalPaise: 118000,
+      supply: 'inter',
+      heads: [{ label: 'IGST 18%', paise: 18000 }],
+    },
+    customer: { stateCode: '23' },
+  },
+  {
+    name: '3 mixed rates, 5% and 18%',
+    input: { ...intra, lines: [L('Rice', 100000, 500), L('Fan', 200000, 1800)] },
+    expect: {
+      subtotalPaise: 300000,
+      cgstPaise: 20500,
+      statePaise: 20500,
+      gstPaise: 41000,
+      totalPaise: 341000,
+      heads: [
+        { label: 'CGST', paise: 20500 },
+        { label: 'SGST', paise: 20500 },
+      ],
+    },
+  },
+  {
+    name: '4 a price that includes tax',
+    input: { ...intra, lines: [L('Service', 118000, 1800, { priceIncludesTax: true })] },
+    expect: { grossPaise: 118000, subtotalPaise: 100000, gstPaise: 18000, totalPaise: 118000 },
+  },
+  {
+    name: '5 a discount before tax',
+    input: { ...intra, lines: [L('Fan', 100000, 1800, { discountPaise: 10000 })] },
+    expect: {
+      grossPaise: 100000,
+      discountPaise: 10000,
+      subtotalPaise: 90000,
+      cgstPaise: 8100,
+      statePaise: 8100,
+      totalPaise: 106200,
+    },
+  },
+  {
+    name: '6 cess on top of 28%',
+    input: { ...intra, lines: [L('Aerated drink', 100000, 2800, { cessBp: 1200 })] },
+    expect: {
+      cgstPaise: 14000,
+      statePaise: 14000,
+      cessPaise: 12000,
+      gstPaise: 40000,
+      totalPaise: 140000,
+      heads: [
+        { label: 'CGST 14%', paise: 14000 },
+        { label: 'SGST 14%', paise: 14000 },
+        { label: 'Cess', paise: 12000 },
+      ],
+    },
+  },
+  {
+    name: '7 rounded down to the rupee',
+    input: { ...intra, roundToRupee: true, lines: [L('Part', 10033, 1800)] },
+    expect: {
+      cgstPaise: 903,
+      statePaise: 903,
+      roundOffPaise: -39,
+      totalPaise: 11800,
+      heads: [
+        { label: 'CGST 9%', paise: 903 },
+        { label: 'SGST 9%', paise: 903 },
+        { label: 'Round off', paise: -39 },
+      ],
+    },
+  },
+  {
+    name: '8 rounded up to the rupee',
+    input: { ...intra, roundToRupee: true, lines: [L('Part', 10066, 1800)] },
+    expect: { cgstPaise: 906, statePaise: 906, roundOffPaise: 22, totalPaise: 11900 },
+  },
+  {
+    name: '9 a quantity in parts',
+    input: { ...intra, lines: [{ ...L('Cable', 10000, 1800), quantityMilli: 2500 }] },
+    expect: { grossPaise: 25000, cgstPaise: 2250, statePaise: 2250, totalPaise: 29500 },
+  },
+  {
+    name: '10 a union territory names UTGST',
+    input: { ...intra, sellerStateCode: '04', customerStateCode: '04', lines: [L('Repair', 10000, 1800)] },
+    expect: {
+      stateHead: 'UTGST',
+      cgstPaise: 900,
+      statePaise: 900,
+      heads: [
+        { label: 'CGST 9%', paise: 900 },
+        { label: 'UTGST 9%', paise: 900 },
+      ],
+    },
+  },
+  {
+    name: '11 a composition business charges nothing',
+    input: { ...intra, registration: 'composition', lines: [L('Sweets', 100000, 0)] },
+    expect: { gstPaise: 0, totalPaise: 100000, documentKind: 'bill-of-supply', heads: [] },
+  },
+  {
+    name: '12 an unregistered business charges nothing',
+    input: { ...intra, registration: 'unregistered', lines: [L('Tuition', 100000, 1800)] },
+    expect: { gstPaise: 0, totalPaise: 100000, documentKind: 'invoice', heads: [] },
+  },
+  {
+    name: '13 a registered business with GST off for this bill',
+    input: { ...intra, gstOn: false, lines: [L('Scrap', 100000, 1800)] },
+    expect: { gstPaise: 0, totalPaise: 100000, documentKind: 'invoice', heads: [] },
+  },
+  {
+    name: '14 a nil-rated line on a tax invoice',
+    input: { ...intra, lines: [L('Fresh vegetables', 100000, 0)] },
+    expect: { gstPaise: 0, totalPaise: 100000, documentKind: 'tax-invoice', heads: [] },
+  },
+  {
+    name: '15 three paise at 18% round to nothing on each head',
+    input: { ...intra, lines: [L('Pin', 3, 1800)] },
+    expect: { cgstPaise: 0, statePaise: 0, totalPaise: 3 },
+  },
+  {
+    name: '16 an odd basis-point rate keeps every paisa',
+    input: { ...intra, lines: [L('Odd', 100000, 101)] },
+    expect: { cgstPaise: 505, statePaise: 505, gstPaise: 1010, totalPaise: 101010 },
+  },
+  {
+    name: '17 a customer whose state is unknown is treated as local',
+    input: { ...intra, customerStateCode: null, lines: [L('Visit', 100000, 1800)] },
+    expect: { supply: 'intra', cgstPaise: 9000, statePaise: 9000 },
+    customer: { stateCode: null },
+    // The arithmetic has an answer; a tax invoice still cannot go out without a place of supply.
+    refused: 'missing-place-of-supply',
+  },
+  {
+    name: '18 an old date carries the old 12% rate',
+    input: { ...intra, dateIso: '2025-09-21', lines: [L('Umbrella', 100000, 1200)] },
+    expect: { cgstPaise: 6000, statePaise: 6000, totalPaise: 112000 },
+  },
+  {
+    name: '19 a blank line carries no value',
+    input: { ...intra, lines: [L('Visit', 10000, 1800), L('', 20000, 1800)] },
+    expect: { subtotalPaise: 10000, totalPaise: 11800 },
+  },
+  {
+    name: '20 a crore-rupee bill',
+    input: { ...intra, lines: [L('Turnkey project', 1000000000, 1800)] },
+    expect: { subtotalPaise: 1000000000, cgstPaise: 90000000, statePaise: 90000000, totalPaise: 1180000000 },
+    customer: { address: '4, MIDC, Nagpur', stateCode: '27' },
+  },
+];
+
+const seller: IssueBusiness = {
+  registration: 'regular',
+  gstin: '27AAPFU0939F1ZV',
+  stateCode: '27',
+  turnoverPaise: 50000000,
+  eInvoiceSelfDeclaredNotApplicable: true,
+  legalName: 'Sharma Electricals',
+  tradeName: 'Sharma Electricals',
+  address: '12, Dharampeth, Nagpur',
+  city: 'Nagpur',
+  phone: '+919876543210',
+  upi: 'sharma@upi',
+};
+const walkIn: IssueCustomer = { id: null, name: 'Priya', gstin: null, stateCode: '27', address: null, phone: null };
+
+describe('twenty fixtures through the one engine (I4)', () => {
+  it.each(FIXTURES)('$name', (f) => {
+    const { heads, ...rest } = f.expect;
+    const r = computeTax(f.input);
+    expect(r).toMatchObject(rest);
+    if (heads) expect(r.heads).toEqual(heads);
+    // The ledger identity holds on every fixture.
+    expect(r.gstPaise).toBe(r.cgstPaise + r.statePaise + r.igstPaise + r.cessPaise);
+    expect(r.totalPaise).toBe(r.subtotalPaise + r.gstPaise + r.roundOffPaise);
+    // Gross less discount is the taxable value, or, for a price that includes tax, the value with tax.
+    const inclusive = f.input.lines.some((l) => l.priceIncludesTax);
+    expect(inclusive ? r.totalBeforeRoundingPaise : r.subtotalPaise).toBe(r.grossPaise - r.discountPaise);
+    expect(r.rateSummary.reduce((s, row) => s + row.taxablePaise, 0)).toBe(r.subtotalPaise);
+  });
+
+  it.each(FIXTURES)('$name: the issued snapshot and the GSTR-1 built from it carry the same figures', (f) => {
+    const business: IssueBusiness = {
+      ...seller,
+      registration: f.input.registration,
+      gstin: f.input.registration === 'regular' ? seller.gstin : null,
+      stateCode: f.input.sellerStateCode,
+    };
+    const customer: IssueCustomer = { ...walkIn, stateCode: f.input.customerStateCode, ...f.customer };
+    const result = prepareIssue(
+      {
+        kind: 'bill',
+        dateIso: f.input.dateIso,
+        gstOn: f.input.gstOn,
+        roundToRupee: f.input.roundToRupee,
+        placeOfSupplyStateCode: f.input.customerStateCode,
+        lines: f.input.lines.map((l) => ({ ...l, taxRateChosen: true })),
+      },
+      business,
+      customer,
+      GST_RULES,
+      DATE,
+    );
+    if (f.refused) {
+      expect(result.ok).toBe(false);
+      expect(!result.ok && result.blockers.map((b) => b.code)).toContain(f.refused);
+      return;
+    }
+    expect(result.ok, JSON.stringify(result.ok ? null : result.blockers)).toBe(true);
+    if (!result.ok) return;
+    const direct = computeTax(f.input);
+    expect(result.snapshot.totals.totalPaise).toBe(direct.totalPaise);
+    expect(result.snapshot.totals.gstPaise).toBe(direct.gstPaise);
+    expect(result.snapshot.rulesApplied).toEqual(expect.arrayContaining(direct.rulesApplied));
+    if (result.kind !== 'tax-invoice') return;
+    const period = f.input.dateIso.slice(0, 7);
+    const outward = outwardDocumentsFromSnapshots([
+      { id: 'doc', number: 'INV-1', status: 'issued', snapshot: result.snapshot },
+    ]);
+    const gstr1 = buildGstr1({ period, documents: outward });
+    expect(gstr1.totals.taxablePaise).toBe(direct.subtotalPaise);
+    expect(gstr1.totals.cgstPaise + gstr1.totals.statePaise + gstr1.totals.igstPaise + gstr1.totals.cessPaise).toBe(
+      direct.gstPaise,
+    );
+  });
+});

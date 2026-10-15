@@ -1,0 +1,127 @@
+{
+  "_note": "GST rule pack (I5): when returns fall due and what the portal locks (GSTN advisories; CGST Rules 59, 61).",
+  "version": "2026.10.15-stage3",
+  "effectiveFrom": "2017-07-01",
+  "entries": [
+    {
+      "id": "gstr1-monthly-due",
+      "kind": "due-date",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "form": "GSTR-1",
+      "frequency": "monthly",
+      "dayOfNextMonth": 11,
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "verify": {
+        "mustContain": ["GSTR-1", "11th"]
+      },
+      "explain": {
+        "en": "A monthly GSTR-1 is due on the 11th of the next month.",
+        "hi-Latn": "Mahine wali GSTR-1 agle mahine ki 11 tarikh tak."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "gstr1-quarterly-due",
+      "kind": "due-date",
+      "effectiveFrom": "2021-01-01",
+      "effectiveTo": null,
+      "form": "GSTR-1",
+      "frequency": "quarterly",
+      "dayAfterQuarterEnd": 13,
+      "iffDayOfNextMonth": 13,
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "verify": {
+        "mustContain": ["GSTR-1", "13th", "QRMP"]
+      },
+      "explain": {
+        "en": "A quarterly GSTR-1 under QRMP is due on the 13th of the month after the quarter; IFF for months 1 and 2 by the 13th of the next month.",
+        "hi-Latn": "QRMP mein quarter wali GSTR-1 quarter ke agle mahine ki 13 tak; IFF 13 tak."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "gstr3b-monthly-due",
+      "kind": "due-date",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "form": "GSTR-3B",
+      "frequency": "monthly",
+      "dayOfNextMonth": 20,
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "verify": {
+        "mustContain": ["GSTR-3B", "20th"]
+      },
+      "explain": {
+        "en": "A monthly GSTR-3B is due on the 20th of the next month.",
+        "hi-Latn": "Mahine wali GSTR-3B agle mahine ki 20 tak."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "gstr3b-quarterly-due",
+      "kind": "due-date",
+      "effectiveFrom": "2021-01-01",
+      "effectiveTo": null,
+      "form": "GSTR-3B",
+      "frequency": "quarterly",
+      "dayAfterQuarterEnd": 24,
+      "dayAfterQuarterEndGroupA": 22,
+      "groupAStates": ["24", "27", "29", "30", "32", "33", "34", "36", "37", "26", "25", "31"],
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "verify": {
+        "mustContain": ["GSTR-3B", "22nd", "24th"]
+      },
+      "explain": {
+        "en": "A quarterly GSTR-3B is due on the 22nd of the month after the quarter in the southern and western States and the 24th elsewhere.",
+        "hi-Latn": "QRMP mein GSTR-3B quarter ke agle mahine ki 22 (dakshin-paschim States) ya 24 tak."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "gstr3b-outward-locked-2025",
+      "kind": "portal-lock",
+      "effectiveFrom": "2025-07-01",
+      "effectiveTo": null,
+      "locks": ["3b.outward"],
+      "correctionForm": "GSTR-1A",
+      "source": "https://www.gst.gov.in/newsandupdates/read/592",
+      "verify": {
+        "mustContain": ["GSTR-3B", "non-editable", "GSTR-1A"]
+      },
+      "explain": {
+        "en": "From the July 2025 period the outward figures in GSTR-3B are filled from GSTR-1 and cannot be edited; corrections go through GSTR-1A before filing.",
+        "hi-Latn": "July 2025 se GSTR-3B ki bikri wali rakam GSTR-1 se aati hai, badli nahi ja sakti; sudhar GSTR-1A se."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "filing-limit-3-years",
+      "kind": "portal-lock",
+      "effectiveFrom": "2025-07-01",
+      "effectiveTo": null,
+      "years": 3,
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "verify": {
+        "mustContain": ["three years", "barred"]
+      },
+      "explain": {
+        "en": "A return cannot be filed more than three years after its due date.",
+        "hi-Latn": "Due date ke teen saal baad return nahi bhari ja sakti."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    }
+  ]
+}

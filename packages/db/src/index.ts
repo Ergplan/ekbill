@@ -5,7 +5,8 @@ import { getPool } from './pool';
 /**
  * @ekbill/db: the one place that writes the database. Stage 2: identity,
  * tenancy (withTenant), sessions (resolveScope), the repositories (TenantScope
- * first, allowedRoles on every write) and the build seed.
+ * first, allowedRoles on every write) and the build seed. Stage 3: series and
+ * documents, with issueDocument() the one writer of issued documents (I2).
  */
 export { closePool, getPool } from './pool';
 export { withTenant, withUser, type ActorKind, type Db, type Role, type TenantScope, type Tx } from './scope';
@@ -21,7 +22,9 @@ export {
 export { ForbiddenError, NotFoundError, allow } from './repos/allow';
 export { REPOSITORIES, type RepositoryName } from './repos/index';
 export * as businesses from './repos/businesses';
+export * as documents from './repos/documents';
 export * as memberships from './repos/memberships';
+export * as series from './repos/series';
 export * as users from './repos/users';
 export { SEED, seedAllowed, seedBuild, seedBusinessById, seedUser, seedUserById } from './seed';
 export * as schema from './schema';

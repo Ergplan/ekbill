@@ -1,5 +1,8 @@
 import pg from 'pg';
 
+// A SQL date is a civil date (YYYY-MM-DD), never an instant: keep it as the string the engine takes.
+pg.types.setTypeParser(1082, (value) => value);
+
 /** One pool per process (the login role; withTenant drops to ekbill_app per transaction). */
 let pool: pg.Pool | null = null;
 

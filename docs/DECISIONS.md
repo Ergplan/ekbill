@@ -347,3 +347,44 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 
 - Decision: the operator wrote "continue build for next 12 hours" after the round-3 reviews; the build agent took it as the go-ahead past the Stage 1 gate on the report's own proposals (`docs/stages/stage-1-answers.md`) and recorded the assumption there and in the Stage 2 report. "Run Stage 1 again" with a changed answer overturns any of them.
 - Asked by: the operator, 15 Oct 2026.
+
+## 2026-10-15 — Stage 3
+
+### The seller columns arrive with the documents
+
+- Decision: migration `0002_documents.sql` adds to `businesses` what issuing reads of the seller (`registration_type`, `gstin`, `state_code`, `turnover_paise`, `e_invoicing_applies`, `address`, `city`, `phone`, `upi`); Stage 4 adds the rest of the profile and the write path. The seed fills them for Sharma Electricals (regular, Maharashtra) and Gupta Kirana (composition, Uttar Pradesh); Verma Traders stays "not sure".
+- Options: `issueDocument` taking the seller from its caller (the caller could pass anything: the snapshot must come from the row); waiting for Stage 4 (then Stage 3's issuance could not be tested against a real row).
+- Why: I2 says the snapshot freezes what the business was at issue time; that has to be read inside the issuing transaction.
+- Asked by: the Stage 3 prompt (issueDocument).
+
+### The issue gate is a transaction-local setting
+
+- Decision: the `issue_gate` trigger refuses `status = 'issued'` unless `app.issuing = '1'`; `issueDocument()` sets it with `set_config(…, true)` (local to its transaction) and nothing else does. The immutability trigger (`immutable_once_issued`) refuses every change to what the customer saw on an issued or cancelled row, lets status move only to cancelled, and lets the IRN be written once.
+- Options: trust the repository alone (I2 names a trigger); a security-definer function that issues (the engine would then have to run inside Postgres).
+- Why: I2 asks for one writer; a setting only that writer sets makes the database hold it, and the test `refuses status = issued from anything but issueDocument` proves it on a raw connection.
+- Asked by: I2.
+
+### Drafts lock first, then the series
+
+- Decision: `issueDocument` locks the draft row, then the series row (`SELECT … FOR UPDATE`), then asks the engine, then allocates. A refusal rolls everything back and no number is spent. The `numbering` integration test issues 50 drafts concurrently on one fresh series and gets exactly 1…50.
+- Why: I3 (gapless, never reused) and the one-order rule against deadlocks.
+- Asked by: I3.
+
+### A plain invoice is stored as a bill of supply
+
+- Decision: `documents.kind` keeps the three values the prompt spells out (`tax_invoice`, `bill_of_supply`, `credit_note`); the engine's `invoice` (an unregistered business, or a registered one with GST off) is stored as `bill_of_supply`, and the snapshot keeps the engine's `kind` and the title the paper prints.
+- Why: the column is a ledger category (tax charged or not); the paper reads the snapshot (I2).
+- Asked by: the Stage 3 prompt (the column spec).
+
+### The rule pack stays strict while the container cannot fetch
+
+- Decision: every entry carries `verified: false` with `verifiedBy` saying why; `rules:check` is red on the count and the watcher stops there; `npm run rules:verify` on the VM (where `*.gov.in` resolves) fetches each `source`, looks for the `verify.mustContain` phrases and writes the verification fields; the pack is then committed from the VM.
+- Options: marking entries verified from training knowledge (I5 says verified against the official source, with a date); loosening the cap for the build (a check that bends is not a check).
+- Why: the build agent must not claim what it could not do; the values themselves come from the sources master prompt 8.2 names and are each held by a fixture (`tests/unit/engine-rules.test.ts`).
+- Asked by: I5, rule 12.
+
+### Messages leave the engine as keys
+
+- Decision: the engine returns `Say { key, params }` (dictionary keys with parameters), never rendered text; the screens render them with `t()`. The blockers of `assess` and the problems of `bill-form` and `contract` are keys under `assess.*`, `error.*`, `help.*`, `bill.*`.
+- Why: the engine is pure and the dictionary is the copy's one home (Stage 1); a Hinglish sentence inside the engine would be a second one.
+- Asked by: I4, rule 6 (salvage with the voice kept).

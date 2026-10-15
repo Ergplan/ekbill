@@ -1864,5 +1864,285 @@
   "bill.check.norule": {
     "hi-Latn": "{date} ke liye GST ka rule nahi mila; date dekho",
     "en": "No GST rule for {date}; check the date"
+  },
+  "error.required": {
+    "hi-Latn": "Yeh zaroori hai",
+    "en": "This is needed"
+  },
+  "error.qty": {
+    "hi-Latn": "Kitna? Number likho, zero se zyada",
+    "en": "How many? A number, more than zero"
+  },
+  "error.amount": {
+    "hi-Latn": "Rakam theek se likho",
+    "en": "Write the amount properly"
+  },
+  "error.notFound": {
+    "hi-Latn": "Yeh mila nahi",
+    "en": "Can't find that"
+  },
+  "help.error.total": {
+    "hi-Latn": "Contract ki rakam likho, jaise 5 lakh",
+    "en": "Write the contract amount, e.g. 5 lakh"
+  },
+  "help.ask.gst": {
+    "hi-Latn": "GST iske upar lagega, ya isi mein shaamil hai?",
+    "en": "Is GST on top of that, or inside it?"
+  },
+  "help.ask.rate": {
+    "hi-Latn": "GST kitna?",
+    "en": "Which GST rate?"
+  },
+  "help.ms.sumWrong": {
+    "hi-Latn": "Kisto ka total 100% hona chahiye. Abhi {sum}% hai.",
+    "en": "The instalments must add up to 100%. Now {sum}%."
+  },
+  "help.error.pct": {
+    "hi-Latn": "1 se 100 ke beech % likho",
+    "en": "Write a percentage between 1 and 100"
+  },
+  "help.ask.billing": {
+    "hi-Latn": "Paise kaise milenge?",
+    "en": "How do you get paid?"
+  },
+  "help.alreadyBilled": {
+    "hi-Latn": "Is kist ka bill ban chuka: {number}.",
+    "en": "This instalment is already billed: {number}."
+  },
+  "help.nothingToBill": {
+    "hi-Latn": "Naya kuch nahi: {pct}% ka bill pehle se bana hai.",
+    "en": "Nothing new to bill: {pct}% is already billed."
+  },
+  "help.calc.this": {
+    "hi-Latn": "Is bill: {total} ka {pct}% = {amount}",
+    "en": "This bill: {pct}% of {total} = {amount}"
+  },
+  "help.calc.progress": {
+    "hi-Latn": "Kaam {pct}% = {upto}, pehle ka bill {before} ghata ke = {amount}",
+    "en": "Work done {pct}% = {upto}, minus billed before {before} = {amount}"
+  },
+  "help.calc.gst": {
+    "hi-Latn": "+ GST {rate}% = {amount}",
+    "en": "+ GST {rate}% = {amount}"
+  },
+  "help.calc.included": {
+    "hi-Latn": "GST andar hai: {taxable} + GST {gst}",
+    "en": "GST is inside: {taxable} + GST {gst}"
+  },
+  "help.calc.total": {
+    "hi-Latn": "Bill total lagbhag {amount}",
+    "en": "Bill total about {amount}"
+  },
+  "help.calc.before": {
+    "hi-Latn": "Pehle ke bills: {amount}",
+    "en": "Billed before: {amount}"
+  },
+  "help.calc.after": {
+    "hi-Latn": "Is bill ke baad contract mein baaki: {amount}",
+    "en": "Left in the contract after this: {amount}"
+  },
+  "help.calc.retention": {
+    "hi-Latn": "{pct}% retention: customer abhi {now} dega, {held} aakhir mein",
+    "en": "{pct}% retention: customer pays {now} now, {held} at the end"
+  },
+  "assess.unsupported-export": {
+    "hi-Latn": "Yeh bill export ka hai. Yeh app abhi export bill nahi banata.",
+    "en": "This bill is an export. This app cannot issue an export bill yet."
+  },
+  "assess.unsupported-export.do": {
+    "hi-Latn": "Draft saved hai. Yeh ek bill apne CA se banwao, ya marking galti se lagi ho to hata do.",
+    "en": "Your draft is saved. Ask your accountant to raise this one, or remove the marking if it was set by mistake."
+  },
+  "assess.unsupported-sez": {
+    "hi-Latn": "Yeh bill SEZ unit ko hai. Yeh app abhi SEZ bill nahi banata.",
+    "en": "This bill is to a SEZ unit. This app cannot issue that yet."
+  },
+  "assess.unsupported-sez.do": {
+    "hi-Latn": "Draft saved hai. Yeh ek bill apne CA se banwao.",
+    "en": "Your draft is saved. Ask your accountant to raise this one."
+  },
+  "assess.unsupported-deemed-export": {
+    "hi-Latn": "Yeh deemed export hai. Yeh app abhi yeh bill nahi banata.",
+    "en": "This is a deemed export. This app cannot issue that yet."
+  },
+  "assess.unsupported-deemed-export.do": {
+    "hi-Latn": "Draft saved hai. Yeh ek bill apne CA se banwao.",
+    "en": "Your draft is saved. Ask your accountant to raise this one."
+  },
+  "assess.unsupported-reverse-charge": {
+    "hi-Latn": "Is bill par tax customer bharega (reverse charge). Yeh app abhi aisa bill nahi banata.",
+    "en": "Tax on this bill is payable by the customer (reverse charge). This app cannot issue that yet."
+  },
+  "assess.unsupported-reverse-charge.do": {
+    "hi-Latn": "Draft saved hai. Yeh ek bill apne CA se banwao, ya marking hata do.",
+    "en": "Your draft is saved. Ask your accountant, or remove the marking."
+  },
+  "assess.unsupported-advance-receipt": {
+    "hi-Latn": "Yeh advance ki receipt hai. Yeh app abhi advance receipt nahi banata.",
+    "en": "This is an advance receipt. This app cannot issue that yet."
+  },
+  "assess.unsupported-advance-receipt.do": {
+    "hi-Latn": "Draft saved hai. Kaam hone par bill banao, ya CA se receipt banwao.",
+    "en": "Your draft is saved. Bill when the work is done, or ask your accountant for the receipt."
+  },
+  "assess.unsupported-non-gst-supply": {
+    "hi-Latn": "Yeh non-GST cheez hai (jaise petrol). Yeh app abhi aisa bill nahi banata.",
+    "en": "This is a non-GST supply (like petrol). This app cannot issue that yet."
+  },
+  "assess.unsupported-non-gst-supply.do": {
+    "hi-Latn": "Draft saved hai. Yeh ek bill apne CA se banwao.",
+    "en": "Your draft is saved. Ask your accountant to raise this one."
+  },
+  "assess.gst-status-unconfirmed": {
+    "hi-Latn": "Bill sahi bane, isliye pehle batao: aap GST mein registered ho ya nahi?",
+    "en": "To make the bill right we need to know your GST status first."
+  },
+  "assess.gst-status-unconfirmed.do": {
+    "hi-Latn": "Aap mein jaake GST status chuno. Pata na ho to CA ek minute mein bata dega.",
+    "en": "Open Aap and choose your GST status. Your accountant can tell you in a minute."
+  },
+  "assess.composition-tax": {
+    "hi-Latn": "Composition mein ho, isliye bill par GST nahi le sakte.",
+    "en": "Under composition you cannot collect GST on a bill."
+  },
+  "assess.composition-tax.do": {
+    "hi-Latn": "Har line ka GST hata do; bill of supply banega.",
+    "en": "Remove GST from every line; a bill of supply goes out."
+  },
+  "assess.composition-legend": {
+    "hi-Latn": "Bill par likha jayega: \"composition taxable person, not eligible to collect tax on supplies\".",
+    "en": "The bill will carry: \"composition taxable person, not eligible to collect tax on supplies\"."
+  },
+  "assess.unregistered-no-gst": {
+    "hi-Latn": "Aap GST mein registered nahi ho, isliye is bill par GST nahi lagta.",
+    "en": "You are not registered for GST, so no GST is added to this bill."
+  },
+  "assess.gst-off-plain-invoice": {
+    "hi-Latn": "Aapne is bill par GST nahi lagaya: yeh saada invoice banega.",
+    "en": "You switched GST off on this bill: it goes out as a plain invoice."
+  },
+  "assess.missing-gstin": {
+    "hi-Latn": "GST bill ke liye aapka GSTIN chahiye.",
+    "en": "Your GSTIN is needed on a GST bill."
+  },
+  "assess.missing-gstin.do": {
+    "hi-Latn": "Aap mein apna GSTIN daalo.",
+    "en": "Add your GSTIN under Aap."
+  },
+  "assess.missing-seller-state": {
+    "hi-Latn": "Sahi GST ke liye aapki dukaan ka State chahiye.",
+    "en": "Your business state is needed to work out the right GST."
+  },
+  "assess.missing-seller-state.do": {
+    "hi-Latn": "Aap mein State daalo.",
+    "en": "Add your state under Aap."
+  },
+  "assess.missing-place-of-supply": {
+    "hi-Latn": "Yeh supply kis State ke liye hai, batao.",
+    "en": "Please confirm which state this supply is for."
+  },
+  "assess.missing-place-of-supply.do": {
+    "hi-Latn": "Bill mein customer ka State chuno.",
+    "en": "Choose the customer's state on the bill."
+  },
+  "assess.rate-not-chosen": {
+    "hi-Latn": "{n} item par GST rate nahi chuna, toh us par GST nahi lagega.",
+    "en": "{n} item(s) have no GST rate chosen, so this bill would charge no GST on them."
+  },
+  "assess.rate-not-chosen.do": {
+    "hi-Latn": "Har item ka rate chuno. Sach mein 0% ho to 0% chuno, taaki bill kahe aapne socha hai.",
+    "en": "Choose the rate for each item. If one really is nil-rated, choose 0% so the bill says you meant it."
+  },
+  "assess.nil-rated-on-tax-invoice": {
+    "hi-Latn": "Har line 0% hai: aisa bill 'bill of supply' hota hai. \"GST lagega? Nahi\" karo.",
+    "en": "Every line is nil-rated: such a bill is a bill of supply. Switch GST off for this bill."
+  },
+  "assess.self-billing": {
+    "hi-Latn": "Customer ka GSTIN aapka hi hai.",
+    "en": "The customer's GSTIN is your own."
+  },
+  "assess.self-billing.do": {
+    "hi-Latn": "Customer ka sahi GSTIN daalo.",
+    "en": "Enter the customer's own GSTIN."
+  },
+  "assess.hsn-too-short": {
+    "hi-Latn": "{n} item ka HSN code chhota hai: kam se kam {digits} digit chahiye.",
+    "en": "{n} item(s) carry a short HSN code: at least {digits} digits are needed."
+  },
+  "assess.hsn-too-short.do": {
+    "hi-Latn": "Item mein poora HSN/SAC code daalo.",
+    "en": "Enter the full HSN/SAC code on the item."
+  },
+  "assess.hsn-missing": {
+    "hi-Latn": "{n} item par HSN code nahi hai ({digits} digit chahiye). Item mein daal do.",
+    "en": "{n} item(s) have no HSN code ({digits} digits are needed). Add it on the item."
+  },
+  "assess.b2c-recipient-details": {
+    "hi-Latn": "₹{amount} ya zyada ke bill par bina-GST customer ka naam, pata aur State chahiye.",
+    "en": "On a bill of ₹{amount} or more to an unregistered customer, their name, address and state are needed."
+  },
+  "assess.b2c-recipient-details.do": {
+    "hi-Latn": "Customer mein pata aur State daalo.",
+    "en": "Add the customer's address and state."
+  },
+  "assess.e-invoicing-unscreened": {
+    "hi-Latn": "Kuch GST wali dukaanon ko sarkari e-invoice portal se bill banana padta hai. Hum yeh check nahi kar paye.",
+    "en": "Some GST-registered businesses must create bills through the government e-invoice portal. We could not check this for you."
+  },
+  "assess.e-invoicing-unscreened.do": {
+    "hi-Latn": "Aap mein saal ka turnover daalo, ya CA se poochh ke confirm karo ki e-invoice aap par lagu nahi.",
+    "en": "Add your yearly turnover under Aap, or confirm with your accountant that e-invoicing does not apply to you."
+  },
+  "assess.e-invoicing-self-declared": {
+    "hi-Latn": "Aapne confirm kiya hai ki e-invoice aap par lagu nahi.",
+    "en": "You have confirmed that e-invoicing does not apply to your business."
+  },
+  "assess.e-invoicing-applicable": {
+    "hi-Latn": "Aapke turnover par bill sarkari e-invoice portal se banne chahiye. Yeh app abhi woh nahi karta.",
+    "en": "At your turnover, bills must go through the government e-invoice portal. This app cannot do that yet."
+  },
+  "assess.e-invoicing-applicable.do": {
+    "hi-Latn": "Draft saved hai. Yeh bills e-invoice provider ya CA se banwao.",
+    "en": "Your drafts are saved. Raise these bills through your e-invoice provider or accountant."
+  },
+  "assess.irn-window-passed": {
+    "hi-Latn": "Bill {days} din se purana hai: ab e-invoice portal par nahi jayega.",
+    "en": "The bill is older than {days} days: the e-invoice portal will not take it now."
+  },
+  "assess.irn-window-passed.do": {
+    "hi-Latn": "Aaj ki date se bill banao, ya CA se baat karo.",
+    "en": "Date the bill today, or talk to your accountant."
+  },
+  "assess.credit-note-unlinked": {
+    "hi-Latn": "Credit note kis bill ke liye hai, woh chahiye.",
+    "en": "A credit note needs the bill it corrects."
+  },
+  "assess.credit-note-unlinked.do": {
+    "hi-Latn": "Bill kholke 'Rakam kam karo' se banao.",
+    "en": "Open the bill and use 'Reduce the amount'."
+  },
+  "assess.credit-note-late": {
+    "hi-Latn": "{number} ka tax ab kam nahi ho sakta: aakhri tarikh {date} thi.",
+    "en": "The tax on {number} can no longer be reduced: the last date was {date}."
+  },
+  "assess.credit-note-late.do": {
+    "hi-Latn": "Bina tax wali credit note ke liye CA se baat karo.",
+    "en": "Talk to your accountant about a credit note without a tax effect."
+  },
+  "assess.no-rules-for-date": {
+    "hi-Latn": "Is date ke GST niyam hamare paas nahi hain.",
+    "en": "We have no GST rules for this date."
+  },
+  "assess.no-rules-for-date.do": {
+    "hi-Latn": "1 July 2017 ke baad ki date chuno.",
+    "en": "Pick a date from 1 July 2017 on."
+  },
+  "assess.no-lines": {
+    "hi-Latn": "Bill mein kuch likha nahi.",
+    "en": "Nothing is on the bill."
+  },
+  "assess.no-lines.do": {
+    "hi-Latn": "Kam se kam ek kaam likho.",
+    "en": "Write at least one thing you did."
   }
 }

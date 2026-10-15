@@ -1,0 +1,53 @@
+{
+  "_note": "GST rule pack (I5): where a supply is taxed (IGST Act ss. 7–12). The engine reads the decide table; the cases table says which address the place of supply follows.",
+  "version": "2026.10.15-stage3",
+  "effectiveFrom": "2017-07-01",
+  "entries": [
+    {
+      "id": "place-of-supply-state",
+      "kind": "place-of-supply",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "rule": "Supplier and place of supply in the same State or UT: CGST + SGST/UTGST, each at half the rate. Different States: IGST at the full rate.",
+      "decide": {
+        "sameState": "intra",
+        "otherState": "inter",
+        "unknownState": "intra"
+      },
+      "source": "https://cbic-gst.gov.in/IGST-Act.html",
+      "verify": {
+        "mustContain": ["section 8", "section 7", "intra-State", "inter-State"]
+      },
+      "explain": {
+        "en": "Supplier and place of supply in the same State or UT: CGST plus SGST/UTGST, each at half the rate. Different States: IGST at the full rate.",
+        "hi-Latn": "Dukaan aur supply ek hi State/UT mein: CGST + SGST/UTGST aadha-aadha. Alag State: poora IGST."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "place-of-supply-cases",
+      "kind": "place-of-supply-cases",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "cases": {
+        "b2b": "recipient-state",
+        "b2cGoods": "delivery-state",
+        "b2cServices": "supplier-state",
+        "b2cServicesPropertyOrEvent": "ask"
+      },
+      "source": "https://cbic-gst.gov.in/IGST-Act.html",
+      "verify": {
+        "mustContain": ["section 10", "section 12", "location of the recipient"]
+      },
+      "explain": {
+        "en": "To a registered customer: the customer's State. Goods to an unregistered customer: where they are delivered. Services to an unregistered customer: the supplier's State, unless the service is tied to a property or an event, when it is that place.",
+        "hi-Latn": "Registered customer: customer ka State. Bina-GST customer ko saaman: jahan deliver hua. Bina-GST customer ko service: aapka State, par property ya event se judi service ho to woh jagah."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "_note": "GST rule pack (I5): the composition scheme's limits and what its bills must say (s. 10; Rule 7).",
+  "version": "2026.10.15-stage3",
+  "effectiveFrom": "2019-04-01",
+  "entries": [
+    {
+      "id": "composition-limits-2019",
+      "kind": "composition",
+      "effectiveFrom": "2019-04-01",
+      "effectiveTo": null,
+      "goodsLimitPaise": 1500000000,
+      "specialStatesLimitPaise": 750000000,
+      "servicesLimitPaise": 500000000,
+      "canCollectTax": false,
+      "specialStates": ["05", "11", "12", "13", "14", "15", "16", "17"],
+      "legend": "composition taxable person, not eligible to collect tax on supplies",
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "verify": {
+        "mustContain": ["section 10", "one crore and fifty lakh", "seventy-five lakh"]
+      },
+      "explain": {
+        "en": "A business may be under composition up to ₹1.5 crore turnover (₹75 lakh in the special-category States), or ₹50 lakh for services; it cannot collect tax from customers and issues bills of supply with the composition legend.",
+        "hi-Latn": "Composition scheme ₹1.5 crore turnover tak (khaas States mein ₹75 lakh), service ke liye ₹50 lakh; customer se tax nahi le sakte; bill of supply par composition wali line likhi hoti hai."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    }
+  ]
+}

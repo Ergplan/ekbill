@@ -1,0 +1,183 @@
+{
+  "_note": "GST rule pack (I5): which document a business issues and what it must carry (CGST Rules 46, 49, 53; s. 31, s. 34).",
+  "version": "2026.10.15-stage3",
+  "effectiveFrom": "2017-07-01",
+  "entries": [
+    {
+      "id": "document-kinds-2017",
+      "kind": "document-kinds",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "kinds": {
+        "regular": "tax-invoice",
+        "regular-gst-off": "invoice",
+        "composition": "bill-of-supply",
+        "unregistered": "invoice",
+        "unknown": "invoice"
+      },
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "verify": {
+        "mustContain": ["Rule 46", "Rule 49", "bill of supply"]
+      },
+      "explain": {
+        "en": "A regular registered business issues a tax invoice (a plain invoice when it charges no GST on that bill); a composition business a bill of supply; an unregistered business an invoice.",
+        "hi-Latn": "Regular registered dukaan tax invoice banati hai (us bill par GST na ho to invoice); composition wali bill of supply; bina registration wali invoice."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "tax-invoice-fields-r46",
+      "kind": "document-fields",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "document": "tax-invoice",
+      "maxNumberLength": 16,
+      "numberCharacters": "letters, digits, hyphen, slash",
+      "fields": [
+        "supplier.name",
+        "supplier.address",
+        "supplier.gstin",
+        "number",
+        "date",
+        "recipient.name",
+        "recipient.address",
+        "recipient.gstin?",
+        "line.hsnOrSac",
+        "line.description",
+        "line.quantity",
+        "line.unit",
+        "totalValue",
+        "taxableValue",
+        "tax.cgst",
+        "tax.sgstOrUtgst",
+        "tax.igst",
+        "tax.cess",
+        "placeOfSupply.stateForInterState",
+        "deliveryAddressIfDifferent",
+        "reverseChargeIndicator",
+        "signature(notOnEInvoice)"
+      ],
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "verify": {
+        "mustContain": ["Rule 46", "consecutive serial number", "sixteen characters"]
+      },
+      "explain": {
+        "en": "A tax invoice carries the supplier's name, address and GSTIN; a unique serial number of up to 16 characters per financial year; the date; the recipient's name, address and GSTIN when registered; HSN or SAC; description; quantity and unit; total and taxable value; the tax split by head; the place of supply with the State for an inter-State supply; the delivery address when it differs; whether tax is payable on reverse charge; and a signature (not on an e-invoice).",
+        "hi-Latn": "Tax invoice par: aapka naam, pata, GSTIN; har saal 16 akshar tak ka alag number; date; customer ka naam, pata aur GSTIN (registered ho to); HSN/SAC; kya diya; kitna; total aur taxable rakam; CGST/SGST/IGST alag; inter-state ho to place of supply ka State; delivery ka pata alag ho to woh; reverse charge hai ya nahi; aur sign (e-invoice par nahi)."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "b2c-recipient-details-r46",
+      "kind": "threshold",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "applies": "unregistered-recipient",
+      "thresholdPaise": 5000000,
+      "requires": ["recipient.name", "recipient.address", "placeOfSupply.state"],
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "verify": {
+        "mustContain": ["fifty thousand", "unregistered"]
+      },
+      "explain": {
+        "en": "On a bill of ₹50,000 or more to an unregistered customer the invoice must carry the customer's name and address and the State of the place of supply.",
+        "hi-Latn": "Bina GST wale customer ko ₹50,000 ya zyada ka bill ho to uska naam, pata aur State likhna zaroori hai."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "bill-of-supply-r49",
+      "kind": "document-fields",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "document": "bill-of-supply",
+      "taxLines": false,
+      "compositionLegend": "composition taxable person, not eligible to collect tax on supplies",
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "verify": {
+        "mustContain": ["Rule 49", "bill of supply", "composition taxable person"]
+      },
+      "explain": {
+        "en": "A bill of supply carries no tax lines; a composition business prints the legend 'composition taxable person, not eligible to collect tax on supplies'.",
+        "hi-Latn": "Bill of supply par tax nahi; composition dukaan par likha hota hai 'composition taxable person, not eligible to collect tax on supplies'."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "credit-note-fields-r53",
+      "kind": "document-fields",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "document": "credit-note",
+      "fields": [
+        "title:credit note",
+        "number",
+        "date",
+        "supplier",
+        "recipient",
+        "linkedInvoice.number",
+        "linkedInvoice.date",
+        "valueReduced",
+        "taxReduced",
+        "signature"
+      ],
+      "source": "https://cbic-gst.gov.in/CGST-rules.html",
+      "verify": {
+        "mustContain": ["Rule 53", "credit note", "debit note"]
+      },
+      "explain": {
+        "en": "A credit note carries the words 'credit note', its own serial number and date, the supplier's and recipient's details, the number and date of the invoice it corrects, the value and tax it reduces, and a signature.",
+        "hi-Latn": "Credit note par 'credit note' likha ho, uska apna number aur date, dono ka naam-pata-GSTIN, jis bill ko sudhar rahe uska number aur date, kitni rakam aur tax kam hua, aur sign."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "gstr1-b2c-large-2017",
+      "kind": "threshold",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": "2024-10-31",
+      "applies": "inter-state-unregistered",
+      "thresholdPaise": 25000000,
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "verify": {
+        "mustContain": ["B2C (Large)", "2,50,000"]
+      },
+      "explain": {
+        "en": "In GSTR-1, an inter-State bill to an unregistered customer above ₹2,50,000 is reported invoice by invoice (B2CL); the rest in summary.",
+        "hi-Latn": "GSTR-1 mein doosre State ke bina-GST customer ka ₹2,50,000 se bada bill alag se dikhta hai (B2CL); baaki ek saath."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "gstr1-b2c-large-2024",
+      "kind": "threshold",
+      "effectiveFrom": "2024-11-01",
+      "effectiveTo": null,
+      "applies": "inter-state-unregistered",
+      "thresholdPaise": 10000000,
+      "source": "https://tutorial.gst.gov.in/userguide/returns/",
+      "verify": {
+        "mustContain": ["B2C (Large)", "1,00,000"]
+      },
+      "explain": {
+        "en": "From 1 November 2024 the B2CL line is an inter-State bill to an unregistered customer above ₹1,00,000.",
+        "hi-Latn": "1 November 2024 se B2CL ka matlab doosre State ke bina-GST customer ka ₹1,00,000 se bada bill."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    }
+  ]
+}

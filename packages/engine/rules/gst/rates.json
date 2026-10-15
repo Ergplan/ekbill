@@ -1,6 +1,6 @@
 {
-  "_note": "GST rule pack (I5): versioned, sourced data the engine selects by document date. Every entry records when it was last checked and by whom (verifiedOn, verifiedBy); verified=false means the check did not reach the official source (at most 3 may stay so; Stage 3 fetches each source). Never edit an entry after it is verified: add one with a new effectiveFrom.",
-  "version": "2026.10.15-draft.2",
+  "_note": "GST rule pack (I5): the rate slabs the owner may pick from, selected by document date. Every entry records when it was last checked and by whom; verified=false means the official source was not reached (at most 3 may stay so). Never edit an entry after it is verified: add one with a new effectiveFrom.",
+  "version": "2026.10.15-stage3",
   "effectiveFrom": "2017-07-01",
   "entries": [
     {
@@ -9,10 +9,18 @@
       "effectiveFrom": "2017-07-01",
       "effectiveTo": "2025-09-21",
       "ratesPercent": [0, 5, 12, 18, 28],
+      "specialRatesPercent": [0.25, 3],
       "source": "https://cbic-gst.gov.in/gst-goods-services-rates.html",
+      "verify": {
+        "mustContain": ["28%", "12%", "5%"]
+      },
+      "explain": {
+        "en": "Before 22 September 2025 a supply attracted 0, 5, 12, 18 or 28 per cent GST (with 0.25 and 3 per cent for a few goods).",
+        "hi-Latn": "22 September 2025 se pehle GST 0, 5, 12, 18 ya 28 pratishat tha (kuch cheezon par 0.25 aur 3)."
+      },
       "verified": false,
       "verifiedOn": "2026-10-15",
-      "verifiedBy": "build agent, Stage 1 draft: the source URL was not fetched from the build container (no outbound web); Stage 3 verifies against the page"
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
     },
     {
       "id": "selectable-rates-gst2",
@@ -20,43 +28,36 @@
       "effectiveFrom": "2025-09-22",
       "effectiveTo": null,
       "ratesPercent": [0, 5, 18, 40],
-      "source": "https://www.cbic.gov.in/ — 56th GST Council (3 Sep 2025) rate rationalisation, notifications effective 22 Sep 2025",
+      "specialRatesPercent": [0.25, 3],
+      "source": "https://pib.gov.in/PressReleasePage.aspx?PRID=2162945",
+      "verify": {
+        "mustContain": ["56th", "GST Council", "40%"]
+      },
+      "explain": {
+        "en": "From 22 September 2025 (the 56th Council's rationalisation) the slabs are 0, 5, 18 and 40 per cent, with 0.25 and 3 per cent special rates.",
+        "hi-Latn": "22 September 2025 se (56vi Council) GST 0, 5, 18 ya 40 pratishat hai; 0.25 aur 3 khaas cheezon par."
+      },
       "verified": false,
       "verifiedOn": "2026-10-15",
-      "verifiedBy": "build agent, Stage 1 draft: the source URL was not fetched from the build container (no outbound web); Stage 3 verifies against the page"
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
     },
     {
-      "id": "place-of-supply-state",
-      "kind": "place-of-supply",
-      "effectiveFrom": "2017-07-01",
+      "id": "council-57-no-change",
+      "kind": "note",
+      "effectiveFrom": "2026-10-08",
       "effectiveTo": null,
-      "rule": "Supplier and place of supply in the same State or UT: CGST + SGST/UTGST, each at half the rate. Different States: IGST at the full rate.",
-      "decide": {
-        "sameState": "intra",
-        "otherState": "inter",
-        "unknownState": "intra"
+      "effect": "none",
+      "source": "https://pib.gov.in/PressReleaseIframePage.aspx?PRID=2200001",
+      "verify": {
+        "mustContain": ["57th", "GST Council"]
       },
-      "source": "https://cbic-gst.gov.in/CGST-IGST-act.html (IGST Act 2017 ss. 7–8; CGST Act 2017 s. 9)",
+      "explain": {
+        "en": "The 57th Council (8 October 2026) recommended compliance changes and no rate change; nothing applies until notified.",
+        "hi-Latn": "57vi Council (8 October 2026) ne rate nahi badla; notification aane tak kuch lagu nahi."
+      },
       "verified": false,
       "verifiedOn": "2026-10-15",
-      "verifiedBy": "build agent, Stage 1 draft: the source URL was not fetched from the build container (no outbound web); Stage 3 verifies against the page"
-    },
-    {
-      "id": "document-kinds-2017",
-      "kind": "document-kinds",
-      "effectiveFrom": "2017-07-01",
-      "effectiveTo": null,
-      "kinds": {
-        "regular": "tax-invoice",
-        "regular-gst-off": "invoice",
-        "composition": "bill-of-supply",
-        "unregistered": "invoice",
-        "unknown": "invoice"
-      },
-      "source": "https://cbic-gst.gov.in/CGST-rules.html (CGST Rules 2017, rules 46 and 49: tax invoice, bill of supply)",
-      "verified": true,
-      "verifiedOn": "2026-10-15",
-      "verifiedBy": "build agent, against the text of CGST Rules 2017 r. 46 (tax invoice) and r. 49 (bill of supply); the operator re-confirms in Stage 3"
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
     }
   ]
 }

@@ -8,6 +8,13 @@
       "when": 1792087431428,
       "tag": "0001_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792090340260,
+      "tag": "0002_documents",
+      "breakpoints": true
     }
   ]
 }

@@ -2,7 +2,9 @@ import { sql } from 'drizzle-orm';
 import {
   bigint,
   bigserial,
+  boolean,
   check,
+  date,
   index,
   integer,
   jsonb,
@@ -11,6 +13,7 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 
 /**
@@ -19,7 +22,9 @@ import {
  * from this file with `npm run db:generate`, then RLS, triggers and roles
  * appended by hand in the same file). Every business table goes through
  * apply_tenancy() (packages/db/tenancy.sql) so RLS and the audit trigger
- * cannot be missed. Stage 3 adds series and documents.
+ * cannot be missed. Stage 3 adds series and documents, and the seller
+ * columns on businesses that issuing a document needs; Stage 4 adds the rest
+ * of the profile.
  */
 
 /** A person who signs in (phone), with their own theme and language. No business data here (I1). */
@@ -43,7 +48,12 @@ export const users = pgTable(
   ],
 );
 
-/** A tenant. The profile fields (GSTIN, address, UPI, look) arrive in Stage 4. */
+/**
+ * A tenant. Stage 3 holds what issuing a document reads of the seller
+ * (registration, GSTIN, state, turnover, the e-invoicing answer, the lines
+ * printed on the bill); Stage 4 adds the rest of the profile (PAN, bank,
+ * look, logo, signature, default series).
+ */
 export const businesses = pgTable(
   'businesses',
   {
@@ -52,13 +62,35 @@ export const businesses = pgTable(
     tradeName: text('trade_name').notNull(),
     /** active | archived (nothing is deleted, 8.3) */
     status: text('status').notNull().default('active'),
+    /** regular | composition | not-registered | not-sure: the setup answer (8.0), as given. */
+    registrationType: text('registration_type').notNull().default('not-sure'),
+    gstin: text('gstin'),
+    /** The seller's state code ("27"), from the GSTIN when there is one. */
+    stateCode: text('state_code'),
+    /** The highest aggregate turnover of any year since 2017-18, in paise; null until the owner says. */
+    turnoverPaise: bigint('turnover_paise', { mode: 'number' }),
+    /** Whether e-invoicing applies: null until the owner answers (asked once when the turnover band needs it). */
+    eInvoicingApplies: boolean('e_invoicing_applies'),
+    address: text('address'),
+    city: text('city'),
+    phone: text('phone'),
+    upi: text('upi'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid('created_by')
       .notNull()
       .references(() => users.id),
   },
-  (t) => [check('businesses_status', sql`${t.status} in ('active', 'archived')`)],
+  (t) => [
+    check('businesses_status', sql`${t.status} in ('active', 'archived')`),
+    check(
+      'businesses_registration_type',
+      sql`${t.registrationType} in ('regular', 'composition', 'not-registered', 'not-sure')`,
+    ),
+    check('businesses_gstin', sql`${t.gstin} is null or ${t.gstin} ~ '^[0-9]{2}[A-Z0-9]{13}$'`),
+    check('businesses_state_code', sql`${t.stateCode} is null or ${t.stateCode} ~ '^[0-9]{2}$'`),
+    check('businesses_turnover', sql`${t.turnoverPaise} is null or ${t.turnoverPaise} >= 0`),
+  ],
 );
 
 /** Who may act for a business, and as what (8.3). Read before a scope exists (resolveScope), so no RLS (I1). */
@@ -161,5 +193,123 @@ export const aiCalls = pgTable(
   (t) => [
     index('ai_calls_business_at').on(t.businessId, t.at),
     check('ai_calls_outcome', sql`${t.outcome} in ('ok', 'error', 'timeout', 'refused')`),
+  ],
+);
+
+/**
+ * A numbering series (I3): per business, per kind, gapless within a
+ * financial year. The arithmetic is packages/engine/src/numbering.ts; the
+ * allocation locks this row (repos/documents.ts#issueDocument).
+ */
+export const series = pgTable(
+  'series',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    name: text('name').notNull(),
+    /** bill | credit_note: a credit note never takes a bill's number. */
+    kind: text('kind').notNull().default('bill'),
+    prefix: text('prefix').notNull().default(''),
+    padding: integer('padding').notNull().default(3),
+    includeFy: boolean('include_fy').notNull().default(false),
+    nextNumber: integer('next_number').notNull().default(1),
+    /** The financial year next_number belongs to ("2026-27"); null until the first document. */
+    fy: text('fy'),
+    active: boolean('active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('series_business_name').on(t.businessId, t.name),
+    check('series_kind', sql`${t.kind} in ('bill', 'credit_note')`),
+    check('series_prefix', sql`${t.prefix} ~ '^[A-Za-z0-9/-]{0,10}$'`),
+    check('series_padding', sql`${t.padding} between 1 and 8`),
+    check('series_next_number', sql`${t.nextNumber} between 1 and 99999999`),
+    check('series_fy', sql`${t.fy} is null or ${t.fy} ~ '^[0-9]{4}-[0-9]{2}$'`),
+  ],
+);
+
+/**
+ * A document (I2): a draft until issueDocument() gives it a number and its
+ * snapshot in one transaction; from then on number, issued_at,
+ * issued_snapshot, totals and lines never change (the trigger in
+ * migrations/0002_documents.sql refuses). Corrections are new documents
+ * that link back. customer_id has no foreign key until Stage 5 creates
+ * customers; the customer's details at issue time live in the snapshot.
+ */
+export const documents = pgTable(
+  'documents',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    seriesId: uuid('series_id')
+      .notNull()
+      .references(() => series.id),
+    /** tax_invoice | bill_of_supply | credit_note: provisional on a draft, decided by the engine at issue. */
+    kind: text('kind').notNull(),
+    /** draft | issued | cancelled */
+    status: text('status').notNull().default('draft'),
+    number: text('number'),
+    financialYear: text('financial_year'),
+    issueDate: date('issue_date', { mode: 'string' }).notNull(),
+    dueDate: date('due_date', { mode: 'string' }),
+    customerId: uuid('customer_id'),
+    customerName: text('customer_name').notNull(),
+    customerGstin: text('customer_gstin'),
+    customerState: text('customer_state'),
+    /** Until Stage 5 (customers table), the draft carries what the thresholds and the paper need. */
+    customerAddress: text('customer_address'),
+    customerPhone: text('customer_phone'),
+    placeOfSupplyState: text('place_of_supply_state'),
+    /** SupplyFlag[] from the engine, plus without_gst for a registered seller's bill without tax. */
+    flags: jsonb('flags')
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    /** The lines as drafted (IssueLine[]); replaced by the engine's priced lines at issue. */
+    lines: jsonb('lines')
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    /** The running figures on a draft (never authoritative); the engine's totals once issued. */
+    totals: jsonb('totals'),
+    /** IssuedSnapshot: everything a customer sees is rendered from this (I2). */
+    issuedSnapshot: jsonb('issued_snapshot'),
+    issuedAt: timestamp('issued_at', { withTimezone: true }),
+    /** The invoice a credit note corrects, or the bill a redo replaces. */
+    linkedDocumentId: uuid('linked_document_id').references((): AnyPgColumn => documents.id),
+    /** The e-invoice portal's reference, once reported (Stage 8). */
+    irn: text('irn'),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    cancelledReason: text('cancelled_reason'),
+    notes: text('notes'),
+    roundToRupee: boolean('round_to_rupee').notNull().default(false),
+    gstOn: boolean('gst_on').notNull().default(true),
+    revision: integer('revision').notNull().default(1),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // I3: a number is unique per series per financial year, and backs the gapless allocation.
+    uniqueIndex('documents_number')
+      .on(t.businessId, t.seriesId, t.financialYear, t.number)
+      .where(sql`${t.number} is not null`),
+    index('documents_business_status_date').on(t.businessId, t.status, t.issueDate),
+    index('documents_linked').on(t.linkedDocumentId),
+    check('documents_kind', sql`${t.kind} in ('tax_invoice', 'bill_of_supply', 'credit_note')`),
+    check('documents_status', sql`${t.status} in ('draft', 'issued', 'cancelled')`),
+    // A draft has no number; an issued or cancelled document has its number, its year, its time and its snapshot.
+    check(
+      'documents_issued_complete',
+      sql`(${t.status} = 'draft' and ${t.number} is null and ${t.issuedSnapshot} is null and ${t.issuedAt} is null)
+        or (${t.status} in ('issued', 'cancelled') and ${t.number} is not null and ${t.financialYear} is not null and ${t.issuedSnapshot} is not null and ${t.issuedAt} is not null)`,
+    ),
+    check('documents_cancelled_complete', sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null)`),
+    check('documents_credit_note_linked', sql`${t.kind} <> 'credit_note' or ${t.linkedDocumentId} is not null`),
   ],
 );

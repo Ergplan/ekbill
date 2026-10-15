@@ -102,6 +102,36 @@ export const SEED = {
       owner: 'sharma',
       staff: 'ravi',
       accountant: 'meera',
+      // A regular registrant in Maharashtra, ₹5 lakh a year, e-invoicing answered "no".
+      profile: {
+        registrationType: 'regular',
+        gstin: '27AAPFU0939F1ZV',
+        stateCode: '27',
+        turnoverPaise: 50000000,
+        eInvoicingApplies: false,
+        address: '12, Dharampeth, Nagpur 440010',
+        city: 'Nagpur',
+        phone: '+919822012345',
+        upi: 'sharma.electricals@upi',
+      },
+      series: [
+        {
+          id: '00000000-0000-4000-a000-000000000011',
+          name: 'Bills',
+          kind: 'bill',
+          prefix: 'INV-',
+          padding: 3,
+          includeFy: true,
+        },
+        {
+          id: '00000000-0000-4000-a000-000000000012',
+          name: 'Credit notes',
+          kind: 'credit_note',
+          prefix: 'CN-',
+          padding: 3,
+          includeFy: true,
+        },
+      ],
     },
     {
       key: 'gupta',
@@ -111,6 +141,36 @@ export const SEED = {
       owner: 'gupta',
       staff: 'sunita',
       accountant: 'rao',
+      // The composition business of the fixtures: bills of supply with the legend, never a tax line.
+      profile: {
+        registrationType: 'composition',
+        gstin: '09AAACG1234A1ZC',
+        stateCode: '09',
+        turnoverPaise: 8000000,
+        eInvoicingApplies: false,
+        address: '4, Civil Lines, Kanpur 208001',
+        city: 'Kanpur',
+        phone: '+919822000004',
+        upi: 'guptakirana@upi',
+      },
+      series: [
+        {
+          id: '00000000-0000-4000-a000-000000000021',
+          name: 'Bills',
+          kind: 'bill',
+          prefix: 'GK/',
+          padding: 4,
+          includeFy: false,
+        },
+        {
+          id: '00000000-0000-4000-a000-000000000022',
+          name: 'Credit notes',
+          kind: 'credit_note',
+          prefix: 'GKCN/',
+          padding: 4,
+          includeFy: false,
+        },
+      ],
     },
     {
       key: 'verma',
@@ -120,6 +180,26 @@ export const SEED = {
       owner: 'verma',
       staff: 'deepak',
       accountant: 'iyer',
+      // Has not set up yet: no profile, the default series only.
+      profile: null,
+      series: [
+        {
+          id: '00000000-0000-4000-a000-000000000031',
+          name: 'Bills',
+          kind: 'bill',
+          prefix: '',
+          padding: 3,
+          includeFy: false,
+        },
+        {
+          id: '00000000-0000-4000-a000-000000000032',
+          name: 'Credit notes',
+          kind: 'credit_note',
+          prefix: 'CN-',
+          padding: 3,
+          includeFy: false,
+        },
+      ],
     },
   ],
 } as const;
@@ -165,13 +245,49 @@ export async function seedBuild(url: string, { log = console.log }: { log?: (s: 
     for (const b of SEED.businesses) {
       await client.query("select set_config('app.business_id', $1, true)", [b.id]);
       const owner = seedUser(b.owner)!;
+      const profile = b.profile ?? {
+        registrationType: 'not-sure' as const,
+        gstin: null,
+        stateCode: null,
+        turnoverPaise: null,
+        eInvoicingApplies: null,
+        address: null,
+        city: null,
+        phone: null,
+        upi: null,
+      };
       await db
         .insert(schema.businesses)
-        .values({ id: b.id, legalName: b.legalName, tradeName: b.tradeName, createdBy: owner.id })
+        .values({ id: b.id, legalName: b.legalName, tradeName: b.tradeName, createdBy: owner.id, ...profile })
         .onConflictDoUpdate({
           target: schema.businesses.id,
-          set: { legalName: b.legalName, tradeName: b.tradeName, status: 'active' },
+          set: { legalName: b.legalName, tradeName: b.tradeName, status: 'active', ...profile },
         });
+      // The numbering state (next_number, fy) is the business's own: a re-seed never rewinds it.
+      for (const sr of b.series) {
+        await db
+          .insert(schema.series)
+          .values({
+            id: sr.id,
+            businessId: b.id,
+            name: sr.name,
+            kind: sr.kind,
+            prefix: sr.prefix,
+            padding: sr.padding,
+            includeFy: sr.includeFy,
+          })
+          .onConflictDoUpdate({
+            target: schema.series.id,
+            set: {
+              name: sr.name,
+              kind: sr.kind,
+              prefix: sr.prefix,
+              padding: sr.padding,
+              includeFy: sr.includeFy,
+              active: true,
+            },
+          });
+      }
       for (const [role, key] of [
         ['owner', b.owner],
         ['staff', b.staff],

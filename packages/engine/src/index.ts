@@ -1,14 +1,16 @@
 /**
- * @ekbill/engine: pure and deterministic (eslint enforces it). Stage 1 ships
- * the structural checks and money arithmetic copied from the MVP, used by the
- * prototype's forms; Stage 3 adds tax, the rule pack, document types,
- * numbering, prepareIssue and workings.
+ * @ekbill/engine: pure and deterministic (eslint enforces it). Stage 3: the
+ * rule pack (nine files), tax, assessment, numbering, issuance preparation,
+ * the GSTR workings, and the modules salvaged from the MVP (dates, the bill
+ * form and its guard, the contract helper, the language guess, phones).
  */
-export const ENGINE_VERSION = '2.0.0-stage1';
+export const ENGINE_VERSION = '2.0.0-stage3';
 
 export {
+  TaxEngineError,
   computeTax,
   emptyTax,
+  type RateSummaryRow,
   type Registration,
   type TaxInput,
   type TaxLine,
@@ -17,13 +19,23 @@ export {
 } from './tax';
 export {
   GST_RULES,
+  HSN_INDEX,
   RuleError,
+  compositionRule,
+  creditNoteDeadline,
   documentKind,
   documentKindRule,
+  explain,
+  hsnDigitsFor,
+  irnReportingWindow,
   placeOfSupply,
+  returnDueDate,
   ruleOn,
+  rulesOn,
   selectableRates,
   supplyKind,
+  thresholdOn,
+  unverifiedRules,
   type DocumentKind,
   type RuleEntry,
   type RuleKind,
@@ -32,7 +44,145 @@ export {
   type Supply,
   type SupplyDecision,
 } from './rules';
-
+export {
+  TITLES,
+  assessDocument,
+  type AssessBusiness,
+  type AssessCustomer,
+  type AssessDocument,
+  type AssessLine,
+  type Assessment,
+  type Blocker,
+  type Notice,
+  type SupplyFlag,
+} from './assess';
+export {
+  prepareIssue,
+  type IssueBusiness,
+  type IssueCustomer,
+  type IssueDraft,
+  type IssueLine,
+  type IssuedSnapshot,
+  type PrepareResult,
+} from './issue';
+export {
+  MAX_NUMBER_LENGTH,
+  PREFIX_RE,
+  afterAllocation,
+  canSetNextNumber,
+  formatNumber,
+  nextNumberFor,
+  previewNumber,
+  suggestNumbering,
+  validateSeries,
+  type SeriesConfig,
+  type SeriesProblem,
+} from './numbering';
+export {
+  buildGstr1,
+  buildGstr3bOutward,
+  excludeIffFurnished,
+  hsnRowLabel,
+  inPeriod,
+  nextFilingPeriod,
+  obligationsFor,
+  outwardDocumentsFromSnapshots,
+  qrmpPlan,
+  type FilingFrequency,
+  type Gstr1Tables,
+  type Gstr3bOutward,
+  type IffFurnishedRecord,
+  type OutwardDocument,
+  type PeriodObligation,
+  type QrmpPlan,
+  type SnapshotDocument,
+} from './workings';
+export {
+  DateError,
+  IST_TIME_ZONE,
+  addDays,
+  addMonths,
+  addMonthsToPeriod,
+  assertCivilDate,
+  assertMonthPeriod,
+  compareDates,
+  daysBetween,
+  daysInMonth,
+  financialYearBounds,
+  financialYearOf,
+  financialYearStartYear,
+  formatDateLong,
+  formatDateShort,
+  formatFinancialYear,
+  formatPeriodLong,
+  gstQuarterOf,
+  isCivilDate,
+  isLeapYear,
+  isMonthPeriod,
+  isWithinFinancialYear,
+  istMidnightInstant,
+  lastDayOfMonth,
+  makeCivilDate,
+  maxDate,
+  monthPeriodOf,
+  partsOf,
+  periodBounds,
+  todayIst,
+  type CivilDate,
+  type FinancialYear,
+  type MonthPeriod,
+} from './dates';
+export {
+  blankLine,
+  checkBill,
+  gstByRate,
+  hasMixedRates,
+  isBlankLine,
+  lineRateBp,
+  linesToDraft,
+  subtotalOf,
+  summariseLines,
+  type BillCheck,
+  type BillFormDraft,
+  type BillProblem,
+  type CheckedLine,
+  type LineDraft,
+} from './bill-form';
+export {
+  findDuplicate,
+  proportionalCredit,
+  rateOddities,
+  type DuplicateHit,
+  type RateOddity,
+  type RecentBill,
+} from './bill-guard';
+export {
+  MAX_MILESTONES,
+  PRESETS,
+  billedCumulativeBp,
+  checkTerms,
+  contractNotes,
+  milestoneId,
+  milestoneStatus,
+  moneyForMessage,
+  parseAmount,
+  parseContractText,
+  pctText,
+  planMilestoneBill,
+  planProgressBill,
+  type BilledEntry,
+  type BillPlan,
+  type BillingMode,
+  type ContractTerms,
+  type GstMode,
+  type Milestone,
+  type ParsedContract,
+  type ProjectBill,
+  type TermsCheck,
+} from './contract';
+export { guessLanguage, type CustomerLanguage, type LanguageGuess } from './language-guess';
+export { toE164, whatsappLink } from './phone';
+export { say, type Say } from './say';
 export {
   checkGstin,
   checkPan,

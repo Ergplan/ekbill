@@ -1,0 +1,54 @@
+{
+  "_note": "GST rule pack (I5): when a business must report its invoices to the e-invoice portal (IRN), and how soon.",
+  "version": "2026.10.15-stage3",
+  "effectiveFrom": "2020-10-01",
+  "entries": [
+    {
+      "id": "e-invoice-threshold-2023",
+      "kind": "threshold",
+      "effectiveFrom": "2023-08-01",
+      "effectiveTo": null,
+      "thresholdPaise": 50000000000,
+      "lookback": "any financial year from 2017-18",
+      "scope": "b2b",
+      "exemptions": [
+        "sez-unit",
+        "bank",
+        "insurer",
+        "goods-transport-agency",
+        "passenger-transport",
+        "cinema-admission"
+      ],
+      "source": "https://taxinformation.cbic.gov.in/view-pdf/1009614/ENG/Notifications",
+      "verify": {
+        "mustContain": ["10/2023", "five crore"]
+      },
+      "explain": {
+        "en": "From 1 August 2023 a business whose aggregate turnover exceeded ₹5 crore in any financial year since 2017-18 must issue e-invoices (an IRN from the portal) for B2B supplies; SEZ units, banks, insurers, transporters, passenger transport and cinema admissions are exempt.",
+        "hi-Latn": "1 August 2023 se, 2017-18 ke baad kisi bhi saal ₹5 crore se zyada turnover hua ho to B2B bill e-invoice portal par register karna zaroori hai (IRN); SEZ unit, bank, insurance, transporter, passenger transport, cinema chhoot."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    },
+    {
+      "id": "irn-30-day-2025",
+      "kind": "reporting-window",
+      "effectiveFrom": "2025-04-01",
+      "effectiveTo": null,
+      "thresholdPaise": 100000000000,
+      "days": 30,
+      "source": "https://einvoice.gst.gov.in/einvoice/advisory",
+      "verify": {
+        "mustContain": ["30 days", "10 crores"]
+      },
+      "explain": {
+        "en": "From 1 April 2025 a business with turnover of ₹10 crore or more must report an invoice to the e-invoice portal within 30 days of its date; later it is refused.",
+        "hi-Latn": "1 April 2025 se ₹10 crore ya zyada turnover wali dukaan ko bill ke 30 din ke andar e-invoice portal par dena hoga; baad mein nahi hota."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    }
+  ]
+}

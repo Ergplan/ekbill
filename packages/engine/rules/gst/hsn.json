@@ -1,0 +1,38 @@
+{
+  "_note": "GST rule pack (I5): how many HSN/SAC digits an invoice must carry, by aggregate turnover (Notification 78/2020-Central Tax).",
+  "version": "2026.10.15-stage3",
+  "effectiveFrom": "2021-04-01",
+  "entries": [
+    {
+      "id": "hsn-digits-2021",
+      "kind": "hsn-digits",
+      "effectiveFrom": "2021-04-01",
+      "effectiveTo": null,
+      "bands": [
+        {
+          "turnoverUpToPaise": 50000000000,
+          "b2bDigits": 4,
+          "b2cDigits": 0
+        },
+        {
+          "turnoverUpToPaise": null,
+          "b2bDigits": 6,
+          "b2cDigits": 6
+        }
+      ],
+      "sacDigits": 6,
+      "sacPrefix": "99",
+      "source": "https://taxinformation.cbic.gov.in/view-pdf/1003098/ENG/Notifications",
+      "verify": {
+        "mustContain": ["78/2020", "four digits", "six digits"]
+      },
+      "explain": {
+        "en": "Turnover up to ₹5 crore in the previous year: 4 HSN digits on B2B bills (optional on B2C). Above ₹5 crore: 6 digits on every bill. SAC codes are 6 digits starting 99.",
+        "hi-Latn": "Pichle saal ₹5 crore tak ka turnover: B2B bill par 4 HSN digit (B2C par marzi). ₹5 crore se zyada: har bill par 6 digit. Service ka SAC 6 digit, 99 se shuru."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    }
+  ]
+}

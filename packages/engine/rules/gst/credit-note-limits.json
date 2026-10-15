@@ -1,0 +1,27 @@
+{
+  "_note": "GST rule pack (I5): how late a credit note may still reduce tax (s. 34(2)).",
+  "version": "2026.10.15-stage3",
+  "effectiveFrom": "2017-07-01",
+  "entries": [
+    {
+      "id": "credit-note-declare-limit",
+      "kind": "deadline",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "monthDay": "11-30",
+      "yearsAfterFinancialYear": 1,
+      "orAnnualReturn": true,
+      "source": "https://cbic-gst.gov.in/CGST-Act.html",
+      "verify": {
+        "mustContain": ["section 34", "thirtieth day of November", "annual return"]
+      },
+      "explain": {
+        "en": "A credit note that reduces tax must be declared by 30 November after the end of the financial year of the invoice, or the date of the annual return, whichever is earlier.",
+        "hi-Latn": "Tax kam karne wali credit note us saal ke baad 30 November tak, ya annual return se pehle, jo pehle ho."
+      },
+      "verified": false,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, Stage 3 draft from MASTER-PROMPT 8.2 and the text of the Act and Rules as known; the source URL was not fetched (the build container has no outbound web). Run npm run rules:verify where the web is reachable (the VM): it fetches the source, checks the phrases and records the verification."
+    }
+  ]
+}

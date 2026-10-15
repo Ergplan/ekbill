@@ -4,5 +4,5 @@
  * and tests/integration/roles.test.ts (every module's allowedRoles against
  * every role). A module not listed here is not tested, so list it.
  */
-export const REPOSITORIES = ['businesses', 'memberships', 'users'] as const;
+export const REPOSITORIES = ['businesses', 'documents', 'memberships', 'series', 'users'] as const;
 export type RepositoryName = (typeof REPOSITORIES)[number];

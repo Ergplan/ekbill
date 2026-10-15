@@ -3,7 +3,9 @@
 import { describe, expect, it } from 'vitest';
 
 import * as businesses from '../../packages/db/src/repos/businesses';
+import * as documents from '../../packages/db/src/repos/documents';
 import * as memberships from '../../packages/db/src/repos/memberships';
+import * as series from '../../packages/db/src/repos/series';
 import * as users from '../../packages/db/src/repos/users';
 import { otherBusiness, scopeFor, seeded } from './helpers';
 
@@ -23,6 +25,27 @@ describe('tenancy (I1): every repository, business A against business B', () => 
     expect(touched).not.toContain(b.businessId);
     for (const id of touched) expect(id).toBe(a.businessId);
   });
+  it('documents: listDocuments lists only its own documents', async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await documents.tenancyProbes[0]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("documents: getDocument cannot see another business's draft", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await documents.tenancyProbes[1]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("documents: issueDocument cannot issue another business's draft", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await documents.tenancyProbes[2]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
   it('memberships: listMembers lists only its own business', async () => {
     const a = await scopeFor('sharma', 'owner');
     const b = await otherBusiness('gupta');
@@ -34,6 +57,20 @@ describe('tenancy (I1): every repository, business A against business B', () => 
     const a = await scopeFor('sharma', 'owner');
     const b = await otherBusiness('gupta');
     const { touched } = await memberships.tenancyProbes[1]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it('series: listSeries lists only its own series', async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await series.tenancyProbes[0]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("series: updateSeries cannot reach another business's series", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await series.tenancyProbes[1]!.run(a, b);
     expect(touched).not.toContain(b.businessId);
     for (const id of touched) expect(id).toBe(a.businessId);
   });

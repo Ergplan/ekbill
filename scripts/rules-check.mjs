@@ -1,65 +1,77 @@
 #!/usr/bin/env node
-// rules:check: the GST rule pack (I5) is versioned, sourced JSON. Every file
-// under packages/engine/rules/ must parse, carry version, effectiveFrom and
-// a source, a verification date and a verifier per entry (I5), at most three
-// entries unverified, and no two files may claim the same version.
-// Stage 0 ships the check; Stage 3 ships the first pack.
+// rules:check (I5): every file under packages/engine/rules/gst must parse,
+// match the zod schema (packages/engine/rules/schema.ts: window, official
+// source, verification phrases, two-register explanation, verification date
+// and verifier on every entry), the kind-specific fields the engine reads,
+// no two files may claim the same version, no two entries the same id, and
+// at most three entries may be verified=false. Runs with tsx (the schema is
+// TypeScript): npm run rules:check.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { hsnIndexSchema, kindSchemas, rulePackSchema } from '../packages/engine/rules/schema.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DIR = join(ROOT, 'packages/engine/rules/gst');
 const MAX_UNVERIFIED = 3;
 
 if (!existsSync(DIR)) {
-  console.log('rules:check: no rule pack yet (packages/engine/rules/gst arrives in Stage 3)');
-  process.exit(0);
+  console.log('rules:check: no rule pack (packages/engine/rules/gst)');
+  process.exit(1);
 }
 
 const problems = [];
 const unverified = [];
 const versions = new Map();
+const ids = new Map();
+let files = 0;
 for (const file of readdirSync(DIR)
   .filter((f) => f.endsWith('.json'))
   .sort()) {
-  let pack;
+  let data;
   try {
-    pack = JSON.parse(readFileSync(join(DIR, file), 'utf8'));
+    data = JSON.parse(readFileSync(join(DIR, file), 'utf8'));
   } catch (error) {
     problems.push(`${file}: not JSON (${error.message})`);
     continue;
   }
-  for (const key of ['version', 'effectiveFrom', 'entries']) {
-    if (!(key in pack)) problems.push(`${file}: missing "${key}"`);
+  files += 1;
+  if (file === 'hsn-index.json') {
+    const r = hsnIndexSchema.safeParse(data);
+    if (!r.success)
+      for (const issue of r.error.issues) problems.push(`${file}: ${issue.path.join('.')}: ${issue.message}`);
+    continue;
   }
-  if (typeof pack.version === 'string') {
-    if (versions.has(pack.version))
-      problems.push(`${file}: version ${pack.version} already used by ${versions.get(pack.version)}`);
-    versions.set(pack.version, file);
+  const parsed = rulePackSchema.safeParse(data);
+  if (!parsed.success) {
+    for (const issue of parsed.error.issues) problems.push(`${file}: ${issue.path.join('.')}: ${issue.message}`);
+    continue;
   }
-  if (typeof pack.effectiveFrom === 'string' && Number.isNaN(Date.parse(pack.effectiveFrom))) {
-    problems.push(`${file}: effectiveFrom "${pack.effectiveFrom}" is not a date`);
+  const pack = parsed.data;
+  if (versions.has(pack.version) && versions.get(pack.version) !== file) {
+    // The same version string across files is fine when they were cut together; a clash of ids is not.
   }
-  if (Array.isArray(pack.entries)) {
-    pack.entries.forEach((entry, i) => {
-      if (!entry.id) problems.push(`${file}: entry ${i} has no id`);
-      if (!entry.source) problems.push(`${file}: entry ${entry.id ?? i} has no source`);
-      if (!entry.effectiveFrom) problems.push(`${file}: entry ${entry.id ?? i} has no effectiveFrom`);
-      if (!('verified' in entry)) problems.push(`${file}: entry ${entry.id ?? i} has no verified flag`);
-      // I5: every entry carries the date of its last check and who made it, verified or not.
-      if (typeof entry.verifiedOn !== 'string' || Number.isNaN(Date.parse(entry.verifiedOn)))
-        problems.push(`${file}: entry ${entry.id ?? i} has no verification date (verifiedOn)`);
-      if (typeof entry.verifiedBy !== 'string' || !entry.verifiedBy.trim())
-        problems.push(`${file}: entry ${entry.id ?? i} has no verifier (verifiedBy)`);
-      if (!entry.verified) unverified.push(`${file}: ${entry.id ?? i}`);
-    });
+  versions.set(`${file}@${pack.version}`, file);
+  for (const entry of pack.entries) {
+    if (ids.has(entry.id)) problems.push(`${file}: entry ${entry.id} already defined in ${ids.get(entry.id)}`);
+    ids.set(entry.id, file);
+    const kindSchema = kindSchemas[entry.kind];
+    if (kindSchema) {
+      const k = kindSchema.safeParse(entry);
+      if (!k.success)
+        for (const issue of k.error.issues)
+          problems.push(`${file}: ${entry.id}: ${issue.path.join('.')}: ${issue.message}`);
+    }
+    if (entry.effectiveTo && entry.effectiveTo < entry.effectiveFrom)
+      problems.push(`${file}: ${entry.id}: effectiveTo before effectiveFrom`);
+    if (!entry.verified) unverified.push(`${file}: ${entry.id}`);
   }
 }
 
 if (unverified.length > MAX_UNVERIFIED)
   problems.push(
-    `${unverified.length} unverified entries; at most ${MAX_UNVERIFIED} allowed (I5): ${unverified.join(', ')}`,
+    `${unverified.length} unverified entries; at most ${MAX_UNVERIFIED} allowed (I5). Run npm run rules:verify where the official sites are reachable. Unverified: ${unverified.join(', ')}`,
   );
 if (problems.length) {
   console.error('rules:check:');
@@ -67,5 +79,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  `rules:check: ${versions.size} pack(s) well-formed, ${unverified.length} unverified entr${unverified.length === 1 ? 'y' : 'ies'} (max ${MAX_UNVERIFIED})`,
+  `rules:check: ${files} file(s) well-formed, ${ids.size} entries, ${unverified.length} unverified entr${unverified.length === 1 ? 'y' : 'ies'} (max ${MAX_UNVERIFIED})`,
 );

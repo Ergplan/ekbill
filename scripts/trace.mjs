@@ -10,6 +10,8 @@
 // docs/field-owners.json (field → where it ends up, e.g. "derived: engine").
 // Sources: packages/db/src/schema.ts (pgTable literals) and every
 // **/schema.ts under apps/web and packages/engine (z.object literals).
+// A schema file that validates data files rather than user input (the rule
+// pack's packages/engine/rules/schema.ts) opts out with "// trace: not-input".
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -83,6 +85,7 @@ const orphans = [];
 for (const dir of ['apps/web', 'packages/engine', 'packages/ai']) {
   for (const file of walk(join(ROOT, dir), (f) => /(^|\/)schema\.ts$/.test(f) || /\.schema\.ts$/.test(f))) {
     const source = readFileSync(file, 'utf8');
+    if (/\/\/\s*trace:\s*not-input/.test(source)) continue;
     const table = source.match(/\/\/\s*table:\s*([a-z_]+)/)?.[1] ?? null;
     for (const s of zodSchemas(source)) {
       const rel = relative(ROOT, file);

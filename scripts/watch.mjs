@@ -72,7 +72,7 @@ function checks(changed) {
   }
   list.push(['vitest unit', 'npx', ['vitest', 'run', '--project', 'unit']]);
   list.push(['drizzle-kit check', 'npx', ['drizzle-kit', 'check', '--config', 'packages/db/drizzle.config.ts']]);
-  list.push(['rules:check', 'node', ['scripts/rules-check.mjs']]);
+  list.push(['rules:check', 'node', ['--import', 'tsx', 'scripts/rules-check.mjs']]);
   list.push(['tokens:check', 'node', ['scripts/tokens-check.mjs']]);
   list.push(['copy:check', 'node', ['scripts/copy-build.mjs', '--check']]);
   list.push(['trace:check', 'node', ['scripts/trace.mjs', '--check']]);
