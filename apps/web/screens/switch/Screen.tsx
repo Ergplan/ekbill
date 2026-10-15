@@ -1,0 +1,55 @@
+'use client';
+
+import { t } from '@ekbill/copy';
+import { Avatar, Display, GuideHighlight, Logo, Meta, StatusPill, useTour } from '@ekbill/ui';
+
+import { manifest } from './manifest';
+import type { SwitchRow } from './data';
+
+export function SwitchScreen({ people, current }: { people: SwitchRow[]; current: string | null }) {
+  const guide = useTour(manifest.tour);
+  return (
+    <main className="eb-screen">
+      <header className="eb-topbar">
+        <Logo />
+        <div className="eb-topbar__right">
+          <button
+            type="button"
+            className="eb-iconbtn"
+            aria-label={t('action.tour')}
+            data-testid="tour"
+            onClick={guide.start}
+          >
+            ?
+          </button>
+        </div>
+      </header>
+      <div className="eb-screen__body">
+        <section className="eb-heading">
+          <Display as="h1">{t('switch.title')}</Display>
+          <Meta>{t('switch.sub')}</Meta>
+        </section>
+        <div className="eb-rows eb-card" data-guide="people">
+          {people.map((p) => (
+            <a
+              key={p.id}
+              href={`/dev/switch/${p.id}`}
+              className="eb-billrow"
+              aria-current={current === p.id ? 'true' : undefined}
+            >
+              <Avatar name={p.name} index={p.index} />
+              <span className="eb-billrow__text">
+                <span className="eb-billrow__name">{p.name}</span>
+                <span className="eb-billrow__meta">{p.business ?? t('switch.none')}</span>
+              </span>
+              <span className="eb-billrow__right">
+                <StatusPill status={p.role === 'owner' ? 'paid' : 'sent'} label={t(`switch.role.${p.role}`)} />
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+      <GuideHighlight step={guide.step} onDone={guide.next} />
+    </main>
+  );
+}

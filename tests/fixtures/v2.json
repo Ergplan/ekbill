@@ -1,0 +1,1274 @@
+{
+  "_note": "Stage 1 fixtures: the demo business (Sharma Electricals, regular), a composition business (Gupta Kirana), a brand-new owner, a staff member and an accountant. Money in integer paise, dates ISO. Extends design/fixtures/demo.json.",
+  "today": "2026-10-15",
+  "people": [
+    {
+      "id": "sharma",
+      "name": "Sharma ji",
+      "phone": "+919822012345",
+      "business": "sharma",
+      "role": "owner"
+    },
+    {
+      "id": "ravi",
+      "name": "Ravi",
+      "phone": "+919822000002",
+      "business": "sharma",
+      "role": "staff"
+    },
+    {
+      "id": "meera",
+      "name": "Meera (CA)",
+      "phone": "+919822000003",
+      "business": "sharma",
+      "role": "accountant"
+    },
+    {
+      "id": "gupta",
+      "name": "Gupta ji",
+      "phone": "+919822000004",
+      "business": "gupta",
+      "role": "owner"
+    },
+    {
+      "id": "new",
+      "name": "Naya owner",
+      "phone": "+919822000005",
+      "business": null,
+      "role": "owner"
+    }
+  ],
+  "businesses": [
+    {
+      "id": "sharma",
+      "name": "Sharma Electricals",
+      "ownerName": "Sharma ji",
+      "pan": "AAAAA0000A",
+      "gstin": "27AAAAA0000A1Z2",
+      "registration": "regular",
+      "turnoverBand": "40l-1.5cr",
+      "irn": false,
+      "phone": "+919822012345",
+      "upi": "sharma@upi",
+      "bank": {
+        "name": "Bank of Maharashtra",
+        "account": "XXXX4321",
+        "ifsc": "MAHB0000123"
+      },
+      "address": "12, Dharampeth",
+      "city": "Nagpur",
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "series": [
+        {
+          "prefix": "INV",
+          "next": 45
+        },
+        {
+          "prefix": "AMC",
+          "next": 7
+        }
+      ],
+      "look": {
+        "logo": true,
+        "signature": true,
+        "design": "classic",
+        "colour": "narangi",
+        "paper": "A4",
+        "share": "pdf"
+      },
+      "theme": "narangi",
+      "lang": "hi-Latn",
+      "voiceOnArrival": true,
+      "gstDefaultRate": 18
+    },
+    {
+      "id": "gupta",
+      "name": "Gupta Kirana",
+      "ownerName": "Gupta ji",
+      "pan": "BBBBB1111B",
+      "gstin": "27BBBBB1111B1ZN",
+      "registration": "composition",
+      "turnoverBand": "40l-1.5cr",
+      "irn": false,
+      "phone": "+919822000004",
+      "upi": "guptakirana@upi",
+      "bank": null,
+      "address": "Shop 4, Sitabuldi",
+      "city": "Nagpur",
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "series": [
+        {
+          "prefix": "BOS",
+          "next": 23
+        }
+      ],
+      "look": {
+        "logo": false,
+        "signature": true,
+        "design": "simple",
+        "colour": "harmony",
+        "paper": "80mm",
+        "share": "jpg"
+      },
+      "theme": "harmony",
+      "lang": "hi-Latn",
+      "voiceOnArrival": false,
+      "gstDefaultRate": null
+    }
+  ],
+  "customers": [
+    {
+      "id": "mehta",
+      "business": "sharma",
+      "name": "Mehta Traders",
+      "contact": "Mehta",
+      "phone": "+919822100001",
+      "gstin": "27AAPFU0939F1ZV",
+      "pan": "AAPFU0939F",
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "priya",
+      "business": "sharma",
+      "name": "Priya Boutique",
+      "contact": "Priya",
+      "phone": "+919822100002",
+      "gstin": null,
+      "pan": null,
+      "stateCode": null,
+      "stateName": null,
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "kulkarni",
+      "business": "sharma",
+      "name": "Dr. Kulkarni",
+      "contact": "Kulkarni",
+      "phone": "+919822100003",
+      "gstin": null,
+      "pan": null,
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": "Clinic, Dhantoli. Evening visits."
+    },
+    {
+      "id": "greenpark",
+      "business": "sharma",
+      "name": "Green Park Society",
+      "contact": "Patil",
+      "phone": "+919822100004",
+      "gstin": "27AABCG1234H1ZZ",
+      "pan": "AABCG1234H",
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "joshi",
+      "business": "sharma",
+      "name": "Joshi Builders",
+      "contact": "Joshi",
+      "phone": "+919822100005",
+      "gstin": "27AAACJ5678K1Z2",
+      "pan": "AAACJ5678K",
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "sunrise",
+      "business": "sharma",
+      "name": "Sunrise School",
+      "contact": "Principal",
+      "phone": "+919822100006",
+      "gstin": null,
+      "pan": null,
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "en",
+      "notes": null
+    },
+    {
+      "id": "bansal",
+      "business": "sharma",
+      "name": "Bansal Agencies",
+      "contact": "Bansal",
+      "phone": "+919822100007",
+      "gstin": "23AAFCB9012L1ZR",
+      "pan": "AAFCB9012L",
+      "stateCode": "23",
+      "stateName": "Madhya Pradesh",
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "deshmukh",
+      "business": "sharma",
+      "name": "Deshmukh ji",
+      "contact": "Deshmukh",
+      "phone": "+919822100008",
+      "gstin": null,
+      "pan": null,
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "cafe",
+      "business": "sharma",
+      "name": "Cafe Nagpur",
+      "contact": "Rohan",
+      "phone": "+919822100009",
+      "gstin": null,
+      "pan": null,
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "apte",
+      "business": "sharma",
+      "name": "Apte Hospital",
+      "contact": "Admin",
+      "phone": "+919822100010",
+      "gstin": "27AABCA3456M1ZI",
+      "pan": "AABCA3456M",
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "en",
+      "notes": null
+    },
+    {
+      "id": "verma",
+      "business": "sharma",
+      "name": "Verma Textiles",
+      "contact": "Verma",
+      "phone": "+919822100011",
+      "gstin": null,
+      "pan": null,
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "shinde",
+      "business": "sharma",
+      "name": "Shinde Garage",
+      "contact": "Shinde",
+      "phone": "+919822100012",
+      "gstin": null,
+      "pan": null,
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "mishra",
+      "business": "gupta",
+      "name": "Mishra ji",
+      "contact": "Mishra",
+      "phone": "+919822200001",
+      "gstin": null,
+      "pan": null,
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "hostel",
+      "business": "gupta",
+      "name": "Nehru Hostel Mess",
+      "contact": "Warden",
+      "phone": "+919822200002",
+      "gstin": null,
+      "pan": null,
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": null
+    },
+    {
+      "id": "tiffin",
+      "business": "gupta",
+      "name": "Anna Tiffin",
+      "contact": "Anna",
+      "phone": "+919822200003",
+      "gstin": null,
+      "pan": null,
+      "stateCode": "27",
+      "stateName": "Maharashtra",
+      "lang": "hi-Latn",
+      "notes": null
+    }
+  ],
+  "items": [
+    {
+      "id": "amc",
+      "business": "sharma",
+      "name": "AMC visit",
+      "hsn": "998719",
+      "unit": "visit",
+      "ratePaise": 350000,
+      "gstRate": 18
+    },
+    {
+      "id": "fan",
+      "business": "sharma",
+      "name": "Ceiling fan install",
+      "hsn": "995461",
+      "unit": "nos",
+      "ratePaise": 135000,
+      "gstRate": 18
+    },
+    {
+      "id": "wiring",
+      "business": "sharma",
+      "name": "Wiring (per point)",
+      "hsn": "995461",
+      "unit": "point",
+      "ratePaise": 65000,
+      "gstRate": 18
+    },
+    {
+      "id": "rice",
+      "business": "gupta",
+      "name": "Rice 25kg",
+      "hsn": "1006",
+      "unit": "bag",
+      "ratePaise": 165000,
+      "gstRate": null
+    },
+    {
+      "id": "oil",
+      "business": "gupta",
+      "name": "Groundnut oil 15L",
+      "hsn": "1508",
+      "unit": "tin",
+      "ratePaise": 240000,
+      "gstRate": null
+    }
+  ],
+  "bills": [
+    {
+      "id": "b1",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-031",
+      "customer": "mehta",
+      "date": "2026-07-25",
+      "lines": [
+        {
+          "what": "AMC visit — July",
+          "qty": 1,
+          "ratePaise": 350000,
+          "gstRate": 18,
+          "amountPaise": 350000
+        },
+        {
+          "what": "Ceiling fan install",
+          "qty": 2,
+          "ratePaise": 135000,
+          "gstRate": 18,
+          "amountPaise": 270000
+        }
+      ],
+      "subtotalPaise": 620000,
+      "gstPaise": 111600,
+      "totalPaise": 731600,
+      "status": "paid",
+      "paidPaise": 731600,
+      "duePaise": 0,
+      "paidOn": "2026-07-30",
+      "method": "upi",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b2",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-032",
+      "customer": "joshi",
+      "date": "2026-07-28",
+      "lines": [
+        {
+          "what": "Wiring (per point)",
+          "qty": 40,
+          "ratePaise": 65000,
+          "gstRate": 18,
+          "amountPaise": 2600000
+        }
+      ],
+      "subtotalPaise": 2600000,
+      "gstPaise": 468000,
+      "totalPaise": 3068000,
+      "status": "paid",
+      "paidPaise": 3068000,
+      "duePaise": 0,
+      "paidOn": "2026-08-12",
+      "method": "bank",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b3",
+      "business": "sharma",
+      "series": "AMC",
+      "number": "AMC-004",
+      "customer": "sunrise",
+      "date": "2026-08-02",
+      "lines": [
+        {
+          "what": "AMC visit — August",
+          "qty": 1,
+          "ratePaise": 350000,
+          "gstRate": 18,
+          "amountPaise": 350000
+        }
+      ],
+      "subtotalPaise": 350000,
+      "gstPaise": 63000,
+      "totalPaise": 413000,
+      "status": "paid",
+      "paidPaise": 413000,
+      "duePaise": 0,
+      "paidOn": "2026-08-05",
+      "method": "cash",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b4",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-033",
+      "customer": "apte",
+      "date": "2026-08-06",
+      "lines": [
+        {
+          "what": "Panel repair",
+          "qty": 1,
+          "ratePaise": 1200000,
+          "gstRate": 18,
+          "amountPaise": 1200000
+        },
+        {
+          "what": "Wiring (per point)",
+          "qty": 12,
+          "ratePaise": 65000,
+          "gstRate": 18,
+          "amountPaise": 780000
+        }
+      ],
+      "subtotalPaise": 1980000,
+      "gstPaise": 356400,
+      "totalPaise": 2336400,
+      "status": "paid",
+      "paidPaise": 2336400,
+      "duePaise": 0,
+      "paidOn": "2026-08-20",
+      "method": "bank",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b5",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-034",
+      "customer": "cafe",
+      "date": "2026-08-11",
+      "lines": [
+        {
+          "what": "Ceiling fan install",
+          "qty": 4,
+          "ratePaise": 135000,
+          "gstRate": 18,
+          "amountPaise": 540000
+        }
+      ],
+      "subtotalPaise": 540000,
+      "gstPaise": 97200,
+      "totalPaise": 637200,
+      "status": "cancelled",
+      "paidPaise": 0,
+      "duePaise": 0,
+      "paidOn": null,
+      "method": null,
+      "cancelledReason": "Galat customer chuna",
+      "creditNote": null,
+      "waStatus": "sent",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b6",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-035",
+      "customer": "cafe",
+      "date": "2026-08-11",
+      "lines": [
+        {
+          "what": "Ceiling fan install",
+          "qty": 4,
+          "ratePaise": 135000,
+          "gstRate": 18,
+          "amountPaise": 540000
+        }
+      ],
+      "subtotalPaise": 540000,
+      "gstPaise": 97200,
+      "totalPaise": 637200,
+      "status": "paid",
+      "paidPaise": 637200,
+      "duePaise": 0,
+      "paidOn": "2026-08-11",
+      "method": "upi",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b7",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-036",
+      "customer": "mehta",
+      "date": "2026-08-24",
+      "lines": [
+        {
+          "what": "AMC visit — August",
+          "qty": 1,
+          "ratePaise": 350000,
+          "gstRate": 18,
+          "amountPaise": 350000
+        },
+        {
+          "what": "Ceiling fan install",
+          "qty": 2,
+          "ratePaise": 135000,
+          "gstRate": 18,
+          "amountPaise": 270000
+        }
+      ],
+      "subtotalPaise": 620000,
+      "gstPaise": 111600,
+      "totalPaise": 731600,
+      "status": "paid",
+      "paidPaise": 731600,
+      "duePaise": 0,
+      "paidOn": "2026-08-29",
+      "method": "upi",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b8",
+      "business": "sharma",
+      "series": "AMC",
+      "number": "AMC-005",
+      "customer": "sunrise",
+      "date": "2026-09-02",
+      "lines": [
+        {
+          "what": "AMC visit — September",
+          "qty": 1,
+          "ratePaise": 350000,
+          "gstRate": 18,
+          "amountPaise": 350000
+        }
+      ],
+      "subtotalPaise": 350000,
+      "gstPaise": 63000,
+      "totalPaise": 413000,
+      "status": "paid",
+      "paidPaise": 413000,
+      "duePaise": 0,
+      "paidOn": "2026-09-04",
+      "method": "cash",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b9",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-037",
+      "customer": "bansal",
+      "date": "2026-09-05",
+      "lines": [
+        {
+          "what": "Wiring (per point)",
+          "qty": 30,
+          "ratePaise": 65000,
+          "gstRate": 18,
+          "amountPaise": 1950000
+        }
+      ],
+      "subtotalPaise": 1950000,
+      "gstPaise": 351000,
+      "totalPaise": 2301000,
+      "status": "partial",
+      "paidPaise": 1000000,
+      "duePaise": 1301000,
+      "paidOn": "2026-09-20",
+      "method": "bank",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b10",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-038",
+      "customer": "verma",
+      "date": "2026-09-10",
+      "lines": [
+        {
+          "what": "Ceiling fan install",
+          "qty": 6,
+          "ratePaise": 135000,
+          "gstRate": 18,
+          "amountPaise": 810000
+        }
+      ],
+      "subtotalPaise": 810000,
+      "gstPaise": 145800,
+      "totalPaise": 955800,
+      "status": "paid",
+      "paidPaise": 955800,
+      "duePaise": 0,
+      "paidOn": "2026-09-12",
+      "method": "upi",
+      "cancelledReason": null,
+      "creditNote": "CN-001",
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b11",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-039",
+      "customer": "kulkarni",
+      "date": "2026-09-17",
+      "lines": [
+        {
+          "what": "Clinic wiring (per point)",
+          "qty": 4,
+          "ratePaise": 65000,
+          "gstRate": 18,
+          "amountPaise": 260000
+        },
+        {
+          "what": "Fan repair",
+          "qty": 1,
+          "ratePaise": 25000,
+          "gstRate": 18,
+          "amountPaise": 25000
+        }
+      ],
+      "subtotalPaise": 285000,
+      "gstPaise": 51300,
+      "totalPaise": 336300,
+      "status": "due",
+      "paidPaise": 0,
+      "duePaise": 336300,
+      "paidOn": null,
+      "method": null,
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b12",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-040",
+      "customer": "greenpark",
+      "date": "2026-09-12",
+      "lines": [
+        {
+          "what": "Gate light install",
+          "qty": 3,
+          "ratePaise": 200000,
+          "gstRate": 18,
+          "amountPaise": 600000
+        },
+        {
+          "what": "Wiring (per point)",
+          "qty": 5,
+          "ratePaise": 65000,
+          "gstRate": 18,
+          "amountPaise": 325000
+        }
+      ],
+      "subtotalPaise": 925000,
+      "gstPaise": 166500,
+      "totalPaise": 1091500,
+      "status": "due",
+      "paidPaise": 0,
+      "duePaise": 1091500,
+      "paidOn": null,
+      "method": null,
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b13",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-041",
+      "customer": "priya",
+      "date": "2026-09-18",
+      "lines": [
+        {
+          "what": "Shop lighting",
+          "qty": 1,
+          "ratePaise": 285000,
+          "gstRate": 18,
+          "amountPaise": 285000
+        }
+      ],
+      "subtotalPaise": 285000,
+      "gstPaise": 51300,
+      "totalPaise": 336300,
+      "status": "paid",
+      "paidPaise": 336300,
+      "duePaise": 0,
+      "paidOn": "2026-09-19",
+      "method": "upi",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b14",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-042",
+      "customer": "mehta",
+      "date": "2026-09-22",
+      "lines": [
+        {
+          "what": "AMC visit — September",
+          "qty": 1,
+          "ratePaise": 350000,
+          "gstRate": 18,
+          "amountPaise": 350000
+        },
+        {
+          "what": "Ceiling fan install",
+          "qty": 2,
+          "ratePaise": 135000,
+          "gstRate": 18,
+          "amountPaise": 270000
+        }
+      ],
+      "subtotalPaise": 620000,
+      "gstPaise": 111600,
+      "totalPaise": 731600,
+      "status": "due",
+      "paidPaise": 0,
+      "duePaise": 731600,
+      "paidOn": null,
+      "method": null,
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b15",
+      "business": "sharma",
+      "series": "AMC",
+      "number": "AMC-006",
+      "customer": "sunrise",
+      "date": "2026-10-02",
+      "lines": [
+        {
+          "what": "AMC visit — October",
+          "qty": 1,
+          "ratePaise": 350000,
+          "gstRate": 18,
+          "amountPaise": 350000
+        }
+      ],
+      "subtotalPaise": 350000,
+      "gstPaise": 63000,
+      "totalPaise": 413000,
+      "status": "paid",
+      "paidPaise": 413000,
+      "duePaise": 0,
+      "paidOn": "2026-10-03",
+      "method": "cash",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b16",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-043",
+      "customer": "deshmukh",
+      "date": "2026-10-06",
+      "lines": [
+        {
+          "what": "Inverter install",
+          "qty": 1,
+          "ratePaise": 450000,
+          "gstRate": 18,
+          "amountPaise": 450000
+        }
+      ],
+      "subtotalPaise": 450000,
+      "gstPaise": 81000,
+      "totalPaise": 531000,
+      "status": "due",
+      "paidPaise": 0,
+      "duePaise": 531000,
+      "paidOn": null,
+      "method": null,
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "sent",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b17",
+      "business": "sharma",
+      "series": "INV",
+      "number": "INV-044",
+      "customer": "shinde",
+      "date": "2026-10-12",
+      "lines": [
+        {
+          "what": "Garage wiring (per point)",
+          "qty": 8,
+          "ratePaise": 65000,
+          "gstRate": 18,
+          "amountPaise": 520000
+        },
+        {
+          "what": "Ceiling fan install",
+          "qty": 1,
+          "ratePaise": 135000,
+          "gstRate": 18,
+          "amountPaise": 135000
+        }
+      ],
+      "subtotalPaise": 655000,
+      "gstPaise": 117900,
+      "totalPaise": 772900,
+      "status": "paid",
+      "paidPaise": 772900,
+      "duePaise": 0,
+      "paidOn": "2026-10-12",
+      "method": "upi",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "tax-invoice"
+    },
+    {
+      "id": "b18",
+      "business": "gupta",
+      "series": "BOS",
+      "number": "BOS-020",
+      "customer": "hostel",
+      "date": "2026-09-28",
+      "lines": [
+        {
+          "what": "Rice 25kg",
+          "qty": 10,
+          "ratePaise": 165000,
+          "gstRate": null,
+          "amountPaise": 1650000
+        },
+        {
+          "what": "Groundnut oil 15L",
+          "qty": 2,
+          "ratePaise": 240000,
+          "gstRate": null,
+          "amountPaise": 480000
+        }
+      ],
+      "subtotalPaise": 2130000,
+      "gstPaise": 0,
+      "totalPaise": 2130000,
+      "status": "paid",
+      "paidPaise": 2130000,
+      "duePaise": 0,
+      "paidOn": "2026-09-30",
+      "method": "bank",
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "bill-of-supply"
+    },
+    {
+      "id": "b19",
+      "business": "gupta",
+      "series": "BOS",
+      "number": "BOS-021",
+      "customer": "tiffin",
+      "date": "2026-10-04",
+      "lines": [
+        {
+          "what": "Rice 25kg",
+          "qty": 4,
+          "ratePaise": 165000,
+          "gstRate": null,
+          "amountPaise": 660000
+        }
+      ],
+      "subtotalPaise": 660000,
+      "gstPaise": 0,
+      "totalPaise": 660000,
+      "status": "due",
+      "paidPaise": 0,
+      "duePaise": 660000,
+      "paidOn": null,
+      "method": null,
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "read",
+      "kind": "bill-of-supply"
+    },
+    {
+      "id": "b20",
+      "business": "gupta",
+      "series": "BOS",
+      "number": "BOS-022",
+      "customer": "mishra",
+      "date": "2026-10-11",
+      "lines": [
+        {
+          "what": "Groundnut oil 15L",
+          "qty": 1,
+          "ratePaise": 240000,
+          "gstRate": null,
+          "amountPaise": 240000
+        }
+      ],
+      "subtotalPaise": 240000,
+      "gstPaise": 0,
+      "totalPaise": 240000,
+      "status": "due",
+      "paidPaise": 0,
+      "duePaise": 240000,
+      "paidOn": null,
+      "method": null,
+      "cancelledReason": null,
+      "creditNote": null,
+      "waStatus": "sent",
+      "kind": "bill-of-supply"
+    }
+  ],
+  "payments": [
+    {
+      "id": "p1",
+      "business": "sharma",
+      "bill": "INV-031",
+      "date": "2026-07-30",
+      "amountPaise": 731600,
+      "method": "upi"
+    },
+    {
+      "id": "p2",
+      "business": "sharma",
+      "bill": "INV-032",
+      "date": "2026-08-12",
+      "amountPaise": 3068000,
+      "method": "bank"
+    },
+    {
+      "id": "p3",
+      "business": "sharma",
+      "bill": "AMC-004",
+      "date": "2026-08-05",
+      "amountPaise": 413000,
+      "method": "cash"
+    },
+    {
+      "id": "p4",
+      "business": "sharma",
+      "bill": "INV-033",
+      "date": "2026-08-20",
+      "amountPaise": 2336400,
+      "method": "bank"
+    },
+    {
+      "id": "p5",
+      "business": "sharma",
+      "bill": "INV-035",
+      "date": "2026-08-11",
+      "amountPaise": 637200,
+      "method": "upi"
+    },
+    {
+      "id": "p6",
+      "business": "sharma",
+      "bill": "INV-036",
+      "date": "2026-08-29",
+      "amountPaise": 731600,
+      "method": "upi"
+    },
+    {
+      "id": "p7",
+      "business": "sharma",
+      "bill": "AMC-005",
+      "date": "2026-09-04",
+      "amountPaise": 413000,
+      "method": "cash"
+    },
+    {
+      "id": "p8",
+      "business": "sharma",
+      "bill": "INV-037",
+      "date": "2026-09-20",
+      "amountPaise": 1000000,
+      "method": "bank"
+    },
+    {
+      "id": "p9",
+      "business": "sharma",
+      "bill": "INV-038",
+      "date": "2026-09-12",
+      "amountPaise": 955800,
+      "method": "upi"
+    },
+    {
+      "id": "p10",
+      "business": "sharma",
+      "bill": "INV-041",
+      "date": "2026-09-19",
+      "amountPaise": 336300,
+      "method": "upi"
+    },
+    {
+      "id": "p11",
+      "business": "sharma",
+      "bill": "AMC-006",
+      "date": "2026-10-03",
+      "amountPaise": 413000,
+      "method": "cash"
+    },
+    {
+      "id": "p12",
+      "business": "sharma",
+      "bill": "INV-044",
+      "date": "2026-10-12",
+      "amountPaise": 772900,
+      "method": "upi"
+    },
+    {
+      "id": "p13",
+      "business": "gupta",
+      "bill": "BOS-020",
+      "date": "2026-09-30",
+      "amountPaise": 2130000,
+      "method": "bank"
+    }
+  ],
+  "creditNotes": [
+    {
+      "id": "cn1",
+      "business": "sharma",
+      "number": "CN-001",
+      "bill": "INV-038",
+      "date": "2026-09-14",
+      "amountPaise": 159300,
+      "reason": "Ek fan wapas hua"
+    }
+  ],
+  "photoReview": {
+    "customer": "kulkarni",
+    "photo": "/flow-fixtures/kaccha-bill.svg",
+    "readAt": "2026-10-15T09:12:00+05:30",
+    "fields": {
+      "customer": {
+        "value": "Dr. Kulkarni",
+        "confidence": 0.93
+      },
+      "date": {
+        "value": "2026-10-14",
+        "confidence": 0.88
+      },
+      "lines": [
+        {
+          "what": {
+            "value": "Fan repair",
+            "confidence": 0.91
+          },
+          "qty": {
+            "value": "1",
+            "confidence": 0.97
+          },
+          "rate": {
+            "value": "450",
+            "confidence": 0.72
+          }
+        },
+        {
+          "what": {
+            "value": "Wiring 3 point",
+            "confidence": 0.58
+          },
+          "qty": {
+            "value": "3",
+            "confidence": 0.81
+          },
+          "rate": {
+            "value": "650",
+            "confidence": 0.35
+          }
+        },
+        {
+          "what": {
+            "value": "",
+            "confidence": 0,
+            "unreadable": true
+          },
+          "qty": {
+            "value": "1",
+            "confidence": 0.4
+          },
+          "rate": {
+            "value": "",
+            "confidence": 0,
+            "unreadable": true
+          }
+        }
+      ],
+      "total": {
+        "value": "2850",
+        "confidence": 0.66
+      }
+    }
+  },
+  "failingCheck": {
+    "customer": "priya",
+    "check": "state-missing"
+  },
+  "gstQuarter": {
+    "label": "Jul – Sep 2026",
+    "period": "2026-Q2",
+    "bills": 14,
+    "taxablePaise": 11240000,
+    "gstPaise": 1939200,
+    "byRate": [
+      {
+        "rate": 18,
+        "taxablePaise": 9840000,
+        "cgstPaise": 885600,
+        "sgstPaise": 885600
+      },
+      {
+        "rate": 12,
+        "taxablePaise": 1400000,
+        "cgstPaise": 84000,
+        "sgstPaise": 84000
+      }
+    ],
+    "b2bBills": 6,
+    "b2cBills": 8
+  },
+  "importPreview": {
+    "files": ["bills-2025.pdf", "customers.xlsx", "IMG_2041.jpg"],
+    "rows": [
+      {
+        "name": "Mehta Traders",
+        "phone": "+919822100001",
+        "gstin": "27AAPFU0939F1ZV",
+        "exists": true
+      },
+      {
+        "name": "Rathi Agro",
+        "phone": "+919822300001",
+        "gstin": "27AADCR7788P1ZA",
+        "exists": false
+      },
+      {
+        "name": "Pawar Dairy",
+        "phone": "+919822300002",
+        "gstin": null,
+        "exists": false
+      },
+      {
+        "name": "Dr. Kulkarni",
+        "phone": "+919822100003",
+        "gstin": null,
+        "exists": true
+      },
+      {
+        "name": "Nagpur Sports Club",
+        "phone": null,
+        "gstin": "27AAATN4455Q1ZY",
+        "exists": false
+      }
+    ]
+  },
+  "ask": {
+    "examples": ["Mehta ka kitna baaki hai?", "Is mahine kitne bills gaye?", "Pichle saal Diwali pe kya rate tha?"],
+    "answer": {
+      "question": "Mehta ka kitna baaki hai?",
+      "text": "Mehta Traders se ₹6,200 baaki hain: INV-042 (22 Sep), 23 din ho gaye. Pichle do bills time pe aa gaye the.",
+      "sources": ["INV-042", "INV-036", "INV-031"]
+    }
+  },
+  "help": {
+    "choices": [
+      {
+        "id": "percent",
+        "title": "Contract ka kuch percent",
+        "sub": "Jaise 30% advance, 70% kaam ke baad"
+      },
+      {
+        "id": "instalments",
+        "title": "Kisht mein",
+        "sub": "Har mahine ek bill, tay rakam"
+      },
+      {
+        "id": "running",
+        "title": "Running bill",
+        "sub": "Jitna kaam hua utna, har baar"
+      }
+    ]
+  }
+}

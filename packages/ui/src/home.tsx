@@ -211,6 +211,7 @@ export function OwedRow({
   action,
   oldest,
   guide,
+  href,
 }: {
   name: string;
   age: ReactNode;
@@ -219,14 +220,27 @@ export function OwedRow({
   action: ReactNode;
   oldest?: boolean;
   guide?: string;
+  /** The row itself opens the bill (8.0: Home → dues row → Paise aa gaye). */
+  href?: string;
 }) {
-  return (
-    <li className={`eb-owedrow${oldest ? ' eb-owedrow--oldest' : ''}`} data-guide={guide}>
+  const text = (
+    <>
       <span className="eb-owedrow__text">
         <span className="eb-owedrow__name">{name}</span>
         <span className={`eb-owedrow__age${overdue ? ' eb-owedrow__age--due' : ''}`}>{age}</span>
       </span>
       <Money paise={amountPaise} whole />
+    </>
+  );
+  return (
+    <li className={`eb-owedrow${oldest ? ' eb-owedrow--oldest' : ''}`} data-guide={guide}>
+      {href ? (
+        <a href={href} className="eb-owedrow__link" aria-label={name}>
+          {text}
+        </a>
+      ) : (
+        text
+      )}
       {action}
     </li>
   );

@@ -74,6 +74,7 @@ function checks(changed) {
   list.push(['drizzle-kit check', 'npx', ['drizzle-kit', 'check', '--config', 'packages/db/drizzle.config.ts']]);
   list.push(['rules:check', 'node', ['scripts/rules-check.mjs']]);
   list.push(['tokens:check', 'node', ['scripts/tokens-check.mjs']]);
+  list.push(['copy:check', 'node', ['scripts/copy-build.mjs', '--check']]);
   list.push(['trace:check', 'node', ['scripts/trace.mjs', '--check']]);
   list.push(['flow:check', 'node', ['scripts/flow-map.mjs', '--check']]);
   if (touchesDb || once) list.push(['vitest integration', 'npx', ['vitest', 'run', '--project', 'integration']]);

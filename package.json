@@ -27,6 +27,8 @@
     "watch": "node scripts/watch.mjs",
     "review:stage": "node scripts/review-stage.mjs",
     "tokens:check": "node scripts/tokens-check.mjs",
+    "copy:build": "node scripts/copy-build.mjs",
+    "copy:check": "node scripts/copy-build.mjs --check",
     "rules:check": "node scripts/rules-check.mjs",
     "trace": "node scripts/trace.mjs",
     "trace:check": "node scripts/trace.mjs --check",

@@ -188,3 +188,42 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Options: a second build (`tsc` to `dist/`) or bundling.
 - Why: one image, two commands, no second build pipeline for a process with a handful of handlers. Revisit in Stage 10 if start time or image size matters.
 - Asked by: the build agent (Stage 0).
+
+## 2026-10-15 — Stage 1 (screen flow)
+
+### The short setup path
+
+- Decision: name → "GST mein registered ho?" → only what that answer needs (GSTIN; turnover; IRN when 5 crore+) → "Sab sahi hai?" with "Chalo, shuru karte hain". PAN, UPI, city and signature are offered on that review screen ("Abhi bhar deta hoon") and on Aap; PAN is derived from the GSTIN when one is given.
+- Options: every question in 8.0's order before the first bill (19 taps from welcome to WhatsApp).
+- Why: I9's budget for path (d) is 14 taps; the OTP moves on by itself at six digits, Kitna defaults to 1, and the first bill carries the customer's name inline. Open question 1 on /flow.
+- Asked by: the Stage 1 prompt ("Redesign until within budget").
+
+### Inactive tabs show their icon only
+
+- Decision: the five-slot tab bar (Ghar · Bills · mic · GST · Aap) words only the active tab.
+- Why: five worded slots do not fit 390 px at 44 px targets; the pack's mock had three tabs. Open question 4.
+- Asked by: the Stage 0 kit screenshots.
+
+### Session drafts through one store hook
+
+- Decision: `apps/web/screens/draft.ts#useDraft(key, initial)` subscribes React to sessionStorage (useSyncExternalStore); screens never set state inside an effect. Stage 4 onward replace the store with server actions behind the same names.
+- Why: eslint's react-hooks rules forbid setState in effects; the prototype still has to survive a reload mid-bill.
+- Asked by: the build agent.
+
+### Baselines at device scale 2
+
+- Decision: the Playwright phone project renders at deviceScaleFactor 2 (780 px wide), the pack's own scale; every screen's baseline is also copied to `design/screens/<theme>/v2-<id>.png`, so the repository stores each image once.
+- Why: the pack's references are 780 px wide; the kit baselines were remade at this scale.
+- Asked by: the Stage 1 prompt (references for /flow and the pixel comparison).
+
+### `allowedDevOrigins` for the dev server
+
+- Decision: `next.config.ts` allows `127.0.0.1` and `localhost` in development.
+- Why: Next 16 refuses chunk requests from an origin other than the one it started on; the tests and the VM reach the dev server by IP and nothing hydrated. Production is unaffected.
+- Asked by: the golden-path tests (every tap silently did nothing).
+
+### The dev switch redirects with a relative Location
+
+- Decision: `/dev/switch/[person]` answers 303 with `Location: /`, not an absolute URL.
+- Why: an absolute URL built from `request.url` carried `localhost`, so the cookie set on 127.0.0.1 never reached the next page.
+- Asked by: path (d).

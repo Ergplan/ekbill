@@ -1,0 +1,32 @@
+import type { ScreenManifest } from '../types';
+
+export const manifest: ScreenManifest = {
+  id: 'aap',
+  route: '/aap',
+  title: 'Aap',
+  purpose:
+    'Everything about the business and the app, in groups: dukaan, paise kaise dein, series, bill kaisa dikhe, theme, language, Bolke, team, app ki jaankari. One sticky Save.',
+  primary: { label: 'Save karo', to: '/aap', guide: 'save' },
+  taps: [
+    { label: 'Team', to: '/aap/team', guide: 'team' },
+    { label: 'Kaam / Saamaan', to: '/items', guide: 'items' },
+    { label: 'Sample dekho', to: '/bills/new/done', guide: 'look' },
+    { label: 'Bill number series', to: '/aap', guide: 'series' },
+  ],
+  states: ['owner', 'staff', 'accountant', 'composition'],
+  guides: ['dukaan', 'paise', 'series', 'look', 'theme', 'lang', 'voice', 'team', 'items', 'about', 'save'],
+  tour: [
+    { target: 'dukaan', say: 'Dukaan ka naam, PAN, GST: yeh sab bill pe chhapta hai.' },
+    { target: 'look', say: 'Logo, signature, design, paper: bill kaisa dikhe.' },
+    { target: 'voice', say: 'Bolke: aate hi awaaz chalu ho ya nahi.' },
+    { target: 'save', say: 'Kuch badla? Save karo.' },
+  ],
+  roles: {
+    owner: 'Everything.',
+    staff: 'Theme, language, Bolke, app info; business settings read only.',
+    accountant: 'Same as staff.',
+  },
+  hidden: { staff: ['team', 'save'], accountant: ['team', 'save', 'items'] },
+  reference: { narangi: '07-profile' },
+  tab: 'you',
+};

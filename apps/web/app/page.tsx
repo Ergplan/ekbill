@@ -1,6 +1,10 @@
-import { redirect } from 'next/navigation';
+import { loadHome } from '../screens/home/data';
+import { HomeScreen } from '../screens/home/Screen';
+import { getViewer, shellOf, type SearchParams } from '../screens/viewer';
 
-/** Stage 0 has no screens; the kit is the one thing to look at. Stage 1 replaces this with the shell. */
-export default function Index() {
-  redirect('/kit');
+export const dynamic = 'force-dynamic';
+
+export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const viewer = await getViewer(await searchParams);
+  return <HomeScreen data={loadHome(viewer)} viewer={shellOf(viewer)} />;
 }

@@ -1,125 +1,1776 @@
 {
   "_note": "One dictionary, two registers. hi-Latn is the default app voice (Hinglish, Latin script). en is the toggle. The bill/PDF never uses this file's hi-Latn strings: invoices are always formal English (see invoice.*). {placeholders} are filled at runtime.",
-
-  "nav.home":            { "hi-Latn": "Ghar",                         "en": "Home" },
-  "nav.bills":           { "hi-Latn": "Bills",                        "en": "Bills" },
-  "nav.gst":             { "hi-Latn": "GST",                          "en": "GST" },
-  "nav.you":             { "hi-Latn": "Aap",                          "en": "You" },
-
-  "auth.hero":           { "hi-Latn": "Bill banao. WhatsApp karo. Paise lo.", "en": "Make the bill. Send on WhatsApp. Get paid." },
-  "auth.welcome":        { "hi-Latn": "Bill banane ke liye taiyaar ho?", "en": "Ready to make your first bill?" },
-  "auth.welcome.sub":    { "hi-Latn": "Ek baar profile bharo, phir har bill ek tap.", "en": "Fill your profile once. Every bill after is one tap." },
-  "auth.start":          { "hi-Latn": "Shuru karein",                 "en": "Get started" },
-  "auth.phone.title":    { "hi-Latn": "Apna number daalo",            "en": "Enter your number" },
-  "auth.phone.sub":      { "hi-Latn": "Password ki zaroorat nahi. Bas ek code.", "en": "No password. Just a code." },
-  "auth.phone.label":    { "hi-Latn": "Phone number",                 "en": "Phone number" },
-  "auth.code.sent":      { "hi-Latn": "Code gaya",                    "en": "Code sent" },
-  "auth.code.label":     { "hi-Latn": "6-digit code",                 "en": "6-digit code" },
-  "auth.code.resend":    { "hi-Latn": "SMS se code aayega · {time} mein dobara bhejo", "en": "Code arrives by SMS · resend in {time}" },
-  "auth.continue":       { "hi-Latn": "Aage chalo",                   "en": "Continue" },
-
-  "home.greeting":       { "hi-Latn": "Namaste, {name}",              "en": "Hello, {name}" },
-  "home.bill.title":     { "hi-Latn": "Chalo, bill banate hain",      "en": "Let's make a bill" },
-  "home.bill.sub":       { "hi-Latn": "Kiska bill? Naam pe tap karo.", "en": "Who is it for? Tap a name." },
-  "home.bill.new":       { "hi-Latn": "Naya customer",                "en": "New customer" },
-  "home.bill.count":     { "hi-Latn": "{n} customers",                "en": "{n} customers" },
-  "home.sent.title":     { "hi-Latn": "Bheje hue bills",              "en": "Bills sent" },
-  "home.sent.count":     { "hi-Latn": "bills gaye is mahine",         "en": "bills sent this month" },
-  "home.sent.delta":     { "hi-Latn": "+{n} pichle mahine se",        "en": "+{n} vs last month" },
-  "home.sent.all":       { "hi-Latn": "Saare bills dekho",            "en": "See all bills" },
-  "home.owed.title":     { "hi-Latn": "Kiske paise aane hain",        "en": "Money to collect" },
-  "home.owed.sub":       { "hi-Latn": "{n} logon se · sabse purana {days} din", "en": "From {n} people · oldest {days} days" },
-  "home.owed.oldest":    { "hi-Latn": "Sabse purana: {name}",         "en": "Oldest: {name}" },
-  "home.owed.age":       { "hi-Latn": "{days} din ho gaye",           "en": "{days} days overdue" },
-
-  "status.sent":         { "hi-Latn": "Bheja",                        "en": "Sent" },
-  "status.paid":         { "hi-Latn": "Aa gaye",                      "en": "Paid" },
-  "status.due":          { "hi-Latn": "Baaki",                        "en": "Due" },
-  "status.days":         { "hi-Latn": "{days} din",                   "en": "{days} days" },
-  "status.today":        { "hi-Latn": "Aaj",                          "en": "Today" },
-
-  "bill.title":          { "hi-Latn": "{customer} ka bill",           "en": "Bill for {customer}" },
-  "bill.meta":           { "hi-Latn": "{number} · aaj, {date}",       "en": "{number} · today, {date}" },
-  "bill.repeat":         { "hi-Latn": "Pichle jaisa hi?",             "en": "Same as last time?" },
-  "bill.repeat.fill":    { "hi-Latn": "Haan, wahi bharo",             "en": "Yes, fill it in" },
-  "bill.repeat.done":    { "hi-Latn": "Bhar diya",                    "en": "Filled" },
-  "bill.repeat.fresh":   { "hi-Latn": "Naya likho",                   "en": "Start fresh" },
-  "bill.item":           { "hi-Latn": "Kaam {n}",                     "en": "Item {n}" },
-  "bill.item.what":      { "hi-Latn": "Kya kiya?",                    "en": "What did you do?" },
-  "bill.item.what.hint": { "hi-Latn": "Jaise: AMC visit, wiring, fan install", "en": "e.g. AMC visit, wiring, fan install" },
-  "bill.item.qty":       { "hi-Latn": "Kitna",                        "en": "Qty" },
-  "bill.item.rate":      { "hi-Latn": "Rate (₹)",                     "en": "Rate (₹)" },
-  "bill.item.amount":    { "hi-Latn": "Rakam",                        "en": "Amount" },
-  "bill.item.add":       { "hi-Latn": "Aur kaam jodo",                "en": "Add another item" },
-  "bill.total":          { "hi-Latn": "Total",                        "en": "Total" },
-  "bill.english.note":   { "hi-Latn": "Bill English mein banega, customer ke liye.", "en": "The bill is made in English for your customer." },
-  "bill.create":         { "hi-Latn": "Bill banao · {amount}",        "en": "Create bill · {amount}" },
-  "bill.done":           { "hi-Latn": "Bill ban gaya!",               "en": "Bill ready!" },
-  "bill.registers":      { "hi-Latn": "App Hinglish mein, bill English mein.", "en": "The app talks your way; the bill stays formal." },
-  "bill.pdf":            { "hi-Latn": "PDF share",                    "en": "Share PDF" },
-  "bill.home":           { "hi-Latn": "Ghar chalo",                   "en": "Back home" },
-  "bill.again":          { "hi-Latn": "Naya bill · pichle jaisa",     "en": "New bill · same as last" },
-
-  "action.whatsapp":     { "hi-Latn": "WhatsApp pe bhejo",            "en": "Send on WhatsApp" },
-  "action.remind":       { "hi-Latn": "Yaad dilao",                   "en": "Remind" },
-  "action.save":         { "hi-Latn": "Save karo",                    "en": "Save" },
-
-  "remind.title":        { "hi-Latn": "{customer} ko yaad dilayein?", "en": "Remind {customer}?" },
-  "remind.meta":         { "hi-Latn": "{date} ko bheja · {days} din baaki", "en": "Sent {date} · {days} days due" },
-  "remind.preview":      { "hi-Latn": "Yeh message jaayega. Chahein toh badal lo.", "en": "This message will be sent. Edit if you like." },
-  "remind.attach":       { "hi-Latn": "Bill saath jaayega",           "en": "Bill is attached" },
-  "remind.tone.warm":    { "hi-Latn": "Pyaar se",                     "en": "Warm" },
-  "remind.tone.direct":  { "hi-Latn": "Seedha",                       "en": "Direct" },
-  "remind.tone.second":  { "hi-Latn": "Doosri baar",                  "en": "Second nudge" },
-
-  "customer.all":        { "hi-Latn": "Saare bills",                  "en": "All bills" },
-  "customer.billed":     { "hi-Latn": "{period} · {amount}",          "en": "{period} · {amount}" },
-  "customer.due":        { "hi-Latn": "Baaki {amount}",               "en": "Due {amount}" },
-  "customer.wa.sent":    { "hi-Latn": "WhatsApp pe gaya",             "en": "Sent on WhatsApp" },
-  "customer.wa.read":    { "hi-Latn": "Padh liya",                    "en": "Read" },
-  "customer.paid.upi":   { "hi-Latn": "Aa gaye · UPI",                "en": "Paid · UPI" },
-  "customer.paid.in":    { "hi-Latn": "{days} din mein",              "en": "in {days} days" },
-
-  "gst.title":           { "hi-Latn": "GST ka hisaab",                "en": "GST summary" },
-  "gst.sub":             { "hi-Latn": "{quarter} · CA ke liye",       "en": "{quarter} · for your CA" },
-  "gst.quarter":         { "hi-Latn": "Is quarter",                   "en": "This quarter" },
-  "gst.sales":           { "hi-Latn": "Bikri (taxable)",              "en": "Sales (taxable)" },
-  "gst.bills":           { "hi-Latn": "Bills",                        "en": "Bills" },
-  "gst.byrate":          { "hi-Latn": "Rate ke hisaab se",            "en": "By rate" },
-  "gst.b2b":             { "hi-Latn": "Company bills (B2B)",          "en": "Company bills (B2B)" },
-  "gst.b2b.sub":         { "hi-Latn": "GST number waale customers · {n} bills", "en": "Customers with a GSTIN · {n} bills" },
-  "gst.b2c":             { "hi-Latn": "Baaki {n} bills bina GST number waale customers ko gaye (B2C).", "en": "The other {n} bills went to customers without a GSTIN (B2C)." },
-  "gst.send":            { "hi-Latn": "CA ko bhejo",                  "en": "Send to CA" },
-  "gst.send.sub":        { "hi-Latn": "Excel + saare bills ki PDF, WhatsApp ya email se.", "en": "Excel + all bill PDFs, by WhatsApp or email." },
-
-  "profile.title":       { "hi-Latn": "Apne baare mein batayen",      "en": "Tell us about you" },
-  "profile.sub":         { "hi-Latn": "Yeh bill pe chhapega",         "en": "This prints on your bills" },
-  "profile.name":        { "hi-Latn": "Aapka naam / dukaan ka naam",  "en": "Your name / business name" },
-  "profile.phone":       { "hi-Latn": "Phone",                        "en": "Phone" },
-  "profile.phone.hint":  { "hi-Latn": "Isi se login hota hai",        "en": "You sign in with this" },
-  "profile.gst":         { "hi-Latn": "GST number",                   "en": "GSTIN" },
-  "profile.gst.none":    { "hi-Latn": "Nahi hai? Koi baat nahi, khali chhodo. Tab GST tab bhi nahi dikhega.", "en": "Don't have one? Leave it blank. The GST tab stays hidden." },
-  "profile.gst.on":      { "hi-Latn": "GST tab chalu hai. Quarter ka hisaab wahan milega.", "en": "GST tab is on. Your quarter summary lives there." },
-  "profile.upi":         { "hi-Latn": "UPI ID",                       "en": "UPI ID" },
-  "profile.upi.hint":    { "hi-Latn": "Bill pe chhapega, taaki customer seedha pay kar sake", "en": "Printed on the bill so customers can pay directly" },
-  "profile.city":        { "hi-Latn": "Sheher",                       "en": "City" },
-  "profile.lang":        { "hi-Latn": "App ki bhasha",                "en": "App language" },
-  "profile.lang.note":   { "hi-Latn": "Bill hamesha English mein",    "en": "Bills are always in English" },
-  "profile.theme":       { "hi-Latn": "Theme",                        "en": "Theme" },
-  "profile.theme.note":  { "hi-Latn": "Din mein Narangi, raat mein Harmony", "en": "Narangi by day, Harmony by night" },
-  "theme.narangi":       { "hi-Latn": "Narangi",                      "en": "Narangi" },
-  "theme.harmony":       { "hi-Latn": "Harmony",                      "en": "Harmony" },
-  "theme.system":        { "hi-Latn": "Phone jaisa",                  "en": "Match phone" },
-
-  "invoice.title.tax":   { "en": "TAX INVOICE" },
-  "invoice.title.plain": { "en": "INVOICE" },
-  "invoice.billto":      { "en": "Bill to" },
-  "invoice.desc":        { "en": "DESCRIPTION" },
-  "invoice.amount":      { "en": "AMOUNT (₹)" },
-  "invoice.total":       { "en": "Total" },
-  "invoice.upi":         { "en": "Pay by UPI" },
-
-  "remind.msg.warm":     { "hi-Latn": "Namaste {contact} ji 🙏 {customer} ke bill no. {number} ({amount}, {date}) ka payment abhi baaki hai. Jab suvidha ho, UPI se bhej dijiye: {upi}. Bill saath mein laga hai.\nDhanyavaad! — {business}", "en": "Hello {contact}, a gentle reminder that payment for bill {number} ({amount}, {date}) is pending. Please pay by UPI when convenient: {upi}. The bill is attached.\nThank you! — {business}" },
-  "remind.msg.direct":   { "hi-Latn": "Namaste {contact} ji. Bill no. {number} ({amount}, {date}) ka payment {days} din se baaki hai. Kripya is hafte UPI se bhej dijiye: {upi}. Bill saath mein hai.\n— {business}", "en": "Hello {contact}. Payment for bill {number} ({amount}, {date}) has been due for {days} days. Please pay by UPI this week: {upi}. The bill is attached.\n— {business}" },
-  "remind.msg.second":   { "hi-Latn": "{contact} ji, ek baar phir yaad dila raha hoon: {number} ({amount}, {date}) abhi tak baaki hai. Koi dikkat ho toh bata dijiye. UPI: {upi}. Bill phir se saath mein hai.\nDhanyavaad. — {business}", "en": "{contact}, following up once more: {number} ({amount}, {date}) is still unpaid. Let me know if there's any issue. UPI: {upi}. Bill attached again.\nThank you. — {business}" }
+  "nav.home": {
+    "hi-Latn": "Ghar",
+    "en": "Home"
+  },
+  "nav.bills": {
+    "hi-Latn": "Bills",
+    "en": "Bills"
+  },
+  "nav.gst": {
+    "hi-Latn": "GST",
+    "en": "GST"
+  },
+  "nav.you": {
+    "hi-Latn": "Aap",
+    "en": "You"
+  },
+  "auth.hero": {
+    "hi-Latn": "Bill banao. WhatsApp karo. Paise lo.",
+    "en": "Make the bill. Send on WhatsApp. Get paid."
+  },
+  "auth.welcome": {
+    "hi-Latn": "Bill banane ke liye taiyaar ho?",
+    "en": "Ready to make your first bill?"
+  },
+  "auth.welcome.sub": {
+    "hi-Latn": "Ek baar profile bharo, phir har bill ek tap.",
+    "en": "Fill your profile once. Every bill after is one tap."
+  },
+  "auth.start": {
+    "hi-Latn": "Shuru karein",
+    "en": "Get started"
+  },
+  "auth.phone.title": {
+    "hi-Latn": "Apna number daalo",
+    "en": "Enter your number"
+  },
+  "auth.phone.sub": {
+    "hi-Latn": "Password ki zaroorat nahi. Bas ek code.",
+    "en": "No password. Just a code."
+  },
+  "auth.phone.label": {
+    "hi-Latn": "Phone number",
+    "en": "Phone number"
+  },
+  "auth.code.sent": {
+    "hi-Latn": "Code gaya",
+    "en": "Code sent"
+  },
+  "auth.code.label": {
+    "hi-Latn": "6-digit code",
+    "en": "6-digit code"
+  },
+  "auth.code.resend": {
+    "hi-Latn": "SMS se code aayega · {time} mein dobara bhejo",
+    "en": "Code arrives by SMS · resend in {time}"
+  },
+  "auth.continue": {
+    "hi-Latn": "Aage chalo",
+    "en": "Continue"
+  },
+  "home.greeting": {
+    "hi-Latn": "Namaste, {name}",
+    "en": "Hello, {name}"
+  },
+  "home.bill.title": {
+    "hi-Latn": "Chalo, bill banate hain",
+    "en": "Let's make a bill"
+  },
+  "home.bill.sub": {
+    "hi-Latn": "Kiska bill? Naam pe tap karo.",
+    "en": "Who is it for? Tap a name."
+  },
+  "home.bill.new": {
+    "hi-Latn": "Naya customer",
+    "en": "New customer"
+  },
+  "home.bill.count": {
+    "hi-Latn": "{n} customers",
+    "en": "{n} customers"
+  },
+  "home.sent.title": {
+    "hi-Latn": "Bheje hue bills",
+    "en": "Bills sent"
+  },
+  "home.sent.count": {
+    "hi-Latn": "bills gaye is mahine",
+    "en": "bills sent this month"
+  },
+  "home.sent.delta": {
+    "hi-Latn": "+{n} pichle mahine se",
+    "en": "+{n} vs last month"
+  },
+  "home.sent.all": {
+    "hi-Latn": "Saare bills dekho",
+    "en": "See all bills"
+  },
+  "home.owed.title": {
+    "hi-Latn": "Kiske paise aane hain",
+    "en": "Money to collect"
+  },
+  "home.owed.sub": {
+    "hi-Latn": "{n} logon se · sabse purana {days} din",
+    "en": "From {n} people · oldest {days} days"
+  },
+  "home.owed.oldest": {
+    "hi-Latn": "Sabse purana: {name}",
+    "en": "Oldest: {name}"
+  },
+  "home.owed.age": {
+    "hi-Latn": "{days} din ho gaye",
+    "en": "{days} days overdue"
+  },
+  "status.sent": {
+    "hi-Latn": "Bheja",
+    "en": "Sent"
+  },
+  "status.paid": {
+    "hi-Latn": "Aa gaye",
+    "en": "Paid"
+  },
+  "status.due": {
+    "hi-Latn": "Baaki",
+    "en": "Due"
+  },
+  "status.days": {
+    "hi-Latn": "{days} din",
+    "en": "{days} days"
+  },
+  "status.today": {
+    "hi-Latn": "Aaj",
+    "en": "Today"
+  },
+  "bill.title": {
+    "hi-Latn": "{customer} ka bill",
+    "en": "Bill for {customer}"
+  },
+  "bill.meta": {
+    "hi-Latn": "{number} · aaj, {date}",
+    "en": "{number} · today, {date}"
+  },
+  "bill.repeat": {
+    "hi-Latn": "Pichle jaisa hi?",
+    "en": "Same as last time?"
+  },
+  "bill.repeat.fill": {
+    "hi-Latn": "Haan, wahi bharo",
+    "en": "Yes, fill it in"
+  },
+  "bill.repeat.done": {
+    "hi-Latn": "Bhar diya",
+    "en": "Filled"
+  },
+  "bill.repeat.fresh": {
+    "hi-Latn": "Naya likho",
+    "en": "Start fresh"
+  },
+  "bill.item": {
+    "hi-Latn": "Kaam {n}",
+    "en": "Item {n}"
+  },
+  "bill.item.what": {
+    "hi-Latn": "Kya kiya?",
+    "en": "What did you do?"
+  },
+  "bill.item.what.hint": {
+    "hi-Latn": "Jaise: AMC visit, wiring, fan install",
+    "en": "e.g. AMC visit, wiring, fan install"
+  },
+  "bill.item.qty": {
+    "hi-Latn": "Kitna",
+    "en": "Qty"
+  },
+  "bill.item.rate": {
+    "hi-Latn": "Rate (₹)",
+    "en": "Rate (₹)"
+  },
+  "bill.item.amount": {
+    "hi-Latn": "Rakam",
+    "en": "Amount"
+  },
+  "bill.item.add": {
+    "hi-Latn": "Aur kaam jodo",
+    "en": "Add another item"
+  },
+  "bill.total": {
+    "hi-Latn": "Total",
+    "en": "Total"
+  },
+  "bill.english.note": {
+    "hi-Latn": "Bill English mein banega, customer ke liye.",
+    "en": "The bill is made in English for your customer."
+  },
+  "bill.create": {
+    "hi-Latn": "Bill banao · {amount}",
+    "en": "Create bill · {amount}"
+  },
+  "bill.done": {
+    "hi-Latn": "Bill ban gaya!",
+    "en": "Bill ready!"
+  },
+  "bill.registers": {
+    "hi-Latn": "App Hinglish mein, bill English mein.",
+    "en": "The app talks your way; the bill stays formal."
+  },
+  "bill.pdf": {
+    "hi-Latn": "PDF share",
+    "en": "Share PDF"
+  },
+  "bill.home": {
+    "hi-Latn": "Ghar chalo",
+    "en": "Back home"
+  },
+  "bill.again": {
+    "hi-Latn": "Naya bill · pichle jaisa",
+    "en": "New bill · same as last"
+  },
+  "action.whatsapp": {
+    "hi-Latn": "WhatsApp pe bhejo",
+    "en": "Send on WhatsApp"
+  },
+  "action.remind": {
+    "hi-Latn": "Yaad dilao",
+    "en": "Remind"
+  },
+  "action.save": {
+    "hi-Latn": "Save karo",
+    "en": "Save"
+  },
+  "remind.title": {
+    "hi-Latn": "{customer} ko yaad dilayein?",
+    "en": "Remind {customer}?"
+  },
+  "remind.meta": {
+    "hi-Latn": "{date} ko bheja · {days} din baaki",
+    "en": "Sent {date} · {days} days due"
+  },
+  "remind.preview": {
+    "hi-Latn": "Yeh message jaayega. Chahein toh badal lo.",
+    "en": "This message will be sent. Edit if you like."
+  },
+  "remind.attach": {
+    "hi-Latn": "Bill saath jaayega",
+    "en": "Bill is attached"
+  },
+  "remind.tone.warm": {
+    "hi-Latn": "Pyaar se",
+    "en": "Warm"
+  },
+  "remind.tone.direct": {
+    "hi-Latn": "Seedha",
+    "en": "Direct"
+  },
+  "remind.tone.second": {
+    "hi-Latn": "Doosri baar",
+    "en": "Second nudge"
+  },
+  "customer.all": {
+    "hi-Latn": "Saare bills",
+    "en": "All bills"
+  },
+  "customer.billed": {
+    "hi-Latn": "{period} · {amount}",
+    "en": "{period} · {amount}"
+  },
+  "customer.due": {
+    "hi-Latn": "Baaki {amount}",
+    "en": "Due {amount}"
+  },
+  "customer.wa.sent": {
+    "hi-Latn": "WhatsApp pe gaya",
+    "en": "Sent on WhatsApp"
+  },
+  "customer.wa.read": {
+    "hi-Latn": "Padh liya",
+    "en": "Read"
+  },
+  "customer.paid.upi": {
+    "hi-Latn": "Aa gaye · UPI",
+    "en": "Paid · UPI"
+  },
+  "customer.paid.in": {
+    "hi-Latn": "{days} din mein",
+    "en": "in {days} days"
+  },
+  "gst.title": {
+    "hi-Latn": "GST ka hisaab",
+    "en": "GST summary"
+  },
+  "gst.sub": {
+    "hi-Latn": "{quarter} · CA ke liye",
+    "en": "{quarter} · for your CA"
+  },
+  "gst.quarter": {
+    "hi-Latn": "Is quarter",
+    "en": "This quarter"
+  },
+  "gst.sales": {
+    "hi-Latn": "Bikri (taxable)",
+    "en": "Sales (taxable)"
+  },
+  "gst.bills": {
+    "hi-Latn": "Bills",
+    "en": "Bills"
+  },
+  "gst.byrate": {
+    "hi-Latn": "Rate ke hisaab se",
+    "en": "By rate"
+  },
+  "gst.b2b": {
+    "hi-Latn": "Company bills (B2B)",
+    "en": "Company bills (B2B)"
+  },
+  "gst.b2b.sub": {
+    "hi-Latn": "GST number waale customers · {n} bills",
+    "en": "Customers with a GSTIN · {n} bills"
+  },
+  "gst.b2c": {
+    "hi-Latn": "Baaki {n} bills bina GST number waale customers ko gaye (B2C).",
+    "en": "The other {n} bills went to customers without a GSTIN (B2C)."
+  },
+  "gst.send": {
+    "hi-Latn": "CA ko bhejo",
+    "en": "Send to CA"
+  },
+  "gst.send.sub": {
+    "hi-Latn": "Excel + saare bills ki PDF, WhatsApp ya email se.",
+    "en": "Excel + all bill PDFs, by WhatsApp or email."
+  },
+  "profile.title": {
+    "hi-Latn": "Apne baare mein batayen",
+    "en": "Tell us about you"
+  },
+  "profile.sub": {
+    "hi-Latn": "Yeh bill pe chhapega",
+    "en": "This prints on your bills"
+  },
+  "profile.name": {
+    "hi-Latn": "Aapka naam / dukaan ka naam",
+    "en": "Your name / business name"
+  },
+  "profile.phone": {
+    "hi-Latn": "Phone",
+    "en": "Phone"
+  },
+  "profile.phone.hint": {
+    "hi-Latn": "Isi se login hota hai",
+    "en": "You sign in with this"
+  },
+  "profile.gst": {
+    "hi-Latn": "GST number",
+    "en": "GSTIN"
+  },
+  "profile.gst.none": {
+    "hi-Latn": "Nahi hai? Koi baat nahi, khali chhodo. Tab GST tab bhi nahi dikhega.",
+    "en": "Don't have one? Leave it blank. The GST tab stays hidden."
+  },
+  "profile.gst.on": {
+    "hi-Latn": "GST tab chalu hai. Quarter ka hisaab wahan milega.",
+    "en": "GST tab is on. Your quarter summary lives there."
+  },
+  "profile.upi": {
+    "hi-Latn": "UPI ID",
+    "en": "UPI ID"
+  },
+  "profile.upi.hint": {
+    "hi-Latn": "Bill pe chhapega, taaki customer seedha pay kar sake",
+    "en": "Printed on the bill so customers can pay directly"
+  },
+  "profile.city": {
+    "hi-Latn": "Sheher",
+    "en": "City"
+  },
+  "profile.lang": {
+    "hi-Latn": "App ki bhasha",
+    "en": "App language"
+  },
+  "profile.lang.note": {
+    "hi-Latn": "Bill hamesha English mein",
+    "en": "Bills are always in English"
+  },
+  "profile.theme": {
+    "hi-Latn": "Theme",
+    "en": "Theme"
+  },
+  "profile.theme.note": {
+    "hi-Latn": "Din mein Narangi, raat mein Harmony",
+    "en": "Narangi by day, Harmony by night"
+  },
+  "theme.narangi": {
+    "hi-Latn": "Narangi",
+    "en": "Narangi"
+  },
+  "theme.harmony": {
+    "hi-Latn": "Harmony",
+    "en": "Harmony"
+  },
+  "theme.system": {
+    "hi-Latn": "Phone jaisa",
+    "en": "Match phone"
+  },
+  "invoice.title.tax": {
+    "en": "TAX INVOICE"
+  },
+  "invoice.title.plain": {
+    "en": "INVOICE"
+  },
+  "invoice.billto": {
+    "en": "Bill to"
+  },
+  "invoice.desc": {
+    "en": "DESCRIPTION"
+  },
+  "invoice.amount": {
+    "en": "AMOUNT (₹)"
+  },
+  "invoice.total": {
+    "en": "Total"
+  },
+  "invoice.upi": {
+    "en": "Pay by UPI"
+  },
+  "remind.msg.warm": {
+    "hi-Latn": "Namaste {contact} ji 🙏 {customer} ke bill no. {number} ({amount}, {date}) ka payment abhi baaki hai. Jab suvidha ho, UPI se bhej dijiye: {upi}. Bill saath mein laga hai.\nDhanyavaad! — {business}",
+    "en": "Hello {contact}, a gentle reminder that payment for bill {number} ({amount}, {date}) is pending. Please pay by UPI when convenient: {upi}. The bill is attached.\nThank you! — {business}"
+  },
+  "remind.msg.direct": {
+    "hi-Latn": "Namaste {contact} ji. Bill no. {number} ({amount}, {date}) ka payment {days} din se baaki hai. Kripya is hafte UPI se bhej dijiye: {upi}. Bill saath mein hai.\n— {business}",
+    "en": "Hello {contact}. Payment for bill {number} ({amount}, {date}) has been due for {days} days. Please pay by UPI this week: {upi}. The bill is attached.\n— {business}"
+  },
+  "remind.msg.second": {
+    "hi-Latn": "{contact} ji, ek baar phir yaad dila raha hoon: {number} ({amount}, {date}) abhi tak baaki hai. Koi dikkat ho toh bata dijiye. UPI: {upi}. Bill phir se saath mein hai.\nDhanyavaad. — {business}",
+    "en": "{contact}, following up once more: {number} ({amount}, {date}) is still unpaid. Let me know if there's any issue. UPI: {upi}. Bill attached again.\nThank you. — {business}"
+  },
+  "action.back": {
+    "hi-Latn": "Peeche",
+    "en": "Back"
+  },
+  "action.tour": {
+    "hi-Latn": "Tour",
+    "en": "Tour"
+  },
+  "action.mic": {
+    "hi-Latn": "Bolke karo",
+    "en": "Speak"
+  },
+  "action.next": {
+    "hi-Latn": "Aage",
+    "en": "Next"
+  },
+  "action.skip": {
+    "hi-Latn": "Abhi nahi",
+    "en": "Skip for now"
+  },
+  "action.done": {
+    "hi-Latn": "Ho gaya",
+    "en": "Done"
+  },
+  "action.cancel": {
+    "hi-Latn": "Rehne do",
+    "en": "Cancel"
+  },
+  "action.search": {
+    "hi-Latn": "Dhoondo",
+    "en": "Search"
+  },
+  "action.change": {
+    "hi-Latn": "Badlo",
+    "en": "Change"
+  },
+  "action.copy": {
+    "hi-Latn": "Copy",
+    "en": "Copy"
+  },
+  "action.download": {
+    "hi-Latn": "Download",
+    "en": "Download"
+  },
+  "action.more": {
+    "hi-Latn": "Aur",
+    "en": "More"
+  },
+  "home.first.title": {
+    "hi-Latn": "Pehla bill banao",
+    "en": "Make your first bill"
+  },
+  "home.first.sub": {
+    "hi-Latn": "Customer ka naam, kaam, rakam. Bas.",
+    "en": "Customer, work, amount. That is all."
+  },
+  "home.first.cta": {
+    "hi-Latn": "Pehla bill banao",
+    "en": "Make the first bill"
+  },
+  "home.bill.photo": {
+    "hi-Latn": "Photo se bill",
+    "en": "Bill from a photo"
+  },
+  "home.bill.search": {
+    "hi-Latn": "Naam dhoondo",
+    "en": "Find a name"
+  },
+  "home.owed.all": {
+    "hi-Latn": "Sab dekho",
+    "en": "See all"
+  },
+  "home.owed.none": {
+    "hi-Latn": "Sab paise aa gaye. Badhiya!",
+    "en": "Everything is paid. Great!"
+  },
+  "home.sent.none": {
+    "hi-Latn": "Is mahine abhi koi bill nahi gaya.",
+    "en": "No bill sent this month yet."
+  },
+  "home.staff.note": {
+    "hi-Latn": "Aap {business} ke liye bill bana rahe ho.",
+    "en": "You are making bills for {business}."
+  },
+  "home.accountant.title": {
+    "hi-Latn": "{business} ka hisaab",
+    "en": "{business}'s books"
+  },
+  "home.accountant.sub": {
+    "hi-Latn": "Bills, baaki aur GST — sab yahan.",
+    "en": "Bills, dues and GST, all here."
+  },
+  "bills.title": {
+    "hi-Latn": "Bills",
+    "en": "Bills"
+  },
+  "bills.filter.all": {
+    "hi-Latn": "Sab",
+    "en": "All"
+  },
+  "bills.filter.due": {
+    "hi-Latn": "Baaki",
+    "en": "Due"
+  },
+  "bills.filter.paid": {
+    "hi-Latn": "Aa gaye",
+    "en": "Paid"
+  },
+  "bills.filter.cancelled": {
+    "hi-Latn": "Cancel",
+    "en": "Cancelled"
+  },
+  "bills.search": {
+    "hi-Latn": "Naam ya number",
+    "en": "Name or number"
+  },
+  "bills.none": {
+    "hi-Latn": "Yahan koi bill nahi.",
+    "en": "No bills here."
+  },
+  "bills.series.all": {
+    "hi-Latn": "Saari series",
+    "en": "All series"
+  },
+  "status.partial": {
+    "hi-Latn": "Thoda aaya",
+    "en": "Part paid"
+  },
+  "status.cancelled": {
+    "hi-Latn": "Cancel",
+    "en": "Cancelled"
+  },
+  "dues.title": {
+    "hi-Latn": "Kiske paise aane hain",
+    "en": "Who owes you"
+  },
+  "dues.sub": {
+    "hi-Latn": "{n} bills · {amount} baaki",
+    "en": "{n} bills · {amount} due"
+  },
+  "dues.age": {
+    "hi-Latn": "{days} din",
+    "en": "{days} days"
+  },
+  "dues.paid": {
+    "hi-Latn": "Paise aa gaye",
+    "en": "Money came in"
+  },
+  "dues.none": {
+    "hi-Latn": "Koi baaki nahi. Sab aa gaye!",
+    "en": "Nothing due. All paid!"
+  },
+  "welcome.title": {
+    "hi-Latn": "Bill banao. WhatsApp karo. Paise lo.",
+    "en": "Make the bill. Send on WhatsApp. Get paid."
+  },
+  "welcome.sub": {
+    "hi-Latn": "Chhote dhandhe ke liye, seedha-saadha.",
+    "en": "For small businesses, simple and straight."
+  },
+  "welcome.cta": {
+    "hi-Latn": "Shuru karein",
+    "en": "Get started"
+  },
+  "welcome.have": {
+    "hi-Latn": "Pehle se account hai? Login",
+    "en": "Already have an account? Log in"
+  },
+  "login.phone.title": {
+    "hi-Latn": "Apna number daalo",
+    "en": "Enter your number"
+  },
+  "login.phone.sub": {
+    "hi-Latn": "Password nahi. Bas ek code SMS se.",
+    "en": "No password. Just a code by SMS."
+  },
+  "login.phone.label": {
+    "hi-Latn": "Phone number",
+    "en": "Phone number"
+  },
+  "login.phone.error": {
+    "hi-Latn": "10 digit ka number daalo",
+    "en": "Enter a 10-digit number"
+  },
+  "login.code.title": {
+    "hi-Latn": "Code daalo",
+    "en": "Enter the code"
+  },
+  "login.code.sub": {
+    "hi-Latn": "{phone} pe SMS gaya. Khud bhar jaayega.",
+    "en": "SMS sent to {phone}. It fills itself in."
+  },
+  "login.code.label": {
+    "hi-Latn": "6-digit code",
+    "en": "6-digit code"
+  },
+  "login.code.resend": {
+    "hi-Latn": "Dobara bhejo · {time}",
+    "en": "Resend · {time}"
+  },
+  "login.dev": {
+    "hi-Latn": "Build ke dauran: /dev/switch se koi bhi bano",
+    "en": "During the build: become anyone at /dev/switch"
+  },
+  "switch.title": {
+    "hi-Latn": "Kaun ban-na hai?",
+    "en": "Who do you want to be?"
+  },
+  "switch.sub": {
+    "hi-Latn": "Build ke dauran sign-in band hai. Ek naam chuno.",
+    "en": "Sign-in is off during the build. Pick a person."
+  },
+  "switch.role.owner": {
+    "hi-Latn": "Malik",
+    "en": "Owner"
+  },
+  "switch.role.staff": {
+    "hi-Latn": "Staff",
+    "en": "Staff"
+  },
+  "switch.role.accountant": {
+    "hi-Latn": "CA",
+    "en": "Accountant"
+  },
+  "switch.none": {
+    "hi-Latn": "Abhi koi dukaan nahi",
+    "en": "No business yet"
+  },
+  "setup.hello": {
+    "hi-Latn": "Namaste ji! Hum pehli baar mil rahe hain, to apne baare mein thoda bataiye please.",
+    "en": "Hello! We are meeting for the first time, so tell us a little about yourself."
+  },
+  "setup.step": {
+    "hi-Latn": "{n} / {total}",
+    "en": "{n} / {total}"
+  },
+  "setup.name.q": {
+    "hi-Latn": "Dukaan ka naam kya hai?",
+    "en": "What is the shop called?"
+  },
+  "setup.name.hint": {
+    "hi-Latn": "Jaise: Sharma Electricals",
+    "en": "Like: Sharma Electricals"
+  },
+  "setup.name.error": {
+    "hi-Latn": "Naam likho, bill pe chhapega",
+    "en": "Write the name; it prints on the bill"
+  },
+  "setup.gst.q": {
+    "hi-Latn": "GST mein registered ho?",
+    "en": "Are you registered under GST?"
+  },
+  "setup.gst.yes": {
+    "hi-Latn": "Haan",
+    "en": "Yes"
+  },
+  "setup.gst.composition": {
+    "hi-Latn": "Composition mein hoon",
+    "en": "I am under composition"
+  },
+  "setup.gst.no": {
+    "hi-Latn": "Nahi",
+    "en": "No"
+  },
+  "setup.gst.unknown": {
+    "hi-Latn": "Pata nahi",
+    "en": "Not sure"
+  },
+  "setup.gst.unknown.note": {
+    "hi-Latn": "Koi baat nahi. Bina GST ke bills banenge; CA se poochh ke Aap mein badal lena.",
+    "en": "No problem. Bills will be made without GST; change it in Aap after asking your CA."
+  },
+  "setup.gstin.q": {
+    "hi-Latn": "GSTIN daalo",
+    "en": "Enter the GSTIN"
+  },
+  "setup.gstin.hint": {
+    "hi-Latn": "15 akshar, jaise 27AAAAA0000A1Z5",
+    "en": "15 characters, like 27AAAAA0000A1Z5"
+  },
+  "setup.gstin.ok": {
+    "hi-Latn": "Sahi lag raha hai · {state} · PAN {pan}",
+    "en": "Looks right · {state} · PAN {pan}"
+  },
+  "setup.gstin.error.length": {
+    "hi-Latn": "GSTIN 15 akshar ka hota hai",
+    "en": "A GSTIN has 15 characters"
+  },
+  "setup.gstin.error.format": {
+    "hi-Latn": "Yeh GSTIN jaisa nahi lag raha",
+    "en": "This does not look like a GSTIN"
+  },
+  "setup.gstin.error.state": {
+    "hi-Latn": "Pehle 2 ank state code nahi hain",
+    "en": "The first 2 digits are not a state code"
+  },
+  "setup.gstin.error.checksum": {
+    "hi-Latn": "Aakhri akshar baaki se mel nahi khaata. Ek baar phir dekho.",
+    "en": "The last character does not match. Check it once more."
+  },
+  "setup.pan.q": {
+    "hi-Latn": "PAN daalo",
+    "en": "Enter the PAN"
+  },
+  "setup.pan.hint": {
+    "hi-Latn": "Jaise ABCDE1234F · bill pe chhapega",
+    "en": "Like ABCDE1234F · prints on the bill"
+  },
+  "setup.pan.error": {
+    "hi-Latn": "PAN aisa dikhta hai: ABCDE1234F",
+    "en": "A PAN looks like ABCDE1234F"
+  },
+  "setup.turnover.q": {
+    "hi-Latn": "Saal ka dhandha lagbhag kitna?",
+    "en": "Roughly how much business a year?"
+  },
+  "setup.turnover.a": {
+    "hi-Latn": "40 lakh tak",
+    "en": "Up to 40 lakh"
+  },
+  "setup.turnover.b": {
+    "hi-Latn": "40 lakh – 1.5 crore",
+    "en": "40 lakh – 1.5 crore"
+  },
+  "setup.turnover.c": {
+    "hi-Latn": "1.5 – 5 crore",
+    "en": "1.5 – 5 crore"
+  },
+  "setup.turnover.d": {
+    "hi-Latn": "5 crore se zyada",
+    "en": "More than 5 crore"
+  },
+  "setup.irn.q": {
+    "hi-Latn": "Kya aapke bills sarkari e-invoice portal se bante hain (IRN)?",
+    "en": "Are your bills made on the government e-invoice portal (IRN)?"
+  },
+  "setup.irn.yes": {
+    "hi-Latn": "Haan",
+    "en": "Yes"
+  },
+  "setup.irn.no": {
+    "hi-Latn": "Nahi",
+    "en": "No"
+  },
+  "setup.irn.unknown": {
+    "hi-Latn": "Pata nahi",
+    "en": "Not sure"
+  },
+  "setup.upi.q": {
+    "hi-Latn": "UPI ID kya hai?",
+    "en": "What is your UPI ID?"
+  },
+  "setup.upi.hint": {
+    "hi-Latn": "Bill pe chhapega; customer seedha pay karega",
+    "en": "Prints on the bill; the customer pays straight away"
+  },
+  "setup.city.q": {
+    "hi-Latn": "Sheher aur rajya?",
+    "en": "City and state?"
+  },
+  "setup.city.hint": {
+    "hi-Latn": "Jaise: Nagpur, Maharashtra",
+    "en": "Like: Nagpur, Maharashtra"
+  },
+  "setup.city.prefilled": {
+    "hi-Latn": "GSTIN se: {state}",
+    "en": "From the GSTIN: {state}"
+  },
+  "setup.sign.q": {
+    "hi-Latn": "Apna signature karo",
+    "en": "Sign here"
+  },
+  "setup.sign.hint": {
+    "hi-Latn": "Ungli se, yahin. Har bill pe chhapega.",
+    "en": "With a finger, right here. It prints on every bill."
+  },
+  "setup.sign.clear": {
+    "hi-Latn": "Phir se",
+    "en": "Again"
+  },
+  "setup.enough.title": {
+    "hi-Latn": "Bas, itna kaafi hai.",
+    "en": "That is enough to start."
+  },
+  "setup.enough.sub": {
+    "hi-Latn": "UPI, sheher, signature, PAN — Aap mein kabhi bhi bhar lena.",
+    "en": "UPI, city, signature, PAN: fill them in Aap whenever."
+  },
+  "setup.enough.more": {
+    "hi-Latn": "Abhi bhar deta hoon",
+    "en": "Let me fill them now"
+  },
+  "setup.review.q": {
+    "hi-Latn": "Sab sahi hai?",
+    "en": "Is everything right?"
+  },
+  "setup.review.row.name": {
+    "hi-Latn": "Dukaan",
+    "en": "Shop"
+  },
+  "setup.review.row.gst": {
+    "hi-Latn": "GST",
+    "en": "GST"
+  },
+  "setup.review.row.pan": {
+    "hi-Latn": "PAN",
+    "en": "PAN"
+  },
+  "setup.review.row.turnover": {
+    "hi-Latn": "Dhandha",
+    "en": "Turnover"
+  },
+  "setup.review.row.upi": {
+    "hi-Latn": "UPI",
+    "en": "UPI"
+  },
+  "setup.review.row.city": {
+    "hi-Latn": "Sheher",
+    "en": "City"
+  },
+  "setup.review.row.sign": {
+    "hi-Latn": "Signature",
+    "en": "Signature"
+  },
+  "setup.review.empty": {
+    "hi-Latn": "baad mein",
+    "en": "later"
+  },
+  "setup.go": {
+    "hi-Latn": "Chalo, shuru karte hain",
+    "en": "Let's begin"
+  },
+  "billstart.title": {
+    "hi-Latn": "Kiska bill?",
+    "en": "Whose bill?"
+  },
+  "billstart.sub": {
+    "hi-Latn": "Naam pe tap karo, ya naya customer jodo.",
+    "en": "Tap a name, or add a new customer."
+  },
+  "bill.number.today": {
+    "hi-Latn": "{number} · aaj, {date}",
+    "en": "{number} · today, {date}"
+  },
+  "bill.customer.name": {
+    "hi-Latn": "Customer ka naam",
+    "en": "Customer's name"
+  },
+  "bill.customer.hint": {
+    "hi-Latn": "Phone, GSTIN baad mein bhi daal sakte ho",
+    "en": "Phone and GSTIN can come later"
+  },
+  "bill.customer.error": {
+    "hi-Latn": "Customer ka naam likho",
+    "en": "Write the customer's name"
+  },
+  "bill.repeat.summary": {
+    "hi-Latn": "{month} ka bill: {lines} · {amount}",
+    "en": "{month}'s bill: {lines} · {amount}"
+  },
+  "bill.gst.strip": {
+    "hi-Latn": "GST: {rate}% sab pe · badlo",
+    "en": "GST: {rate}% on everything · change"
+  },
+  "bill.gst.strip.perline": {
+    "hi-Latn": "GST: alag-alag rate · badlo",
+    "en": "GST: different rates · change"
+  },
+  "bill.gst.strip.off": {
+    "hi-Latn": "GST nahi lagega · badlo",
+    "en": "No GST on this bill · change"
+  },
+  "bill.gst.q": {
+    "hi-Latn": "Is bill pe GST lagega?",
+    "en": "GST on this bill?"
+  },
+  "bill.gst.yes": {
+    "hi-Latn": "Haan",
+    "en": "Yes"
+  },
+  "bill.gst.no": {
+    "hi-Latn": "Nahi",
+    "en": "No"
+  },
+  "bill.gst.one": {
+    "hi-Latn": "Ek rate sab pe",
+    "en": "One rate on everything"
+  },
+  "bill.gst.perline": {
+    "hi-Latn": "Har kaam ka alag",
+    "en": "Per line"
+  },
+  "bill.gst.rate": {
+    "hi-Latn": "Rate",
+    "en": "Rate"
+  },
+  "bill.gst.line": {
+    "hi-Latn": "GST {rate}%",
+    "en": "GST {rate}%"
+  },
+  "bill.bos.note": {
+    "hi-Latn": "Bill of Supply banega (composition)",
+    "en": "A Bill of Supply will be made (composition)"
+  },
+  "bill.check.state": {
+    "hi-Latn": "Customer ka state chuno",
+    "en": "Pick the customer's state"
+  },
+  "bill.check.state.fix": {
+    "hi-Latn": "Chuno",
+    "en": "Pick"
+  },
+  "bill.check.state.same": {
+    "hi-Latn": "{state} (aapka hi)",
+    "en": "{state} (same as yours)"
+  },
+  "bill.check.state.other": {
+    "hi-Latn": "Doosra state",
+    "en": "Another state"
+  },
+  "bill.check.gstin": {
+    "hi-Latn": "Customer ka GSTIN galat lag raha hai",
+    "en": "The customer's GSTIN looks wrong"
+  },
+  "bill.check.empty": {
+    "hi-Latn": "Kam se kam ek kaam likho",
+    "en": "Write at least one line of work"
+  },
+  "bill.subtotal": {
+    "hi-Latn": "Kaam ka",
+    "en": "Work"
+  },
+  "bill.gst.total": {
+    "hi-Latn": "GST",
+    "en": "GST"
+  },
+  "bill.lines.count": {
+    "hi-Latn": "{n} kaam",
+    "en": "{n} lines"
+  },
+  "bill.make": {
+    "hi-Latn": "Bill banao",
+    "en": "Make the bill"
+  },
+  "done.title": {
+    "hi-Latn": "Bill ban gaya!",
+    "en": "The bill is ready!"
+  },
+  "done.sub": {
+    "hi-Latn": "{number} · {customer} · {amount}",
+    "en": "{number} · {customer} · {amount}"
+  },
+  "done.sent": {
+    "hi-Latn": "WhatsApp pe gaya ✓",
+    "en": "Sent on WhatsApp ✓"
+  },
+  "done.share.pdf": {
+    "hi-Latn": "PDF",
+    "en": "PDF"
+  },
+  "done.share.jpg": {
+    "hi-Latn": "Photo",
+    "en": "Photo"
+  },
+  "done.share.group": {
+    "hi-Latn": "Kaise bhejein",
+    "en": "How to send"
+  },
+  "done.size": {
+    "hi-Latn": "Doosra size",
+    "en": "Another size"
+  },
+  "done.size.q": {
+    "hi-Latn": "Kaunsa size?",
+    "en": "Which size?"
+  },
+  "done.size.a4": {
+    "hi-Latn": "A4 · poora page",
+    "en": "A4 · full page"
+  },
+  "done.size.a5": {
+    "hi-Latn": "A5 · aadha page",
+    "en": "A5 · half page"
+  },
+  "done.size.80": {
+    "hi-Latn": "80mm · thermal printer",
+    "en": "80mm · thermal printer"
+  },
+  "done.size.58": {
+    "hi-Latn": "58mm · chhota printer",
+    "en": "58mm · small printer"
+  },
+  "done.home": {
+    "hi-Latn": "Ghar",
+    "en": "Home"
+  },
+  "done.again": {
+    "hi-Latn": "Isi customer ka aur ek",
+    "en": "Another for this customer"
+  },
+  "view.due": {
+    "hi-Latn": "Baaki",
+    "en": "Due"
+  },
+  "view.paid.full": {
+    "hi-Latn": "Poore aa gaye",
+    "en": "Paid in full"
+  },
+  "view.paid.on": {
+    "hi-Latn": "{date} ko · {method}",
+    "en": "on {date} · {method}"
+  },
+  "view.cancelled": {
+    "hi-Latn": "Cancel ho gaya · {reason}",
+    "en": "Cancelled · {reason}"
+  },
+  "view.paid.q": {
+    "hi-Latn": "Kitne aaye?",
+    "en": "How much came in?"
+  },
+  "view.paid.all": {
+    "hi-Latn": "Poore",
+    "en": "All of it"
+  },
+  "view.paid.part": {
+    "hi-Latn": "Kuch hissa",
+    "en": "Part of it"
+  },
+  "view.paid.amount": {
+    "hi-Latn": "Kitna",
+    "en": "How much"
+  },
+  "view.paid.date": {
+    "hi-Latn": "Kab",
+    "en": "When"
+  },
+  "view.paid.how": {
+    "hi-Latn": "Kaise",
+    "en": "How"
+  },
+  "view.paid.upi": {
+    "hi-Latn": "UPI",
+    "en": "UPI"
+  },
+  "view.paid.cash": {
+    "hi-Latn": "Cash",
+    "en": "Cash"
+  },
+  "view.paid.bank": {
+    "hi-Latn": "Bank",
+    "en": "Bank"
+  },
+  "view.paid.save": {
+    "hi-Latn": "Likh lo",
+    "en": "Record it"
+  },
+  "view.paid.saved": {
+    "hi-Latn": "Likh liya: {amount} {method} se",
+    "en": "Recorded: {amount} by {method}"
+  },
+  "view.wa.again": {
+    "hi-Latn": "WhatsApp dobara",
+    "en": "WhatsApp again"
+  },
+  "view.download": {
+    "hi-Latn": "Download",
+    "en": "Download"
+  },
+  "view.mistake": {
+    "hi-Latn": "Galti ho gayi?",
+    "en": "Made a mistake?"
+  },
+  "view.cancel": {
+    "hi-Latn": "Cancel karke naya banao",
+    "en": "Cancel and make a fresh one"
+  },
+  "view.cancel.reason": {
+    "hi-Latn": "Kyun? (ek line)",
+    "en": "Why? (one line)"
+  },
+  "view.cancel.go": {
+    "hi-Latn": "Cancel karo, naya kholo",
+    "en": "Cancel it, open a fresh one"
+  },
+  "view.credit": {
+    "hi-Latn": "Rakam kam karo",
+    "en": "Reduce the amount"
+  },
+  "view.credit.note": {
+    "hi-Latn": "Credit note {number} · {amount} · {reason}",
+    "en": "Credit note {number} · {amount} · {reason}"
+  },
+  "view.lines": {
+    "hi-Latn": "Kaam",
+    "en": "Work"
+  },
+  "view.wa.sent": {
+    "hi-Latn": "WhatsApp pe bheja",
+    "en": "Sent on WhatsApp"
+  },
+  "view.wa.read": {
+    "hi-Latn": "Padh liya",
+    "en": "Read"
+  },
+  "credit.title": {
+    "hi-Latn": "Rakam kam karo",
+    "en": "Reduce the amount"
+  },
+  "credit.sub": {
+    "hi-Latn": "{number} ke saath ek credit note judega, apne number ke saath.",
+    "en": "A credit note with its own number will be linked to {number}."
+  },
+  "credit.amount": {
+    "hi-Latn": "Kitna kam",
+    "en": "How much less"
+  },
+  "credit.reason": {
+    "hi-Latn": "Kyun? (ek line)",
+    "en": "Why? (one line)"
+  },
+  "credit.make": {
+    "hi-Latn": "Credit note banao",
+    "en": "Make the credit note"
+  },
+  "credit.done": {
+    "hi-Latn": "Credit note ban gaya: {number}",
+    "en": "Credit note made: {number}"
+  },
+  "credit.error.amount": {
+    "hi-Latn": "Rakam bill se zyada nahi ho sakti",
+    "en": "Cannot be more than the bill"
+  },
+  "remind.lang": {
+    "hi-Latn": "Bhasha badlo",
+    "en": "Change language"
+  },
+  "remind.open": {
+    "hi-Latn": "WhatsApp kholo",
+    "en": "Open WhatsApp"
+  },
+  "remind.attach.pdf": {
+    "hi-Latn": "Bill PDF saath jaayega",
+    "en": "The bill PDF goes with it"
+  },
+  "remind.attach.jpg": {
+    "hi-Latn": "Bill ki photo saath jaayegi",
+    "en": "The bill photo goes with it"
+  },
+  "photo.title": {
+    "hi-Latn": "Photo se bill",
+    "en": "Bill from a photo"
+  },
+  "photo.pick.sub": {
+    "hi-Latn": "Kaccha bill ya purana bill: photo lo ya gallery se chuno.",
+    "en": "A handwritten or old bill: take a photo or pick one."
+  },
+  "photo.camera": {
+    "hi-Latn": "Photo lo",
+    "en": "Take a photo"
+  },
+  "photo.gallery": {
+    "hi-Latn": "Gallery se",
+    "en": "From the gallery"
+  },
+  "photo.reading": {
+    "hi-Latn": "Padh rahe hain…",
+    "en": "Reading…"
+  },
+  "photo.review.title": {
+    "hi-Latn": "Yeh samjha. Sahi hai?",
+    "en": "This is what we read. Right?"
+  },
+  "photo.review.sub": {
+    "hi-Latn": "Halka rang = pakka. Gehra = ek baar dekh lo. Tap karke sudharo.",
+    "en": "Light = sure. Dark = check once. Tap to fix."
+  },
+  "photo.field.customer": {
+    "hi-Latn": "Customer",
+    "en": "Customer"
+  },
+  "photo.field.date": {
+    "hi-Latn": "Tareekh",
+    "en": "Date"
+  },
+  "photo.field.total": {
+    "hi-Latn": "Total (photo pe)",
+    "en": "Total (on the photo)"
+  },
+  "photo.unclear": {
+    "hi-Latn": "Photo saaf nahi aayi, dobara lo",
+    "en": "The photo is not clear, take it again"
+  },
+  "photo.unclear.sub": {
+    "hi-Latn": "Roshni mein, seedha upar se, poora bill frame mein.",
+    "en": "In good light, straight from above, the whole bill in the frame."
+  },
+  "photo.retake": {
+    "hi-Latn": "Dobara lo",
+    "en": "Retake"
+  },
+  "photo.notfound": {
+    "hi-Latn": "Isme bill nahi mila",
+    "en": "No bill found in this"
+  },
+  "photo.notfound.sub": {
+    "hi-Latn": "Shayad yeh bill ki photo nahi hai.",
+    "en": "This may not be a photo of a bill."
+  },
+  "photo.write": {
+    "hi-Latn": "Naya bill likho",
+    "en": "Write a new bill"
+  },
+  "paper.tax": {
+    "hi-Latn": "TAX INVOICE",
+    "en": "TAX INVOICE"
+  },
+  "paper.bos": {
+    "hi-Latn": "BILL OF SUPPLY",
+    "en": "BILL OF SUPPLY"
+  },
+  "paper.plain": {
+    "hi-Latn": "INVOICE",
+    "en": "INVOICE"
+  },
+  "paper.bos.legend": {
+    "hi-Latn": "Composition taxable person, not eligible to collect tax on supplies",
+    "en": "Composition taxable person, not eligible to collect tax on supplies"
+  },
+  "customers.title": {
+    "hi-Latn": "Customers",
+    "en": "Customers"
+  },
+  "customers.search": {
+    "hi-Latn": "Naam, phone ya GSTIN",
+    "en": "Name, phone or GSTIN"
+  },
+  "customers.import": {
+    "hi-Latn": "Purane bills upload karo",
+    "en": "Upload old bills"
+  },
+  "customers.none": {
+    "hi-Latn": "Abhi koi customer nahi.",
+    "en": "No customers yet."
+  },
+  "customer.bill": {
+    "hi-Latn": "Inka bill banao",
+    "en": "Make their bill"
+  },
+  "customer.period": {
+    "hi-Latn": "Is saal",
+    "en": "This year"
+  },
+  "customer.details": {
+    "hi-Latn": "Details",
+    "en": "Details"
+  },
+  "customer.phone": {
+    "hi-Latn": "Phone",
+    "en": "Phone"
+  },
+  "customer.gstin": {
+    "hi-Latn": "GSTIN",
+    "en": "GSTIN"
+  },
+  "customer.pan": {
+    "hi-Latn": "PAN",
+    "en": "PAN"
+  },
+  "customer.state": {
+    "hi-Latn": "State",
+    "en": "State"
+  },
+  "customer.lang": {
+    "hi-Latn": "Bhasha",
+    "en": "Language"
+  },
+  "customer.lang.hi": {
+    "hi-Latn": "Hinglish",
+    "en": "Hinglish"
+  },
+  "customer.lang.en": {
+    "hi-Latn": "English",
+    "en": "English"
+  },
+  "customer.notes": {
+    "hi-Latn": "Notes",
+    "en": "Notes"
+  },
+  "customer.timeline": {
+    "hi-Latn": "Bills",
+    "en": "Bills"
+  },
+  "customer.none": {
+    "hi-Latn": "Abhi tak koi bill nahi.",
+    "en": "No bills yet."
+  },
+  "newcust.title": {
+    "hi-Latn": "Naya customer",
+    "en": "New customer"
+  },
+  "newcust.name": {
+    "hi-Latn": "Naam",
+    "en": "Name"
+  },
+  "newcust.name.hint": {
+    "hi-Latn": "Jaise: Mehta Traders",
+    "en": "Like: Mehta Traders"
+  },
+  "newcust.phone": {
+    "hi-Latn": "Phone",
+    "en": "Phone"
+  },
+  "newcust.phone.hint": {
+    "hi-Latn": "WhatsApp isi pe jaayega",
+    "en": "WhatsApp goes here"
+  },
+  "newcust.gstin": {
+    "hi-Latn": "GSTIN (ho to)",
+    "en": "GSTIN (if any)"
+  },
+  "newcust.gstin.hint": {
+    "hi-Latn": "State aur PAN isse mil jaayenge",
+    "en": "State and PAN come from it"
+  },
+  "newcust.gstin.ok": {
+    "hi-Latn": "{state} · PAN {pan}",
+    "en": "{state} · PAN {pan}"
+  },
+  "newcust.lang": {
+    "hi-Latn": "Inki bhasha",
+    "en": "Their language"
+  },
+  "newcust.add": {
+    "hi-Latn": "Customer jodo",
+    "en": "Add customer"
+  },
+  "newcust.added": {
+    "hi-Latn": "Jud gaya: {name}",
+    "en": "Added: {name}"
+  },
+  "import.title": {
+    "hi-Latn": "Purane bills upload karo",
+    "en": "Upload old bills"
+  },
+  "import.sub": {
+    "hi-Latn": "PDF, photo, CSV ya Excel. Hum naam, phone, GSTIN nikaal lenge.",
+    "en": "PDF, photo, CSV or Excel. We pull out names, phones and GSTINs."
+  },
+  "import.pick": {
+    "hi-Latn": "Files chuno",
+    "en": "Pick files"
+  },
+  "import.reading": {
+    "hi-Latn": "Padh rahe hain… {n} files",
+    "en": "Reading… {n} files"
+  },
+  "import.found": {
+    "hi-Latn": "{n} customers mile",
+    "en": "{n} customers found"
+  },
+  "import.exists": {
+    "hi-Latn": "Pehle se hai",
+    "en": "Already here"
+  },
+  "import.add": {
+    "hi-Latn": "{n} customers add karo",
+    "en": "Add {n} customers"
+  },
+  "import.done": {
+    "hi-Latn": "{n} customers jud gaye",
+    "en": "{n} customers added"
+  },
+  "items.title": {
+    "hi-Latn": "Kaam / Saamaan",
+    "en": "Items"
+  },
+  "items.search": {
+    "hi-Latn": "Naam ya HSN",
+    "en": "Name or HSN"
+  },
+  "items.new": {
+    "hi-Latn": "Naya item",
+    "en": "New item"
+  },
+  "items.none": {
+    "hi-Latn": "Abhi koi item nahi. Bill banate waqt khud jud jaate hain.",
+    "en": "No items yet. They get added as you make bills."
+  },
+  "item.title": {
+    "hi-Latn": "Item",
+    "en": "Item"
+  },
+  "item.name": {
+    "hi-Latn": "Naam",
+    "en": "Name"
+  },
+  "item.hsn": {
+    "hi-Latn": "HSN / SAC",
+    "en": "HSN / SAC"
+  },
+  "item.hsn.hint": {
+    "hi-Latn": "Naam likho, hum dhoondh denge",
+    "en": "Type the name, we look it up"
+  },
+  "item.hsn.lookup": {
+    "hi-Latn": "Dhoondo",
+    "en": "Look up"
+  },
+  "item.unit": {
+    "hi-Latn": "Unit",
+    "en": "Unit"
+  },
+  "item.rate": {
+    "hi-Latn": "Rate (₹)",
+    "en": "Rate (₹)"
+  },
+  "item.gst": {
+    "hi-Latn": "GST rate",
+    "en": "GST rate"
+  },
+  "item.save": {
+    "hi-Latn": "Save karo",
+    "en": "Save"
+  },
+  "item.saved": {
+    "hi-Latn": "Save ho gaya",
+    "en": "Saved"
+  },
+  "gst.period.month": {
+    "hi-Latn": "Mahina",
+    "en": "Month"
+  },
+  "gst.period.quarter": {
+    "hi-Latn": "Quarter (QRMP)",
+    "en": "Quarter (QRMP)"
+  },
+  "gst.tile.bills": {
+    "hi-Latn": "Bills",
+    "en": "Bills"
+  },
+  "gst.tile.gst": {
+    "hi-Latn": "GST",
+    "en": "GST"
+  },
+  "gst.rate": {
+    "hi-Latn": "Rate",
+    "en": "Rate"
+  },
+  "gst.taxable": {
+    "hi-Latn": "Bikri",
+    "en": "Sales"
+  },
+  "gst.cgst": {
+    "hi-Latn": "CGST",
+    "en": "CGST"
+  },
+  "gst.sgst": {
+    "hi-Latn": "SGST",
+    "en": "SGST"
+  },
+  "gst.total": {
+    "hi-Latn": "Total",
+    "en": "Total"
+  },
+  "gst.drill": {
+    "hi-Latn": "Kaunse bills? Tap karo.",
+    "en": "Which bills? Tap to see."
+  },
+  "gst.pack": {
+    "hi-Latn": "Zip mein: workings.xlsx, saare PDF, gstr1.json",
+    "en": "In the zip: workings.xlsx, every PDF, gstr1.json"
+  },
+  "gst.composition": {
+    "hi-Latn": "Composition: bill of supply only · CA ko PDFs bhejo",
+    "en": "Composition: bill of supply only · send the PDFs to your CA"
+  },
+  "aap.title": {
+    "hi-Latn": "Aap",
+    "en": "You"
+  },
+  "aap.dukaan": {
+    "hi-Latn": "Dukaan",
+    "en": "Business"
+  },
+  "aap.dukaan.name": {
+    "hi-Latn": "Naam",
+    "en": "Name"
+  },
+  "aap.dukaan.address": {
+    "hi-Latn": "Pata",
+    "en": "Address"
+  },
+  "aap.dukaan.pan": {
+    "hi-Latn": "PAN",
+    "en": "PAN"
+  },
+  "aap.dukaan.gst": {
+    "hi-Latn": "GST",
+    "en": "GST"
+  },
+  "aap.dukaan.gst.composition": {
+    "hi-Latn": "Composition",
+    "en": "Composition"
+  },
+  "aap.dukaan.gst.none": {
+    "hi-Latn": "Nahi",
+    "en": "None"
+  },
+  "aap.dukaan.state": {
+    "hi-Latn": "State",
+    "en": "State"
+  },
+  "aap.dukaan.turnover": {
+    "hi-Latn": "Saal ka dhandha",
+    "en": "Yearly turnover"
+  },
+  "aap.paise": {
+    "hi-Latn": "Paise kaise dein",
+    "en": "How they pay you"
+  },
+  "aap.paise.upi": {
+    "hi-Latn": "UPI",
+    "en": "UPI"
+  },
+  "aap.paise.bank": {
+    "hi-Latn": "Bank (folded)",
+    "en": "Bank (folded)"
+  },
+  "aap.series": {
+    "hi-Latn": "Bill number series",
+    "en": "Bill number series"
+  },
+  "aap.series.next": {
+    "hi-Latn": "Agla: {number}",
+    "en": "Next: {number}"
+  },
+  "aap.look": {
+    "hi-Latn": "Bill kaisa dikhe",
+    "en": "How the bill looks"
+  },
+  "aap.look.logo": {
+    "hi-Latn": "Logo",
+    "en": "Logo"
+  },
+  "aap.look.logo.on": {
+    "hi-Latn": "Laga hai",
+    "en": "Set"
+  },
+  "aap.look.logo.off": {
+    "hi-Latn": "Lagao",
+    "en": "Add"
+  },
+  "aap.look.sign": {
+    "hi-Latn": "Signature",
+    "en": "Signature"
+  },
+  "aap.look.design": {
+    "hi-Latn": "Design",
+    "en": "Design"
+  },
+  "aap.look.design.classic": {
+    "hi-Latn": "Classic",
+    "en": "Classic"
+  },
+  "aap.look.design.modern": {
+    "hi-Latn": "Modern",
+    "en": "Modern"
+  },
+  "aap.look.design.simple": {
+    "hi-Latn": "Simple",
+    "en": "Simple"
+  },
+  "aap.look.colour": {
+    "hi-Latn": "Rang",
+    "en": "Colour"
+  },
+  "aap.look.paper": {
+    "hi-Latn": "Paper",
+    "en": "Paper"
+  },
+  "aap.look.share": {
+    "hi-Latn": "WhatsApp pe",
+    "en": "On WhatsApp"
+  },
+  "aap.look.sample": {
+    "hi-Latn": "Sample dekho",
+    "en": "See a sample"
+  },
+  "aap.theme": {
+    "hi-Latn": "Theme",
+    "en": "Theme"
+  },
+  "aap.lang": {
+    "hi-Latn": "Bhasha",
+    "en": "Language"
+  },
+  "aap.lang.hi": {
+    "hi-Latn": "Hinglish",
+    "en": "Hinglish"
+  },
+  "aap.lang.en": {
+    "hi-Latn": "English",
+    "en": "English"
+  },
+  "aap.voice": {
+    "hi-Latn": "Bolke",
+    "en": "Voice"
+  },
+  "aap.voice.sub": {
+    "hi-Latn": "Aate hi awaaz shuru ho",
+    "en": "Voice starts on arrival"
+  },
+  "aap.voice.on": {
+    "hi-Latn": "Chalu",
+    "en": "On"
+  },
+  "aap.voice.off": {
+    "hi-Latn": "Band",
+    "en": "Off"
+  },
+  "aap.team": {
+    "hi-Latn": "Team",
+    "en": "Team"
+  },
+  "aap.team.sub": {
+    "hi-Latn": "{n} log",
+    "en": "{n} people"
+  },
+  "aap.about": {
+    "hi-Latn": "App ki jaankari",
+    "en": "About the app"
+  },
+  "aap.about.version": {
+    "hi-Latn": "EkBill v2 · build {build}",
+    "en": "EkBill v2 · build {build}"
+  },
+  "aap.save": {
+    "hi-Latn": "Save karo",
+    "en": "Save"
+  },
+  "aap.saved": {
+    "hi-Latn": "Save ho gaya",
+    "en": "Saved"
+  },
+  "aap.staff.note": {
+    "hi-Latn": "Dukaan ki settings malik badalte hain.",
+    "en": "The owner changes the business settings."
+  },
+  "team.title": {
+    "hi-Latn": "Team",
+    "en": "Team"
+  },
+  "team.invite": {
+    "hi-Latn": "Invite karo",
+    "en": "Invite"
+  },
+  "team.invite.phone": {
+    "hi-Latn": "Phone",
+    "en": "Phone"
+  },
+  "team.invite.role": {
+    "hi-Latn": "Role",
+    "en": "Role"
+  },
+  "team.role.staff": {
+    "hi-Latn": "Staff",
+    "en": "Staff"
+  },
+  "team.role.accountant": {
+    "hi-Latn": "Accountant (CA)",
+    "en": "Accountant (CA)"
+  },
+  "team.role.owner": {
+    "hi-Latn": "Malik",
+    "en": "Owner"
+  },
+  "team.send": {
+    "hi-Latn": "Bhejo",
+    "en": "Send"
+  },
+  "team.sent": {
+    "hi-Latn": "WhatsApp pe invite gaya: {phone}",
+    "en": "Invite sent on WhatsApp: {phone}"
+  },
+  "team.change": {
+    "hi-Latn": "Role badlo",
+    "en": "Change role"
+  },
+  "team.remove": {
+    "hi-Latn": "Hatao",
+    "en": "Remove"
+  },
+  "team.you": {
+    "hi-Latn": "aap",
+    "en": "you"
+  },
+  "ask.title": {
+    "hi-Latn": "Poocho",
+    "en": "Ask"
+  },
+  "ask.sub": {
+    "hi-Latn": "Apne bills ke baare mein kuch bhi.",
+    "en": "Anything about your bills."
+  },
+  "ask.placeholder": {
+    "hi-Latn": "Jaise: Mehta ka kitna baaki hai?",
+    "en": "Like: how much does Mehta owe?"
+  },
+  "ask.go": {
+    "hi-Latn": "Poocho",
+    "en": "Ask"
+  },
+  "ask.sources": {
+    "hi-Latn": "Kahan se pata chala",
+    "en": "Where this came from"
+  },
+  "ask.more": {
+    "hi-Latn": "Aur poochho",
+    "en": "Ask more"
+  },
+  "help.title": {
+    "hi-Latn": "Mera bill thoda complex hai",
+    "en": "My bill is a bit complex"
+  },
+  "help.sub": {
+    "hi-Latn": "Batao kaisa hai, hum bill ka dhaancha bana denge.",
+    "en": "Tell us how it works and we set up the bill's shape."
+  },
+  "help.next": {
+    "hi-Latn": "Aage chalo",
+    "en": "Continue"
+  },
+  "help.chosen": {
+    "hi-Latn": "Theek hai. Agla sawaal Stage 9 mein (contract helper).",
+    "en": "Alright. The next question comes in Stage 9 (contract helper)."
+  },
+  "flow.title": {
+    "hi-Latn": "Screen flow",
+    "en": "Screen flow"
+  }
 }

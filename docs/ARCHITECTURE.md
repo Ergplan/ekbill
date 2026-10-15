@@ -52,6 +52,14 @@ Extensions: `pgcrypto`, `vector`. Stage 2 adds users, businesses, memberships, s
 
 CI (`.github/workflows/ci.yml`): push to `main` and pull requests run `npm run watch -- --once` with a Postgres service, then build and Playwright (phone, both themes; `@slow` excluded). `slow.yml` on `workflow_dispatch`: `@slow` journeys, load (Stage 10), evals (Stage 7).
 
+## Screens (Stage 1, I10)
+
+`apps/web/screens/<id>/` holds each production screen: `manifest.ts` (route, purpose, primary action, taps, states, guide ids, tour, roles, hidden-per-role; `scripts/flow-map.mjs` and `/flow` read it), `data.ts` (a typed loader over `tests/fixtures/v2.json` through `screens/fixtures.ts`; Stages 4–9 re-point it at repositories), `Screen.tsx` (a client component built from `@ekbill/ui`). `apps/web/app/**/page.tsx` are thin: resolve the viewer (`screens/viewer.ts`: cookie `eb-as` or `?as=`), call the loader, render the screen. `screens/shell/AppShell.tsx` is the one shell (top bar, floating tab bar with the mic, Tour button, GuideHighlight). `screens/draft.ts` is the prototype's only memory (sessionStorage behind `useDraft`). `screens/registry.ts` lists every manifest, a sample URL per screen and the extra fixture states; `screens/golden-paths.ts` the tap sequences the tests count.
+
 ## What changed in Stage 0
 
 Everything above was created. No product feature, no screen flow (Stage 1).
+
+## What changed in Stage 1
+
+Every screen of master prompt 8.0 as a clickable prototype on fixtures in both themes (25 screens, 22 extra states), the `/flow` review screen, the guide tour on every screen, the golden paths within budget, `packages/engine` ids and money copied from the MVP, 335 copy keys added, six kit components (Sheet, ChoiceList, SettingRow/Group, OtpInput, SearchInput, EmptyState, ProgressLine), `scripts/copy-build.mjs`, `scripts/copy-thumbs.mjs`, `scripts/flow-dump.ts`, `scripts/flow-urls.ts`, `scripts/fixtures-v2.mjs`.

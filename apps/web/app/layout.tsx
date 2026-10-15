@@ -5,6 +5,7 @@ import '@ekbill/design/tokens/fonts.css';
 import '@ekbill/design/tokens/themes.css';
 import '@ekbill/ui/styles.css';
 import './globals.css';
+import { Hydrated } from './Hydrated';
 
 export const metadata: Metadata = {
   title: 'EkBill',
@@ -35,7 +36,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Hydrated />
+      </body>
     </html>
   );
 }

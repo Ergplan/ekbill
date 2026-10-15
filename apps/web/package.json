@@ -4,9 +4,9 @@
   "private": true,
   "description": "The EkBill app: screens, server actions, route handlers. No business rules here.",
   "scripts": {
-    "predev": "node ../../scripts/copy-fonts.mjs",
+    "predev": "node ../../scripts/copy-fonts.mjs && node ../../scripts/copy-thumbs.mjs",
     "dev": "next dev -p 3000",
-    "prebuild": "node ../../scripts/copy-fonts.mjs",
+    "prebuild": "node ../../scripts/copy-fonts.mjs && node ../../scripts/copy-thumbs.mjs",
     "build": "next build",
     "start": "next start -p 3000"
   },

@@ -2,16 +2,17 @@
 // SCREEN-FLOW (master prompt 5.3): every screen with its purpose, primary
 // action, taps and destinations, fixture states, data-guide ids and roles;
 // the golden paths with their tap sequences and counts. Read from the
-// manifests apps/web/screens/<name>/manifest.ts and
-// apps/web/screens/golden-paths.ts (Stage 1), generated into
+// manifests apps/web/screens/<name>/manifest.ts through apps/web/screens/registry.ts
+// and apps/web/screens/golden-paths.ts (Stage 1), generated into
 // docs/SCREEN-FLOW.md; /flow renders the same data.
 //
 //   npm run flow           # regenerate
 //   npm run flow:check     # fail on drift, on a tap whose destination is not a screen,
 //                          # or on a golden path over its budget
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SCREENS = join(ROOT, 'apps/web/screens');
@@ -19,30 +20,15 @@ const OUT = join(ROOT, 'docs', 'SCREEN-FLOW.md');
 const check = process.argv.includes('--check');
 
 async function loadManifests() {
-  const screens = [];
-  let paths = [];
-  if (!existsSync(SCREENS)) return { screens, paths };
-  // Manifests are TypeScript; tsx (a worker dependency) loads them in place.
-  const { register } = await import('tsx/esm/api');
-  const unregister = register();
-  try {
-    for (const name of readdirSync(SCREENS).sort()) {
-      const file = join(SCREENS, name, 'manifest.ts');
-      if (statSync(join(SCREENS, name)).isDirectory() && existsSync(file)) {
-        const mod = await import(pathToFileURL(file).href);
-        if (!mod.manifest) throw new Error(`${file} exports no "manifest"`);
-        screens.push({ dir: name, ...mod.manifest });
-      }
-    }
-    const gp = join(SCREENS, 'golden-paths.ts');
-    if (existsSync(gp)) {
-      const mod = await import(pathToFileURL(gp).href);
-      paths = mod.goldenPaths ?? [];
-    }
-  } finally {
-    await unregister();
-  }
-  return { screens, paths };
+  if (!existsSync(SCREENS)) return { screens: [], paths: [] };
+  // The manifests are TypeScript; a child `node --import tsx` loads them in place and prints JSON.
+  const out = execFileSync(process.execPath, ['--import', 'tsx', join(ROOT, 'scripts', 'flow-dump.ts')], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    maxBuffer: 16 * 1024 * 1024,
+  });
+  const data = JSON.parse(out);
+  return { screens: data.screens, paths: data.paths };
 }
 
 function render({ screens, paths }, problems) {
@@ -59,20 +45,21 @@ function render({ screens, paths }, problems) {
     lines.push('_No screens yet. Stage 1 builds every screen in master prompt section 8.0 with a manifest._', '');
   for (const s of screens) {
     lines.push(
-      `### ${s.title ?? s.dir} — \`${s.route}\``,
+      `### ${s.title} — \`${s.route}\``,
       '',
+      `- Id: \`${s.id}\``,
       `- Purpose: ${s.purpose}`,
       `- Primary action: ${s.primary ? `${s.primary.label} → \`${s.primary.to}\`` : 'none'}`,
     );
     if (s.primary && s.primary.to && !routes.has(s.primary.to) && !s.primary.to.startsWith('external:')) {
-      problems.push(`${s.dir}: primary action goes to ${s.primary.to}, which is not a screen`);
+      problems.push(`${s.id}: primary action goes to ${s.primary.to}, which is not a screen`);
     }
     if (s.taps?.length) {
       lines.push('- Other taps:');
       for (const t of s.taps) {
         lines.push(`  - ${t.label} → \`${t.to}\``);
         if (!routes.has(t.to) && !t.to.startsWith('external:'))
-          problems.push(`${s.dir}: tap "${t.label}" goes to ${t.to}, which is not a screen`);
+          problems.push(`${s.id}: tap "${t.label}" goes to ${t.to}, which is not a screen`);
       }
     }
     if (s.states?.length) lines.push(`- Fixture states: ${s.states.join(', ')}`);
@@ -83,13 +70,29 @@ function render({ screens, paths }, problems) {
           .map(([r, v]) => `${r}: ${v}`)
           .join('; ')}`,
       );
+    if (s.hidden)
+      lines.push(
+        `- Hidden per role: ${Object.entries(s.hidden)
+          .map(([r, ids]) => `${r}: ${ids.map((g) => `\`${g}\``).join(', ')}`)
+          .join('; ')}`,
+      );
+    if (s.tour?.length) {
+      lines.push('- Tour (what the voice says):');
+      for (const step of s.tour) lines.push(`  - \`${step.target}\`: “${step.say}”`);
+    }
     lines.push('');
   }
   lines.push('## Golden paths', '');
   if (!paths.length) lines.push('_Measured in Stage 1 (tests/e2e/golden-path.spec.ts)._', '');
   for (const p of paths) {
     const count = p.taps.length;
-    lines.push(`### ${p.name}`, '', `- Budget: ${p.budget} taps; measured: ${count}`, '- Sequence:');
+    lines.push(
+      `### ${p.name}`,
+      '',
+      `- Budget: ${p.budget} taps; counted: ${count}`,
+      `- Starts at: \`${p.start}\`${p.as ? ` as ${p.as}` : ''}`,
+      '- Sequence:',
+    );
     p.taps.forEach((t, i) => lines.push(`  ${i + 1}. ${t}`));
     lines.push('');
     if (count > p.budget) problems.push(`golden path "${p.name}" needs ${count} taps, budget ${p.budget}`);

@@ -1,9 +1,39 @@
 /**
- * @ekbill/engine: the pure heart of EkBill.
- *
- * Nothing in this package touches I/O: no database, no model, no clock, no
- * randomness (invariant I4; enforced by eslint). Dates and the GST rule pack
- * are passed in. Stage 1 adds the identity and money checks copied from the
- * MVP; Stage 3 completes the package.
+ * @ekbill/engine: pure and deterministic (eslint enforces it). Stage 1 ships
+ * the structural checks and money arithmetic copied from the MVP, used by the
+ * prototype's forms; Stage 3 adds tax, the rule pack, document types,
+ * numbering, prepareIssue and workings.
  */
-export const ENGINE_VERSION = '2.0.0-dev';
+export const ENGINE_VERSION = '2.0.0-stage1';
+
+export {
+  checkGstin,
+  checkPan,
+  gstinCheckDigit,
+  isValidGstin,
+  stateCodeOfGstin,
+  type GstinCheck,
+  type GstinProblem,
+} from './ids';
+export { GST_STATES, STATE_CODE_TABLE_VERSION, findState, type GstState, type TaxAuthority } from './state-codes';
+export {
+  MoneyError,
+  amountInWords,
+  applyBasisPoints,
+  assertSafe,
+  divRound,
+  formatMoneyIndian,
+  formatMoneyPlain,
+  formatPercentPlain,
+  formatQuantityPlain,
+  lineGross,
+  parseMoney,
+  parsePercent,
+  parseQuantity,
+  roundToRupee,
+  sum,
+  taxableFromInclusive,
+  type BasisPoints,
+  type Milli,
+  type Paise,
+} from './money';

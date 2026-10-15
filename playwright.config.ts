@@ -32,7 +32,11 @@ export default defineConfig({
     launchOptions: { ...(chromium ? { executablePath: chromium } : {}), args: ['--no-sandbox'] },
   },
   projects: [
-    { name: 'phone', use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } }, grepInvert: /@desktop/ },
+    {
+      name: 'phone',
+      use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 },
+      grepInvert: /@desktop/,
+    },
     {
       name: 'desktop',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 860 } },

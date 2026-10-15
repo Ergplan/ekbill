@@ -10,3 +10,4 @@ tests/e2e/__screenshots__/**/*-actual.png
 tests/e2e/__screenshots__/**/*-diff.png
 test-results/
 apps/web/public/fonts/
+apps/web/public/flow-thumbs/

@@ -198,7 +198,7 @@ export function Input({
 
 /* ---------------------------------------------------------------- pills --- */
 
-export type Status = 'sent' | 'paid' | 'due';
+export type Status = 'sent' | 'paid' | 'due' | 'cancelled' | 'partial';
 
 /** Always a word plus a colour, never colour alone. */
 export function StatusPill({ status, label }: { status: Status; label: string }) {
