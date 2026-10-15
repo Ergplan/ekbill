@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import * as businesses from '../../packages/db/src/repos/businesses';
 import * as documents from '../../packages/db/src/repos/documents';
+import * as files from '../../packages/db/src/repos/files';
 import * as memberships from '../../packages/db/src/repos/memberships';
 import * as series from '../../packages/db/src/repos/series';
 import * as users from '../../packages/db/src/repos/users';
@@ -43,6 +44,20 @@ describe('tenancy (I1): every repository, business A against business B', () => 
     const a = await scopeFor('sharma', 'owner');
     const b = await otherBusiness('gupta');
     const { touched } = await documents.tenancyProbes[2]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it('files: listFiles lists only its own files', async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await files.tenancyProbes[0]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("files: getFile cannot read another business's file", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await files.tenancyProbes[1]!.run(a, b);
     expect(touched).not.toContain(b.businessId);
     for (const id of touched) expect(id).toBe(a.businessId);
   });

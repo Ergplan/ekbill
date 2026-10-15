@@ -6,7 +6,7 @@
 //   npm run trace:check    # fail on drift, or on an input field with no owner
 //
 // Owner of a zod field = the Drizzle column of the same name in the table the
-// schema file names in a comment "// table: <name>", or an entry in
+// nearest "// table: <name>" comment above the schema names, or an entry in
 // docs/field-owners.json (field → where it ends up, e.g. "derived: engine").
 // Sources: packages/db/src/schema.ts (pgTable literals) and every
 // **/schema.ts under apps/web and packages/engine (z.object literals).
@@ -67,7 +67,10 @@ function zodSchemas(source) {
     }
     const body = source.slice(start, i - 1);
     const fields = [...body.matchAll(/^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:/gm)].map((c) => c[1]);
-    out.push({ name: m[1], fields });
+    // The nearest "// table: <name>" above the schema names its table (one file may hold schemas of several tables).
+    const above = source.slice(0, m.index);
+    const tableMatches = [...above.matchAll(/\/\/\s*table:\s*([a-z_]+)/g)];
+    out.push({ name: m[1], fields, table: tableMatches.at(-1)?.[1] ?? null });
   }
   return out;
 }
@@ -86,8 +89,8 @@ for (const dir of ['apps/web', 'packages/engine', 'packages/ai']) {
   for (const file of walk(join(ROOT, dir), (f) => /(^|\/)schema\.ts$/.test(f) || /\.schema\.ts$/.test(f))) {
     const source = readFileSync(file, 'utf8');
     if (/\/\/\s*trace:\s*not-input/.test(source)) continue;
-    const table = source.match(/\/\/\s*table:\s*([a-z_]+)/)?.[1] ?? null;
     for (const s of zodSchemas(source)) {
+      const table = s.table;
       const rel = relative(ROOT, file);
       for (const field of s.fields) {
         const key = `${s.name}.${field}`;

@@ -4,6 +4,7 @@ import {
   bigserial,
   boolean,
   check,
+  customType,
   date,
   index,
   integer,
@@ -75,6 +76,31 @@ export const businesses = pgTable(
     city: text('city'),
     phone: text('phone'),
     upi: text('upi'),
+    // --- Stage 4: the rest of the profile ---
+    pincode: text('pincode'),
+    email: text('email'),
+    pan: text('pan'),
+    /** The setup chip: 40l | 40l-1.5cr | 1.5-5cr | 5cr+ (turnover_paise is its upper bound, for the engine). */
+    turnoverBand: text('turnover_band'),
+    /** A composition business prints this on every bill of supply (from the pack, kept with the profile). */
+    compositionLegend: text('composition_legend'),
+    bankName: text('bank_name'),
+    bankAccount: text('bank_account'),
+    bankIfsc: text('bank_ifsc'),
+    bankHolder: text('bank_holder'),
+    defaultPaymentTermsDays: integer('default_payment_terms_days').notNull().default(0),
+    /** classic | modern | simple */
+    billDesign: text('bill_design').notNull().default('classic'),
+    /** a4 | a5 | 80mm | 58mm */
+    billPaper: text('bill_paper').notNull().default('a4'),
+    /** pdf | jpg */
+    billShareAs: text('bill_share_as').notNull().default('pdf'),
+    billAccent: text('bill_accent').notNull().default('#2f4a9e'),
+    logoFileId: uuid('logo_file_id').references((): AnyPgColumn => businessFiles.id),
+    signatureFileId: uuid('signature_file_id').references((): AnyPgColumn => businessFiles.id),
+    defaultSeriesId: uuid('default_series_id').references((): AnyPgColumn => series.id),
+    voiceOnArrival: boolean('voice_on_arrival').notNull().default(true),
+    setupDoneAt: timestamp('setup_done_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid('created_by')
@@ -83,6 +109,17 @@ export const businesses = pgTable(
   },
   (t) => [
     check('businesses_status', sql`${t.status} in ('active', 'archived')`),
+    check(
+      'businesses_turnover_band',
+      sql`${t.turnoverBand} is null or ${t.turnoverBand} in ('40l', '40l-1.5cr', '1.5-5cr', '5cr+')`,
+    ),
+    check('businesses_pan', sql`${t.pan} is null or ${t.pan} ~ '^[A-Z]{5}[0-9]{4}[A-Z]$'`),
+    check('businesses_pincode', sql`${t.pincode} is null or ${t.pincode} ~ '^[1-9][0-9]{5}$'`),
+    check('businesses_payment_terms', sql`${t.defaultPaymentTermsDays} between 0 and 365`),
+    check('businesses_bill_design', sql`${t.billDesign} in ('classic', 'modern', 'simple')`),
+    check('businesses_bill_paper', sql`${t.billPaper} in ('a4', 'a5', '80mm', '58mm')`),
+    check('businesses_bill_share_as', sql`${t.billShareAs} in ('pdf', 'jpg')`),
+    check('businesses_bill_accent', sql`${t.billAccent} ~ '^#[0-9a-fA-F]{6}$'`),
     check(
       'businesses_registration_type',
       sql`${t.registrationType} in ('regular', 'composition', 'not-registered', 'not-sure')`,
@@ -311,5 +348,46 @@ export const documents = pgTable(
     ),
     check('documents_cancelled_complete', sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null)`),
     check('documents_credit_note_linked', sql`${t.kind} <> 'credit_note' or ${t.linkedDocumentId} is not null`),
+  ],
+);
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return 'bytea';
+  },
+});
+
+/** The 300 KB cap on a logo or a signature file (Stage 4); the engine's files.ts says the same number to the browser. */
+export const BUSINESS_FILE_MAX_BYTES = 300 * 1024;
+
+/**
+ * A business's logo and signature, as bytes in Postgres (Stage 4: files stay
+ * in Postgres). Written only by repos/files.ts; the business row points at
+ * the current one of each kind, older ones stay (nothing is deleted).
+ */
+export const businessFiles = pgTable(
+  'business_files',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    /** logo | signature */
+    kind: text('kind').notNull(),
+    mime: text('mime').notNull(),
+    bytes: bytea('bytes').notNull(),
+    size: integer('size').notNull(),
+    sha256: text('sha256').notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('business_files_business_kind').on(t.businessId, t.kind),
+    check('business_files_kind', sql`${t.kind} in ('logo', 'signature')`),
+    check('business_files_mime', sql`${t.mime} in ('image/png', 'image/jpeg', 'image/webp')`),
+    check('business_files_size', sql`${t.size} between 1 and ${sql.raw(String(BUSINESS_FILE_MAX_BYTES))}`),
+    check('business_files_sha256', sql`${t.sha256} ~ '^[0-9a-f]{64}$'`),
   ],
 );

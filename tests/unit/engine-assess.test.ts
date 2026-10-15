@@ -130,23 +130,33 @@ describe('issuance assessment', () => {
       'e-invoicing-unscreened',
     );
     expect(assess({ turnoverPaise: null, eInvoiceSelfDeclaredNotApplicable: true }).canIssue).toBe(true);
-    const big = assess({ turnoverPaise: 60000000000 });
+    const big = assess({ turnoverPaise: 6000000000, eInvoiceSelfDeclaredNotApplicable: false });
     expect(codes(big)).toContain('e-invoicing-applicable');
     expect(big.blockers.find((b) => b.code === 'e-invoicing-applicable')!.ruleId).toBe('e-invoice-threshold-2023');
+    // The owner said "Nahi" under Aap: their answer stands, with a notice, whatever the band says.
+    expect(codes(assess({ turnoverPaise: 6000000000, eInvoiceSelfDeclaredNotApplicable: true }))).not.toContain(
+      'e-invoicing-applicable',
+    );
     // A bank above the threshold: exempt from e-invoicing, though as a large
     // business it still owes six HSN digits (hsn-digits-2021).
-    const bank = assess({ turnoverPaise: 60000000000, eInvoiceExemption: 'bank' }, customer, {
+    const bank = assess({ turnoverPaise: 6000000000, eInvoiceExemption: 'bank' }, customer, {
       lines: [{ description: 'Locker rent', gstBp: 1800, taxRateChosen: true, hsnCode: '997119' }],
     });
     expect(codes(bank)).not.toContain('e-invoicing-applicable');
     expect(bank.canIssue).toBe(true);
   });
   it('the 30-day IRN window (irn-30-day-2025): a ₹10 crore business cannot report a bill older than 30 days', () => {
-    const a = assess({ turnoverPaise: 120000000000 }, customer, { dateIso: '2026-09-01' });
+    const a = assess({ turnoverPaise: 12000000000, eInvoiceSelfDeclaredNotApplicable: false }, customer, {
+      dateIso: '2026-09-01',
+    });
     expect(codes(a)).toContain('irn-window-passed');
-    expect(codes(assess({ turnoverPaise: 120000000000 }, customer, { dateIso: '2026-10-01' }))).not.toContain(
-      'irn-window-passed',
-    );
+    expect(
+      codes(
+        assess({ turnoverPaise: 12000000000, eInvoiceSelfDeclaredNotApplicable: false }, customer, {
+          dateIso: '2026-10-01',
+        }),
+      ),
+    ).not.toContain('irn-window-passed');
   });
   it('HSN digits by turnover band (hsn-digits-2021): short codes block, absent codes are said', () => {
     const short = assess({}, customer, {
@@ -160,7 +170,7 @@ describe('issuance assessment', () => {
     expect(absent.canIssue).toBe(true);
     expect(absent.notices.map((n) => n.code)).toContain('hsn-missing');
     // Above ₹5 crore: six digits everywhere, B2C included.
-    const big = assess({ turnoverPaise: 60000000000, eInvoiceExemption: 'bank' }, walkIn, {
+    const big = assess({ turnoverPaise: 6000000000, eInvoiceExemption: 'bank' }, walkIn, {
       lines: [{ description: 'A', gstBp: 1800, taxRateChosen: true, hsnCode: '9987' }],
       placeOfSupplyStateCode: '27',
     });

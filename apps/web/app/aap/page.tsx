@@ -10,5 +10,5 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
   const viewer = await getViewer(await searchParams);
   const data = loadAap(viewer, (process.env.NEXT_PUBLIC_BUILD_STAMP ?? 'dev').slice(0, 10));
   if (!data) redirect('/');
-  return <AapScreen business={data.business} team={data.team} build={data.build} viewer={shellOf(viewer)} />;
+  return <AapScreen data={data} viewer={shellOf(viewer)} />;
 }

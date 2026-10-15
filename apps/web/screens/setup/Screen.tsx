@@ -4,7 +4,15 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { t } from '@ekbill/copy';
-import { checkGstin, checkPan } from '@ekbill/engine';
+import {
+  GST_STATES,
+  checkGstin,
+  checkPan,
+  compositionRule,
+  todayIst,
+  type ProfileField,
+  type TurnoverBand,
+} from '@ekbill/engine';
 import {
   ChoiceList,
   Display,
@@ -21,7 +29,8 @@ import {
   useTour,
 } from '@ekbill/ui';
 
-import { useDraft } from '../draft';
+import { finishSetup, setBusinessFile } from '../../actions/business';
+import { clearDraft, useDraft } from '../draft';
 import { manifest, type SetupStep } from './manifest';
 
 export interface SetupDraft {
@@ -33,6 +42,7 @@ export interface SetupDraft {
   irn: 'yes' | 'no' | 'unknown' | null;
   upi: string;
   city: string;
+  stateCode: string;
   signature: string | null;
 }
 const EMPTY: SetupDraft = {
@@ -44,8 +54,46 @@ const EMPTY: SetupDraft = {
   irn: null,
   upi: '',
   city: '',
+  stateCode: '',
   signature: null,
 };
+
+const BAND: Record<NonNullable<SetupDraft['turnover']>, TurnoverBand> = {
+  a: '40l',
+  b: '40l-1.5cr',
+  c: '1.5-5cr',
+  d: '5cr+',
+};
+/** Which step a refused field is answered on, so the owner lands where the fix is. */
+const STEP_OF_FIELD: Partial<Record<ProfileField, SetupStep>> = {
+  name: 'name',
+  gst: 'gst',
+  gstin: 'gstin',
+  pan: 'pan',
+  turnoverBand: 'turnover',
+  eInvoicingApplies: 'irn',
+  compositionLegend: 'gst',
+  upi: 'upi',
+  city: 'city',
+  stateCode: 'city',
+};
+
+/** The answers as the server takes them (the engine checks them again there). */
+export function profileOfDraft(d: SetupDraft, legend: string | null) {
+  return {
+    legalName: d.name.trim(),
+    tradeName: null,
+    gst: d.gst ?? 'unknown',
+    gstin: d.gstin.trim() || null,
+    pan: d.pan.trim() || null,
+    turnoverBand: d.gst === 'yes' && d.turnover ? BAND[d.turnover] : null,
+    eInvoicingApplies: d.turnover === 'd' ? (d.irn === 'yes' ? true : d.irn === 'no' ? false : null) : null,
+    compositionLegend: d.gst === 'composition' ? legend : null,
+    upi: d.upi.trim() || null,
+    city: d.city.trim() || null,
+    stateCode: d.stateCode || null,
+  };
+}
 
 /** The next question, given the answers so far (8.0: only what the GST answer needs). */
 export function nextStep(step: SetupStep, d: SetupDraft): SetupStep | 'home' {
@@ -114,6 +162,9 @@ export function SetupScreen({ step }: { step: SetupStep }) {
   const guide = useTour(manifest.tour);
   const [d, setD] = useDraft<SetupDraft>('setup', EMPTY);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  // The legend a composition business prints, from the pack as of today.
+  const legend = useMemo(() => compositionRule(todayIst(new Date()))?.legend ?? null, []);
   const patch = (p: Partial<SetupDraft>) => {
     setError(null);
     setD((cur) => ({ ...cur, ...p }));
@@ -135,17 +186,34 @@ export function SetupScreen({ step }: { step: SetupStep }) {
       }
       next.gstin = c.normalised;
       next.pan = c.pan ?? next.pan;
-      if (!next.city && c.stateName) next.city = c.stateName;
+      next.stateCode = c.stateCode ?? next.stateCode;
     }
     if (step === 'pan' && next.pan && !checkPan(next.pan).ok) {
       setError(t('setup.pan.error'));
       return;
     }
-    const derived = step === 'gstin' ? { gstin: next.gstin, pan: next.pan, city: next.city } : {};
+    const derived = step === 'gstin' ? { gstin: next.gstin, pan: next.pan, stateCode: next.stateCode } : {};
     if (override || step === 'gstin') patch({ ...override, ...derived });
     go(nextStep(step, next));
   };
   const skip = () => go(nextStep(step, d));
+  /** "Chalo, shuru karte hain": the business is made (or re-saved) with these answers; the signature follows. */
+  const finish = async () => {
+    if (saving) return;
+    setSaving(true);
+    setError(null);
+    const r = await finishSetup(profileOfDraft(d, legend));
+    if (!r.ok) {
+      setSaving(false);
+      setError(t(r.error, 'say' in r && r.say ? r.say.params : undefined));
+      const at = 'field' in r && r.field ? STEP_OF_FIELD[r.field as ProfileField] : undefined;
+      if (at && at !== step) go(at);
+      return;
+    }
+    if (d.signature) await setBusinessFile({ kind: 'signature', dataUrl: d.signature });
+    clearDraft('setup');
+    router.push('/');
+  };
 
   const stepIndex = ['name', 'gst', 'gstin', 'turnover', 'irn', 'review'].indexOf(step);
   const total = d.gst === 'yes' ? (d.turnover === 'd' ? 6 : 5) : d.gst === 'composition' ? 4 : 3;
@@ -378,6 +446,22 @@ export function SetupScreen({ step }: { step: SetupStep }) {
                 />
               </div>
             </Field>
+            <Field id="state" label={t('setup.review.row.state')} hint={gstinCheck?.ok ? null : t('setup.state.q')}>
+              <select
+                id="state"
+                className="eb-input"
+                value={d.stateCode}
+                disabled={Boolean(gstinCheck?.ok)}
+                onChange={(e) => patch({ stateCode: e.target.value })}
+              >
+                <option value="">—</option>
+                {GST_STATES.map((st) => (
+                  <option key={st.code} value={st.code}>
+                    {st.code} · {st.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
             <div className="eb-actions eb-actions--stack eb-sticky eb-sticky--bare">
               <PrimaryCTA data-guide="next" onClick={() => advance()}>
                 {t('action.next')}
@@ -454,9 +538,24 @@ export function SetupScreen({ step }: { step: SetupStep }) {
                 value={d.upi || t('setup.review.empty')}
                 onClick={() => go('upi')}
               />
+              {d.gst === 'yes' && d.turnover === 'd' ? (
+                <SettingRow
+                  label={t('setup.review.row.irn')}
+                  value={d.irn ? t(`setup.irn.${d.irn}`) : t('setup.review.empty')}
+                  onClick={() => go('irn')}
+                />
+              ) : null}
+              {d.gst === 'composition' && legend ? (
+                <SettingRow label={t('setup.review.row.legend')} value={legend} locked />
+              ) : null}
               <SettingRow
                 label={t('setup.review.row.city')}
                 value={d.city || t('setup.review.empty')}
+                onClick={() => go('city')}
+              />
+              <SettingRow
+                label={t('setup.review.row.state')}
+                value={GST_STATES.find((st) => st.code === d.stateCode)?.name ?? t('setup.review.empty')}
                 onClick={() => go('city')}
               />
               <SettingRow
@@ -465,9 +564,14 @@ export function SetupScreen({ step }: { step: SetupStep }) {
                 onClick={() => go('sign')}
               />
             </SettingGroup>
+            {error ? (
+              <p className="eb-field__error" role="alert">
+                {error}
+              </p>
+            ) : null}
             <div className="eb-actions eb-actions--stack eb-sticky eb-sticky--bare">
-              <PrimaryCTA data-guide="go" onClick={() => go('home')}>
-                {t('setup.go')}
+              <PrimaryCTA data-guide="go" onClick={() => void finish()} disabled={saving}>
+                {saving ? t('setup.saving') : t('setup.go')}
               </PrimaryCTA>
               {!d.upi || !d.signature ? (
                 <GhostButton data-guide="more" onClick={() => go('pan')}>

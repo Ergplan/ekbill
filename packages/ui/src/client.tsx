@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 
+import { alphaBounds, dataUrlBytes, nextScale } from './trim';
+
 /* --------------------------------------------------------- GuideHighlight --- */
 
 export interface GuideStep {
@@ -173,35 +175,33 @@ export function SignaturePad({
   );
 }
 
-/** The strokes only, with a small margin, as a PNG data URL; null when nothing was drawn. */
+/** The signature file cap (the engine's FILE_LIMITS.signature says the same number to the server). */
+export const SIGNATURE_MAX_BYTES = 60 * 1024;
+
+/**
+ * The strokes only, with a small margin, as a transparent PNG data URL no
+ * larger than the cap (scaled down by steps when a long signature is over
+ * it); null when nothing was drawn.
+ */
 function trimmed(c: HTMLCanvasElement): string | null {
   const ctx = c.getContext('2d');
   if (!ctx) return null;
   const { width, height } = c;
-  const data = ctx.getImageData(0, 0, width, height).data;
-  let minX = width;
-  let minY = height;
-  let maxX = -1;
-  let maxY = -1;
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      if (data[(y * width + x) * 4 + 3]! > 10) {
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-      }
-    }
+  const box = alphaBounds(ctx.getImageData(0, 0, width, height).data, width, height);
+  if (!box) return null;
+  let scale: number | null = 1;
+  while (scale !== null) {
+    const out = document.createElement('canvas');
+    out.width = Math.max(1, Math.round(box.width * scale));
+    out.height = Math.max(1, Math.round(box.height * scale));
+    const octx = out.getContext('2d');
+    if (!octx) return null;
+    octx.drawImage(c, box.x, box.y, box.width, box.height, 0, 0, out.width, out.height);
+    const url = out.toDataURL('image/png');
+    if (dataUrlBytes(url) <= SIGNATURE_MAX_BYTES) return url;
+    scale = nextScale(scale);
   }
-  if (maxX < 0) return null;
-  const pad = 8;
-  const out = document.createElement('canvas');
-  out.width = maxX - minX + 1 + pad * 2;
-  out.height = maxY - minY + 1 + pad * 2;
-  out
-    .getContext('2d')
-    ?.drawImage(c, minX, minY, maxX - minX + 1, maxY - minY + 1, pad, pad, maxX - minX + 1, maxY - minY + 1);
-  return out.toDataURL('image/png');
+  return null;
 }
 
 /* -------------------------------------------------------- ConfidenceField --- */

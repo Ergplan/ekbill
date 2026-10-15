@@ -182,10 +182,11 @@ export function assessDocument(
       ruleIds.add(e.ruleId);
       const exempt = business.eInvoiceExemption && e.entry.exemptions?.includes(business.eInvoiceExemption);
       if (!exempt) {
-        if (business.turnoverPaise === null) {
-          if (!business.eInvoiceSelfDeclaredNotApplicable) block('e-invoicing-unscreened', e.ruleId);
-          else note('e-invoicing-self-declared', e.ruleId);
-        } else if (business.turnoverPaise > e.thresholdPaise) {
+        // The owner's answer (asked once, under Aap) is the gate: a "no" is said, never overruled by a turnover
+        // band; the GST checks of Stage 8 flag the contradiction. Without an answer, the band decides.
+        if (business.eInvoiceSelfDeclaredNotApplicable) note('e-invoicing-self-declared', e.ruleId);
+        else if (business.turnoverPaise === null) block('e-invoicing-unscreened', e.ruleId);
+        else if (business.turnoverPaise > e.thresholdPaise) {
           block('e-invoicing-applicable', e.ruleId);
           const w = irnReportingWindow(business.turnoverPaise, document.dateIso, rules);
           if (w) {

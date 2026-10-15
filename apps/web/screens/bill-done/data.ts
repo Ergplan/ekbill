@@ -29,6 +29,30 @@ export function loadBillDone(viewer: Viewer): BillDoneData | null {
     };
   }
   const bill = billsOf(b).find((x) => x.status !== 'cancelled');
-  if (!bill) return null;
-  return { fallback: paperOfBill(b, bill, customerOf(b, bill.customer)), share: b.look.share };
+  const brand = viewer.loaded
+    ? {
+        logoUrl: viewer.loaded.logoUrl,
+        signature: viewer.loaded.signatureUrl
+          ? { url: viewer.loaded.signatureUrl, forName: viewer.loaded.profile.legalName }
+          : null,
+      }
+    : {};
+  if (!bill) {
+    // A business the fixtures do not know (set up today): a sample bill with the real seller on it.
+    return {
+      fallback: {
+        title: b.registration === 'regular' ? 'TAX INVOICE' : 'INVOICE',
+        seller: { name: b.name, gstin: b.gstin, address: [b.address, b.city].filter(Boolean).join(', ') },
+        number: b.series[0] ? `${b.series[0].prefix}${String(b.series[0].next).padStart(3, '0')}` : 'INV-001',
+        date: '',
+        customer: { name: 'Sample customer' },
+        lines: [{ description: 'Sample work', qty: '1', rate: 100000, amount: 100000 }],
+        totalPaise: 100000,
+        upiId: b.upi,
+        ...brand,
+      },
+      share: b.look.share,
+    };
+  }
+  return { fallback: { ...paperOfBill(b, bill, customerOf(b, bill.customer)), ...brand }, share: b.look.share };
 }

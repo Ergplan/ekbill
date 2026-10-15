@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { seedBuild } from '../../packages/db/src/seed';
+
 /**
  * Stage 2: the switcher issues real sessions. Switch to the owner of A and
  * see A; to the staff of B and see B; the theme a person picks is theirs
@@ -26,6 +28,10 @@ test('switch to the owner of Sharma Electricals and see Sharma; to the staff of 
 });
 
 test('the brand-new owner lands on welcome; an unknown person goes back to the list', async ({ page }) => {
+  // Another journey in this run may have set the brand-new owner up; the seed makes them new again.
+  await seedBuild(process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5440/ekbill2_dev', {
+    log: () => undefined,
+  });
   await page.goto('/dev/switch/new');
   await expect(page).toHaveURL(/\/welcome/);
   await page.goto('/dev/switch/nobody');

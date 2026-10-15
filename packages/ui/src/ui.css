@@ -2111,6 +2111,27 @@ main.eb-screen.eb-flow {
   color: var(--eb-text-muted);
   font-size: var(--eb-type-meta-size);
 }
+.eb-paper__logo {
+  display: block;
+  max-height: 44px;
+  max-width: 140px;
+  margin-bottom: 6px;
+  object-fit: contain;
+}
+.eb-paper__sign {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-top: 14px;
+  text-align: right;
+}
+.eb-paper__sign-img {
+  display: block;
+  max-height: 40px;
+  max-width: 160px;
+  object-fit: contain;
+}
 .eb-logo-preview {
   display: block;
   width: 72px;

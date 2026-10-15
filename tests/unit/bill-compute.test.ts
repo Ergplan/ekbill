@@ -149,6 +149,7 @@ describe('every consumer reads the same engine result (I4)', () => {
       session: null,
       theme: 'narangi',
       language: 'hi-Latn',
+      loaded: null,
     })!;
     const row = gst.b2b.find((r) => r.number === bill.number)!;
     expect(row.totalPaise).toBe(form.totalPaise);

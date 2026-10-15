@@ -1,1 +1,13 @@
-{}
+{
+  "profileInput.gst": "derived: engine checkProfile → businesses.registration_type",
+  "profileInput.legalName": "businesses.legal_name",
+  "profileInput.tradeName": "businesses.trade_name",
+  "fileInput.kind": "business_files.kind",
+  "fileInput.dataUrl": "derived: engine acceptFile → business_files.bytes, mime, size, sha256",
+  "seriesPatchInput.id": "series.id (the row changed)",
+  "defaultSeriesInput.defaultSeriesId": "businesses.default_series_id",
+  "lookInput.billDesign": "businesses.bill_design",
+  "lookInput.billPaper": "businesses.bill_paper",
+  "lookInput.billShareAs": "businesses.bill_share_as",
+  "lookInput.billAccent": "businesses.bill_accent"
+}

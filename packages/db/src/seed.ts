@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 
@@ -106,8 +107,10 @@ export const SEED = {
       profile: {
         registrationType: 'regular',
         gstin: '27AAPFU0939F1ZV',
+        pan: 'AAPFU0939F',
         stateCode: '27',
-        turnoverPaise: 50000000,
+        turnoverBand: '40l',
+        turnoverPaise: 400000000,
         eInvoicingApplies: false,
         address: '12, Dharampeth, Nagpur 440010',
         city: 'Nagpur',
@@ -145,9 +148,12 @@ export const SEED = {
       profile: {
         registrationType: 'composition',
         gstin: '09AAACG1234A1ZC',
+        pan: 'AAACG1234A',
         stateCode: '09',
-        turnoverPaise: 8000000,
-        eInvoicingApplies: false,
+        turnoverBand: null,
+        turnoverPaise: null,
+        eInvoicingApplies: null,
+        compositionLegend: 'composition taxable person, not eligible to collect tax on supplies',
         address: '4, Civil Lines, Kanpur 208001',
         city: 'Kanpur',
         phone: '+919822000004',
@@ -204,6 +210,22 @@ export const SEED = {
   ],
 } as const;
 
+/** What the seed writes of a business's profile (the Stage 4 columns it fills). */
+export interface SeedProfile {
+  registrationType: 'regular' | 'composition' | 'not-registered' | 'not-sure';
+  gstin: string | null;
+  pan: string | null;
+  stateCode: string | null;
+  turnoverBand: '40l' | '40l-1.5cr' | '1.5-5cr' | '5cr+' | null;
+  turnoverPaise: number | null;
+  eInvoicingApplies: boolean | null;
+  compositionLegend: string | null;
+  address: string | null;
+  city: string | null;
+  phone: string | null;
+  upi: string | null;
+}
+
 export type SeedUserKey = (typeof SEED.users)[number]['key'];
 export type SeedBusinessKey = (typeof SEED.businesses)[number]['key'];
 
@@ -245,17 +267,21 @@ export async function seedBuild(url: string, { log = console.log }: { log?: (s: 
     for (const b of SEED.businesses) {
       await client.query("select set_config('app.business_id', $1, true)", [b.id]);
       const owner = seedUser(b.owner)!;
-      const profile = b.profile ?? {
-        registrationType: 'not-sure' as const,
+      const blank: SeedProfile = {
+        registrationType: 'not-sure',
         gstin: null,
+        pan: null,
         stateCode: null,
+        turnoverBand: null,
         turnoverPaise: null,
         eInvoicingApplies: null,
+        compositionLegend: null,
         address: null,
         city: null,
         phone: null,
         upi: null,
       };
+      const profile: SeedProfile = b.profile ? { ...blank, ...b.profile } : blank;
       await db
         .insert(schema.businesses)
         .values({ id: b.id, legalName: b.legalName, tradeName: b.tradeName, createdBy: owner.id, ...profile })
@@ -264,7 +290,9 @@ export async function seedBuild(url: string, { log = console.log }: { log?: (s: 
           set: { legalName: b.legalName, tradeName: b.tradeName, status: 'active', ...profile },
         });
       // The numbering state (next_number, fy) is the business's own: a re-seed never rewinds it.
+      let firstBillSeries: string | null = null;
       for (const sr of b.series) {
+        if (sr.kind === 'bill' && !firstBillSeries) firstBillSeries = sr.id;
         await db
           .insert(schema.series)
           .values({
@@ -288,6 +316,10 @@ export async function seedBuild(url: string, { log = console.log }: { log?: (s: 
             },
           });
       }
+      await db
+        .update(schema.businesses)
+        .set({ defaultSeriesId: firstBillSeries, setupDoneAt: b.profile ? new Date() : null })
+        .where(eq(schema.businesses.id, b.id));
       for (const [role, key] of [
         ['owner', b.owner],
         ['staff', b.staff],
@@ -309,6 +341,20 @@ export async function seedBuild(url: string, { log = console.log }: { log?: (s: 
             set: { role, status: 'active' },
           });
       }
+    }
+    // The brand-new owner stays brand new: a business the setup made in an earlier run is archived and left
+    // behind (nothing is deleted), so /dev/switch/new lands on the welcome flow again.
+    const naya = seedUser('new')!;
+    const left = await client.query<{ business_id: string }>(
+      "update memberships set status = 'removed' where user_id = $1 and status = 'active' returning business_id",
+      [naya.id],
+    );
+    for (const row of left.rows) {
+      await client.query("select set_config('app.business_id', $1, true)", [row.business_id]);
+      await client.query("update businesses set status = 'archived', updated_at = now() where id = $1", [
+        row.business_id,
+      ]);
+      await client.query('update sessions set business_id = null, role = null where user_id = $1', [naya.id]);
     }
     await client.query('commit');
     log(`seed: ${SEED.users.length} people, ${SEED.businesses.length} businesses (upserted)`);

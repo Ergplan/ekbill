@@ -13,6 +13,7 @@ export { withTenant, withUser, type ActorKind, type Db, type Role, type TenantSc
 export {
   SESSION_DAYS,
   createSession,
+  adoptBusiness,
   deleteSession,
   membershipsOf,
   resolveScope,
@@ -20,9 +21,14 @@ export {
   type SessionUser,
 } from './auth';
 export { ForbiddenError, NotFoundError, allow } from './repos/allow';
+export type { Business, BusinessProfile } from './repos/businesses';
+export type { Series } from './repos/series';
+export type { BusinessFile } from './repos/files';
+export type { Document } from './repos/documents';
 export { REPOSITORIES, type RepositoryName } from './repos/index';
 export * as businesses from './repos/businesses';
 export * as documents from './repos/documents';
+export * as files from './repos/files';
 export * as memberships from './repos/memberships';
 export * as series from './repos/series';
 export * as users from './repos/users';

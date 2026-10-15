@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { ForbiddenError } from '../../packages/db/src/repos/allow';
 import * as businesses from '../../packages/db/src/repos/businesses';
 import * as documents from '../../packages/db/src/repos/documents';
+import * as files from '../../packages/db/src/repos/files';
 import * as memberships from '../../packages/db/src/repos/memberships';
 import * as series from '../../packages/db/src/repos/series';
 import * as users from '../../packages/db/src/repos/users';
@@ -35,6 +36,54 @@ describe('roles (I8): every repository write, every role', () => {
   it('businesses.archive: accountant may not', async () => {
     const scope = await scopeFor('sharma', 'accountant');
     await expect(businesses.roleProbes.archive(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('businesses.saveProfile: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(businesses.roleProbes.saveProfile(scope)).resolves.toBeDefined();
+  });
+  it('businesses.saveProfile: staff may not', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(businesses.roleProbes.saveProfile(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('businesses.saveProfile: accountant may not', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(businesses.roleProbes.saveProfile(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('businesses.setLook: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(businesses.roleProbes.setLook(scope)).resolves.toBeDefined();
+  });
+  it('businesses.setLook: staff may not', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(businesses.roleProbes.setLook(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('businesses.setLook: accountant may not', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(businesses.roleProbes.setLook(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('businesses.setFile: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(businesses.roleProbes.setFile(scope)).resolves.toBeDefined();
+  });
+  it('businesses.setFile: staff may not', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(businesses.roleProbes.setFile(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('businesses.setFile: accountant may not', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(businesses.roleProbes.setFile(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('businesses.setDefaultSeries: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(businesses.roleProbes.setDefaultSeries(scope)).resolves.toBeDefined();
+  });
+  it('businesses.setDefaultSeries: staff may not', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(businesses.roleProbes.setDefaultSeries(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('businesses.setDefaultSeries: accountant may not', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(businesses.roleProbes.setDefaultSeries(scope)).rejects.toBeInstanceOf(ForbiddenError);
   });
   it('documents.createDraft: owner may', async () => {
     const scope = await scopeFor('sharma', 'owner');
@@ -95,6 +144,18 @@ describe('roles (I8): every repository write, every role', () => {
   it('documents.createCreditNote: accountant may not', async () => {
     const scope = await scopeFor('sharma', 'accountant');
     await expect(documents.roleProbes.createCreditNote(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('files.putFile: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(files.roleProbes.putFile(scope)).resolves.toBeDefined();
+  });
+  it('files.putFile: staff may not', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(files.roleProbes.putFile(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('files.putFile: accountant may not', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(files.roleProbes.putFile(scope)).rejects.toBeInstanceOf(ForbiddenError);
   });
   it('memberships.invite: owner may', async () => {
     const scope = await scopeFor('sharma', 'owner');

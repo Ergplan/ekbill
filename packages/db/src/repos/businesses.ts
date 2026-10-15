@@ -1,8 +1,21 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
+
+import {
+  checkProfile,
+  type BillLook,
+  type BusinessFileKind,
+  type Profile,
+  type ProfileField,
+  type ProfileInput,
+  type RegistrationType,
+  type Say,
+  type TurnoverBand,
+} from '@ekbill/engine';
 
 import * as schema from '../schema';
-import { withTenant, withUser, type TenantScope } from '../scope';
+import { withTenant, withUser, type Db, type TenantScope } from '../scope';
 import { allow, NotFoundError, type RoleProbe, type TenancyProbe } from './allow';
+import { PROBE_PNG, putFile } from './files';
 
 export interface Business {
   id: string;
@@ -13,11 +26,242 @@ export interface Business {
   updatedAt: Date;
 }
 
-/** Who may make each write (8.3; I8). The generated roles test holds every role to this table. */
+/** The whole profile as the screens read it (Stage 4), with the file and series pointers. */
+export interface BusinessProfile extends Profile {
+  id: string;
+  status: 'active' | 'archived';
+  logoFileId: string | null;
+  signatureFileId: string | null;
+  defaultSeriesId: string | null;
+  setupDoneAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/** The engine said no to the profile: which field, and the dictionary key the screen shows. */
+export class ProfileError extends Error {
+  constructor(
+    public readonly field: ProfileField,
+    public readonly say: Say,
+  ) {
+    super(`profile ${field}: ${say.key}`);
+    this.name = 'ProfileError';
+  }
+}
+
+/** Who may make each write (8.3; I8). The generated roles test holds every role to this table. Owner only (Stage 4). */
 export const allowedRoles = {
   rename: ['owner'],
   archive: ['owner'],
+  saveProfile: ['owner'],
+  setLook: ['owner'],
+  setFile: ['owner'],
+  setDefaultSeries: ['owner'],
 } as const satisfies Record<string, readonly TenantScope['role'][]>;
+
+type Row = typeof schema.businesses.$inferSelect;
+
+export function profileOf(row: Row): BusinessProfile {
+  return {
+    id: row.id,
+    status: row.status as BusinessProfile['status'],
+    legalName: row.legalName,
+    tradeName: row.tradeName,
+    registrationType: row.registrationType as RegistrationType,
+    gstin: row.gstin,
+    pan: row.pan,
+    stateCode: row.stateCode,
+    turnoverBand: row.turnoverBand as TurnoverBand | null,
+    turnoverPaise: row.turnoverPaise,
+    eInvoicingApplies: row.eInvoicingApplies,
+    compositionLegend: row.compositionLegend,
+    phone: row.phone,
+    email: row.email,
+    upi: row.upi,
+    address: row.address,
+    city: row.city,
+    pincode: row.pincode,
+    bankName: row.bankName,
+    bankAccount: row.bankAccount,
+    bankIfsc: row.bankIfsc,
+    bankHolder: row.bankHolder,
+    defaultPaymentTermsDays: row.defaultPaymentTermsDays,
+    look: {
+      design: row.billDesign as BillLook['design'],
+      paper: row.billPaper as BillLook['paper'],
+      shareAs: row.billShareAs as BillLook['shareAs'],
+      accent: row.billAccent,
+    },
+    voiceOnArrival: row.voiceOnArrival,
+    logoFileId: row.logoFileId,
+    signatureFileId: row.signatureFileId,
+    defaultSeriesId: row.defaultSeriesId,
+    setupDoneAt: row.setupDoneAt,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+/** The columns a checked profile writes. */
+function columnsOf(p: Profile) {
+  return {
+    legalName: p.legalName,
+    tradeName: p.tradeName,
+    registrationType: p.registrationType,
+    gstin: p.gstin,
+    pan: p.pan,
+    stateCode: p.stateCode,
+    turnoverBand: p.turnoverBand,
+    turnoverPaise: p.turnoverPaise,
+    eInvoicingApplies: p.eInvoicingApplies,
+    compositionLegend: p.compositionLegend,
+    phone: p.phone,
+    email: p.email,
+    upi: p.upi,
+    address: p.address,
+    city: p.city,
+    pincode: p.pincode,
+    bankName: p.bankName,
+    bankAccount: p.bankAccount,
+    bankIfsc: p.bankIfsc,
+    bankHolder: p.bankHolder,
+    defaultPaymentTermsDays: p.defaultPaymentTermsDays,
+    billDesign: p.look.design,
+    billPaper: p.look.paper,
+    billShareAs: p.look.shareAs,
+    billAccent: p.look.accent,
+    voiceOnArrival: p.voiceOnArrival,
+  };
+}
+
+function checked(input: ProfileInput): Profile {
+  const c = checkProfile(input);
+  if (!c.ok) throw new ProfileError(c.field, c.message);
+  return c.profile;
+}
+
+export async function getProfile(scope: TenantScope): Promise<BusinessProfile> {
+  return withTenant(scope, async ({ db }) => {
+    const row = (await db.select().from(schema.businesses).where(eq(schema.businesses.id, scope.businessId)))[0];
+    if (!row) throw new NotFoundError('business');
+    return profileOf(row);
+  });
+}
+
+/** The owner's "Save karo": the whole profile, checked by the engine, written once. Marks the setup done. */
+export async function saveProfile(scope: TenantScope, input: ProfileInput): Promise<BusinessProfile> {
+  allow(scope, allowedRoles.saveProfile, 'change the business profile');
+  const profile = checked(input);
+  return withTenant(scope, async ({ db }) => {
+    const [row] = await db
+      .update(schema.businesses)
+      .set({
+        ...columnsOf(profile),
+        setupDoneAt: sql`coalesce(${schema.businesses.setupDoneAt}, now())`,
+        updatedAt: sql`now()`,
+      })
+      .where(eq(schema.businesses.id, scope.businessId))
+      .returning();
+    if (!row) throw new NotFoundError('business');
+    return profileOf(row);
+  });
+}
+
+/** "Bill kaisa dikhe": design, paper, share format, accent, on their own (the rest of the profile untouched). */
+export async function setLook(scope: TenantScope, look: Partial<BillLook>): Promise<BusinessProfile> {
+  allow(scope, allowedRoles.setLook, 'change the bill look');
+  return withTenant(scope, async ({ db }) => {
+    const current = await getRow(db, scope.businessId);
+    const profile = checked({ ...inputOf(current), look: { ...profileOf(current).look, ...look } });
+    const [row] = await db
+      .update(schema.businesses)
+      .set({
+        billDesign: profile.look.design,
+        billPaper: profile.look.paper,
+        billShareAs: profile.look.shareAs,
+        billAccent: profile.look.accent,
+        updatedAt: sql`now()`,
+      })
+      .where(eq(schema.businesses.id, scope.businessId))
+      .returning();
+    return profileOf(row!);
+  });
+}
+
+/** The logo or the signature: a data URL stored as a file and pointed at, or null to take it off the bills. */
+export async function setFile(
+  scope: TenantScope,
+  kind: BusinessFileKind,
+  dataUrl: string | null,
+): Promise<BusinessProfile> {
+  allow(scope, allowedRoles.setFile, 'change the bill look');
+  const file = dataUrl ? await putFile(scope, kind, dataUrl) : null;
+  return withTenant(scope, async ({ db }) => {
+    const [row] = await db
+      .update(schema.businesses)
+      .set(kind === 'logo' ? { logoFileId: file?.id ?? null } : { signatureFileId: file?.id ?? null })
+      .where(eq(schema.businesses.id, scope.businessId))
+      .returning();
+    if (!row) throw new NotFoundError('business');
+    return profileOf(row);
+  });
+}
+
+/** The series new bills go in: one of the business's own active bill series. */
+export async function setDefaultSeries(scope: TenantScope, seriesId: string): Promise<BusinessProfile> {
+  allow(scope, allowedRoles.setDefaultSeries, 'change the series');
+  return withTenant(scope, async ({ db }) => {
+    const s = (
+      await db
+        .select({ id: schema.series.id })
+        .from(schema.series)
+        .where(and(eq(schema.series.id, seriesId), eq(schema.series.kind, 'bill'), eq(schema.series.active, true)))
+    )[0];
+    if (!s) throw new NotFoundError('series');
+    const [row] = await db
+      .update(schema.businesses)
+      .set({ defaultSeriesId: s.id, updatedAt: sql`now()` })
+      .where(eq(schema.businesses.id, scope.businessId))
+      .returning();
+    if (!row) throw new NotFoundError('business');
+    return profileOf(row);
+  });
+}
+
+async function getRow(db: Db, id: string): Promise<Row> {
+  const row = (await db.select().from(schema.businesses).where(eq(schema.businesses.id, id)))[0];
+  if (!row) throw new NotFoundError('business');
+  return row;
+}
+
+/** A stored row back into the engine's input, so a partial write re-checks the whole. */
+export function inputOf(row: Row): ProfileInput {
+  const p = profileOf(row);
+  return {
+    name: p.legalName,
+    tradeName: p.tradeName,
+    gst: p.registrationType,
+    gstin: p.gstin,
+    pan: p.pan,
+    turnoverBand: p.turnoverBand,
+    eInvoicingApplies: p.eInvoicingApplies,
+    compositionLegend: p.compositionLegend,
+    phone: p.phone,
+    email: p.email,
+    upi: p.upi,
+    address: p.address,
+    city: p.city,
+    pincode: p.pincode,
+    stateCode: p.stateCode,
+    bankName: p.bankName,
+    bankAccount: p.bankAccount,
+    bankIfsc: p.bankIfsc,
+    bankHolder: p.bankHolder,
+    defaultPaymentTermsDays: p.defaultPaymentTermsDays,
+    look: p.look,
+    voiceOnArrival: p.voiceOnArrival,
+  };
+}
 
 export async function getBusiness(scope: TenantScope): Promise<Business> {
   return withTenant(scope, async ({ db }) => {
@@ -65,14 +309,17 @@ export async function archive(scope: TenantScope): Promise<Business> {
  */
 export async function createBusiness(
   who: { userId: string; requestId: string },
-  input: { legalName: string; tradeName: string },
-): Promise<Business> {
+  input: { legalName: string; tradeName: string } | ProfileInput,
+): Promise<BusinessProfile> {
+  const profile = checked(
+    'name' in input ? input : { name: input.legalName, tradeName: input.tradeName, gst: 'unknown' },
+  );
   return withUser(who, async ({ db, client }) => {
     const id = (await client.query<{ id: string }>('select gen_random_uuid() as id')).rows[0]!.id;
     await client.query("select set_config('app.business_id', $1, true)", [id]);
     const [row] = await db
       .insert(schema.businesses)
-      .values({ id, legalName: input.legalName, tradeName: input.tradeName, createdBy: who.userId })
+      .values({ id, ...columnsOf(profile), createdBy: who.userId, setupDoneAt: 'name' in input ? sql`now()` : null })
       .returning();
     await db.insert(schema.memberships).values({
       businessId: id,
@@ -82,7 +329,25 @@ export async function createBusiness(
       invitedBy: who.userId,
       acceptedAt: sql`now()`,
     });
-    return row as Business;
+    // Every business numbers from its first day: a bill series and a credit-note series (Aap changes them).
+    const [bills] = await db
+      .insert(schema.series)
+      .values({ businessId: id, name: 'Bills', kind: 'bill', prefix: 'INV-', padding: 3, includeFy: true })
+      .returning({ id: schema.series.id });
+    await db.insert(schema.series).values({
+      businessId: id,
+      name: 'Credit notes',
+      kind: 'credit_note',
+      prefix: 'CN-',
+      padding: 3,
+      includeFy: true,
+    });
+    const [done] = await db
+      .update(schema.businesses)
+      .set({ defaultSeriesId: bills!.id })
+      .where(eq(schema.businesses.id, id))
+      .returning();
+    return profileOf(done ?? row!);
   });
 }
 
@@ -90,7 +355,27 @@ export async function createBusiness(
 export const roleProbes: Record<keyof typeof allowedRoles, RoleProbe> = {
   rename: (scope) => rename(scope, { tradeName: 'Probe Traders' }),
   archive: (scope) => archive(scope),
+  saveProfile: async (scope) => {
+    const current = await getProfile(scope);
+    return saveProfile(scope, { ...inputOf(await rowOf(scope)), name: current.legalName });
+  },
+  setLook: (scope) => setLook(scope, { design: 'modern' }),
+  setFile: (scope) => setFile(scope, 'logo', PROBE_PNG),
+  setDefaultSeries: async (scope) => {
+    const s = (
+      await withTenant(scope, ({ db }) =>
+        db
+          .select({ id: schema.series.id })
+          .from(schema.series)
+          .where(and(eq(schema.series.kind, 'bill'), eq(schema.series.active, true))),
+      )
+    )[0];
+    return setDefaultSeries(scope, s!.id);
+  },
 };
+async function rowOf(scope: TenantScope): Promise<Row> {
+  return withTenant(scope, ({ db }) => getRow(db, scope.businessId));
+}
 export const tenancyProbes: TenancyProbe[] = [
   {
     name: 'getBusiness returns only its own business',

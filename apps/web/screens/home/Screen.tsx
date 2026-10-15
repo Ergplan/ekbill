@@ -34,7 +34,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
   const router = useRouter();
   const as = (href: string) => withAs(href, viewer.as);
   const [setup] = useDraft<{ name: string } | null>('setup', null);
-  const shopName = data.kind === 'new' ? setup?.name?.trim() || null : null;
+  const shopName = data.kind === 'new' ? (data.businessName ?? setup?.name?.trim() ?? null) : null;
 
   if (data.kind === 'new') {
     return (

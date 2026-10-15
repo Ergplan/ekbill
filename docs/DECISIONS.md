@@ -388,3 +388,48 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: the engine returns `Say { key, params }` (dictionary keys with parameters), never rendered text; the screens render them with `t()`. The blockers of `assess` and the problems of `bill-form` and `contract` are keys under `assess.*`, `error.*`, `help.*`, `bill.*`.
 - Why: the engine is pure and the dictionary is the copy's one home (Stage 1); a Hinglish sentence inside the engine would be a second one.
 - Asked by: I4, rule 6 (salvage with the voice kept).
+
+## 2026-10-15 — Stage 4
+
+### The owner's e-invoicing answer is the gate
+
+- Decision: `assessDocument` takes the owner's "Nahi" (asked once in the setup, kept under Aap) as the answer: a notice, never a block, whatever the turnover band says; with no answer the band decides (unscreened blocks; above ₹5 crore blocks with "IRN zaroori hai"). Stage 8's GST checks flag a "Nahi" that the band contradicts.
+- Options: let the band overrule the owner (a business the exemptions cover, or one whose band was a guess, could then never issue a bill).
+- Why: the MVP's rule and the setup's words: the owner's answer is the gate, given once.
+- Asked by: the Stage 4 prompt (e_invoicing_applies).
+
+### The band gives the engine its turnover
+
+- Decision: `turnover_band` is what the owner chose; `turnover_paise` is the band's upper bound (₹40 lakh, ₹1.5 crore, ₹5 crore, and ₹5 crore + 1 paisa for "5 crore se zyada"), so the pack's thresholds (HSN digits at ₹5 crore, e-invoicing above ₹5 crore, the IRN window at ₹10 crore) read one number.
+- Why: the engine compares paise; the owner thinks in chips.
+- Asked by: the Stage 4 prompt (the turnover chips in 8.0).
+
+### Three pack figures were ten times too large
+
+- Decision: `e-invoice-threshold-2023` (₹5 crore), `irn-30-day-2025` (₹10 crore) and the HSN band bound (₹5 crore) were written as 5e10, 1e11 and 5e10 paise in Stage 3; corrected to 5e9, 1e10 and 5e9 with their fixtures. Found while mapping the bands.
+- Why: ₹1 crore is 1e9 paise. A per-entry fixture holds a number as written; it cannot tell that the number was wrong.
+- Asked by: I5 (a rule change is a data change with a fixture test).
+
+### Files stay in Postgres, audited without their bytes
+
+- Decision: `business_files` holds the bytes (≤ 300 KB by constraint; a signature ≤ 60 KB by the engine); its audit trigger records `to_jsonb(new) - 'bytes'`; a file is written once (a new logo is a new row the business points at); `GET /api/files/[id]` serves a member of the business under the session's scope.
+- Options: the filesystem or a bucket (another thing to back up and to fence by tenant).
+- Why: the Stage 4 prompt ("Files stay in Postgres"); I7 (every write audited; the bytes would bloat the trail for nothing).
+- Asked by: the Stage 4 prompt.
+
+### One check, run twice
+
+- Decision: `checkProfile` is the engine's and runs in the browser as the owner types (the sheet names the field) and in the repository before the write; the action validates the shape only (zod). The same for `acceptFile`.
+- Why: I4, and the MVP's rule: the message is the same both times.
+- Asked by: the Stage 4 prompt (checks).
+
+### The real business behind every session
+
+- Decision: `screens/viewer.ts` loads the session's business from the repositories (`screens/business.ts`) and shapes it like the fixture `Business`, keyed by the seed key when the fixtures know it, so the screens that still read fixture bills and customers keep working; `?as=` looks stay on the fixtures (the /flow review and the Stage 1 baselines). A business with nothing in it shows the first-bill welcome.
+- Why: Stages 5–9 re-point the loaders one by one; the profile had to be real now without rewriting every screen.
+- Asked by: the Stage 4 prompt, I10.
+
+### The setup review grows a state row
+
+- Decision: the `setup--review` baselines were re-taken: the review now shows the state (and the IRN answer and the composition legend), as the Stage 4 prompt's "sheher/rajya" asks. Every other Stage 1 baseline is unchanged.
+- Asked by: the Stage 4 prompt, I10.

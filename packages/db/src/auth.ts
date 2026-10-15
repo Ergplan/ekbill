@@ -123,6 +123,26 @@ export async function createSession(input: {
   return { id: row!.id, expiresAt };
 }
 
+/** After the setup makes a brand-new owner's business: the session now acts for it (their active owner membership). */
+export async function adoptBusiness(sessionId: string, userId: string, businessId: string): Promise<void> {
+  const m = await db()
+    .select({ role: schema.memberships.role })
+    .from(schema.memberships)
+    .where(
+      and(
+        eq(schema.memberships.businessId, businessId),
+        eq(schema.memberships.userId, userId),
+        eq(schema.memberships.status, 'active'),
+      ),
+    )
+    .limit(1);
+  if (!m[0]) throw new Error('no active membership for that business');
+  await db()
+    .update(schema.sessions)
+    .set({ businessId, role: m[0].role })
+    .where(and(eq(schema.sessions.id, sessionId), eq(schema.sessions.userId, userId)));
+}
+
 export async function deleteSession(sessionId: string): Promise<void> {
   await db().delete(schema.sessions).where(eq(schema.sessions.id, sessionId));
 }

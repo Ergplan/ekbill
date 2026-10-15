@@ -8,7 +8,7 @@
       "kind": "threshold",
       "effectiveFrom": "2023-08-01",
       "effectiveTo": null,
-      "thresholdPaise": 50000000000,
+      "thresholdPaise": 5000000000,
       "lookback": "any financial year from 2017-18",
       "scope": "b2b",
       "exemptions": [
@@ -36,7 +36,7 @@
       "kind": "reporting-window",
       "effectiveFrom": "2025-04-01",
       "effectiveTo": null,
-      "thresholdPaise": 100000000000,
+      "thresholdPaise": 10000000000,
       "days": 30,
       "source": "https://einvoice.gst.gov.in/einvoice/advisory",
       "verify": {

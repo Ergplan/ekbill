@@ -20,11 +20,12 @@ export interface HomeData {
 /** Home: three questions. Chips by recency; counts for this month; dues oldest first. */
 export function loadHome(viewer: Viewer): HomeData {
   const b = viewer.business;
-  if (!b) {
+  // No business yet, or a business set up today with nothing in it (Stages 5–6 fill it): the first-bill welcome.
+  if (!b || (billsOf(b).length === 0 && customersOf(b).length === 0)) {
     return {
       kind: 'new',
       personName: viewer.person.name,
-      businessName: null,
+      businessName: b?.name ?? null,
       city: null,
       registration: null,
       chips: [],

@@ -84,3 +84,4 @@ export {
   type FileSource,
   type PickedFile,
 } from './files';
+export { alphaBounds, dataUrlBytes, nextScale, type Bounds } from './trim';

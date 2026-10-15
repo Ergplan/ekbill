@@ -10,7 +10,7 @@
       "effectiveTo": null,
       "bands": [
         {
-          "turnoverUpToPaise": 50000000000,
+          "turnoverUpToPaise": 5000000000,
           "b2bDigits": 4,
           "b2cDigits": 0
         },

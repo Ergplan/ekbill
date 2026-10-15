@@ -67,7 +67,8 @@ test('import: the chosen files (PDF, Excel, photo) are the ones the reading name
 });
 
 test('aap: the logo comes from the files folder and shows on the row', async ({ page }) => {
-  await page.goto('/aap');
+  // Stage 4: the logo is the owner's to set, so the journey runs as the owner of Sharma Electricals.
+  await page.goto('/dev/switch/sharma?to=/aap');
   await hydrated(page);
   await page.locator('input.eb-filedoor').setInputFiles({
     name: 'logo.png',

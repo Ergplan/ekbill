@@ -15,6 +15,13 @@
       "when": 1792090340260,
       "tag": "0002_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792091362838,
+      "tag": "0003_profile",
+      "breakpoints": true
     }
   ]
 }

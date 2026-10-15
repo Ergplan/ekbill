@@ -296,6 +296,10 @@ export interface PaperData {
   totalPaise: number;
   upiId?: string | null;
   legend?: string | null;
+  /** The business's logo, as a URL the browser can load (Stage 4). */
+  logoUrl?: string | null;
+  /** The drawn signature, printed as the authorised signatory under "For <legal name>". */
+  signature?: { url: string; forName: string } | null;
 }
 
 /**
@@ -308,6 +312,7 @@ export function InvoicePaper({ data }: { data: PaperData }) {
     <article className="eb-paper" lang="en-IN">
       <header className="eb-paper__head">
         <div>
+          {data.logoUrl ? <img className="eb-paper__logo" src={data.logoUrl} alt="" /> : null}
           <div className="eb-paper__seller">{data.seller.name}</div>
           {data.seller.gstin ? <div className="eb-paper__muted">GSTIN {data.seller.gstin}</div> : null}
           {data.seller.address ? <div className="eb-paper__muted">{data.seller.address}</div> : null}
@@ -359,6 +364,13 @@ export function InvoicePaper({ data }: { data: PaperData }) {
         <span className="eb-paper__num">₹{formatRupees(data.totalPaise)}</span>
       </div>
       {data.legend ? <p className="eb-paper__legend">{data.legend}</p> : null}
+      {data.signature ? (
+        <div className="eb-paper__sign">
+          <span className="eb-paper__muted">For {data.signature.forName}</span>
+          <img className="eb-paper__sign-img" src={data.signature.url} alt="" />
+          <span className="eb-paper__muted">Authorised signatory</span>
+        </div>
+      ) : null}
       {data.upiId ? (
         <footer className="eb-paper__foot">
           <span className="eb-paper__qr" aria-label="UPI QR code" />

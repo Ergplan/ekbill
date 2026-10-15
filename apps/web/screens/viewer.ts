@@ -3,6 +3,7 @@ import 'server-only';
 import { seedBusinessById, seedUserById, type Resolved } from '@ekbill/db';
 
 import { current } from '../server/session';
+import { loadBusiness, type LoadedBusiness } from './business';
 import { FIXTURE, type Business, type Person } from './fixtures';
 import type { Role } from './types';
 
@@ -26,6 +27,8 @@ export interface Viewer {
   session: Resolved | null;
   theme: 'narangi' | 'harmony' | 'system';
   language: 'hi-Latn' | 'en';
+  /** The real business behind the view (Stage 4): its profile, series and files; null for a look or no business. */
+  loaded: LoadedBusiness | null;
 }
 
 const AS_TO_PERSON: Record<string, string> = {
@@ -60,20 +63,38 @@ export async function getViewer(searchParams?: SearchParams): Promise<Viewer> {
       session,
       theme: session?.user.theme ?? 'narangi',
       language: session?.user.language ?? 'hi-Latn',
+      loaded: null,
     };
   }
   if (!session) {
     // No session: the demo owner, read-only in spirit (every write needs a scope and answers auth.signed.out).
     const person = FIXTURE.people[0]!;
     const business = FIXTURE.businesses.find((b) => b.id === person.business) ?? null;
-    return { person, business, role: person.role, as: null, session: null, theme: 'narangi', language: 'hi-Latn' };
+    return {
+      person,
+      business,
+      role: person.role,
+      as: null,
+      session: null,
+      theme: 'narangi',
+      language: 'hi-Latn',
+      loaded: null,
+    };
   }
   const seedUser = seedUserById(session.user.id);
   const seedBusiness = session.business ? seedBusinessById(session.business.id) : null;
   const role: Role = session.role ?? 'owner';
   const known = seedUser ? fixturePerson(seedUser.key) : null;
-  const business =
-    seedBusiness && session.business ? (FIXTURE.businesses.find((b) => b.id === seedBusiness.key) ?? null) : null;
+  // The business is real (Stage 4): its profile from the repository, shaped like the fixture so the screens
+  // that still read fixture bills and customers (Stages 5–9) find them by the seed key.
+  const loaded = session.scope
+    ? await loadBusiness(session.scope, {
+        theme: session.user.theme,
+        lang: session.user.language,
+        fixtureKey: seedBusiness?.key ?? null,
+      })
+    : null;
+  const business = loaded?.view ?? null;
   const person: Person = known ?? {
     id: seedUser?.key ?? session.user.id,
     name: session.user.name,
@@ -89,6 +110,7 @@ export async function getViewer(searchParams?: SearchParams): Promise<Viewer> {
     session,
     theme: session.user.theme,
     language: session.user.language,
+    loaded,
   };
 }
 

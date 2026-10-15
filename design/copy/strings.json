@@ -2144,5 +2144,309 @@
   "assess.no-lines.do": {
     "hi-Latn": "Kam se kam ek kaam likho.",
     "en": "Write at least one thing you did."
+  },
+  "error.tooLong": {
+    "hi-Latn": "Bahut lamba hai ({n} tak)",
+    "en": "Too long (up to {n})"
+  },
+  "error.phone": {
+    "hi-Latn": "10 digit ka mobile number likho",
+    "en": "Enter a 10-digit mobile number"
+  },
+  "error.upi": {
+    "hi-Latn": "UPI ID aisi hoti hai: naam@bank",
+    "en": "A UPI ID looks like name@bank"
+  },
+  "error.state": {
+    "hi-Latn": "Rajya chuno",
+    "en": "Choose a state"
+  },
+  "error.email": {
+    "hi-Latn": "Email theek nahi lag raha",
+    "en": "That email does not look right"
+  },
+  "error.pincode": {
+    "hi-Latn": "PIN code 6 digit ka hota hai",
+    "en": "A PIN code has 6 digits"
+  },
+  "error.account": {
+    "hi-Latn": "Account number 9 se 18 digit ka hota hai",
+    "en": "An account number has 9 to 18 digits"
+  },
+  "error.ifsc": {
+    "hi-Latn": "IFSC aisa hota hai: MAHB0000123",
+    "en": "An IFSC looks like MAHB0000123"
+  },
+  "error.days": {
+    "hi-Latn": "Din 0 se 365 ke beech",
+    "en": "Days between 0 and 365"
+  },
+  "error.pan": {
+    "hi-Latn": "PAN aisa hota hai: ABCDE1234F",
+    "en": "A PAN looks like ABCDE1234F"
+  },
+  "error.gstin.required": {
+    "hi-Latn": "GST number likho",
+    "en": "Enter the GST number"
+  },
+  "error.gstinPan": {
+    "hi-Latn": "GST number mein PAN {gstPan} hai, alag likha hai",
+    "en": "The GST number carries PAN {gstPan}; a different one was typed"
+  },
+  "error.gstinState": {
+    "hi-Latn": "GST number {gstState} ka hai, rajya {chosen} chuna hai",
+    "en": "The GST number is from {gstState}; the state chosen is {chosen}"
+  },
+  "error.gstAnswer": {
+    "hi-Latn": "GST number likha hai, par 'registered nahi' chuna hai",
+    "en": "A GST number is typed, but 'not registered' was chosen"
+  },
+  "error.legend": {
+    "hi-Latn": "Composition ka legend chahiye (bill pe chhapta hai)",
+    "en": "The composition legend is needed (it prints on the bill)"
+  },
+  "einv.required": {
+    "hi-Latn": "Yeh batana zaroori hai",
+    "en": "This answer is needed"
+  },
+  "error.file.too-big": {
+    "hi-Latn": "File badi hai, {kb} KB tak chalegi",
+    "en": "The file is too big; up to {kb} KB"
+  },
+  "error.file.mime": {
+    "hi-Latn": "Sirf PNG, JPG ya WebP photo",
+    "en": "Only a PNG, JPG or WebP image"
+  },
+  "error.file.empty": {
+    "hi-Latn": "File khaali hai",
+    "en": "The file is empty"
+  },
+  "error.file.not-a-data-url": {
+    "hi-Latn": "File padh nahi paaye",
+    "en": "Could not read the file"
+  },
+  "setup.state.q": {
+    "hi-Latn": "Aapki dukaan kis rajya mein hai?",
+    "en": "Which state is your shop in?"
+  },
+  "setup.review.row.state": {
+    "hi-Latn": "Rajya",
+    "en": "State"
+  },
+  "setup.review.row.legend": {
+    "hi-Latn": "Bill pe legend",
+    "en": "Legend on the bill"
+  },
+  "setup.review.row.irn": {
+    "hi-Latn": "E-invoice (IRN)",
+    "en": "E-invoice (IRN)"
+  },
+  "setup.saving": {
+    "hi-Latn": "Save ho raha hai…",
+    "en": "Saving…"
+  },
+  "setup.saved": {
+    "hi-Latn": "Ho gaya. Chalo, shuru karte hain!",
+    "en": "Done. Let's begin!"
+  },
+  "aap.edit.dukaan": {
+    "hi-Latn": "Dukaan ke baare mein",
+    "en": "About the shop"
+  },
+  "aap.edit.paise": {
+    "hi-Latn": "Paise kaise aayenge",
+    "en": "How you get paid"
+  },
+  "aap.edit.look": {
+    "hi-Latn": "Bill kaisa dikhe",
+    "en": "How the bill looks"
+  },
+  "aap.edit.series": {
+    "hi-Latn": "Bill number series",
+    "en": "Bill number series"
+  },
+  "aap.edit.sign": {
+    "hi-Latn": "Signature",
+    "en": "Signature"
+  },
+  "aap.edit.done": {
+    "hi-Latn": "Theek hai",
+    "en": "Done"
+  },
+  "aap.edit.close": {
+    "hi-Latn": "Band karo",
+    "en": "Close"
+  },
+  "aap.dukaan.tradeName": {
+    "hi-Latn": "Dukaan ka naam (bill pe)",
+    "en": "Shop name (on the bill)"
+  },
+  "aap.dukaan.legalName": {
+    "hi-Latn": "Kanooni naam",
+    "en": "Legal name"
+  },
+  "aap.dukaan.pincode": {
+    "hi-Latn": "PIN code",
+    "en": "PIN code"
+  },
+  "aap.dukaan.email": {
+    "hi-Latn": "Email",
+    "en": "Email"
+  },
+  "aap.dukaan.phone": {
+    "hi-Latn": "Phone (bill pe)",
+    "en": "Phone (on the bill)"
+  },
+  "aap.dukaan.irn": {
+    "hi-Latn": "E-invoice (IRN) bante hain?",
+    "en": "Do you make e-invoices (IRN)?"
+  },
+  "aap.paise.terms": {
+    "hi-Latn": "Paise kitne din mein?",
+    "en": "Payment due in how many days?"
+  },
+  "aap.paise.terms.now": {
+    "hi-Latn": "Turant",
+    "en": "On the spot"
+  },
+  "aap.paise.terms.days": {
+    "hi-Latn": "{n} din",
+    "en": "{n} days"
+  },
+  "aap.paise.bank.name": {
+    "hi-Latn": "Bank ka naam",
+    "en": "Bank name"
+  },
+  "aap.paise.bank.account": {
+    "hi-Latn": "Account number",
+    "en": "Account number"
+  },
+  "aap.paise.bank.ifsc": {
+    "hi-Latn": "IFSC",
+    "en": "IFSC"
+  },
+  "aap.paise.bank.holder": {
+    "hi-Latn": "Account kiske naam",
+    "en": "Account holder"
+  },
+  "aap.look.accent": {
+    "hi-Latn": "Rang",
+    "en": "Colour"
+  },
+  "aap.look.sign.draw": {
+    "hi-Latn": "Signature banao",
+    "en": "Draw a signature"
+  },
+  "aap.look.sign.remove": {
+    "hi-Latn": "Signature hatao",
+    "en": "Remove the signature"
+  },
+  "aap.look.logo.remove": {
+    "hi-Latn": "Logo hatao",
+    "en": "Remove the logo"
+  },
+  "aap.look.paper.a4": {
+    "hi-Latn": "A4",
+    "en": "A4"
+  },
+  "aap.look.paper.a5": {
+    "hi-Latn": "A5",
+    "en": "A5"
+  },
+  "aap.look.paper.80mm": {
+    "hi-Latn": "80mm roll",
+    "en": "80mm roll"
+  },
+  "aap.look.paper.58mm": {
+    "hi-Latn": "58mm roll",
+    "en": "58mm roll"
+  },
+  "aap.series.add": {
+    "hi-Latn": "Nayi series",
+    "en": "New series"
+  },
+  "aap.series.name": {
+    "hi-Latn": "Naam",
+    "en": "Name"
+  },
+  "aap.series.prefix": {
+    "hi-Latn": "Shuru mein (jaise INV-)",
+    "en": "Prefix (like INV-)"
+  },
+  "aap.series.padding": {
+    "hi-Latn": "Kitne digit",
+    "en": "How many digits"
+  },
+  "aap.series.fy": {
+    "hi-Latn": "Saal number mein (2026-27)",
+    "en": "Year in the number (2026-27)"
+  },
+  "aap.series.default": {
+    "hi-Latn": "Naye bill isi mein",
+    "en": "New bills go here"
+  },
+  "aap.series.isDefault": {
+    "hi-Latn": "Default",
+    "en": "Default"
+  },
+  "aap.series.retire": {
+    "hi-Latn": "Band karo",
+    "en": "Retire"
+  },
+  "aap.series.retired": {
+    "hi-Latn": "Band",
+    "en": "Retired"
+  },
+  "aap.series.restore": {
+    "hi-Latn": "Phir se chalu",
+    "en": "Bring back"
+  },
+  "aap.series.preview": {
+    "hi-Latn": "Agla bill: {number}",
+    "en": "Next bill: {number}"
+  },
+  "aap.series.error.prefix-characters": {
+    "hi-Latn": "Sirf akshar, number, - aur /",
+    "en": "Only letters, digits, - and /"
+  },
+  "aap.series.error.prefix-length": {
+    "hi-Latn": "10 akshar tak",
+    "en": "Up to 10 characters"
+  },
+  "aap.series.error.padding": {
+    "hi-Latn": "1 se 8 digit",
+    "en": "1 to 8 digits"
+  },
+  "aap.series.error.next-number": {
+    "hi-Latn": "Agla number 1 se shuru",
+    "en": "The next number starts at 1"
+  },
+  "aap.series.error.next-number-down": {
+    "hi-Latn": "Agla number peeche nahi ja sakta",
+    "en": "The next number cannot go back"
+  },
+  "aap.series.error.too-long": {
+    "hi-Latn": "Number 16 akshar se lamba ho jaayega",
+    "en": "The number would pass 16 characters"
+  },
+  "aap.series.error.name": {
+    "hi-Latn": "Series ka naam likho",
+    "en": "Name the series"
+  },
+  "aap.save.nothing": {
+    "hi-Latn": "Kuch badla nahi",
+    "en": "Nothing changed"
+  },
+  "aap.save.error": {
+    "hi-Latn": "Save nahi hua: {field}",
+    "en": "Not saved: {field}"
+  },
+  "paper.for": {
+    "hi-Latn": "For {name}",
+    "en": "For {name}"
+  },
+  "paper.signatory": {
+    "hi-Latn": "Authorised signatory",
+    "en": "Authorised signatory"
   }
 }

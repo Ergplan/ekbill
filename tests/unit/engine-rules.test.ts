@@ -157,7 +157,7 @@ const FIXTURES: Fixture[] = [
     inside: '2023-08-01',
     outside: '2023-07-31',
     decides: () => {
-      expect(thresholdOn('e-invoice', '2023-08-01')).toMatchObject({ thresholdPaise: 50000000000 });
+      expect(thresholdOn('e-invoice', '2023-08-01')).toMatchObject({ thresholdPaise: 5000000000 });
       expect(thresholdOn('e-invoice', '2023-08-01')!.entry.exemptions).toContain('bank');
       expect(thresholdOn('e-invoice', '2023-07-31')).toBeNull();
     },
@@ -168,10 +168,10 @@ const FIXTURES: Fixture[] = [
     inside: '2025-04-01',
     outside: '2025-03-31',
     decides: () => {
-      expect(irnReportingWindow(100000000000, '2025-04-01')).toEqual({ days: 30, ruleId: 'irn-30-day-2025' });
-      expect(irnReportingWindow(99999999999, '2025-04-01')).toBeNull();
+      expect(irnReportingWindow(10000000000, '2025-04-01')).toEqual({ days: 30, ruleId: 'irn-30-day-2025' });
+      expect(irnReportingWindow(9999999999, '2025-04-01')).toBeNull();
       expect(irnReportingWindow(null, '2025-04-01')).toBeNull();
-      expect(irnReportingWindow(100000000000, '2025-03-31')).toBeNull();
+      expect(irnReportingWindow(10000000000, '2025-03-31')).toBeNull();
     },
   },
   {
@@ -181,8 +181,8 @@ const FIXTURES: Fixture[] = [
     outside: '2021-03-31',
     decides: () => {
       expect(hsnDigitsFor(null, '2021-04-01')).toMatchObject({ b2b: 4, b2c: 0, sacDigits: 6, sacPrefix: '99' });
-      expect(hsnDigitsFor(50000000000, '2021-04-01')).toMatchObject({ b2b: 4, b2c: 0 });
-      expect(hsnDigitsFor(50000000001, '2021-04-01')).toMatchObject({ b2b: 6, b2c: 6 });
+      expect(hsnDigitsFor(5000000000, '2021-04-01')).toMatchObject({ b2b: 4, b2c: 0 });
+      expect(hsnDigitsFor(5000000001, '2021-04-01')).toMatchObject({ b2b: 6, b2c: 6 });
       expect(hsnDigitsFor(null, '2021-03-31')).toBeNull();
     },
   },
