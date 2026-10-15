@@ -78,7 +78,7 @@
   },
   "home.bill.emphasis": {
     "hi-Latn": "bill banate hain",
-    "en": "let us make a bill"
+    "en": "let's make a bill"
   },
   "home.bill.new": {
     "hi-Latn": "Naya customer",
@@ -1857,29 +1857,9 @@
     "hi-Latn": "Namaste, ",
     "en": "Hello, "
   },
-  "home.first.eyebrow": {
-    "hi-Latn": "01 / Pehla bill",
-    "en": "01 / First bill"
-  },
-  "home.bill.eyebrow": {
-    "hi-Latn": "01 / Kiska bill",
-    "en": "01 / Whose bill"
-  },
   "home.bill.lead": {
     "hi-Latn": "Chalo,",
     "en": "Come,"
-  },
-  "home.bill.emphasis": {
-    "hi-Latn": "bill banate hain",
-    "en": "let's make a bill"
-  },
-  "home.sent.weeks": {
-    "hi-Latn": "8 hafte",
-    "en": "8 weeks"
-  },
-  "bill.check.state.other.sub": {
-    "hi-Latn": "IGST lagega",
-    "en": "IGST applies"
   },
   "bill.check.norule": {
     "hi-Latn": "{date} ke liye GST ka rule nahi mila; date dekho",

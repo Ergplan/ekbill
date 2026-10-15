@@ -458,11 +458,6 @@
   "aap.ask": "Poocho",
   "aap.help": "Mera bill thoda complex hai",
   "home.hello": "Namaste, ",
-  "home.first.eyebrow": "01 / Pehla bill",
-  "home.bill.eyebrow": "01 / Kiska bill",
   "home.bill.lead": "Chalo,",
-  "home.bill.emphasis": "bill banate hain",
-  "home.sent.weeks": "8 hafte",
-  "bill.check.state.other.sub": "IGST lagega",
   "bill.check.norule": "{date} ke liye GST ka rule nahi mila; date dekho"
 }

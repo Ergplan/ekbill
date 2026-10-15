@@ -25,8 +25,11 @@ export async function handoffToWhatsApp(message: {
   return openWhatsAppLink(message);
 }
 
+/** The wa.me link: an Indian 10-digit number (with or without a leading 0) gets the 91 country code. */
 export function whatsAppLink(message: { text: string; phone?: string | null }): string {
-  const digits = (message.phone ?? '').replace(/\D/g, '');
+  let digits = (message.phone ?? '').replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+  if (digits.length === 10) digits = `91${digits}`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message.text)}`;
 }
 

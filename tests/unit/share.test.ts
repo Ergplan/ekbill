@@ -17,12 +17,21 @@ describe('the WhatsApp hand-off (I9)', () => {
     });
     expect(await handoffToWhatsApp({ text: 'hi' })).toBe('cancelled');
   });
-  it('counts the wa.me tab as opened although window.open returns null for a noopener tab', async () => {
+  it('counts the wa.me tab as opened when the browser returns it, and cuts its opener by hand', async () => {
     vi.stubGlobal('navigator', {});
-    const open = vi.fn().mockReturnValue(null);
+    const tab = { opener: {} as unknown };
+    const open = vi.fn().mockReturnValue(tab);
     vi.stubGlobal('window', { open });
     expect(await handoffToWhatsApp({ text: 'Namaste' })).toBe('opened');
-    expect(open).toHaveBeenCalledWith('https://wa.me/?text=Namaste', '_blank', 'noopener');
+    // Not the 'noopener' feature: with it window.open returns null even when the tab opened, so a blocked popup
+    // could not be told from a success.
+    expect(open).toHaveBeenCalledWith('https://wa.me/?text=Namaste', '_blank');
+    expect(tab.opener).toBeNull();
+  });
+  it('reports cancelled when the browser blocked the popup', async () => {
+    vi.stubGlobal('navigator', {});
+    vi.stubGlobal('window', { open: vi.fn().mockReturnValue(null) });
+    expect(await handoffToWhatsApp({ text: 'hi' })).toBe('cancelled');
   });
   it('opens the customer’s own chat when their number is known', async () => {
     vi.stubGlobal('navigator', {});

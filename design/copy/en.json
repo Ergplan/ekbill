@@ -18,7 +18,7 @@
   "home.bill.title": "Come,",
   "home.bill.sub": "Who is it for? Tap a name.",
   "home.bill.eyebrow": "01 / Whose bill",
-  "home.bill.emphasis": "let us make a bill",
+  "home.bill.emphasis": "let's make a bill",
   "home.bill.new": "New customer",
   "home.bill.count": "{n} customers",
   "home.sent.title": "Bills sent",
@@ -465,11 +465,6 @@
   "aap.ask": "Ask",
   "aap.help": "My bill is a bit complex",
   "home.hello": "Hello, ",
-  "home.first.eyebrow": "01 / First bill",
-  "home.bill.eyebrow": "01 / Whose bill",
   "home.bill.lead": "Come,",
-  "home.bill.emphasis": "let's make a bill",
-  "home.sent.weeks": "8 weeks",
-  "bill.check.state.other.sub": "IGST applies",
   "bill.check.norule": "No GST rule for {date}; check the date"
 }
