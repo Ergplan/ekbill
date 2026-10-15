@@ -8,6 +8,8 @@ export async function handoffToWhatsApp(message: {
   text: string;
   title?: string;
   url?: string;
+  /** The customer's number, when known: the wa.me link then opens their chat. */
+  phone?: string | null;
 }): Promise<'shared' | 'opened' | 'cancelled'> {
   const nav = typeof navigator === 'undefined' ? null : navigator;
   if (nav && typeof nav.share === 'function') {
@@ -19,7 +21,12 @@ export async function handoffToWhatsApp(message: {
       // Not shareable here (desktop without a sheet): fall through to the link.
     }
   }
-  const href = `https://wa.me/?text=${encodeURIComponent(message.text)}`;
-  const opened = typeof window === 'undefined' ? null : window.open(href, '_blank', 'noopener');
-  return opened ? 'opened' : 'cancelled';
+  const digits = (message.phone ?? '').replace(/\D/g, '');
+  const to = digits ? (digits.length === 10 ? `91${digits}` : digits) : '';
+  const href = `https://wa.me/${to}?text=${encodeURIComponent(message.text)}`;
+  if (typeof window === 'undefined') return 'cancelled';
+  // With 'noopener' the browser returns null even when the tab opens (the new tab must not reach
+  // back), so the return value says nothing. The call runs inside the tap, where no blocker holds it.
+  window.open(href, '_blank', 'noopener');
+  return 'opened';
 }

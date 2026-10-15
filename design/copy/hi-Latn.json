@@ -267,7 +267,7 @@
   "view.paid.cash": "Cash",
   "view.paid.bank": "Bank",
   "view.paid.save": "Likh lo",
-  "view.paid.saved": "Likh liya: {amount} {method} se",
+  "view.paid.saved": "Likh liya: {amount} {method} se, {date}",
   "view.wa.again": "WhatsApp dobara",
   "view.download": "Download",
   "view.mistake": "Galti ho gayi?",
@@ -449,5 +449,13 @@
   "flow.title": "Screen flow",
   "bill.check.overflow": "Rakam itni badi nahi ho sakti; number phir se dekho",
   "aap.ask": "Poocho",
-  "aap.help": "Mera bill thoda complex hai"
+  "aap.help": "Mera bill thoda complex hai",
+  "home.hello": "Namaste, ",
+  "home.first.eyebrow": "01 / Pehla bill",
+  "home.bill.eyebrow": "01 / Kiska bill",
+  "home.bill.lead": "Chalo,",
+  "home.bill.emphasis": "bill banate hain",
+  "home.sent.weeks": "8 hafte",
+  "bill.check.state.other.sub": "IGST lagega",
+  "bill.check.norule": "{date} ke liye GST ka rule nahi mila; date dekho"
 }

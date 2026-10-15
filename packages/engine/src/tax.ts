@@ -1,5 +1,12 @@
 import { assertSafe, divRound, lineGross, sum, type BasisPoints, type Milli, type Paise } from './money';
-import { documentKind, placeOfSupply, type DocumentKind, type RulePack, type StateHead, type Supply } from './rules';
+import {
+  documentKindRule,
+  placeOfSupply,
+  type DocumentKind,
+  type RulePack,
+  type StateHead,
+  type Supply,
+} from './rules';
 
 /**
  * The one tax calculation (I4). Every preview, document, receipt and
@@ -61,7 +68,8 @@ export interface TaxResult {
 
 export function computeTax(input: TaxInput): TaxResult {
   const place = placeOfSupply(input.sellerStateCode, input.customerStateCode, input.dateIso, input.rules);
-  const kind = documentKind(input.registration, input.gstOn, input.dateIso, input.rules);
+  const kindRule = documentKindRule(input.registration, input.gstOn, input.dateIso, input.rules);
+  const kind = kindRule.kind;
   const taxed = kind === 'tax-invoice';
   const intra = place.supply === 'intra';
   const lines: TaxLine[] = input.lines.map((l) => {
@@ -114,6 +122,6 @@ export function computeTax(input: TaxInput): TaxResult {
     supply: place.supply,
     heads,
     documentKind: kind,
-    rulesApplied: [place.ruleId, 'document-kinds'].filter(Boolean),
+    rulesApplied: [place.ruleId, kindRule.ruleId],
   };
 }

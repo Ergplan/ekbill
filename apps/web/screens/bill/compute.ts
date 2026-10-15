@@ -1,4 +1,5 @@
 import {
+  RuleError,
   checkGstin,
   computeTax,
   parseMoney,
@@ -40,7 +41,25 @@ export interface BusinessForBill {
   gstin: string | null;
   address: string | null;
 }
-export type Computed = TaxResult & { overflow: boolean };
+export type Computed = TaxResult & { overflow: boolean; noRule: boolean };
+
+/** Nothing computed: the pack has no rule for the bill's date (I5). No value, no tax, no document kind to print. */
+function nothing(): TaxResult {
+  return {
+    lines: [],
+    subtotalPaise: 0,
+    cgstPaise: 0,
+    statePaise: 0,
+    stateHead: 'SGST',
+    igstPaise: 0,
+    gstPaise: 0,
+    totalPaise: 0,
+    supply: 'intra',
+    heads: [],
+    documentKind: 'invoice',
+    rulesApplied: [],
+  };
+}
 
 function parseOr(f: () => number): number {
   try {
@@ -50,7 +69,11 @@ function parseOr(f: () => number): number {
   }
 }
 
-/** The engine's result for the draft. An unparsable field counts as zero; a product beyond the safe range marks `overflow` instead of throwing. */
+/**
+ * The engine's result for the draft. An unparsable field counts as zero; a
+ * product beyond the safe range marks `overflow` instead of throwing; a date
+ * the rule pack does not cover marks `noRule` (the form shows a check).
+ */
 export function compute(
   draft: Pick<BillDraft, 'lines' | 'gst' | 'customerState' | 'date'>,
   business: Pick<BusinessForBill, 'registration' | 'stateCode'>,
@@ -69,9 +92,15 @@ export function compute(
     customerStateCode: draft.customerState,
   };
   try {
-    return { ...computeTax(input), overflow: false };
-  } catch {
-    return { ...computeTax({ ...input, lines: [] }), overflow: true };
+    return { ...computeTax(input), overflow: false, noRule: false };
+  } catch (e) {
+    if (e instanceof RuleError) return { ...nothing(), overflow: false, noRule: true };
+    try {
+      return { ...computeTax({ ...input, lines: [] }), overflow: true, noRule: false };
+    } catch (e2) {
+      if (e2 instanceof RuleError) return { ...nothing(), overflow: true, noRule: true };
+      throw e2;
+    }
   }
 }
 

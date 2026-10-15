@@ -11,6 +11,7 @@ export {
   GST_RULES,
   RuleError,
   documentKind,
+  documentKindRule,
   placeOfSupply,
   ruleOn,
   selectableRates,

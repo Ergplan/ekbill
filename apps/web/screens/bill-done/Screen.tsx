@@ -38,7 +38,7 @@ interface Issued {
     upi: string | null;
     address: string | null;
   };
-  customer: { id: string | null; name: string; gstin: string | null } | null;
+  customer: { id: string | null; name: string; gstin: string | null; phone?: string | null } | null;
 }
 
 export function BillDoneScreen({
@@ -101,6 +101,7 @@ export function BillDoneScreen({
         <WhatsAppButton
           onClick={() => {
             void handoffToWhatsApp({
+              phone: issued?.customer?.phone ?? null,
               title: `${paper.title} ${paper.number}`,
               text: t('done.wa.text', {
                 customer: paper.customer.name,

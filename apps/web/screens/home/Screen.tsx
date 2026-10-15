@@ -44,10 +44,15 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
         tour={manifest.tour.filter((s) => s.target === 'mic')}
       >
         <section className="eb-heading">
-          <Display emphasis={shopName ?? data.personName}>Namaste, </Display>
+          <Display emphasis={shopName ?? data.personName}>{t('home.hello')}</Display>
           <Meta>{t('home.first.sub')}</Meta>
         </section>
-        <HeroPanel eyebrow="01 / Pehla bill" title={t('home.first.title')} sub={t('home.first.sub')} guide="first">
+        <HeroPanel
+          eyebrow={t('home.first.eyebrow')}
+          title={t('home.first.title')}
+          sub={t('home.first.sub')}
+          guide="first"
+        >
           <div className="eb-actions eb-actions--stack">
             <PrimaryCTA onClick={() => router.push(as('/bills/new?first=1'))}>{t('home.first.cta')}</PrimaryCTA>
           </div>
@@ -74,7 +79,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
           </>
         ) : (
           <>
-            <Display emphasis={data.personName}>Namaste, </Display>
+            <Display emphasis={data.personName}>{t('home.hello')}</Display>
             <Meta>
               {data.businessName} · {data.city}
               {data.kind === 'staff' ? ` · ${t('home.staff.note', { business: data.businessName ?? '' })}` : ''}
@@ -85,10 +90,10 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
 
       {canBill ? (
         <HeroPanel
-          eyebrow="01 / Kiska bill"
+          eyebrow={t('home.bill.eyebrow')}
           chip={t('home.bill.count', { n: data.customerCount })}
-          title="Chalo,"
-          emphasis="bill banate hain"
+          title={t('home.bill.lead')}
+          emphasis={t('home.bill.emphasis')}
           sub={t('home.bill.sub')}
           guide="kiska-bill"
           peeks={data.recent.slice(0, 3).map((r) => ({
@@ -116,7 +121,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
             <span className="eb-count__figure eb-num">{String(data.sentThisMonth).padStart(2, '0')}</span>
             <span className="eb-count__sub">{t('home.sent.count')}</span>
           </p>
-          <Sparkline values={data.sparkline} label="8 hafte" />
+          <Sparkline values={data.sparkline} label={t('home.sent.weeks')} />
           {data.recent.length ? (
             <div className="eb-rows">
               {data.recent.map((r) => (

@@ -20,7 +20,7 @@ export const manifest: ScreenManifest = {
     { label: 'Aap', to: '/aap' },
   ],
   states: ['owner', 'staff', 'accountant', 'new', 'composition'],
-  guides: ['kiska-bill', 'naya-customer', 'photo', 'search', 'sent', 'paise', 'mic', 'first'],
+  guides: ['kiska-bill', 'naya-customer', 'photo', 'search', 'sent', 'paise', 'remind', 'mic', 'first'],
   tour: [
     { target: 'kiska-bill', say: 'Kiska bill banana hai? Naam pe tap karo.' },
     { target: 'photo', say: 'Kaccha bill hai? Photo lo, hum padh lenge.' },

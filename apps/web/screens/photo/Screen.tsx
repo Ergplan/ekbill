@@ -210,6 +210,7 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
               confidence={fields.date.confidence}
               onChange={(v) => setFields((f) => ({ ...f, date: { value: v, confidence: 1 } }))}
             />
+            {c.noRule ? <Meta>{t('bill.check.norule', { date: fields.date.value || today })}</Meta> : null}
             {fields.lines.map((l, i) => (
               <div key={i} className="eb-line__nums eb-line__nums--photo">
                 <ConfidenceField

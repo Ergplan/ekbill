@@ -83,6 +83,15 @@ describe('the bill form reads the engine (I4)', () => {
     expect(c.overflow).toBe(true);
     expect(c.totalPaise).toBe(0);
   });
+  it('marks a date the rule pack does not cover as a check, not a crash (I5)', () => {
+    const c = compute(
+      { lines: [{ what: 'A', qty: '1', rate: '100' }], gst, customerState: '27', date: '2016-01-01' },
+      sharma,
+    );
+    expect(c.noRule).toBe(true);
+    expect(c.totalPaise).toBe(0);
+    expect(c.heads).toEqual([]);
+  });
   it('offers the rule pack’s rates for the bill’s date (I5)', () => {
     expect(ratesFor('2026-10-15')).toEqual([0, 5, 18, 40]);
     expect(ratesFor('2025-01-01')).toEqual([0, 5, 12, 18, 28]);
@@ -130,12 +139,24 @@ describe('every consumer reads the same engine result (I4)', () => {
     expect(paper.taxLines).toEqual(form.heads);
     expect(form.heads.map((h) => h.label)).toEqual(['IGST 18%']);
     const owner = FIXTURE.people.find((p) => p.business === 'sharma' && p.role === 'owner')!;
-    const gst = loadGst({ person: owner, business: sharmaBiz, role: 'owner', as: null })!;
+    const gst = loadGst({ person: owner, business: sharmaBiz, role: 'owner', as: null })!.quarter;
     const row = gst.b2b.find((r) => r.number === bill.number)!;
     expect(row.totalPaise).toBe(form.totalPaise);
     expect(row.gstPaise).toBe(form.gstPaise);
     expect(gst.byRate.find((r) => r.rate === 18)!.igstPaise).toBeGreaterThanOrEqual(form.igstPaise);
     expect(gst.taxablePaise).toBe(gst.byRate.reduce((a, r) => a + r.taxablePaise, 0));
     expect(gst.gstPaise).toBe(gst.byRate.reduce((a, r) => a + r.cgstPaise + r.sgstPaise + r.igstPaise, 0));
+  });
+  it('the GST screen’s month is the quarter’s last month, computed on its own', () => {
+    const sharmaBiz = FIXTURE.businesses.find((b) => b.id === 'sharma')!;
+    const owner = FIXTURE.people.find((p) => p.business === 'sharma' && p.role === 'owner')!;
+    const gstData = loadGst({ person: owner, business: sharmaBiz, role: 'owner', as: null })!;
+    expect(gstData.mode).toBe('quarter');
+    expect(gstData.month.from).toBe(`${gstData.quarter.to.slice(0, 7)}-01`);
+    expect(gstData.month.to).toBe(gstData.quarter.to);
+    expect(gstData.month.label).not.toBe(gstData.quarter.label);
+    expect(gstData.month.bills).toBeLessThanOrEqual(gstData.quarter.bills);
+    expect(gstData.month.taxablePaise).toBeLessThanOrEqual(gstData.quarter.taxablePaise);
+    expect(gstData.month.taxablePaise).toBe(gstData.month.byRate.reduce((a, r) => a + r.taxablePaise, 0));
   });
 });

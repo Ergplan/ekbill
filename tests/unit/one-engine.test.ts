@@ -44,7 +44,7 @@ describe('computeTax (I4: the one tax calculation)', () => {
       { label: 'CGST 9%', paise: 55800 },
       { label: 'SGST 9%', paise: 55800 },
     ]);
-    expect(big.rulesApplied).toContain('place-of-supply-state');
+    expect(big.rulesApplied).toEqual(['place-of-supply-state', 'document-kinds-2017']);
   });
   it('keeps half rates exact: an odd basis-point rate is not truncated at the head', () => {
     // 1.01 % on ₹1000: 100000 × 101 / 20000 = 505 paise for each head, not 500 (bp/2 truncated to 50).

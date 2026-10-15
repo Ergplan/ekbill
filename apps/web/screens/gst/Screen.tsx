@@ -15,13 +15,15 @@ import type { GstData } from './data';
 export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer }) {
   const router = useRouter();
   const as = (href: string) => withAs(href, viewer.as);
-  const [mode, setMode] = useState<'month' | 'quarter'>(data.period.mode);
+  const [mode, setMode] = useState<'month' | 'quarter'>(data.mode);
+  // The period on screen: the switch changes the title, the totals and every row.
+  const w = data[mode];
   const canSend = viewer.role !== 'staff';
   return (
     <AppShell viewer={viewer} tab="gst" tour={manifest.tour.filter((s) => canSend || s.target !== 'send')}>
       <section className="eb-heading">
         <Display as="h1">{t('gst.title')}</Display>
-        <Meta>{t('gst.sub', { quarter: data.period.label })}</Meta>
+        <Meta>{t('gst.sub', { quarter: w.label })}</Meta>
       </section>
       <div data-guide="period">
         <Segmented<'month' | 'quarter'>
@@ -34,16 +36,21 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
           ]}
         />
       </div>
-      <HeroPanel tone="gst" eyebrow={t('gst.quarter')} title={data.period.label} sub={t('gst.sales')}>
-        <MoneyHero paise={data.taxablePaise} />
+      <HeroPanel
+        tone="gst"
+        eyebrow={t(mode === 'month' ? 'gst.period.month' : 'gst.quarter')}
+        title={w.label}
+        sub={t('gst.sales')}
+      >
+        <MoneyHero paise={w.taxablePaise} />
         <div className="eb-tiles" data-guide="tiles">
           <StatTile
             title={t('gst.tile.bills')}
-            value={String(data.bills)}
-            sub={t('gst.quarter').toLowerCase()}
+            value={String(w.bills)}
+            sub={t(mode === 'month' ? 'gst.period.month' : 'gst.quarter').toLowerCase()}
             icon={<IconChip name="receipt" />}
           />
-          <StatTile title={t('gst.tile.gst')} value={rupees(data.gstPaise)} icon={<IconChip name="percent" />} />
+          <StatTile title={t('gst.tile.gst')} value={rupees(w.gstPaise)} icon={<IconChip name="percent" />} />
         </div>
       </HeroPanel>
       <section className="eb-card" data-guide="rates">
@@ -59,7 +66,7 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
             </tr>
           </thead>
           <tbody>
-            {data.byRate.map((r) => (
+            {w.byRate.map((r) => (
               <tr key={r.rate} onClick={() => router.push(as('/bills'))}>
                 <td>{r.rate}%</td>
                 <td>
@@ -82,9 +89,9 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
       </section>
       <section className="eb-card" data-guide="b2b">
         <h2 className="eb-card__title">{t('gst.b2b')}</h2>
-        <Meta>{t('gst.b2b.sub', { n: data.b2b.length })}</Meta>
+        <Meta>{t('gst.b2b.sub', { n: w.b2b.length })}</Meta>
         <div className="eb-rows">
-          {data.b2b.map((r) => (
+          {w.b2b.map((r) => (
             <a key={r.number} href={as(`/bills/${r.number}`)} className="eb-billrow">
               <span className="eb-billrow__text">
                 <span className="eb-billrow__name">{r.name}</span>
@@ -99,7 +106,7 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
             </a>
           ))}
         </div>
-        <Meta>{t('gst.b2c', { n: data.b2cBills })}</Meta>
+        <Meta>{t('gst.b2c', { n: w.b2cBills })}</Meta>
       </section>
       {canSend ? (
         <div className="eb-sticky">

@@ -20,6 +20,7 @@ export interface BillFormData {
     stateCode: string | null;
     stateName: string | null;
     gstin: string | null;
+    phone: string | null;
   } | null;
   /** The previous bill for this customer, for "Pichle jaisa hi?" */
   previous: {
@@ -74,7 +75,9 @@ export function loadBillForm(
   const bills = b ? billsOf(b) : [];
   const last = new Map<string, string>();
   for (const x of bills) if (!last.has(x.customer)) last.set(x.customer, x.date);
-  const redoBill = b && opts.redo ? billsOf(b).find((x) => x.number === opts.redo && x.status === 'cancelled') : null;
+  // The bill being redone. Its cancellation happened on the bill screen a moment ago and the fixture does
+  // not change, so the status is not checked here; Stage 5 reads the cancelled document instead.
+  const redoBill = b && opts.redo ? billsOf(b).find((x) => x.number === opts.redo) : null;
   const pick = b ? [...customersOf(b)].sort((x, y) => (last.get(y.id) ?? '').localeCompare(last.get(x.id) ?? '')) : [];
   return {
     business: {
@@ -94,6 +97,7 @@ export function loadBillForm(
           stateCode: customerState,
           stateName: customerState ? customer.stateName : null,
           gstin: customer.gstin,
+          phone: customer.phone,
         }
       : null,
     previous,

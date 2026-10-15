@@ -99,6 +99,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
     });
   }
   if (c.overflow) checks.push({ id: 'overflow', text: t('bill.check.overflow') });
+  if (c.noRule) checks.push({ id: 'norule', text: t('bill.check.norule', { date: d.date }) });
   const linesOk = c.lines.some((l) => !l.blank && l.taxablePaise > 0);
   const canMake = linesOk && checks.length === 0 && (data.mode === 'existing' || d.customerName.trim().length > 0);
 
@@ -114,7 +115,12 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
     const customer =
       data.customer ??
       (d.customerName.trim()
-        ? { id: null, name: d.customerName.trim(), gstin: newGst?.ok ? newGst.normalised : null }
+        ? {
+            id: null,
+            name: d.customerName.trim(),
+            gstin: newGst?.ok ? newGst.normalised : null,
+            phone: data.mode === 'new-customer' ? (newCustomer?.phone ?? null) : null,
+          }
         : null);
     writeDraft(`${viewer.personId}:issued`, { draft: d, computed: c, business, customer });
     router.push(as('/bills/new/done'));
@@ -328,7 +334,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
               value: business.stateCode ?? '27',
               label: t('bill.check.state.same', { state: business.stateName ?? '' }),
             },
-            { value: 'other', label: t('bill.check.state.other'), sub: 'IGST lagega' },
+            { value: 'other', label: t('bill.check.state.other'), sub: t('bill.check.state.other.sub') },
           ]}
         />
       </Sheet>

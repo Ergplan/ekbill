@@ -274,7 +274,7 @@
   "view.paid.cash": "Cash",
   "view.paid.bank": "Bank",
   "view.paid.save": "Record it",
-  "view.paid.saved": "Recorded: {amount} by {method}",
+  "view.paid.saved": "Recorded: {amount} by {method}, {date}",
   "view.wa.again": "WhatsApp again",
   "view.download": "Download",
   "view.mistake": "Made a mistake?",
@@ -456,5 +456,13 @@
   "flow.title": "Screen flow",
   "bill.check.overflow": "That amount is too large; check the numbers",
   "aap.ask": "Ask",
-  "aap.help": "My bill is a bit complex"
+  "aap.help": "My bill is a bit complex",
+  "home.hello": "Hello, ",
+  "home.first.eyebrow": "01 / First bill",
+  "home.bill.eyebrow": "01 / Whose bill",
+  "home.bill.lead": "Come,",
+  "home.bill.emphasis": "let's make a bill",
+  "home.sent.weeks": "8 weeks",
+  "bill.check.state.other.sub": "IGST applies",
+  "bill.check.norule": "No GST rule for {date}; check the date"
 }

@@ -4,8 +4,11 @@ import { FIXTURE } from '../fixtures';
 import { billsOf, customerOf } from '../common';
 import type { Viewer } from '../viewer';
 
-export interface GstData {
-  period: { label: string; mode: 'month' | 'quarter' };
+/** The workings of one period (a quarter or one month). */
+export interface GstWorkings {
+  label: string;
+  from: string;
+  to: string;
   bills: number;
   taxablePaise: number;
   gstPaise: number;
@@ -13,9 +16,18 @@ export interface GstData {
   b2b: Array<{ number: string; name: string; gstin: string; totalPaise: number; gstPaise: number }>;
   b2cBills: number;
 }
+export interface GstData {
+  /** The period the screen opens on. */
+  mode: 'month' | 'quarter';
+  quarter: GstWorkings;
+  /** The quarter's last month, for the "Mahina" switch. */
+  month: GstWorkings;
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /**
- * The quarter's workings, computed by the engine over the period's bills
+ * The period's workings, computed by the engine over the period's bills
  * (I4): the fixture carries only the period label. Cancelled bills are
  * left out; a bill without a tax-invoice kind contributes no tax.
  */
@@ -23,8 +35,19 @@ export function loadGst(viewer: Viewer): GstData | null {
   const b = viewer.business;
   if (!b || b.registration !== 'regular') return null;
   const q = FIXTURE.gstQuarter;
+  const monthFrom = `${q.to.slice(0, 7)}-01`;
+  const monthLabel = `${MONTHS[Number(q.to.slice(5, 7)) - 1] ?? ''} ${q.to.slice(0, 4)}`;
+  return {
+    mode: 'quarter',
+    quarter: workings(viewer, q.label, q.from, q.to),
+    month: workings(viewer, monthLabel, monthFrom, q.to),
+  };
+}
+
+function workings(viewer: Viewer, label: string, from: string, to: string): GstWorkings {
+  const b = viewer.business!;
   const bills = billsOf(b)
-    .filter((x) => x.status !== 'cancelled' && x.date >= q.from && x.date <= q.to)
+    .filter((x) => x.status !== 'cancelled' && x.date >= from && x.date <= to)
     .map((bill) => {
       const customer = customerOf(b, bill.customer);
       const tax = computeTax({
@@ -42,7 +65,7 @@ export function loadGst(viewer: Viewer): GstData | null {
       });
       return { bill, customer, tax };
     });
-  const byRate = new Map<number, GstData['byRate'][number]>();
+  const byRate = new Map<number, GstWorkings['byRate'][number]>();
   for (const { tax } of bills) {
     for (const l of tax.lines) {
       if (l.blank || !l.gstBp) continue;
@@ -65,7 +88,9 @@ export function loadGst(viewer: Viewer): GstData | null {
       gstPaise: p.tax.gstPaise,
     }));
   return {
-    period: { label: q.label, mode: 'quarter' },
+    label,
+    from,
+    to,
     bills: bills.length,
     taxablePaise: bills.reduce((a, p) => a + p.tax.subtotalPaise, 0),
     gstPaise: bills.reduce((a, p) => a + p.tax.gstPaise, 0),

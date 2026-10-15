@@ -11,7 +11,7 @@ export const manifest: ScreenManifest = {
     { label: 'Peeche', to: '/', guide: 'back' },
   ],
   states: ['default', 'empty'],
-  guides: ['total', 'rows'],
+  guides: ['total', 'rows', 'remind', 'paid'],
   tour: [
     { target: 'total', say: 'Kul itne paise aane hain.' },
     { target: 'rows', say: 'Sabse purana sabse upar. Yaad dilao, ya paise aa gaye ho to woh batao.' },

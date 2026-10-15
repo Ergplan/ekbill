@@ -8,13 +8,30 @@ import { SAMPLE_URL, SCREENS, STATE_URLS } from '../../apps/web/screens/registry
 
 const ROOT = join(__dirname, '..', '..');
 const routes = new Set(SCREENS.map((s) => s.route));
+/** Pages for the operator and the build, not the owner: no manifest, no tour, not in the flow. */
+const DEV_SCREENS = new Set(['flow']);
+const DEV_PAGES = new Set(['/flow', '/kit']);
 
 describe('screen manifests (Stage 1)', () => {
   it('every screen folder has a manifest that is in the registry', () => {
+    // A folder with a Screen.tsx is a screen; a screen without a manifest is the defect this catches.
     const dirs = readdirSync(join(ROOT, 'apps/web/screens'), { withFileTypes: true })
-      .filter((d) => d.isDirectory() && existsSync(join(ROOT, 'apps/web/screens', d.name, 'manifest.ts')))
-      .map((d) => d.name);
+      .filter((d) => d.isDirectory() && existsSync(join(ROOT, 'apps/web/screens', d.name, 'Screen.tsx')))
+      .map((d) => d.name)
+      .filter((name) => !DEV_SCREENS.has(name));
+    for (const dir of dirs) expect(existsSync(join(ROOT, 'apps/web/screens', dir, 'manifest.ts')), dir).toBe(true);
     expect(dirs.sort()).toEqual(SCREENS.map((s) => s.id).sort());
+  });
+  it('every route under apps/web/app is a registered screen (or a dev page)', () => {
+    const pages: string[] = [];
+    const walk = (dir: string, route: string) => {
+      for (const d of readdirSync(dir, { withFileTypes: true })) {
+        if (d.isDirectory()) walk(join(dir, d.name), `${route}/${d.name}`);
+        else if (d.name === 'page.tsx') pages.push(route || '/');
+      }
+    };
+    walk(join(ROOT, 'apps/web/app'), '');
+    for (const page of pages) expect(routes.has(page) || DEV_PAGES.has(page), page).toBe(true);
   });
   it('every manifest id is unique and has a sample URL', () => {
     const ids = SCREENS.map((s) => s.id);
@@ -32,6 +49,8 @@ describe('screen manifests (Stage 1)', () => {
     for (const s of SCREENS) {
       const guides = new Set(s.guides);
       for (const step of s.tour) expect(guides.has(step.target), `${s.id}: tour ${step.target}`).toBe(true);
+      for (const [role, ids] of Object.entries(s.hidden ?? {}))
+        for (const id of ids) expect(guides.has(id), `${s.id}: hidden for ${role}: ${id}`).toBe(true);
     }
   });
   it('every extra state URL names a declared state', () => {

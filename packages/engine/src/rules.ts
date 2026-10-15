@@ -98,10 +98,19 @@ export function documentKind(
   dateIso: string,
   rules: RulePack = GST_RULES,
 ): DocumentKind {
+  return documentKindRule(registration, gstOn, dateIso, rules).kind;
+}
+/** The document kind and the id of the pack entry that decided it (the snapshot records the id). */
+export function documentKindRule(
+  registration: 'regular' | 'composition' | 'unregistered' | 'unknown',
+  gstOn: boolean,
+  dateIso: string,
+  rules: RulePack = GST_RULES,
+): { kind: DocumentKind; ruleId: string } {
   const rule = ruleOn('document-kinds', dateIso, rules);
   if (!rule?.kinds) throw new RuleError(`no document-kinds rule for ${dateIso}`);
   const key = registration === 'regular' && !gstOn ? 'regular-gst-off' : registration;
   const kind = rule.kinds[key];
   if (!kind) throw new RuleError(`document-kinds rule ${rule.id} has no entry for ${key}`);
-  return kind;
+  return { kind, ruleId: rule.id };
 }

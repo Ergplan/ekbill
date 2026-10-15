@@ -52,7 +52,7 @@ export function BillViewScreen({
   const [date, setDate] = useState(TODAY);
   const [method, setMethod] = useState<Method>('upi');
   // Every amount recorded on this screen, in order; the due is the bill's due minus all of them.
-  const [recorded, setRecorded] = useState<Array<{ paise: number; method: Method }>>([]);
+  const [recorded, setRecorded] = useState<Array<{ paise: number; method: Method; date: string }>>([]);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState('');
   const recordedPaise = recorded.reduce((s, r) => s + r.paise, 0);
@@ -61,7 +61,7 @@ export function BillViewScreen({
   const last = recorded[recorded.length - 1] ?? null;
 
   const record = (paise: number) => {
-    setRecorded((cur) => [...cur, { paise, method }]);
+    setRecorded((cur) => [...cur, { paise, method, date: date || TODAY }]);
     setAmount('');
     setPaidOpen(false);
     setMode(null);
@@ -97,7 +97,11 @@ export function BillViewScreen({
           ) : null}
           {last ? (
             <Meta>
-              {t('view.paid.saved', { amount: rupees(recordedPaise), method: t(`view.paid.${last.method}`) })}
+              {t('view.paid.saved', {
+                amount: rupees(recordedPaise),
+                method: t(`view.paid.${last.method}`),
+                date: shortDate(last.date),
+              })}
             </Meta>
           ) : null}
           {bill.waStatus ? <Meta>{bill.waStatus === 'read' ? t('view.wa.read') : t('view.wa.sent')}</Meta> : null}
