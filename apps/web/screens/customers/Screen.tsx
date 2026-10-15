@@ -6,13 +6,14 @@ import { useState } from 'react';
 import { t } from '@ekbill/copy';
 import { Avatar, Display, EmptyState, Meta, Money, OutlineButton, PrimaryCTA, SearchInput } from '@ekbill/ui';
 
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { manifest } from './manifest';
 import type { CustomerRow } from './data';
 
 export function CustomersScreen({ rows, viewer }: { rows: CustomerRow[]; viewer: ShellViewer }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}?as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const [q, setQ] = useState('');
   const needle = q.trim().toLowerCase();
   const list = rows.filter(

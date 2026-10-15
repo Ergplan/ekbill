@@ -6,13 +6,14 @@ import { t } from '@ekbill/copy';
 import { AccentButton, Avatar, Display, EmptyState, Meta, Money, MoneyHero, OutlineButton } from '@ekbill/ui';
 
 import { rupees } from '../money';
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { manifest } from './manifest';
 import type { DuesData } from './data';
 
 export function DuesScreen({ data, viewer }: { data: DuesData; viewer: ShellViewer }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}?as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const canAct = viewer.role !== 'accountant';
   return (
     <AppShell viewer={viewer} tab="home" back="/" title={t('dues.title')} tour={manifest.tour}>

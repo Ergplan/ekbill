@@ -183,7 +183,7 @@ export default function KitPage() {
         <KitInteractive customerName={byId('mehta').name} />
 
         <SuccessHeader title={t('bill.done')} sub="INV-043 · Mehta Traders · ₹6,200" />
-        <WhatsAppButton>{t('action.whatsapp')}</WhatsAppButton>
+        <WhatsAppButton data-primary="kit">{t('action.whatsapp')}</WhatsAppButton>
 
         <InvoicePaper
           data={{

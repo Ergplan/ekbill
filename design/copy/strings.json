@@ -1772,5 +1772,17 @@
   "flow.title": {
     "hi-Latn": "Screen flow",
     "en": "Screen flow"
+  },
+  "bill.check.overflow": {
+    "hi-Latn": "Rakam itni badi nahi ho sakti; number phir se dekho",
+    "en": "That amount is too large; check the numbers"
+  },
+  "aap.ask": {
+    "hi-Latn": "Poocho",
+    "en": "Ask"
+  },
+  "aap.help": {
+    "hi-Latn": "Mera bill thoda complex hai",
+    "en": "My bill is a bit complex"
   }
 }

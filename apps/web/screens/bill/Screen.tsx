@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { t } from '@ekbill/copy';
+import { checkGstin } from '@ekbill/engine';
 import {
   AccentButton,
   AddLineButton,
@@ -25,34 +26,61 @@ import {
 } from '@ekbill/ui';
 
 import { useDraft, writeDraft } from '../draft';
+import { withAs } from '../links';
 import { rupees } from '../money';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
-import { compute, type BillDraft } from './compute';
+import { businessFromSetup, compute, ratesFor, type BillDraft, type SetupAnswers } from './compute';
 import { manifest } from './manifest';
 import type { BillFormData } from './data';
 
-const RATES = [0, 5, 12, 18, 28, 40];
+interface NewCustomerDraft {
+  name: string;
+  phone: string;
+  gstin: string;
+  lang: 'hi-Latn' | 'en';
+}
 
 export function BillScreen({ data, viewer }: { data: BillFormData; viewer: ShellViewer }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}${href.includes('?') ? '&' : '?'}as=${viewer.as}` : href);
-  // One draft per bill number and customer, so a half-typed bill survives a reload but never leaks into another.
-  const [d, setD] = useDraft<BillDraft>(
-    `bill:${data.initial.number}:${data.initial.customer ?? data.mode}`,
-    data.initial,
+  const as = (href: string) => withAs(href, viewer.as);
+  // A brand-new owner's business lives in the setup answers until Stage 4 saves it.
+  const [setup] = useDraft<SetupAnswers | null>('setup', null);
+  const business = useMemo(
+    () => (data.business.name ? data.business : businessFromSetup(setup, data.business)),
+    [data.business, setup],
   );
-  // A brand-new owner's shop name lives in the setup draft until Stage 4 saves it.
-  const [setup] = useDraft<{ name?: string } | null>('setup', null);
+  // The customer just added on /customers/new, for the "new-customer" mode.
+  const [newCustomer] = useDraft<NewCustomerDraft | null>(`${viewer.personId}:new-customer`, null);
+  const initial = useMemo<BillDraft>(() => {
+    if (
+      data.mode !== 'new-customer' ||
+      !newCustomer ||
+      (data.initial.customerName && data.initial.customerName !== newCustomer.name)
+    )
+      return data.initial;
+    const gst = newCustomer.gstin ? checkGstin(newCustomer.gstin) : null;
+    return {
+      ...data.initial,
+      customerName: newCustomer.name,
+      customerState: gst?.ok ? (gst.stateCode ?? null) : data.initial.customerState,
+    };
+  }, [data.initial, data.mode, newCustomer]);
+  // One draft per person, bill number and customer: a half-typed bill survives a reload and never leaks to another business.
+  const [d, setD] = useDraft<BillDraft>(
+    `${viewer.personId}:bill:${data.initial.number}:${data.initial.customer ?? data.mode}`,
+    initial,
+  );
   const [filled, setFilled] = useState(false);
   const [gstOpen, setGstOpen] = useState(false);
   const [stateOpen, setStateOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const patch = (p: Partial<BillDraft>) => setD((cur) => ({ ...cur, ...p }));
-  const regular = data.business.registration === 'regular';
-  const c = useMemo(() => compute(d, data.business.registration), [d, data.business.registration]);
+  const regular = business.registration === 'regular';
+  const rates = useMemo(() => ratesFor(d.date), [d.date]);
+  const c = useMemo(() => compute(d, business), [d, business]);
 
   const checks: CheckItem[] = [];
-  if (regular && data.customer && !d.customerState) {
+  if (regular && d.gst.on && (data.customer || d.customerName.trim()) && !d.customerState) {
     checks.push({
       id: 'state',
       text: t('bill.check.state'),
@@ -63,7 +91,8 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
       ),
     });
   }
-  const linesOk = d.lines.some((l) => l.what.trim() && c.lines.find((x) => x.what === l.what)?.amountPaise);
+  if (c.overflow) checks.push({ id: 'overflow', text: t('bill.check.overflow') });
+  const linesOk = c.lines.some((l) => !l.blank && l.taxablePaise > 0);
   const canMake = linesOk && checks.length === 0 && (data.mode === 'existing' || d.customerName.trim().length > 0);
 
   const make = () => {
@@ -75,14 +104,22 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
       setError(t('bill.check.empty'));
       return;
     }
-    const business = data.business.name
-      ? data.business
-      : { ...data.business, name: setup?.name?.trim() || data.business.name };
-    writeDraft('issued', { draft: d, computed: c, business, customer: data.customer });
+    writeDraft(`${viewer.personId}:issued`, { draft: d, computed: c, business, customer: data.customer });
     router.push(as('/bills/new/done'));
   };
   const setLine = (i: number, p: Partial<LineValue>) =>
     patch({ lines: d.lines.map((l, j) => (j === i ? { ...l, ...p } : l)) });
+  const addLine = () =>
+    patch({
+      lines: [...d.lines, { what: '', qty: '1', rate: '' }],
+      gst: { ...d.gst, perLine: [...d.gst.perLine, d.gst.rate] },
+    });
+  // The per-line rates travel with their lines: removing a line removes its rate, not its neighbour's.
+  const removeLine = (i: number) =>
+    patch({
+      lines: d.lines.filter((_, j) => j !== i),
+      gst: { ...d.gst, perLine: d.gst.perLine.filter((_, j) => j !== i) },
+    });
   const dateLabel = new Date(`${d.date}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   const gstStrip = !d.gst.on
     ? t('bill.gst.strip.off')
@@ -134,11 +171,12 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
           doneLabel={t('bill.repeat.done')}
           filled={filled}
           onFill={() => {
-            patch({ lines: data.previous!.lines.map((l) => ({ ...l })) });
+            const lines = data.previous!.lines.map((l) => ({ ...l }));
+            patch({ lines, gst: { ...d.gst, perLine: lines.map(() => d.gst.rate) } });
             setFilled(true);
           }}
           onFresh={() => {
-            patch({ lines: [{ what: '', qty: '1', rate: '' }] });
+            patch({ lines: [{ what: '', qty: '1', rate: '' }], gst: { ...d.gst, perLine: [d.gst.rate] } });
             setFilled(false);
           }}
         />
@@ -159,10 +197,10 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
             amount: t('bill.item.amount'),
             remove: t('action.cancel'),
           }}
-          amountPaise={c.lines[i]?.amountPaise ?? 0}
+          amountPaise={c.lines[i]?.taxablePaise ?? 0}
           onChange={(p) => setLine(i, p)}
           removable={d.lines.length > 1}
-          onRemove={() => patch({ lines: d.lines.filter((_, j) => j !== i) })}
+          onRemove={() => removeLine(i)}
           gstSlot={
             regular && d.gst.on && d.gst.mode === 'perline' ? (
               <FilterChips<string>
@@ -176,13 +214,13 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
                     },
                   })
                 }
-                options={RATES.map((r) => ({ value: String(r), label: `${r}%` }))}
+                options={rates.map((r) => ({ value: String(r), label: `${r}%` }))}
               />
             ) : undefined
           }
         />
       ))}
-      <AddLineButton guide="add" onClick={() => patch({ lines: [...d.lines, { what: '', qty: '1', rate: '' }] })}>
+      <AddLineButton guide="add" onClick={addLine}>
         {t('bill.item.add')}
       </AddLineButton>
 
@@ -190,12 +228,12 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
         <button type="button" className="eb-strip" data-guide="gst" onClick={() => setGstOpen(true)}>
           {gstStrip}
         </button>
-      ) : data.business.registration === 'composition' ? (
+      ) : business.registration === 'composition' ? (
         <Meta>{t('bill.bos.note')}</Meta>
       ) : null}
 
       <CheckStrip items={checks} guide="checks" />
-      {error && (linesOk || !d.customerName.trim()) === false ? <Meta>{error}</Meta> : null}
+      {error && linesOk === false ? <Meta>{error}</Meta> : null}
 
       <div data-guide="total">
         <TotalCard
@@ -210,10 +248,14 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
               <dd>
                 <Money paise={c.subtotalPaise} />
               </dd>
-              <dt>{t('bill.gst.total')}</dt>
-              <dd>
-                <Money paise={c.gstPaise} />
-              </dd>
+              {c.heads.map((h) => (
+                <div key={h.label} style={{ display: 'contents' }}>
+                  <dt>{h.label}</dt>
+                  <dd>
+                    <Money paise={h.paise} />
+                  </dd>
+                </div>
+              ))}
             </dl>
           ) : null}
         </TotalCard>
@@ -235,7 +277,9 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
             <Segmented<'one' | 'perline'>
               label={t('bill.gst.rate')}
               value={d.gst.mode}
-              onChange={(v) => patch({ gst: { ...d.gst, mode: v } })}
+              onChange={(v) =>
+                patch({ gst: { ...d.gst, mode: v, perLine: d.lines.map((_, j) => d.gst.perLine[j] ?? d.gst.rate) } })
+              }
               options={[
                 { value: 'one', label: t('bill.gst.one') },
                 { value: 'perline', label: t('bill.gst.perline') },
@@ -246,7 +290,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
                 label={t('bill.gst.rate')}
                 value={String(d.gst.rate)}
                 onChange={(v) => patch({ gst: { ...d.gst, rate: Number(v) } })}
-                options={RATES.map((r) => ({ value: String(r), label: `${r}%` }))}
+                options={rates.map((r) => ({ value: String(r), label: `${r}%` }))}
               />
             ) : null}
           </>
@@ -269,8 +313,8 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
           }}
           choices={[
             {
-              value: data.business.stateCode ?? '27',
-              label: t('bill.check.state.same', { state: data.business.stateName ?? '' }),
+              value: business.stateCode ?? '27',
+              label: t('bill.check.state.same', { state: business.stateName ?? '' }),
             },
             { value: 'other', label: t('bill.check.state.other'), sub: 'IGST lagega' },
           ]}

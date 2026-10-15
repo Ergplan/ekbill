@@ -4,9 +4,18 @@ import { useState } from 'react';
 
 import { t } from '@ekbill/copy';
 import {
+  AccentButton,
   AddLineButton,
   AttachmentRow,
   CheckStrip,
+  ChoiceList,
+  EmptyState,
+  OtpInput,
+  ProgressLine,
+  SearchInput,
+  SettingGroup,
+  SettingRow,
+  Sheet,
   ConfidenceField,
   FilterChips,
   GuideHighlight,
@@ -49,6 +58,10 @@ export function KitInteractive({ customerName }: { customerName: string }) {
   const [filter, setFilter] = useState<'all' | 'due' | 'paid'>('all');
   const [conf, setConf] = useState({ what: 'Fan repair', rate: '450', qty: '' });
   const [signed, setSigned] = useState<string | null>(null);
+  const [choice, setChoice] = useState<'a' | 'b' | null>('a');
+  const [otp, setOtp] = useState('12');
+  const [search, setSearch] = useState('');
+  const [sheetOpen, setSheetOpen] = useState(false);
   const tour = useTour(TOUR);
   const total = lines.reduce((s, l) => s + Math.round(((Number.parseFloat(l.qty) || 0) * paise(l.rate)) / 1), 0);
 
@@ -96,7 +109,7 @@ export function KitInteractive({ customerName }: { customerName: string }) {
         items={[{ id: 'pos', text: 'Customer ka state chuno', action: <OutlineButton small>Chuno</OutlineButton> }]}
       />
       <TotalCard label={t('bill.total')} paise={total} count={`${lines.length} kaam`} note={t('bill.english.note')} />
-      <MakeBar label={t('bill.create')} paise={total} onClick={() => undefined} guide="make" />
+      <MakeBar sample label={t('bill.create')} paise={total} onClick={() => undefined} guide="make" />
 
       <ToneSegmented
         value={tone}
@@ -164,6 +177,43 @@ export function KitInteractive({ customerName }: { customerName: string }) {
       </OutlineButton>
       <GuideHighlight step={tour.step} onDone={tour.next} />
 
+      <SearchInput value={search} onChange={setSearch} placeholder={t('customers.search')} label={t('action.search')} />
+      <ChoiceList<'a' | 'b'>
+        label={t('setup.gst.q')}
+        value={choice}
+        onChoose={setChoice}
+        choices={[
+          { value: 'a', label: t('setup.gst.yes') },
+          { value: 'b', label: t('setup.gst.composition'), sub: t('bill.bos.note') },
+        ]}
+      />
+      <OtpInput value={otp} onChange={setOtp} label={t('login.code.label')} />
+      <SettingGroup title={t('aap.paise')}>
+        <SettingRow label={t('aap.paise.upi')} value="sharma@upi" onClick={() => undefined} />
+        <SettingRow label={t('aap.voice.sub')} value={t('aap.voice.on')} />
+      </SettingGroup>
+      <ProgressLine label={t('photo.reading')} />
+      <EmptyState title={t('bills.none')} sub={t('home.sent.none')} />
+      <AccentButton onClick={() => setSheetOpen(true)}>{t('done.size')}</AccentButton>
+      <Sheet
+        open={sheetOpen}
+        title={t('done.size.q')}
+        onClose={() => setSheetOpen(false)}
+        closeLabel={t('action.cancel')}
+      >
+        <ChoiceList<'a' | 'b'>
+          label={t('done.size.q')}
+          value={choice}
+          onChoose={(v) => {
+            setChoice(v);
+            setSheetOpen(false);
+          }}
+          choices={[
+            { value: 'a', label: t('done.size.a4') },
+            { value: 'b', label: t('done.size.80') },
+          ]}
+        />
+      </Sheet>
       <TabBar
         items={[
           { key: 'home', label: t('nav.home'), icon: 'home', href: '#' },

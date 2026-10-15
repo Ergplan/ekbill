@@ -141,7 +141,8 @@ export function SetupScreen({ step }: { step: SetupStep }) {
       setError(t('setup.pan.error'));
       return;
     }
-    if (override) patch(override);
+    const derived = step === 'gstin' ? { gstin: next.gstin, pan: next.pan, city: next.city } : {};
+    if (override || step === 'gstin') patch({ ...override, ...derived });
     go(nextStep(step, next));
   };
   const skip = () => go(nextStep(step, d));

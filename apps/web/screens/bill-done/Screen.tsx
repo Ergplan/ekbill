@@ -20,8 +20,9 @@ import {
 
 import { useDraft } from '../draft';
 import { rupees } from '../money';
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
-import { taxLines, type BillDraft, type Computed } from '../bill/compute';
+import type { BillDraft, Computed } from '../bill/compute';
 import { longDate } from '../fixtures';
 import { manifest } from './manifest';
 
@@ -49,8 +50,8 @@ export function BillDoneScreen({
   viewer: ShellViewer;
 }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}${href.includes('?') ? '&' : '?'}as=${viewer.as}` : href);
-  const [issued] = useDraft<Issued | null>('issued', null);
+  const as = (href: string) => withAs(href, viewer.as);
+  const [issued] = useDraft<Issued | null>(`${viewer.personId}:issued`, null);
   const [share, setShare] = useState<'pdf' | 'jpg'>(shareDefault);
   const [paperSize, setPaperSize] = useState<'A4' | 'A5' | '80mm' | '58mm'>('A4');
   const [sizeOpen, setSizeOpen] = useState(false);
@@ -59,24 +60,30 @@ export function BillDoneScreen({
   const paper = useMemo<PaperData>(() => {
     if (!issued) return fallback;
     const { draft, computed, business, customer } = issued;
-    const bos = business.registration === 'composition';
+    const kind = computed.documentKind;
     return {
-      title: bos
-        ? t('paper.bos', undefined, 'en')
-        : business.gstin
-          ? t('paper.tax', undefined, 'en')
-          : t('paper.plain', undefined, 'en'),
+      title:
+        kind === 'bill-of-supply'
+          ? t('paper.bos', undefined, 'en')
+          : kind === 'tax-invoice'
+            ? t('paper.tax', undefined, 'en')
+            : t('paper.plain', undefined, 'en'),
       seller: { name: business.name, gstin: business.gstin, address: business.address },
       number: draft.number,
       date: longDate(draft.date),
       customer: { name: customer?.name ?? draft.customerName, gstin: customer?.gstin ?? null },
       lines: computed.lines
-        .filter((l) => l.what.trim())
-        .map((l) => ({ description: l.what, qty: l.qty, rate: l.ratePaise, amount: l.amountPaise })),
-      taxLines: taxLines(computed, business.stateCode, draft.customerState),
+        .filter((l) => !l.blank)
+        .map((l) => ({
+          description: l.description,
+          qty: String(l.quantityMilli / 1000),
+          rate: l.unitPricePaise,
+          amount: l.taxablePaise,
+        })),
+      taxLines: computed.heads,
       totalPaise: computed.totalPaise,
       upiId: business.upi,
-      legend: bos ? t('paper.bos.legend', undefined, 'en') : null,
+      legend: kind === 'bill-of-supply' ? t('paper.bos.legend', undefined, 'en') : null,
     };
   }, [issued, fallback]);
 

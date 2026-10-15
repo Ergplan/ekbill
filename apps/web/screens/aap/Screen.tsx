@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { t } from '@ekbill/copy';
 import { Avatar, Display, Meta, PrimaryCTA, Segmented, SettingGroup, SettingRow, ThemeSwitch } from '@ekbill/ui';
 
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { Business } from '../fixtures';
 import { manifest } from './manifest';
@@ -29,7 +30,7 @@ export function AapScreen({
   viewer: ShellViewer;
 }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}?as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const owner = viewer.role === 'owner';
   const [lang, setLang] = useState<'hi-Latn' | 'en'>(business.lang);
   const [voice, setVoice] = useState(business.voiceOnArrival);
@@ -187,6 +188,10 @@ export function AapScreen({
           <SettingRow label={t('items.title')} value="" href={as('/items')} />
         </SettingGroup>
       ) : null}
+      <SettingGroup title={t('aap.ask')} guide="ask">
+        <SettingRow label={t('aap.ask')} value="" href={as('/poocho')} />
+        {viewer.role !== 'accountant' ? <SettingRow label={t('aap.help')} value="" href={as('/help')} /> : null}
+      </SettingGroup>
       <SettingGroup title={t('aap.about')} guide="about">
         <SettingRow label={t('aap.about.version', { build })} value="" />
       </SettingGroup>

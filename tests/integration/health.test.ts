@@ -15,7 +15,7 @@ describe('GET /api/health', () => {
 
   it('reports ok, the schema version and sign-in off', async () => {
     const { GET } = await import('../../apps/web/app/api/health/route');
-    const res = await GET();
+    const res = await GET(new Request('http://127.0.0.1:3000/api/health'));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
@@ -34,7 +34,7 @@ describe('GET /api/health', () => {
     writeFileSync(file, JSON.stringify({ at, object: 'gs://bucket/pg/ekbill2-x.dump', bytes: 12345 }));
     process.env.BACKUP_STATE_FILE = file;
     const { GET } = await import('../../apps/web/app/api/health/route');
-    const body = await (await GET()).json();
+    const body = await (await GET(new Request('http://127.0.0.1:3000/api/health'))).json();
     expect(body.lastBackup.at).toBe(at);
     expect(body.lastBackup.ageHours).toBe(3);
     expect(body.lastBackup.bytes).toBe(12345);

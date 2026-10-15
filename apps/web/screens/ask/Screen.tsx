@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { t } from '@ekbill/copy';
 import { Card, Display, FilterChips, GhostButton, Input, Meta, PrimaryCTA, SeriesChip } from '@ekbill/ui';
 
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { Fixture } from '../fixtures';
 import { manifest } from './manifest';
@@ -18,7 +19,7 @@ export function AskScreen({
   state: 'empty' | 'answered';
   viewer: ShellViewer;
 }) {
-  const as = (href: string) => (viewer.as ? `${href}?as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const [q, setQ] = useState(state === 'answered' ? ask.answer.question : '');
   const [answered, setAnswered] = useState(state === 'answered');
   return (

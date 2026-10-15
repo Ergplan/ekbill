@@ -443,5 +443,8 @@
   "help.sub": "Tell us how it works and we set up the bill's shape.",
   "help.next": "Continue",
   "help.chosen": "Alright. The next question comes in Stage 9 (contract helper).",
-  "flow.title": "Screen flow"
+  "flow.title": "Screen flow",
+  "bill.check.overflow": "That amount is too large; check the numbers",
+  "aap.ask": "Ask",
+  "aap.help": "My bill is a bit complex"
 }

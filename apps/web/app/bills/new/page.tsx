@@ -14,7 +14,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
   const first = one(sp.first) === '1' || !viewer.business;
   const customer = one(sp.customer);
   const newCustomer = one(sp.new) === '1';
-  const data = loadBillForm(viewer, { customer, first, newCustomer, state: one(sp.state) });
+  const data = loadBillForm(viewer, { customer, first, newCustomer, state: one(sp.state), name: one(sp.name) });
   if (!first && !newCustomer && !data.customer) return <BillStartScreen pick={data.pick} viewer={shellOf(viewer)} />;
   return <BillScreen data={data} viewer={shellOf(viewer)} />;
 }

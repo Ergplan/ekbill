@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 
-import { FIXTURE } from '../../../screens/fixtures';
 import { ItemScreen } from '../../../screens/item/Screen';
+import { loadItem } from '../../../screens/items/data';
 import { getViewer, shellOf, type SearchParams } from '../../../screens/viewer';
 
 export const dynamic = 'force-dynamic';
@@ -17,7 +17,7 @@ export default async function Page({
   const b = viewer.business;
   if (!b) redirect('/');
   const { id } = await params;
-  const item = id === 'new' ? null : (FIXTURE.items.find((i) => i.business === b.id && i.id === id) ?? null);
+  const item = id === 'new' ? null : loadItem(viewer, id);
   if (id !== 'new' && !item) notFound();
   return <ItemScreen item={item} registration={b.registration} viewer={shellOf(viewer)} />;
 }

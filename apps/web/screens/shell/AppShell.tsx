@@ -12,6 +12,7 @@ import { tabsFor } from './nav';
 
 /** The serialisable part of the viewer that the shell needs. */
 export interface ShellViewer {
+  personId: string;
   personName: string;
   businessName: string | null;
   registration: Registration | null;

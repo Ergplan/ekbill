@@ -55,6 +55,20 @@
   --eb-type-money-hero-rupee-weight: 300;
   --eb-type-money-row-size: 15px;
   --eb-type-money-row-weight: 600;
+  --eb-type-pill-size: 11px;
+  --eb-type-pill-weight: 600;
+  --eb-type-tiny-size: 10px;
+  --eb-type-chip-size: 14px;
+  --eb-type-chip-weight: 500;
+  --eb-type-input-size: 16px;
+  --eb-type-figure-size: 42px;
+  --eb-type-figure-weight: 300;
+  --eb-type-hero-title-size: 30px;
+  --eb-type-avatar-row: 14px;
+  --eb-type-avatar-chip: 13px;
+  --eb-type-avatar-big: 20px;
+  --eb-type-logo-mark: 17px;
+  --eb-type-logo-name: 18px;
 }
 
 :root, :root[data-theme="narangi"] {

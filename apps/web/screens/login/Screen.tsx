@@ -33,11 +33,14 @@ export function LoginScreen({ state }: { state: 'phone' | 'code' }) {
   const [error, setError] = useState<string | null>(null);
   // The SMS code fills in by itself (autocomplete=one-time-code); six digits move on without a tap.
   useEffect(() => {
-    if (state === 'code' && code.length === 6) router.push('/setup/name');
+    // Six digits: this phone is the brand-new owner for the rest of the prototype (the switch sets the persona cookie).
+    if (state === 'code' && code.length === 6) router.push('/dev/switch/new?to=/setup/name');
   }, [code, state, router]);
 
   const sendCode = () => {
-    const digits = phone.replace(/\D/g, '').replace(/^91/, '');
+    // +91 98xxx: drop the country code only when it is one (12 digits); a 10-digit number may itself start with 91.
+    let digits = phone.replace(/\D/g, '');
+    if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
     if (!PHONE_RE.test(digits)) {
       setError(t('login.phone.error'));
       return;

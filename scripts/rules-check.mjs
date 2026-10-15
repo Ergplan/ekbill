@@ -8,14 +8,16 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const DIR = join(ROOT, 'packages/engine/rules');
+const DIR = join(ROOT, 'packages/engine/rules/gst');
+const MAX_UNVERIFIED = 3;
 
 if (!existsSync(DIR)) {
-  console.log('rules:check: no rule pack yet (packages/engine/rules arrives in Stage 3)');
+  console.log('rules:check: no rule pack yet (packages/engine/rules/gst arrives in Stage 3)');
   process.exit(0);
 }
 
 const problems = [];
+const unverified = [];
 const versions = new Map();
 for (const file of readdirSync(DIR)
   .filter((f) => f.endsWith('.json'))
@@ -42,14 +44,24 @@ for (const file of readdirSync(DIR)
     pack.entries.forEach((entry, i) => {
       if (!entry.id) problems.push(`${file}: entry ${i} has no id`);
       if (!entry.source) problems.push(`${file}: entry ${entry.id ?? i} has no source`);
+      if (!entry.effectiveFrom) problems.push(`${file}: entry ${entry.id ?? i} has no effectiveFrom`);
       if (!('verified' in entry)) problems.push(`${file}: entry ${entry.id ?? i} has no verified flag`);
+      if (entry.verified && !entry.verifiedOn)
+        problems.push(`${file}: entry ${entry.id ?? i} is verified without a date`);
+      if (!entry.verified) unverified.push(`${file}: ${entry.id ?? i}`);
     });
   }
 }
 
+if (unverified.length > MAX_UNVERIFIED)
+  problems.push(
+    `${unverified.length} unverified entries; at most ${MAX_UNVERIFIED} allowed (I5): ${unverified.join(', ')}`,
+  );
 if (problems.length) {
   console.error('rules:check:');
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log(`rules:check: ${versions.size} pack(s) well-formed`);
+console.log(
+  `rules:check: ${versions.size} pack(s) well-formed, ${unverified.length} unverified entr${unverified.length === 1 ? 'y' : 'ies'} (max ${MAX_UNVERIFIED})`,
+);

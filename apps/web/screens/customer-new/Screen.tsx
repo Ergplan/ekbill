@@ -8,6 +8,7 @@ import { checkGstin } from '@ekbill/engine';
 import { Display, Field, Input, Meta, PrimaryCTA, Segmented } from '@ekbill/ui';
 
 import { writeDraft } from '../draft';
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { manifest } from './manifest';
 
@@ -20,7 +21,7 @@ export interface NewCustomerDraft {
 
 export function CustomerNewScreen({ viewer, initial }: { viewer: ShellViewer; initial: NewCustomerDraft | null }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}${href.includes('?') ? '&' : '?'}as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const [d, setD] = useState<NewCustomerDraft>(initial ?? { name: '', phone: '', gstin: '', lang: 'hi-Latn' });
   const [error, setError] = useState<string | null>(null);
   const gst = useMemo(() => (d.gstin ? checkGstin(d.gstin) : null), [d.gstin]);
@@ -33,7 +34,7 @@ export function CustomerNewScreen({ viewer, initial }: { viewer: ShellViewer; in
       setError(t('setup.gstin.error.format'));
       return;
     }
-    writeDraft('new-customer', d);
+    writeDraft(`${viewer.personId}:new-customer`, d);
     router.push(as(`/bills/new?new=1&name=${encodeURIComponent(d.name.trim())}`));
   };
   return (

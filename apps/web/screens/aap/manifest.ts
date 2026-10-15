@@ -12,9 +12,11 @@ export const manifest: ScreenManifest = {
     { label: 'Kaam / Saamaan', to: '/items', guide: 'items' },
     { label: 'Sample dekho', to: '/bills/new/done', guide: 'look' },
     { label: 'Bill number series', to: '/aap', guide: 'series' },
+    { label: 'Poocho', to: '/poocho', guide: 'ask' },
+    { label: 'Mera bill thoda complex hai', to: '/help', guide: 'ask' },
   ],
   states: ['owner', 'staff', 'accountant', 'composition'],
-  guides: ['dukaan', 'paise', 'series', 'look', 'theme', 'lang', 'voice', 'team', 'items', 'about', 'save'],
+  guides: ['dukaan', 'paise', 'series', 'look', 'theme', 'lang', 'voice', 'team', 'items', 'ask', 'about', 'save'],
   tour: [
     { target: 'dukaan', say: 'Dukaan ka naam, PAN, GST: yeh sab bill pe chhapta hai.' },
     { target: 'look', say: 'Logo, signature, design, paper: bill kaisa dikhe.' },

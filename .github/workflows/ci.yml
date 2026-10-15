@@ -53,6 +53,7 @@ jobs:
       - name: Playwright (phone, both themes; @slow excluded)
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
+          E2E_PROD: '1'
         run: |
           npm run db:migrate
           (npm run start -w apps/web >/tmp/web.log 2>&1 &)

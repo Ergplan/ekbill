@@ -7,7 +7,7 @@
 - **`/flow`** — the review screen: 25 screen cards with a thumbnail in the current theme and the taps that leave each one (tap any card to open the real screen); the four golden paths with their counted taps and a "Walk it" button; the role matrix with "open as owner / staff / accountant"; the eight open questions with the answer the prototype builds. Theme switch top right.
 - **`/dev/switch`** — become Sharma ji (owner, regular business), Ravi (staff), Meera (CA), Gupta ji (composition business) or the brand-new owner.
 - **`docs/SCREEN-FLOW.md`** — the same data as text, generated from the manifests.
-- **On the VM**: after `git pull`, `deploy/vm/up.sh` rebuilds the image; `/flow` is then at `https://<name>/flow` behind the gate. (Not done from this container; it has no Docker daemon.)
+- **On the VM**: live at `https://34-93-186-159.sslip.io/flow` (EkBill's own VM `ekbill`, project `teak-inquiry-511711-p2`). No password in front: the gate is off by the operator's decision of 15 Oct 2026 (`EKBILL_GATE=on deploy/vm/up.sh` puts it back); sign-in is off (`AUTH_MODE=switcher`), so anyone with the link sees the seeded test data. Health: `/api/health` reports the schema and the last backup.
 
 ## What was built (I10: these are the production screens)
 
@@ -30,7 +30,7 @@ Every screen is `apps/web/screens/<id>/{manifest.ts,data.ts,Screen.tsx}` plus a 
 
 **The guide highlight (rule 17):** every section, field and button the voice can mention carries a `data-guide` id; each manifest lists them and the tour (the spoken Hinglish per id). The "Tour" button and the mic walk them with `GuideHighlight`; Stage 9 hands the same component to the Realtime voice. The e2e suite checks every declared id is in the DOM and that the tour moves from caption to caption.
 
-**Roles (8.3):** `?as=staff|accountant` (or the switch) hides what the matrix forbids; each manifest's `hidden` lists the ids that must be absent, and the suite asserts it. Accountants cannot reach bill-making, remind, photo, credit note, team or help (the routes redirect).
+**Roles (8.3):** `?as=staff|accountant` (or the switch) hides what the matrix forbids; each manifest's `hidden` lists the ids that must be absent, and the suite asserts it. Accountants cannot reach bill-making (`/bills/new`, `/bills/new/done`), remind, photo, credit note, team or help: the routes redirect, and the payment sheet never opens for them even with `?paid=1`.
 
 ## Golden paths (I9), counted by `tests/e2e/golden-path.spec.ts` on the prototype
 
@@ -41,7 +41,7 @@ Every screen is `apps/web/screens/<id>/{manifest.ts,data.ts,Screen.tsx}` plus a 
 | (c) Bill from a photo                                   | ≤ 4 + picker | **3**   | Photo se bill → Photo lo (picker) → Bill banao                                                                                                                                    |
 | (d) Brand-new owner, welcome → first bill on WhatsApp   | ≤ 14         | **14**  | Shuru karein · phone · Aage · code (auto) · naam · Aage · Nahi · Chalo, shuru karte hain · Pehla bill banao · customer ka naam · Kya kiya · Rate · Bill banao · WhatsApp pe bhejo |
 
-Path (d) meets the budget only with the short setup (question 1), the inline customer name on the first bill (question 2) and Kitna defaulting to 1 (question 3). The full question chain costs 19.
+Path (d) meets the budget only with the short setup (question 1), the inline customer name on the first bill (question 2) and Kitna defaulting to 1 (question 3). The full question chain costs 19. Path (a) timed on Playwright's Slow 3G / 4× CPU profile against the production build: **2.5 s** from the Home tap to the WhatsApp tap (budget 20 s; CI runs the timed form with `E2E_PROD=1`, the dev server runs it untimed).
 
 ## Tests
 
@@ -56,7 +56,7 @@ Path (d) meets the budget only with the short setup (question 1), the inline cus
 | Kit baseline                                                                                                                                                                                                          | `tests/e2e/kit.spec.ts`                                            | 3                          |
 | Watcher once (eslint, prettier, tsc, unit, drizzle, rules, tokens, copy, trace, flow, integration)                                                                                                                    | `npm run watch -- --once`                                          | GREEN                      |
 
-Playwright: **103 passed** in one run. Baselines: `tests/e2e/__screenshots__/screens.spec.ts/` (94 PNG at device scale 2), copied as references to `design/screens/<theme>/v2-<id>.png` (50).
+Playwright: **106 passed** in one run after the review fixes (the earlier run was 103). Baselines: `tests/e2e/__screenshots__/screens.spec.ts/` (94 PNG at device scale 2), copied as references to `design/screens/<theme>/v2-<id>.png` (50).
 
 ## Pixel difference against the pack's own PNGs (for the eye, not a gate)
 
@@ -91,7 +91,31 @@ The numbers are high because the content differs on purpose (the pack's screens 
 
 ## Independent review
 
-`npm run review:stage -- 1` needs `OPENAI_REVIEW_API_KEY`/`OPENAI_REVIEW_MODEL` in `.env`, which this container does not have. Run on the VM after `git pull` (step 6 of the Stage 0 VM steps); the diff is `stage-1-start..HEAD`. The `stage-1-start` tag exists locally at 69e14b7 and is pushed from the VM together with `stage-0-start` (this container's git proxy refuses tag pushes).
+`docs/stages/stage-1-review-1.md` (model `gpt-6.1-sol`, run on the VM against `stage-1-start..225660e`): **defects found**. Every code finding was fixed in the commits after it; the review reruns on the VM (`npm run review:stage -- 1`) until it reports no new code defect.
+
+What was fixed (file in brackets):
+
+- I4: tax is now computed only by `packages/engine/src/tax.ts#computeTax()`; each head from the taxable value at its own rate, never from a rounded sibling (the ₹0.03 case gives 0/0, not 1/0). The form, the done paper and the fixture bills all read it (`apps/web/screens/bill/compute.ts` is a thin wrapper; `paper.ts`; `bill-done`).
+- I5: the selectable rates and the place-of-supply rule come from `packages/engine/rules/gst/rates.json`, selected by the bill's date (`selectableRates`, `supplyKind`); the chips on the bill form and the item screen read it. `rules:check` enforces source, effectiveFrom, a verification date on verified entries, and at most 3 unverified (all 3 are unverified until Stage 3).
+- I8/roles: the payment sheet never opens for an accountant (`?paid=1` ignored); `/bills/new/done` redirects accountants.
+- I9: `/kit`'s duplicates are marked `data-primary="kit"`; the test counts primaries anywhere in the DOM; path (a) is timed on Slow 3G / 4× CPU against the production build (2.5 s).
+- I7: `/api/health` and `/dev/switch/[person]` carry a request id (`x-request-id`, echoed when the caller sends one) into a pino log line.
+- Lint: the engine's purity rules are no longer overwritten by the model-endpoint rule (`eslint.config.mjs`).
+- Drafts: an in-memory map backs sessionStorage, so typing works when storage is refused; keys are namespaced by person, so a bill never leaks across `/dev/switch`.
+- Bill form: removing a line removes its own GST rate; a blank line carries no value (paper and total agree); an unsafe product shows a check instead of crashing; the new-customer screen's details reach the bill (name in the URL, phone/GSTIN/state from the draft); a brand-new owner's GST answer, GSTIN and UPI from setup shape the first bill.
+- Login and setup: a 10-digit number starting with 91 is accepted (only a 12-digit `91…` loses the country code); OTP completion makes the browser the new owner (`/dev/switch/new?to=/setup/name`); the GSTIN step persists the derived PAN and city.
+- Bill view: partial payments accumulate. Dues: role links keep `?as=` correctly (one `withAs` helper everywhere).
+- Reminders: the direct tone fills `{days}` and `{business}`. Photo: the corrected date is kept; "Photo lo" opens the real file picker. Fixture bills across states print IGST (`INV-037`).
+- `/flow` is in the screenshot suite (both themes, and 1280 px); `/kit` renders the six flow components; literal type sizes in the kit are now tokens (tokens.json 1.3.0) and `tokens:check` fails on a `px` font size; the drawn kaccha-bill SVG is listed in `tokens-allow.txt` with its reason.
+- The Aap, team, items and photo pages read through `data.ts` loaders like every other screen; Aap reaches Poocho and the contract helper.
+
+Findings that are not code defects of this stage, with the rationale (rule 12):
+
+- I1, I2, I3, I6, I7 (audit rows), I8 (repository `allowedRoles`): "not established" is correct and by design. Stage 1 has no database, no issuing, no numbering allocation and no model call (its prompt forbids them); Stage 2 adds tenancy, RLS, audit and roles at the repository, Stage 3 the allocator and `issueDocument()`, Stage 7 the staging tables. `docs/KNOWN-GAPS.md` lists each with its stage.
+- I10 "not established by this diff": the baselines are in `tests/e2e/__screenshots__` and `design/screens/<theme>/v2-*.png` (binary files the review's diff excludes); the operator's approval is what turns them into the gate, which is this report's purpose.
+- (d) "cannot be certified without the generators": `scripts/trace.mjs`, `scripts/flow-map.mjs` and `design/tokens/build.py` are in the repository; the watcher's `trace:check`, `flow:check`, `copy:check` and `tokens:check` ran green on the commit (`.watch/status.json`); the review's diff is truncated at 700 k characters, so earlier files fall outside it.
+- "every test green / 103 passed" are execution claims: the numbers come from the runs recorded here; CI (`.github/workflows/ci.yml`) reruns them on every push to `main`.
+- The mic starts the tour in Stage 1 by design; Stage 9 hands the same highlight to the voice.
 
 ## Deferred by design
 

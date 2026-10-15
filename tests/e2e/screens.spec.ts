@@ -49,8 +49,8 @@ for (const theme of THEMES) {
         if (SHEET_LABELS[s.id]?.includes(tap.label)) continue;
         expect(text, `${s.id}: "${tap.label}" not on screen`).toContain(tap.label.replace(/\s+/g, ' '));
       }
-      // One primary per screen state (I9): one PrimaryCTA/WhatsAppButton in the DOM.
-      const primaries = await page.locator('[data-primary="true"]:visible').count();
+      // One primary per screen state (I9): at most one PrimaryCTA/WhatsAppButton anywhere in the DOM.
+      const primaries = await page.locator('[data-primary="true"]').count();
       expect(primaries, `${s.id}: primary buttons`).toBeLessThanOrEqual(1);
       // Nothing scrolls sideways.
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
@@ -74,7 +74,7 @@ for (const theme of THEMES) {
   for (const st of STATE_URLS) {
     test(`${st.screen} state ${st.state} renders in ${theme}`, async ({ page }) => {
       await open(page, st.url, theme, st.as);
-      expect(await page.locator('[data-primary="true"]:visible').count()).toBeLessThanOrEqual(1);
+      expect(await page.locator('[data-primary="true"]').count()).toBeLessThanOrEqual(1);
       await expect(page).toHaveScreenshot(`${st.screen}--${st.state}-${theme}.png`, {
         fullPage: true,
         animations: 'disabled',
@@ -83,6 +83,21 @@ for (const theme of THEMES) {
     });
   }
 }
+
+for (const theme of THEMES) {
+  test(`the /flow review screen renders in ${theme}`, async ({ page }) => {
+    await open(page, '/flow', theme);
+    await expect(page.getByRole('radio', { name: /Screens \(/ })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    await expect(page).toHaveScreenshot(`flow-${theme}.png`, { fullPage: false, animations: 'disabled' });
+  });
+}
+
+test('the /flow review screen at desktop width @desktop', async ({ page }) => {
+  await open(page, '/flow', 'narangi');
+  await expect(page.getByRole('radio', { name: /Golden paths/ })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1280);
+});
 
 test('role-hidden elements are absent for that role (8.3)', async ({ page }) => {
   for (const s of SCREENS) {

@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+
 import { BillDoneScreen } from '../../../../screens/bill-done/Screen';
 import { billsOf, customerOf } from '../../../../screens/common';
 import { paperOfBill } from '../../../../screens/paper';
@@ -12,6 +14,7 @@ export const dynamic = 'force-dynamic';
  */
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const viewer = await getViewer(await searchParams);
+  if (viewer.role === 'accountant') redirect('/');
   const b = viewer.business;
   if (!b) {
     const blank = {

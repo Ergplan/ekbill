@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { t } from '@ekbill/copy';
 import { Display, Field, FilterChips, Input, OutlineButton, PrimaryCTA } from '@ekbill/ui';
 
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { Item } from '../fixtures';
 import { manifest } from './manifest';
@@ -22,7 +23,7 @@ export function ItemScreen({
   viewer: ShellViewer;
 }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}?as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const [d, setD] = useState({
     name: item?.name ?? '',
     hsn: item?.hsn ?? '',

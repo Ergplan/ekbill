@@ -23,6 +23,7 @@ import {
 } from '@ekbill/ui';
 
 import { rupees } from '../money';
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
 import { TODAY, shortDate } from '../fixtures';
@@ -42,23 +43,27 @@ export function BillViewScreen({
   openPaid: boolean;
 }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}${href.includes('?') ? '&' : '?'}as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const { bill } = data;
-  const [paidOpen, setPaidOpen] = useState(openPaid && bill.duePaise > 0);
+  const canMoney = viewer.role !== 'accountant';
+  const canFix = viewer.role === 'owner';
+  const [paidOpen, setPaidOpen] = useState(openPaid && canMoney && bill.duePaise > 0);
   const [mode, setMode] = useState<'all' | 'part' | null>(null);
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(TODAY);
   const [method, setMethod] = useState<Method>('upi');
-  const [recorded, setRecorded] = useState<{ paise: number; method: Method } | null>(null);
+  // Every amount recorded on this screen, in order; the due is the bill's due minus all of them.
+  const [recorded, setRecorded] = useState<Array<{ paise: number; method: Method }>>([]);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reason, setReason] = useState('');
-  const canMoney = viewer.role !== 'accountant';
-  const canFix = viewer.role === 'owner';
-  const due = recorded ? Math.max(0, bill.duePaise - recorded.paise) : bill.duePaise;
-  const status = recorded ? (due === 0 ? 'paid' : 'partial') : bill.status;
+  const recordedPaise = recorded.reduce((s, r) => s + r.paise, 0);
+  const due = Math.max(0, bill.duePaise - recordedPaise);
+  const status = recorded.length ? (due === 0 ? 'paid' : 'partial') : bill.status;
+  const last = recorded[recorded.length - 1] ?? null;
 
   const record = (paise: number) => {
-    setRecorded({ paise, method });
+    setRecorded((cur) => [...cur, { paise, method }]);
+    setAmount('');
     setPaidOpen(false);
     setMode(null);
   };
@@ -92,9 +97,9 @@ export function BillViewScreen({
               {t('view.paid.on', { date: shortDate(bill.paidOn), method: t(`view.paid.${bill.method ?? 'upi'}`) })}
             </Meta>
           ) : null}
-          {recorded ? (
+          {last ? (
             <Meta>
-              {t('view.paid.saved', { amount: rupees(recorded.paise), method: t(`view.paid.${recorded.method}`) })}
+              {t('view.paid.saved', { amount: rupees(recordedPaise), method: t(`view.paid.${last.method}`) })}
             </Meta>
           ) : null}
           {bill.waStatus ? <Meta>{bill.waStatus === 'read' ? t('view.wa.read') : t('view.wa.sent')}</Meta> : null}

@@ -19,5 +19,11 @@ export default async function Page({
   const { number } = await params;
   const data = loadBillView(viewer, number);
   if (!data) notFound();
-  return <BillViewScreen data={data} viewer={shellOf(viewer)} openPaid={one(sp.paid) === '1'} />;
+  return (
+    <BillViewScreen
+      data={data}
+      viewer={shellOf(viewer)}
+      openPaid={one(sp.paid) === '1' && viewer.role !== 'accountant'}
+    />
+  );
 }

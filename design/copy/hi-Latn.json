@@ -436,5 +436,8 @@
   "help.sub": "Batao kaisa hai, hum bill ka dhaancha bana denge.",
   "help.next": "Aage chalo",
   "help.chosen": "Theek hai. Agla sawaal Stage 9 mein (contract helper).",
-  "flow.title": "Screen flow"
+  "flow.title": "Screen flow",
+  "bill.check.overflow": "Rakam itni badi nahi ho sakti; number phir se dekho",
+  "aap.ask": "Poocho",
+  "aap.help": "Mera bill thoda complex hai"
 }

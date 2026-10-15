@@ -67,12 +67,24 @@ export default tseslint.config(
           selector: "CallExpression[callee.object.name='Math'][callee.property.name='random']",
           message: 'packages/engine is deterministic (I4).',
         },
+        {
+          selector:
+            "CallExpression[callee.name='fetch'] > Literal[value=/openai\\.com|api\\.anthropic|generativelanguage/]",
+          message: 'Model endpoints are called only from packages/ai (rule 9).',
+        },
+        {
+          selector:
+            "CallExpression[callee.name='fetch'] > TemplateLiteral[quasis.0.value.raw=/openai\\.com|api\\.anthropic|generativelanguage/]",
+          message: 'Model endpoints are called only from packages/ai (rule 9).',
+        },
       ],
     },
   },
   {
+    // Everything except packages/ai (which makes the calls) and packages/engine (whose own block below
+    // carries these two selectors beside its purity rules: a later matching block replaces, not merges).
     files: ['**/*.{ts,tsx,mjs}'],
-    ignores: ['packages/ai/**'],
+    ignores: ['packages/ai/**', 'packages/engine/**'],
     rules: {
       'no-restricted-syntax': [
         'error',

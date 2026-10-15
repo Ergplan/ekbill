@@ -24,6 +24,7 @@ import {
 
 import { useDraft } from '../draft';
 import { rupees } from '../money';
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
 import { manifest } from './manifest';
@@ -31,7 +32,7 @@ import type { HomeData } from './data';
 
 export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellViewer }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}${href.includes('?') ? '&' : '?'}as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const [setup] = useDraft<{ name: string } | null>('setup', null);
   const shopName = data.kind === 'new' ? setup?.name?.trim() || null : null;
 

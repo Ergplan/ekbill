@@ -26,6 +26,7 @@ export function loadRemind(viewer: Viewer, number: string): RemindData | null {
     contact: c?.contact ?? c?.name ?? '',
     customer: b.name,
     business: b.name,
+    days: daysBetween(bill.date),
     number: bill.number,
     amount: rupees(bill.duePaise),
     date: shortDate(bill.date),

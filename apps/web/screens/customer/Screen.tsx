@@ -18,6 +18,7 @@ import {
 } from '@ekbill/ui';
 
 import { rupees } from '../money';
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
 import { shortDate } from '../fixtures';
@@ -26,7 +27,7 @@ import type { CustomerData } from './data';
 
 export function CustomerScreen({ data, viewer }: { data: CustomerData; viewer: ShellViewer }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}${href.includes('?') ? '&' : '?'}as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const c = data.customer;
   const canBill = viewer.role !== 'accountant';
   return (

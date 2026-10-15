@@ -233,3 +233,24 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `deploy/vm/up.sh` mounts `deploy/caddy/gate-off.caddy` by default; `EKBILL_GATE=on deploy/vm/up.sh` mounts `gate-on.caddy` with the shared password from Secret Manager. The site is open; `AUTH_MODE=switcher` shows seeded test data only.
 - Why: the operator asked for no login or password in front of the prototype (15 Oct 2026). Stage 10 turns OTP on, which replaces the gate.
 - Asked by: the operator.
+
+## 2026-10-15 — after the first independent reviews
+
+### Tax and rates moved into the engine before Stage 3
+
+- Decision: `packages/engine/src/tax.ts#computeTax()` and `packages/engine/rules/gst/rates.json` (with `selectableRates`, `supplyKind`) exist from Stage 1; the form, the done paper and the fixture bills read them. Stage 3 completes the pack and verifies it.
+- Options: keep a prototype calculation in the web layer until Stage 3.
+- Why: the reviews found I4 and I5 violated in the prototype (tax in `apps/web`, rates in code, SGST derived from rounded CGST). An invariant holds in every stage; the engine is where it can be checked mechanically.
+- Asked by: the Stage 0 and Stage 1 reviews (rule 12).
+
+### The reviewer's range for an earlier stage
+
+- Decision: `npm run review:stage -- N --head REF` reviews `stage-N-start..REF`; Stage 0 is reviewed on `stage-0-start..stage-1-start`.
+- Why: the first Stage 0 review covered Stage 1's code as well and repeated its findings.
+- Asked by: the build agent.
+
+### Path (a) is timed only against a production build
+
+- Decision: `tests/e2e/golden-path.spec.ts` throttles to Slow 3G / 4× CPU and asserts ≤ 20 s when `E2E_PROD=1` (CI, `next start`); against the dev server it counts taps untimed. Measured: 2.5 s.
+- Why: the dev server's unminified bundles measure the compiler, not the app.
+- Asked by: I9 and the Stage 1 review.

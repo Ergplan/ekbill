@@ -74,6 +74,36 @@ export const shared = {
     "money-row": {
       "size": "15px",
       "weight": "600"
+    },
+    "pill": {
+      "size": "11px",
+      "weight": "600"
+    },
+    "tiny": {
+      "size": "10px"
+    },
+    "chip": {
+      "size": "14px",
+      "weight": "500"
+    },
+    "input": {
+      "size": "16px"
+    },
+    "figure": {
+      "size": "42px",
+      "weight": "300"
+    },
+    "hero-title": {
+      "size": "30px"
+    },
+    "avatar": {
+      "row": "14px",
+      "chip": "13px",
+      "big": "20px"
+    },
+    "logo": {
+      "mark": "17px",
+      "name": "18px"
     }
   },
   "semantic-fixed": {

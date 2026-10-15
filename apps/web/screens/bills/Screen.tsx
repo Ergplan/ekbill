@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { t } from '@ekbill/copy';
 import { BillRow, Display, EmptyState, FilterChips, Meta, SearchInput, SeriesChip } from '@ekbill/ui';
 
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
 import { manifest } from './manifest';
@@ -13,7 +14,7 @@ import type { BillsData } from './data';
 type Filter = 'all' | 'due' | 'paid' | 'cancelled';
 
 export function BillsScreen({ data, viewer }: { data: BillsData; viewer: ShellViewer }) {
-  const as = (href: string) => (viewer.as ? `${href}?as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const [filter, setFilter] = useState<Filter>('all');
   const [series, setSeries] = useState<string>('all');
   const [q, setQ] = useState('');

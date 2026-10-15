@@ -8,6 +8,7 @@ import { parseMoney } from '@ekbill/engine';
 import { Display, Field, GhostButton, Input, Meta, MoneyHero, PrimaryCTA, SuccessHeader } from '@ekbill/ui';
 
 import { rupees } from '../money';
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { manifest } from './manifest';
 
@@ -19,7 +20,7 @@ export function CreditNoteScreen({
   viewer: ShellViewer;
 }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}?as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);

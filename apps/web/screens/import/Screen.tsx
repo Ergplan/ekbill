@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { t } from '@ekbill/copy';
 import { Display, Meta, OutlineButton, PrimaryCTA, ProgressLine, StatusPill, SuccessHeader } from '@ekbill/ui';
 
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { Fixture } from '../fixtures';
 import { manifest } from './manifest';
@@ -22,7 +23,7 @@ export function ImportScreen({
   viewer: ShellViewer;
 }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}${href.includes('?') ? '&' : '?'}as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const [ticked, setTicked] = useState<boolean[]>(preview.rows.map((r) => !r.exists));
   useEffect(() => {
     if (state !== 'reading') return;

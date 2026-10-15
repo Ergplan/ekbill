@@ -41,7 +41,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 export function loadBillForm(
   viewer: Viewer,
-  opts: { customer: string | null; first: boolean; newCustomer: boolean; state: string | null },
+  opts: { customer: string | null; first: boolean; newCustomer: boolean; state: string | null; name?: string | null },
 ): BillFormData {
   const b = viewer.business;
   const registration = b?.registration ?? 'unregistered';
@@ -89,7 +89,7 @@ export function loadBillForm(
     previous,
     initial: {
       customer: customer?.id ?? null,
-      customerName: customer?.name ?? '',
+      customerName: customer?.name ?? opts.name?.trim() ?? '',
       customerState,
       lines: [{ what: '', qty: '1', rate: '' }],
       gst: { on: registration === 'regular', mode: 'one', rate: previous?.gstRate ?? defaultRate, perLine: [] },

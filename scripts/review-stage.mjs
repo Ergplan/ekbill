@@ -2,6 +2,7 @@
 // The independent review (master prompt rule 12).
 //
 //   npm run review:stage -- N              # review stage N: stage-N-start..HEAD
+//   npm run review:stage -- 0 --head stage-1-start   # an earlier stage on its own range
 //   npm run review:stage -- N --dry        # build the prompt, print its size, call nothing
 //   npm run review:stage -- --check-model  # does OPENAI_REVIEW_MODEL resolve on the account?
 //
@@ -76,11 +77,11 @@ export function stagePrompt(markdown, stage) {
   return body.join('\n').trim();
 }
 
-export function stageDiff(stage, { root = ROOT, base } = {}) {
+export function stageDiff(stage, { root = ROOT, base, head = 'HEAD' } = {}) {
   const from = base ?? `stage-${stage}-start`;
   const args = [
     'diff',
-    `${from}..HEAD`,
+    `${from}..${head}`,
     '--',
     '.',
     ':(exclude)package-lock.json',
@@ -167,7 +168,7 @@ export async function listModels({ apiKey, baseUrl, fetchImpl = fetch }) {
  */
 export async function reviewStage(
   stage,
-  { root = ROOT, base, call = callOpenAI, env = loadEnv(root), dry = false } = {},
+  { root = ROOT, base, head = 'HEAD', call = callOpenAI, env = loadEnv(root), dry = false } = {},
 ) {
   const masterPrompt = readFileSync(join(root, 'docs/MASTER-PROMPT.md'), 'utf8');
   const reportPath = join(root, 'docs', 'stages', `stage-${stage}-report.md`);
@@ -175,7 +176,7 @@ export async function reviewStage(
     throw new Error(`${reportPath} does not exist; write the draft report and commit it first`);
   const inputs = {
     stage,
-    diff: stageDiff(stage, { root, base }),
+    diff: stageDiff(stage, { root, base, head }),
     claudeMd: readFileSync(join(root, 'CLAUDE.md'), 'utf8'),
     prompt: stagePrompt(masterPrompt, stage),
     report: readFileSync(reportPath, 'utf8'),
@@ -192,11 +193,11 @@ export async function reviewStage(
   const text = await call({ apiKey, model, baseUrl, system, user });
   const verdict = parseVerdict(text);
   const path = nextReviewPath(stage, root);
-  const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  const headSha = execFileSync('git', ['rev-parse', '--short', head], { cwd: root, encoding: 'utf8' }).trim();
   writeFileSync(
     path,
     `# Stage ${stage} — independent review\n\n` +
-      `- Reviewed commit: ${head}\n- Base: ${base ?? `stage-${stage}-start`}\n- Model: ${model}\n- At: ${new Date().toISOString()}\n- Verdict: ${verdict}\n\n---\n\n${text.trim()}\n`,
+      `- Reviewed commit: ${headSha}\n- Base: ${base ?? `stage-${stage}-start`}\n- Head: ${head}\n- Model: ${model}\n- At: ${new Date().toISOString()}\n- Verdict: ${verdict}\n\n---\n\n${text.trim()}\n`,
   );
   return { path, verdict, text };
 }
@@ -223,12 +224,14 @@ async function main() {
   }
   const stage = Number(args.find((a) => /^\d+$/.test(a)));
   if (!Number.isInteger(stage)) {
-    console.error('usage: npm run review:stage -- N [--dry] [--base REF] | --check-model');
+    console.error('usage: npm run review:stage -- N [--dry] [--base REF] [--head REF] | --check-model');
     process.exit(2);
   }
   const baseIdx = args.indexOf('--base');
   const base = baseIdx >= 0 ? args[baseIdx + 1] : undefined;
-  const result = await reviewStage(stage, { base, env, dry: args.includes('--dry') });
+  const headIdx = args.indexOf('--head');
+  const head = headIdx >= 0 ? args[headIdx + 1] : 'HEAD';
+  const result = await reviewStage(stage, { base, head, env, dry: args.includes('--dry') });
   if (result.verdict === 'dry') {
     console.log(
       `dry run: prompt is ${result.size} characters; diff ${result.inputs.diff.length}, CLAUDE.md ${result.inputs.claudeMd.length}, stage prompt ${result.inputs.prompt.length}, report ${result.inputs.report.length}`,

@@ -194,16 +194,19 @@ export function MakeBar({
   disabled,
   onClick,
   guide,
+  sample,
 }: {
   label: string;
   paise: number;
   disabled?: boolean;
   onClick: () => void;
   guide?: string;
+  /** On the kit page only: a sample, not a screen's primary action (I9 counts data-primary="true"). */
+  sample?: boolean;
 }) {
   return (
     <div className="eb-makebar" data-guide={guide}>
-      <PrimaryCTA onClick={onClick} disabled={disabled}>
+      <PrimaryCTA onClick={onClick} disabled={disabled} data-primary={sample ? 'kit' : 'true'}>
         {label} · <span className="eb-num">₹{formatRupees(paise, { whole: true })}</span>
       </PrimaryCTA>
     </div>

@@ -24,10 +24,38 @@ async function hydrated(page: Page) {
   await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
 }
 
-test('(a) repeat bill to a regular customer, sent on WhatsApp: 4 taps', async ({ page }) => {
+/** Playwright's "Slow 3G / 4× CPU" profile through the Chrome DevTools protocol (I9: path (a) within 20 s). */
+async function throttle(page: Page) {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Network.enable');
+  await cdp.send('Network.emulateNetworkConditions', {
+    offline: false,
+    latency: 400,
+    downloadThroughput: (500 * 1024) / 8,
+    uploadThroughput: (500 * 1024) / 8,
+  });
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  return cdp;
+}
+
+test('(a) repeat bill to a regular customer, sent on WhatsApp: 4 taps, within 20 s on Slow 3G / 4× CPU', async ({
+  page,
+}) => {
   const c = { n: 0 };
   await page.goto('/');
   await hydrated(page);
+  // Warm the three screens once (the dev server compiles on first visit); the timed walk below is the second visit.
+  await page.goto('/bills/new?customer=mehta');
+  await hydrated(page);
+  await page.goto('/bills/new/done');
+  await hydrated(page);
+  await page.goto('/');
+  await hydrated(page);
+  // The throttled timing is meaningful against a production build (CI sets E2E_PROD=1 and runs `next start`);
+  // the dev server's unminified bundles would measure the compiler, not the app.
+  const timed = process.env.E2E_PROD === '1';
+  const cdp = timed ? await throttle(page) : null;
+  const started = Date.now();
   await tap(page, c, () => page.getByRole('link', { name: 'Mehta Traders' }).click());
   await expect(page).toHaveURL(/\/bills\/new\?customer=mehta/);
   await tap(page, c, () => page.getByRole('button', { name: 'Haan, wahi bharo' }).click());
@@ -36,8 +64,17 @@ test('(a) repeat bill to a regular customer, sent on WhatsApp: 4 taps', async ({
   await expect(page.locator('.eb-paper')).toContainText('Mehta Traders');
   await tap(page, c, () => page.getByRole('button', { name: 'WhatsApp pe bhejo' }).click());
   await expect(page.getByRole('button', { name: /WhatsApp pe gaya/ })).toBeVisible();
+  const elapsed = (Date.now() - started) / 1000;
+  if (cdp) {
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    await cdp.detach();
+  }
+  console.log(
+    `path (a): ${c.n} taps in ${elapsed.toFixed(1)} s${timed ? ' on Slow 3G / 4× CPU' : ' (untimed: dev server)'}`,
+  );
   expect(c.n).toBe(budget('a').taps.length);
   expect(c.n).toBeLessThanOrEqual(budget('a').budget);
+  if (timed) expect(elapsed).toBeLessThanOrEqual(20);
 });
 
 test('(b) money came in, in full: 3 taps', async ({ page }) => {
@@ -60,7 +97,12 @@ test('(c) bill from a photo: 3 taps plus the picker', async ({ page }) => {
   await hydrated(page);
   await tap(page, c, () => page.getByRole('link', { name: 'Photo se bill' }).click());
   await expect(page).toHaveURL(/\/bills\/photo/);
-  await tap(page, c, () => page.getByRole('radio', { name: 'Photo lo' }).click());
+  // "Photo lo" opens the real file picker; the chosen photo starts the reading (the picker itself is not a tap).
+  const [chooser] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    tap(page, c, () => page.getByRole('radio', { name: 'Photo lo' }).click()),
+  ]);
+  await chooser.setFiles({ name: 'kaccha.jpg', mimeType: 'image/jpeg', buffer: Buffer.from('not-really-a-jpeg') });
   await expect(page).toHaveURL(/state=review/, { timeout: 10_000 });
   await tap(page, c, () => page.getByRole('button', { name: /Bill banao/ }).click());
   await expect(page).toHaveURL(/\/bills\/new\/done/);

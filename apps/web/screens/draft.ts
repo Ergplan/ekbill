@@ -3,14 +3,15 @@
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
 
 /**
- * The prototype's only memory: sessionStorage, per draft kind. Nothing
- * persists past the tab (Stage 1 prompt). Stage 4 onward write through
- * server actions instead; the screens keep calling these names.
- *
- * useDraft subscribes React to the stored value (an external store), so a
- * screen renders the saved draft after hydration without setting state in
- * an effect.
+ * The prototype's only memory. Values live in a module-level map and, when
+ * the browser allows it, in sessionStorage so a reload mid-bill keeps the
+ * draft. With storage blocked (private mode, a strict browser) the map
+ * alone serves, so typing still works. Nothing persists past the tab
+ * (Stage 1 prompt). Stage 4 onward write through server actions behind
+ * the same names. Keys are namespaced by the caller (person id) so a draft
+ * never shows up for another business after /dev/switch.
  */
+const memory = new Map<string, string>();
 const listeners = new Set<() => void>();
 
 function notify() {
@@ -25,6 +26,8 @@ function subscribe(cb: () => void) {
   };
 }
 function readRaw(key: string): string | null {
+  const inMemory = memory.get(key);
+  if (inMemory !== undefined) return inMemory;
   try {
     return window.sessionStorage.getItem(`eb-${key}`);
   } catch {
@@ -42,11 +45,14 @@ export function readDraft<T>(key: string): T | null {
   }
 }
 export function writeDraft<T>(key: string, value: T): void {
+  const raw = value === null || value === undefined ? null : JSON.stringify(value);
+  if (raw === null) memory.delete(key);
+  else memory.set(key, raw);
   try {
-    if (value === null || value === undefined) window.sessionStorage.removeItem(`eb-${key}`);
-    else window.sessionStorage.setItem(`eb-${key}`, JSON.stringify(value));
+    if (raw === null) window.sessionStorage.removeItem(`eb-${key}`);
+    else window.sessionStorage.setItem(`eb-${key}`, raw);
   } catch {
-    // Private mode: the draft lives in React state only.
+    // Storage refused: the in-memory value above still serves this tab.
   }
   notify();
 }

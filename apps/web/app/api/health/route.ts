@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server';
 
 import { schemaStatus } from '@ekbill/db';
 
+import { logRequest, requestId } from '../../../lib/log';
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -12,6 +14,7 @@ export const runtime = 'nodejs';
  * answered and which migration it is on, which auth mode is on, when this
  * build was made, how old the last backup is (deploy/vm/backup.sh writes a
  * small state file the container mounts read-only). Stage 10 adds queue age.
+ * Every call is logged with its request id (I7) and answers with it.
  */
 interface BackupState {
   at: string;
@@ -31,7 +34,8 @@ function lastBackup(): (BackupState & { ageHours: number }) | 'none' {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const id = requestId(request);
   const db = await schemaStatus();
   const authMode = process.env.AUTH_MODE ?? 'switcher';
   const body = {
@@ -44,5 +48,6 @@ export async function GET() {
     lastBackup: lastBackup(),
     ...(db.error ? { databaseError: db.error } : {}),
   };
-  return NextResponse.json(body, { status: db.ok ? 200 : 503 });
+  logRequest('GET /api/health', id, { ok: db.ok, schema: body.schema });
+  return NextResponse.json(body, { status: db.ok ? 200 : 503, headers: { 'x-request-id': id } });
 }

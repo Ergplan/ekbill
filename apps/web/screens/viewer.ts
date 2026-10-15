@@ -51,6 +51,7 @@ export function withAs(href: string, as: string | null): string {
 /** The serialisable part of the viewer for the client shell. */
 export function shellOf(v: Viewer) {
   return {
+    personId: v.person.id,
     personName: v.person.name,
     businessName: v.business?.name ?? null,
     registration: v.business?.registration ?? null,

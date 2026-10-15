@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { t } from '@ekbill/copy';
+import type { Registration } from '@ekbill/engine';
 import {
   ChoiceList,
   ConfidenceField,
@@ -18,6 +19,7 @@ import {
 
 import { writeDraft } from '../draft';
 import { compute } from '../bill/compute';
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { PhotoReview } from '../fixtures';
 import { manifest } from './manifest';
@@ -29,7 +31,7 @@ interface Props {
   review: PhotoReview;
   business: {
     name: string;
-    registration: string;
+    registration: Registration;
     stateCode: string | null;
     gstin: string | null;
     upi: string | null;
@@ -43,8 +45,9 @@ interface Props {
 
 export function PhotoScreen({ state, review, business, today, viewer }: Props) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}${href.includes('?') ? '&' : '?'}as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const [fields, setFields] = useState(review.fields);
+  const picker = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (state !== 'reading') return;
     const id = window.setTimeout(() => router.replace(as('/bills/photo?state=review')), 1600);
@@ -59,7 +62,7 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
     rate: business.defaultRate,
     perLine: [],
   };
-  const c = compute({ lines, gst }, business.registration);
+  const c = compute({ lines, gst, customerState: business.stateCode }, business);
   const make = () => {
     const draft = {
       customer: review.customer,
@@ -69,9 +72,9 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
       gst,
       series: business.nextNumber.split('-')[0] ?? 'INV',
       number: business.nextNumber,
-      date: today,
+      date: fields.date.value || today,
     };
-    writeDraft('issued', {
+    writeDraft(`${viewer.personId}:issued`, {
       draft,
       computed: c,
       business,
@@ -106,23 +109,25 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
           </section>
           <ChoiceList<'camera' | 'gallery'>
             label={t('photo.title')}
-            onChoose={() => router.push(as('/bills/photo?state=reading'))}
+            onChoose={() => picker.current?.click()}
             choices={[
               { value: 'camera', label: t('photo.camera'), icon: 'camera' },
               { value: 'gallery', label: t('photo.gallery'), icon: 'file' },
             ]}
           />
-          <label className="eb-meta">
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              data-guide="camera"
-              style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }}
-              onChange={() => router.push(as('/bills/photo?state=reading'))}
-            />
-            <span data-guide="gallery" />
-          </label>
+          {/* The real picker: "Photo lo" and "Gallery se" open it; a chosen file starts the reading. */}
+          <input
+            ref={picker}
+            type="file"
+            accept="image/*"
+            data-guide="camera"
+            aria-label={t('photo.camera')}
+            style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }}
+            onChange={(e) => {
+              if (e.target.files?.length) router.push(as('/bills/photo?state=reading'));
+            }}
+          />
+          <span data-guide="gallery" hidden />
         </>
       ) : null}
 

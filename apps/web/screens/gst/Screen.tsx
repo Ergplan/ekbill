@@ -7,13 +7,14 @@ import { t } from '@ekbill/copy';
 import { Display, HeroPanel, IconChip, Meta, Money, MoneyHero, PrimaryCTA, Segmented, StatTile } from '@ekbill/ui';
 
 import { rupees } from '../money';
+import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { manifest } from './manifest';
 import type { GstData } from './data';
 
 export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer }) {
   const router = useRouter();
-  const as = (href: string) => (viewer.as ? `${href}?as=${viewer.as}` : href);
+  const as = (href: string) => withAs(href, viewer.as);
   const [mode, setMode] = useState<'month' | 'quarter'>(data.period.mode);
   const canSend = viewer.role !== 'staff';
   return (
