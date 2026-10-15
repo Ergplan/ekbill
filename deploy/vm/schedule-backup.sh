@@ -8,5 +8,6 @@ if ! command -v crontab >/dev/null 2>&1; then
   echo "cron is not installed; the nightly backup is NOT scheduled. Install it (sudo apt-get install -y cron) and run this again."
   exit 1
 fi
-( crontab -l 2>/dev/null | grep -v "$REPO_DIR/deploy/vm/backup.sh" ; echo "$line" ) | crontab -
+# grep -v on an empty crontab exits 1, which pipefail would turn into a failure: an empty crontab is a fine starting point.
+( { crontab -l 2>/dev/null | grep -v "$REPO_DIR/deploy/vm/backup.sh" || true; } ; echo "$line" ) | crontab -
 echo "scheduled:"; crontab -l | grep "$REPO_DIR/deploy/vm/backup.sh"

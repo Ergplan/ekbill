@@ -8,10 +8,17 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 COMPOSE_PROJECT=ekbill2
 COMPOSE=(docker compose -p "$COMPOSE_PROJECT" -f "$REPO_DIR/deploy/docker-compose.yml")
-PROJECT="${EKBILL_PROJECT:-$(gcloud config get-value project 2>/dev/null)}"
-PROJECT="${PROJECT:-tariff-order-parsing}"
-VM_NAME="${EKBILL_VM:-tariff-order}"
-VM_ZONE="${EKBILL_ZONE:-asia-south2-b}"
+# This VM's project, name and zone come from the metadata server (any GCE VM), so the scripts
+# need no editing when EkBill moves; EKBILL_PROJECT / EKBILL_VM / EKBILL_ZONE override them.
+metadata() {
+  curl -fsS -H 'Metadata-Flavor: Google' "http://metadata.google.internal/computeMetadata/v1/$1" 2>/dev/null || true
+}
+PROJECT="${EKBILL_PROJECT:-$(metadata project/project-id)}"
+PROJECT="${PROJECT:-$(gcloud config get-value project 2>/dev/null)}"
+VM_NAME="${EKBILL_VM:-$(metadata instance/name)}"
+VM_NAME="${VM_NAME:-ekbill}"
+VM_ZONE="${EKBILL_ZONE:-$(basename "$(metadata instance/zone)")}"
+VM_ZONE="${VM_ZONE:-asia-south1-c}"
 BUCKET="${EKBILL_BACKUP_BUCKET:-${PROJECT}-ekbill-backups}"
 STATE_DIR="$REPO_DIR/deploy/vm/state"
 
@@ -40,9 +47,7 @@ container_of() {
 }
 
 external_ip() {
-  curl -fsS -H 'Metadata-Flavor: Google' \
-    'http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip' \
-    2>/dev/null || true
+  metadata instance/network-interfaces/0/access-configs/0/external-ip
 }
 
 # The HTTPS name: EKBILL_DOMAIN if set, else deploy/vm/domain if present, else <ip-with-dashes>.sslip.io.
