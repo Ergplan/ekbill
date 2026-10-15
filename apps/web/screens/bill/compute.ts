@@ -1,7 +1,8 @@
 import {
-  RuleError,
   checkGstin,
+  RuleError,
   computeTax,
+  emptyTax,
   parseMoney,
   parseQuantity,
   selectableRates,
@@ -41,25 +42,10 @@ export interface BusinessForBill {
   gstin: string | null;
   address: string | null;
 }
-export type Computed = TaxResult & { overflow: boolean; noRule: boolean };
-
-/** Nothing computed: the pack has no rule for the bill's date (I5). No value, no tax, no document kind to print. */
-function nothing(): TaxResult {
-  return {
-    lines: [],
-    subtotalPaise: 0,
-    cgstPaise: 0,
-    statePaise: 0,
-    stateHead: 'SGST',
-    igstPaise: 0,
-    gstPaise: 0,
-    totalPaise: 0,
-    supply: 'intra',
-    heads: [],
-    documentKind: 'invoice',
-    rulesApplied: [],
-  };
-}
+export type Computed = TaxResult & {
+  overflow: boolean;
+  /** The pack has no rule for the bill's date: nothing is taxed until the date is fixed. */ noRules: boolean;
+};
 
 function parseOr(f: () => number): number {
   try {
@@ -69,11 +55,7 @@ function parseOr(f: () => number): number {
   }
 }
 
-/**
- * The engine's result for the draft. An unparsable field counts as zero; a
- * product beyond the safe range marks `overflow` instead of throwing; a date
- * the rule pack does not cover marks `noRule` (the form shows a check).
- */
+/** The engine's result for the draft. An unparsable field counts as zero; a product beyond the safe range marks `overflow` instead of throwing. */
 export function compute(
   draft: Pick<BillDraft, 'lines' | 'gst' | 'customerState' | 'date'>,
   business: Pick<BusinessForBill, 'registration' | 'stateCode'>,
@@ -92,14 +74,13 @@ export function compute(
     customerStateCode: draft.customerState,
   };
   try {
-    return { ...computeTax(input), overflow: false, noRule: false };
+    return { ...computeTax(input), overflow: false, noRules: false };
   } catch (e) {
-    if (e instanceof RuleError) return { ...nothing(), overflow: false, noRule: true };
+    if (e instanceof RuleError) return { ...emptyTax(), overflow: false, noRules: true };
     try {
-      return { ...computeTax({ ...input, lines: [] }), overflow: true, noRule: false };
-    } catch (e2) {
-      if (e2 instanceof RuleError) return { ...nothing(), overflow: true, noRule: true };
-      throw e2;
+      return { ...computeTax({ ...input, lines: [] }), overflow: true, noRules: false };
+    } catch {
+      return { ...emptyTax(), overflow: true, noRules: true };
     }
   }
 }

@@ -21,6 +21,7 @@ export const manifest: ScreenManifest = {
   ],
   states: ['owner', 'staff', 'accountant', 'new', 'composition'],
   guides: ['kiska-bill', 'naya-customer', 'photo', 'search', 'sent', 'paise', 'remind', 'mic', 'first'],
+  optionalGuides: ['first', 'search'],
   tour: [
     { target: 'kiska-bill', say: 'Kiska bill banana hai? Naam pe tap karo.' },
     { target: 'photo', say: 'Kaccha bill hai? Photo lo, hum padh lenge.' },

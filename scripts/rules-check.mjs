@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // rules:check: the GST rule pack (I5) is versioned, sourced JSON. Every file
 // under packages/engine/rules/ must parse, carry version, effectiveFrom and
-// a source per entry, and no two files may claim the same version.
+// a source, a verification date and a verifier per entry (I5), at most three
+// entries unverified, and no two files may claim the same version.
 // Stage 0 ships the check; Stage 3 ships the first pack.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -46,8 +47,11 @@ for (const file of readdirSync(DIR)
       if (!entry.source) problems.push(`${file}: entry ${entry.id ?? i} has no source`);
       if (!entry.effectiveFrom) problems.push(`${file}: entry ${entry.id ?? i} has no effectiveFrom`);
       if (!('verified' in entry)) problems.push(`${file}: entry ${entry.id ?? i} has no verified flag`);
-      if (entry.verified && !entry.verifiedOn)
-        problems.push(`${file}: entry ${entry.id ?? i} is verified without a date`);
+      // I5: every entry carries the date of its last check and who made it, verified or not.
+      if (typeof entry.verifiedOn !== 'string' || Number.isNaN(Date.parse(entry.verifiedOn)))
+        problems.push(`${file}: entry ${entry.id ?? i} has no verification date (verifiedOn)`);
+      if (typeof entry.verifiedBy !== 'string' || !entry.verifiedBy.trim())
+        problems.push(`${file}: entry ${entry.id ?? i} has no verifier (verifiedBy)`);
       if (!entry.verified) unverified.push(`${file}: ${entry.id ?? i}`);
     });
   }

@@ -19,6 +19,7 @@ export const manifest: ScreenManifest = {
   ],
   states: ['due', 'partial', 'paid', 'cancelled', 'credit-note'],
   guides: ['amount', 'paid', 'remind', 'wa', 'download', 'paper', 'mistake', 'paid-sheet'],
+  optionalGuides: ['paid-sheet'],
   tour: [
     { target: 'amount', say: 'Itna baaki hai is bill pe.' },
     { target: 'paid', say: 'Paise aa gaye? Yahan likh lo: poore, ya kuch hissa.' },

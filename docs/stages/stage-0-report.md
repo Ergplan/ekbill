@@ -1,6 +1,6 @@
 # Stage 0 — Ground: report
 
-**Status: built and verified in the build container; deployed on EkBill's own VM on 15 Oct 2026.** This report describes Stage 0 as of its last commit (`69e14b7`, tag `stage-1-start`); no product feature and no screen flow were built in Stage 0. Stage 1's screens came after it, in the commits from `a50cb72`. The review of Stage 0 therefore runs on `stage-0-start..stage-1-start` (`npm run review:stage -- 0 --head stage-1-start`); the first run (`stage-0-review-1.md`) covered both stages' code and is superseded.
+**Status: built and verified in the build container; deployed on EkBill's own VM on 15 Oct 2026.** This report describes Stage 0 as of its last commit (`69e14b7`, tag `stage-1-start`); no product feature and no screen flow were built in Stage 0. Stage 1's screens came after it, in the commits from `a50cb72`. Stage 0's ground (scripts, deploy, the kit, the checks) keeps changing as later reviews find things, so its re-review reads those files as they are now: `npm run review:stage -- 0` diffs `stage-0-start..HEAD` limited to Stage 0's paths (`STAGE_PATHS` in `scripts/review-stage.mjs`); the first run (`stage-0-review-1.md`) covered both stages' code, the third (`stage-0-review-3.md`) the frozen first range, and both are superseded.
 
 ## What exists now
 
@@ -100,8 +100,10 @@ EkBill's own VM `ekbill` (asia-south1-c, project `teak-inquiry-511711-p2`), not 
 
 ## Independent review
 
-`stage-0-review-1.md` ran on `stage-0-start..225660e`, which includes Stage 1; its findings were fixed together with Stage 1's (see `stage-1-report.md`, "Independent review"), and the two that were Stage 0's own are: the engine's purity lint rules being overwritten by a later block (fixed in `eslint.config.mjs`) and `/api/health` carrying no request id (fixed: `apps/web/lib/log.ts`). The rerun on Stage 0's own range is `npm run review:stage -- 0 --head stage-1-start`.
+`stage-0-review-1.md` ran on `stage-0-start..225660e`, which includes Stage 1; its findings were fixed together with Stage 1's (see `stage-1-report.md`, "Independent review"), and the two that were Stage 0's own are: the engine's purity lint rules being overwritten by a later block (fixed in `eslint.config.mjs`) and `/api/health` carrying no request id (fixed: `apps/web/lib/log.ts`). The rerun on Stage 0's own files is `npm run review:stage -- 0`.
 
 ## Deferred by design (master prompt 4.3)
 
 Sign-in (`AUTH_MODE=switcher`), rate limits, OTP, CSP and the rest of 4.3 are listed in `docs/KNOWN-GAPS.md` with the stage that closes them. Nothing was added early.
+
+Round 4 (after the third review, which re-read the frozen first range): the worker has its own health probe (an alive file written every 30 s; the image's web probe no longer applies to it), `free-space.sh` lists first and removes only with `--apply`, font weights are tokens (`--eb-weight-*`, tokens 1.4.0) and `tokens:check` refuses a literal one, the system's dark setting selects Harmony explicitly before paint (the switch and the structural rules agree), `/kit` renders every exported component (the shell bar, ink/ghost/icon buttons, a field, a timeline, the file doors) and the desktop shell is baselined in both themes.

@@ -15,6 +15,7 @@ export const manifest: ScreenManifest = {
   ],
   states: ['default'],
   guides: ['members', 'invite', 'send'],
+  optionalGuides: ['send'],
   tour: [
     { target: 'members', say: 'Kaun kya kar sakta hai: malik sab, staff bills, CA sirf dekhna.' },
     { target: 'invite', say: 'Phone number aur role; invite WhatsApp pe jaata hai.' },

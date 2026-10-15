@@ -12,6 +12,7 @@ export const manifest: ScreenManifest = {
   ],
   states: ['phone', 'code'],
   guides: ['phone', 'next', 'code'],
+  optionalGuides: ['code'],
   tour: [
     { target: 'phone', say: 'Apna phone number likho. Isi se login hota hai.' },
     { target: 'next', say: 'Aage dabao, SMS se code aayega.' },

@@ -250,6 +250,7 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
               numeric
             />
           </div>
+          {c.noRules ? <Meta>{t('bill.check.date')}</Meta> : null}
           <MakeBar guide="make" label={t('bill.make')} paise={c.totalPaise} disabled={!c.totalPaise} onClick={make} />
           <div className="eb-actions">
             <GhostButton onClick={() => router.push(as('/bills/photo?state=unclear'))}>

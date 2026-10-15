@@ -4,11 +4,8 @@ import { FIXTURE } from '../fixtures';
 import { billsOf, customerOf } from '../common';
 import type { Viewer } from '../viewer';
 
-/** The workings of one period (a quarter or one month). */
-export interface GstWorkings {
-  label: string;
-  from: string;
-  to: string;
+export interface GstData {
+  period: { label: string; mode: 'month' | 'quarter' };
   bills: number;
   taxablePaise: number;
   gstPaise: number;
@@ -16,38 +13,27 @@ export interface GstWorkings {
   b2b: Array<{ number: string; name: string; gstin: string; totalPaise: number; gstPaise: number }>;
   b2cBills: number;
 }
-export interface GstData {
-  /** The period the screen opens on. */
-  mode: 'month' | 'quarter';
-  quarter: GstWorkings;
-  /** The quarter's last month, for the "Mahina" switch. */
-  month: GstWorkings;
-}
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /**
- * The period's workings, computed by the engine over the period's bills
+ * The quarter's workings, computed by the engine over the period's bills
  * (I4): the fixture carries only the period label. Cancelled bills are
  * left out; a bill without a tax-invoice kind contributes no tax.
  */
-export function loadGst(viewer: Viewer): GstData | null {
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+export function loadGst(viewer: Viewer, opts: { period?: string | null } = {}): GstData | null {
   const b = viewer.business;
   if (!b || b.registration !== 'regular') return null;
-  const q = FIXTURE.gstQuarter;
-  const monthFrom = `${q.to.slice(0, 7)}-01`;
-  const monthLabel = `${MONTHS[Number(q.to.slice(5, 7)) - 1] ?? ''} ${q.to.slice(0, 4)}`;
-  return {
-    mode: 'quarter',
-    quarter: workings(viewer, q.label, q.from, q.to),
-    month: workings(viewer, monthLabel, monthFrom, q.to),
+  const quarter = FIXTURE.gstQuarter;
+  // "Mahina": the quarter's last month; "Quarter": the fixture's quarter. Stage 8 offers every period with bills.
+  const month = {
+    label: `${MONTHS[Number(quarter.to.slice(5, 7)) - 1]} ${quarter.to.slice(0, 4)}`,
+    from: `${quarter.to.slice(0, 8)}01`,
+    to: quarter.to,
   };
-}
-
-function workings(viewer: Viewer, label: string, from: string, to: string): GstWorkings {
-  const b = viewer.business!;
+  const q = opts.period === 'month' ? { ...month, mode: 'month' as const } : { ...quarter, mode: 'quarter' as const };
   const bills = billsOf(b)
-    .filter((x) => x.status !== 'cancelled' && x.date >= from && x.date <= to)
+    .filter((x) => x.status !== 'cancelled' && x.date >= q.from && x.date <= q.to)
     .map((bill) => {
       const customer = customerOf(b, bill.customer);
       const tax = computeTax({
@@ -65,7 +51,7 @@ function workings(viewer: Viewer, label: string, from: string, to: string): GstW
       });
       return { bill, customer, tax };
     });
-  const byRate = new Map<number, GstWorkings['byRate'][number]>();
+  const byRate = new Map<number, GstData['byRate'][number]>();
   for (const { tax } of bills) {
     for (const l of tax.lines) {
       if (l.blank || !l.gstBp) continue;
@@ -88,9 +74,7 @@ function workings(viewer: Viewer, label: string, from: string, to: string): GstW
       gstPaise: p.tax.gstPaise,
     }));
   return {
-    label,
-    from,
-    to,
+    period: { label: q.label, mode: q.mode },
     bills: bills.length,
     taxablePaise: bills.reduce((a, p) => a + p.tax.subtotalPaise, 0),
     gstPaise: bills.reduce((a, p) => a + p.tax.gstPaise, 0),

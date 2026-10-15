@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { computeTax } from '../../packages/engine/src/index';
+
 import { businessFromSetup, compute, ratesFor } from '../../apps/web/screens/bill/compute';
 import { billOf, customerOf } from '../../apps/web/screens/common';
 import { FIXTURE } from '../../apps/web/screens/fixtures';
@@ -75,6 +77,15 @@ describe('the bill form reads the engine (I4)', () => {
     expect(c.totalPaise).toBe(0);
     expect(Number.isNaN(c.totalPaise)).toBe(false);
   });
+  it('says when the pack has no rule for the date instead of crashing (a 2016 photo date)', () => {
+    const c = compute(
+      { lines: [{ what: 'A', qty: '1', rate: '100' }], gst, customerState: '27', date: '2016-01-01' },
+      sharma,
+    );
+    expect(c.noRules).toBe(true);
+    expect(c.totalPaise).toBe(0);
+    expect(c.heads).toEqual([]);
+  });
   it('marks an overflow instead of crashing the form', () => {
     const c = compute(
       { lines: [{ what: 'A', qty: '100000000', rate: '100000000' }], gst, customerState: '27', date },
@@ -82,15 +93,6 @@ describe('the bill form reads the engine (I4)', () => {
     );
     expect(c.overflow).toBe(true);
     expect(c.totalPaise).toBe(0);
-  });
-  it('marks a date the rule pack does not cover as a check, not a crash (I5)', () => {
-    const c = compute(
-      { lines: [{ what: 'A', qty: '1', rate: '100' }], gst, customerState: '27', date: '2016-01-01' },
-      sharma,
-    );
-    expect(c.noRule).toBe(true);
-    expect(c.totalPaise).toBe(0);
-    expect(c.heads).toEqual([]);
   });
   it('offers the rule pack’s rates for the bill’s date (I5)', () => {
     expect(ratesFor('2026-10-15')).toEqual([0, 5, 18, 40]);
@@ -139,7 +141,7 @@ describe('every consumer reads the same engine result (I4)', () => {
     expect(paper.taxLines).toEqual(form.heads);
     expect(form.heads.map((h) => h.label)).toEqual(['IGST 18%']);
     const owner = FIXTURE.people.find((p) => p.business === 'sharma' && p.role === 'owner')!;
-    const gst = loadGst({ person: owner, business: sharmaBiz, role: 'owner', as: null })!.quarter;
+    const gst = loadGst({ person: owner, business: sharmaBiz, role: 'owner', as: null })!;
     const row = gst.b2b.find((r) => r.number === bill.number)!;
     expect(row.totalPaise).toBe(form.totalPaise);
     expect(row.gstPaise).toBe(form.gstPaise);
@@ -147,16 +149,31 @@ describe('every consumer reads the same engine result (I4)', () => {
     expect(gst.taxablePaise).toBe(gst.byRate.reduce((a, r) => a + r.taxablePaise, 0));
     expect(gst.gstPaise).toBe(gst.byRate.reduce((a, r) => a + r.cgstPaise + r.sgstPaise + r.igstPaise, 0));
   });
-  it('the GST screen’s month is the quarter’s last month, computed on its own', () => {
-    const sharmaBiz = FIXTURE.businesses.find((b) => b.id === 'sharma')!;
-    const owner = FIXTURE.people.find((p) => p.business === 'sharma' && p.role === 'owner')!;
-    const gstData = loadGst({ person: owner, business: sharmaBiz, role: 'owner', as: null })!;
-    expect(gstData.mode).toBe('quarter');
-    expect(gstData.month.from).toBe(`${gstData.quarter.to.slice(0, 7)}-01`);
-    expect(gstData.month.to).toBe(gstData.quarter.to);
-    expect(gstData.month.label).not.toBe(gstData.quarter.label);
-    expect(gstData.month.bills).toBeLessThanOrEqual(gstData.quarter.bills);
-    expect(gstData.month.taxablePaise).toBeLessThanOrEqual(gstData.quarter.taxablePaise);
-    expect(gstData.month.taxablePaise).toBe(gstData.month.byRate.reduce((a, r) => a + r.taxablePaise, 0));
+  it('every fixture bill was computed by the engine (no second tax calculation in the generator)', () => {
+    for (const b of FIXTURE.businesses) {
+      for (const bill of FIXTURE.bills.filter((x) => x.business === b.id)) {
+        const customer = customerOf(b, bill.customer);
+        const tax = computeTax({
+          lines: bill.lines.map((l) => ({
+            description: l.what,
+            quantityMilli: Math.round(l.qty * 1000),
+            unitPricePaise: l.ratePaise,
+            gstBp: (l.gstRate ?? 0) * 100,
+          })),
+          registration: b.registration,
+          gstOn: bill.kind === 'tax-invoice',
+          dateIso: bill.date,
+          sellerStateCode: b.stateCode,
+          customerStateCode: customer?.stateCode ?? null,
+        });
+        expect([bill.number, bill.subtotalPaise, bill.gstPaise, bill.totalPaise, bill.kind]).toEqual([
+          bill.number,
+          tax.subtotalPaise,
+          tax.gstPaise,
+          tax.totalPaise,
+          tax.documentKind,
+        ]);
+      }
+    }
   });
 });

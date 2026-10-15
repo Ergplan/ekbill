@@ -3,7 +3,11 @@ export const ROOT: string;
 export const CHECKLIST: string;
 export function loadEnv(root?: string): Record<string, string | undefined>;
 export function stagePrompt(markdown: string, stage: number): string;
-export function stageDiff(stage: number, options?: { root?: string; base?: string; head?: string }): string;
+export const STAGE_PATHS: Record<number, string[]>;
+export function stageDiff(
+  stage: number,
+  options?: { root?: string; base?: string; head?: string; paths?: string[] },
+): string;
 export function buildReviewPrompt(inputs: {
   stage: number;
   diff: string;

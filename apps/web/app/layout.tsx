@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var m=document.cookie.match(/(?:^|; )eb-theme=(narangi|harmony)/);if(m)document.documentElement.setAttribute('data-theme',m[1]);}catch(e){}})();",
+              "(function(){try{var m=document.cookie.match(/(?:^|; )eb-theme=(narangi|harmony)/);var t=m?m[1]:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'harmony':'narangi');document.documentElement.setAttribute('data-theme',t);}catch(e){}})();",
           }}
         />
       </head>

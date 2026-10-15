@@ -1,3 +1,5 @@
+import { writeFileSync } from 'node:fs';
+
 import { PgBoss } from 'pg-boss';
 import pino from 'pino';
 
@@ -7,6 +9,7 @@ import pino from 'pino';
  * register the real handlers (read-bill, render-other-sizes, index-search,
  * reminders-due, backup-check).
  */
+const ALIVE_FILE = process.env.WORKER_ALIVE_FILE ?? '/tmp/ekbill-worker-alive';
 const log = pino({ name: 'ekbill-worker', level: process.env.LOG_LEVEL ?? 'info' });
 
 async function main() {
@@ -15,6 +18,16 @@ async function main() {
   const boss = new PgBoss({ connectionString: url, schema: 'pgboss' });
   boss.on('error', (error: unknown) => log.error({ err: error }, 'queue error'));
   await boss.start();
+  // The container's health check (docker-compose.yml) reads this file's age: written every 30 s while the queue runs.
+  const alive = () => {
+    try {
+      writeFileSync(ALIVE_FILE, String(Date.now()));
+    } catch (error) {
+      log.warn({ err: error }, 'could not write the alive file');
+    }
+  };
+  alive();
+  const ticker = setInterval(alive, 30_000);
   await boss.createQueue('heartbeat');
   await boss.work('heartbeat', async () => {
     log.info('heartbeat');
@@ -23,6 +36,7 @@ async function main() {
   log.info('worker started');
   const stop = async () => {
     log.info('worker stopping');
+    clearInterval(ticker);
     await boss.stop({ graceful: true, timeout: 10_000 });
     process.exit(0);
   };

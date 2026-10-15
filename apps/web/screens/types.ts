@@ -1,6 +1,12 @@
 import type { GuideStep } from '@ekbill/ui';
 
 export type Role = 'owner' | 'staff' | 'accountant';
+
+/** Guide ids the shell itself renders on every screen (the back button, the mic), so no manifest declares them. */
+export const SHELL_GUIDES = ['back', 'mic'] as const;
+
+/** Screen folders that are not product screens: the operator's /flow review page has no manifest by design. */
+export const NON_PRODUCT_SCREENS = ['flow'] as const;
 export type Registration = 'regular' | 'composition' | 'unregistered' | 'unknown';
 
 /** One tap the owner can make on a screen, and where it lands (a route pattern). */
@@ -35,6 +41,8 @@ export interface ScreenManifest {
   tour: GuideStep[];
   /** What each role sees, in one line each. */
   roles: Record<Role, string>;
+  /** Guide ids that exist only in another state of the screen (absent from the default state's DOM). */
+  optionalGuides?: string[];
   /** data-guide ids that must be absent for a role (8.3). */
   hidden?: Partial<Record<Role, string[]>>;
   /** Reference screen in design/screens/<theme>/, when the pack has one. */

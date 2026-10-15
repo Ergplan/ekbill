@@ -6,7 +6,15 @@
  */
 export const ENGINE_VERSION = '2.0.0-stage1';
 
-export { computeTax, type Registration, type TaxInput, type TaxLine, type TaxLineInput, type TaxResult } from './tax';
+export {
+  computeTax,
+  emptyTax,
+  type Registration,
+  type TaxInput,
+  type TaxLine,
+  type TaxLineInput,
+  type TaxResult,
+} from './tax';
 export {
   GST_RULES,
   RuleError,

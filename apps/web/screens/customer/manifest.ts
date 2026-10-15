@@ -14,7 +14,7 @@ export const manifest: ScreenManifest = {
     { label: 'Peeche', to: '/customers', guide: 'back' },
   ],
   states: ['default'],
-  guides: ['folder', 'timeline', 'remind', 'details', 'bill'],
+  guides: ['folder', 'timeline', 'details', 'bill', 'remind'],
   tour: [
     { target: 'folder', say: 'Is saal kitna bill hua, kitna baaki: ek nazar mein.' },
     { target: 'timeline', say: 'Har bill yahan, naya sabse upar. WhatsApp pe gaya ya padha, dikhta hai.' },

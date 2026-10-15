@@ -17,6 +17,7 @@ export const manifest: ScreenManifest = {
   ],
   states: ['existing', 'new-customer', 'first', 'composition', 'check-fail'],
   guides: ['customer', 'repeat', 'line-0', 'add', 'gst', 'checks', 'total', 'make'],
+  optionalGuides: ['customer', 'checks'],
   tour: [
     { target: 'repeat', say: 'Pichli baar jaisa hi? Haan dabao, sab bhar jaayega.' },
     { target: 'line-0', say: 'Kya kiya, kitna, rate. Rakam khud ban jaati hai.' },

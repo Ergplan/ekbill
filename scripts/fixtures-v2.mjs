@@ -1,5 +1,9 @@
 // Generates tests/fixtures/v2.json for the Stage 1 prototype. Money in paise, dates ISO.
+// Every bill's tax and total come from the engine (I4): run with
+//   npm run fixtures:build        (node --import tsx, so the TypeScript engine loads)
 import { writeFileSync } from 'node:fs';
+
+import { computeTax } from '../packages/engine/src/index.ts';
 const ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 function gstin(state, pan) {
   const first14 = `${state}${pan}1Z`;
@@ -176,9 +180,25 @@ function bill({
   creditNote,
   waStatus = 'read',
 }) {
-  const subtotal = lines.reduce((s, l) => s + Math.round(l.qty * l.ratePaise), 0);
-  const gstPaise = gst ? lines.reduce((s, l) => s + Math.round((l.qty * l.ratePaise * (l.gstRate ?? 0)) / 100), 0) : 0;
-  const total = subtotal + gstPaise;
+  // The one tax calculation (I4): the engine, with the bill's date and both state codes.
+  const biz = businesses.find((b) => b.id === business);
+  const cust = customers.find((c) => c.id === customer);
+  const tax = computeTax({
+    lines: lines.map((l) => ({
+      description: l.what,
+      quantityMilli: Math.round(l.qty * 1000),
+      unitPricePaise: l.ratePaise,
+      gstBp: (l.gstRate ?? 0) * 100,
+    })),
+    registration: biz.registration,
+    gstOn: gst,
+    dateIso: date,
+    sellerStateCode: biz.stateCode,
+    customerStateCode: cust?.stateCode ?? null,
+  });
+  const subtotal = tax.subtotalPaise;
+  const gstPaise = tax.gstPaise;
+  const total = tax.totalPaise;
   const paid = status === 'paid' ? total : (paidPaise ?? 0);
   seq += 1;
   bills.push({
@@ -188,7 +208,7 @@ function bill({
     number,
     customer,
     date,
-    lines: lines.map((l) => ({ ...l, amountPaise: Math.round(l.qty * l.ratePaise) })),
+    lines: lines.map((l, i) => ({ ...l, amountPaise: tax.lines[i].taxablePaise })),
     subtotalPaise: subtotal,
     gstPaise,
     totalPaise: total,
@@ -200,7 +220,7 @@ function bill({
     cancelledReason: cancelledReason ?? null,
     creditNote: creditNote ?? null,
     waStatus,
-    kind: gst ? 'tax-invoice' : 'bill-of-supply',
+    kind: tax.documentKind,
   });
 }
 const L = (what, qty, ratePaise, gstRate = 18) => ({ what, qty, ratePaise, gstRate });

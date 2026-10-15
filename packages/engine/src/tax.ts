@@ -125,3 +125,21 @@ export function computeTax(input: TaxInput): TaxResult {
     rulesApplied: [place.ruleId, kindRule.ruleId],
   };
 }
+
+/** The result of nothing: what a form shows while the pack has no rule for the date (no tax, no heads, no rules). */
+export function emptyTax(): TaxResult {
+  return {
+    lines: [],
+    subtotalPaise: 0,
+    cgstPaise: 0,
+    statePaise: 0,
+    stateHead: 'SGST',
+    igstPaise: 0,
+    gstPaise: 0,
+    totalPaise: 0,
+    supply: 'intra',
+    heads: [],
+    documentKind: 'invoice',
+    rulesApplied: [],
+  };
+}

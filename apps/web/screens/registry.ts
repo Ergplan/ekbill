@@ -86,6 +86,7 @@ export const SAMPLE_URL: Record<string, string> = {
 /** Extra states worth a screenshot, beyond the default: id → ?state values with their URLs. */
 export const STATE_URLS: Array<{ screen: string; state: string; url: string; as?: string }> = [
   { screen: 'login', state: 'code', url: '/login?state=code' },
+  { screen: 'gst', state: 'month', url: '/gst?period=month' },
   { screen: 'setup', state: 'gst', url: '/setup/gst' },
   { screen: 'setup', state: 'gstin', url: '/setup/gstin' },
   { screen: 'setup', state: 'review', url: '/setup/review' },

@@ -69,7 +69,7 @@ export function RemindScreen({ data, viewer }: { data: RemindData; viewer: Shell
       <div className="eb-sticky eb-sticky--bare" data-guide="open">
         <WhatsAppButton
           onClick={() => {
-            void handoffToWhatsApp({ text, title: data.fileName }).then((r) => {
+            void handoffToWhatsApp({ text, title: data.fileName, phone: data.contact }).then((r) => {
               if (r !== 'cancelled') setOpened(true);
             });
           }}

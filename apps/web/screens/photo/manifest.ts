@@ -16,6 +16,7 @@ export const manifest: ScreenManifest = {
   ],
   states: ['pick', 'reading', 'review', 'unclear', 'notfound'],
   guides: ['camera', 'gallery', 'reading', 'photo', 'fields', 'make', 'retake', 'write'],
+  optionalGuides: ['camera', 'gallery', 'reading', 'retake', 'write'],
   tour: [
     { target: 'photo', say: 'Yeh aapki photo. Neeche jo padha, woh.' },
     { target: 'fields', say: 'Halka rang pakka hai; gehra rang ek baar dekh lo. Tap karke sudharo.' },

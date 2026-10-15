@@ -99,7 +99,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
     });
   }
   if (c.overflow) checks.push({ id: 'overflow', text: t('bill.check.overflow') });
-  if (c.noRule) checks.push({ id: 'norule', text: t('bill.check.norule', { date: d.date }) });
+  if (c.noRules) checks.push({ id: 'date', text: t('bill.check.date') });
   const linesOk = c.lines.some((l) => !l.blank && l.taxablePaise > 0);
   const canMake = linesOk && checks.length === 0 && (data.mode === 'existing' || d.customerName.trim().length > 0);
 
@@ -119,7 +119,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
             id: null,
             name: d.customerName.trim(),
             gstin: newGst?.ok ? newGst.normalised : null,
-            phone: data.mode === 'new-customer' ? (newCustomer?.phone ?? null) : null,
+            phone: newCustomer?.phone.trim() || null,
           }
         : null);
     writeDraft(`${viewer.personId}:issued`, { draft: d, computed: c, business, customer });

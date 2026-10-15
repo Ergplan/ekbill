@@ -61,16 +61,24 @@
     "en": "Continue"
   },
   "home.greeting": {
-    "hi-Latn": "Namaste, {name}",
-    "en": "Hello, {name}"
+    "hi-Latn": "Namaste, ",
+    "en": "Hello, "
   },
   "home.bill.title": {
-    "hi-Latn": "Chalo, bill banate hain",
-    "en": "Let's make a bill"
+    "hi-Latn": "Chalo,",
+    "en": "Come,"
   },
   "home.bill.sub": {
     "hi-Latn": "Kiska bill? Naam pe tap karo.",
     "en": "Who is it for? Tap a name."
+  },
+  "home.bill.eyebrow": {
+    "hi-Latn": "01 / Kiska bill",
+    "en": "01 / Whose bill"
+  },
+  "home.bill.emphasis": {
+    "hi-Latn": "bill banate hain",
+    "en": "let us make a bill"
   },
   "home.bill.new": {
     "hi-Latn": "Naya customer",
@@ -87,6 +95,10 @@
   "home.sent.count": {
     "hi-Latn": "bills gaye is mahine",
     "en": "bills sent this month"
+  },
+  "home.sent.weeks": {
+    "hi-Latn": "8 hafte",
+    "en": "8 weeks"
   },
   "home.sent.delta": {
     "hi-Latn": "+{n} pichle mahine se",
@@ -488,6 +500,10 @@
   "home.first.sub": {
     "hi-Latn": "Customer ka naam, kaam, rakam. Bas.",
     "en": "Customer, work, amount. That is all."
+  },
+  "home.first.eyebrow": {
+    "hi-Latn": "01 / Pehla bill",
+    "en": "01 / First bill"
   },
   "home.first.cta": {
     "hi-Latn": "Pehla bill banao",
@@ -941,6 +957,14 @@
     "hi-Latn": "Customer ka state chuno",
     "en": "Pick the customer's state"
   },
+  "bill.check.state.other.sub": {
+    "hi-Latn": "IGST lagega",
+    "en": "IGST applies"
+  },
+  "bill.check.date": {
+    "hi-Latn": "Is date ke GST niyam hamare paas nahi hain — 1 July 2017 ke baad ki date chuno",
+    "en": "We have no GST rules for this date — pick a date from 1 July 2017 on"
+  },
   "bill.check.state.fix": {
     "hi-Latn": "Chuno",
     "en": "Pick"
@@ -1046,8 +1070,8 @@
     "en": "Paid in full"
   },
   "view.paid.on": {
-    "hi-Latn": "{date} ko · {method}",
-    "en": "on {date} · {method}"
+    "hi-Latn": "{date} ko",
+    "en": "on {date}"
   },
   "view.cancelled": {
     "hi-Latn": "Cancel ho gaya · {reason}",
@@ -1500,6 +1524,10 @@
   "gst.period.quarter": {
     "hi-Latn": "Quarter (QRMP)",
     "en": "Quarter (QRMP)"
+  },
+  "gst.sub.month": {
+    "hi-Latn": "{month} ka hisaab",
+    "en": "The month {month}"
   },
   "gst.tile.bills": {
     "hi-Latn": "Bills",

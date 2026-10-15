@@ -34,7 +34,7 @@ for (const theme of THEMES) {
       const present = await page.evaluate(() =>
         Array.from(document.querySelectorAll('[data-guide]')).map((e) => e.getAttribute('data-guide')),
       );
-      const missing = s.guides.filter((g) => !present.includes(g) && !OPTIONAL_GUIDES[s.id]?.includes(g));
+      const missing = s.guides.filter((g) => !present.includes(g) && !s.optionalGuides?.includes(g));
       expect(missing, `${s.id}: guide ids not in the DOM`).toEqual([]);
       // Every tap label is on the screen as a button, link or chip (or lives in a sheet that opens on a tap).
       // What the owner can read or a screen reader can announce: the text plus the aria-labels of icon-only buttons.
@@ -58,7 +58,6 @@ for (const theme of THEMES) {
       await expect(page).toHaveScreenshot(`${s.id}-${theme}.png`, {
         fullPage: true,
         animations: 'disabled',
-        mask: [page.locator('.eb-tabbar')],
       });
       const snapshot = info.snapshotPath(`${s.id}-${theme}.png`);
       if (existsSync(snapshot)) {
@@ -78,7 +77,6 @@ for (const theme of THEMES) {
       await expect(page).toHaveScreenshot(`${st.screen}--${st.state}-${theme}.png`, {
         fullPage: true,
         animations: 'disabled',
-        mask: [page.locator('.eb-tabbar')],
       });
     });
   }
@@ -121,19 +119,6 @@ test('the tour lights up each guide id in turn (rule 17)', async ({ page }) => {
   await expect(page.locator('.eb-guide__caption')).toContainText('Kaccha bill');
 });
 
-/** Guide ids that exist only in another state of the same screen. */
-const OPTIONAL_GUIDES: Record<string, string[]> = {
-  home: ['first', 'search'],
-  setup: ['skip', 'go', 'more'],
-  login: ['code'],
-  bill: ['customer', 'checks'],
-  'bill-view': ['paid-sheet'],
-  photo: ['camera', 'gallery', 'reading', 'retake', 'write'],
-  import: ['pick', 'files', 'reading', 'add'],
-  team: ['send'],
-  ask: ['go'],
-  remind: [],
-};
 /** Tap labels that live inside a sheet or another state, so they are not in the default DOM text. */
 const SHEET_LABELS: Record<string, string[]> = {
   'bill-view': ['Poore', 'Kuch hissa', 'Cancel karke naya banao', 'Rakam kam karo'],

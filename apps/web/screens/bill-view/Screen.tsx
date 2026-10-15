@@ -61,7 +61,7 @@ export function BillViewScreen({
   const last = recorded[recorded.length - 1] ?? null;
 
   const record = (paise: number) => {
-    setRecorded((cur) => [...cur, { paise, method, date: date || TODAY }]);
+    setRecorded((cur) => [...cur, { paise, method, date }]);
     setAmount('');
     setPaidOpen(false);
     setMode(null);
@@ -97,11 +97,8 @@ export function BillViewScreen({
           ) : null}
           {last ? (
             <Meta>
-              {t('view.paid.saved', {
-                amount: rupees(recordedPaise),
-                method: t(`view.paid.${last.method}`),
-                date: shortDate(last.date),
-              })}
+              {t('view.paid.saved', { amount: rupees(recordedPaise), method: t(`view.paid.${last.method}`) })} ·{' '}
+              {t('view.paid.on', { date: shortDate(last.date) })}
             </Meta>
           ) : null}
           {bill.waStatus ? <Meta>{bill.waStatus === 'read' ? t('view.wa.read') : t('view.wa.sent')}</Meta> : null}

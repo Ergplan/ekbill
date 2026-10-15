@@ -17,6 +17,7 @@ const PATTERNS = [
   ['literal shadow', /box-shadow:(?!\s*(var\(|none\b|inset(\s+-?[\d.]+(px)?){2,4}\s+(var\(|color-mix\()))/],
   ['font-family', /font-family:/],
   ['px type size', /font-size:\s*\d/],
+  ['literal font weight', /font-weight:\s*\d/],
 ];
 const SKIP_DIR = /(^|\/)(node_modules|\.next|dist|coverage|public)(\/|$)/;
 

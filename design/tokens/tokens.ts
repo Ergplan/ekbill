@@ -33,6 +33,13 @@ export const shared = {
     "nav": "60px",
     "avatar": "38px"
   },
+  "weight": {
+    "light": "300",
+    "regular": "400",
+    "medium": "500",
+    "semibold": "600",
+    "bold": "700"
+  },
   "type": {
     "display": {
       "size": "36px",

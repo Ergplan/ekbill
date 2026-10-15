@@ -14,6 +14,7 @@ export const manifest: ScreenManifest = {
   ],
   states: ['empty', 'answered'],
   guides: ['question', 'examples', 'go', 'answer', 'sources', 'more'],
+  optionalGuides: ['go'],
   tour: [
     { target: 'question', say: 'Apne bills ke baare mein kuch bhi poocho.' },
     { target: 'sources', say: 'Jawab ke saath woh bills jinse pata chala.' },

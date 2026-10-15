@@ -282,3 +282,30 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Options: a custom in-app gallery or folder browser (needs broad permissions the stores and browsers frown on); upload every file to the server on pick.
 - Why: the operator asked for camera, photo-library and files access on phones and laptops after the customer's permission. The OS pickers are what the person already knows, carry the permission prompt themselves, and need no broad storage permission. Nothing leaves the device in Stage 1; Stage 7 sends the picked photo to the model and Stage 9 the import files.
 - Asked by: the operator, 15 Oct 2026.
+
+## 2026-10-15 — after the third independent reviews
+
+### A Stage 0 re-review reads Stage 0's files as they are now
+
+- Decision: `npm run review:stage -- 0` diffs `stage-0-start..HEAD` limited to Stage 0's paths (`STAGE_PATHS` in `scripts/review-stage.mjs`); `--base`/`--head` still review any range whole.
+- Options: keep reviewing the frozen first range (`--head stage-1-start`).
+- Why: the third Stage 0 review repeated findings already fixed after `stage-1-start`, because the ground keeps changing as later reviews find things. A review that can never go clean is not a gate.
+- Asked by: the build agent (rule 12).
+
+### The rule pack decides, the engine reads
+
+- Decision: a place-of-supply entry carries a `decide` table (`sameState`, `otherState`, `unknownState`); the engine applies it and throws on an entry without one. Every entry carries `verifiedOn` and `verifiedBy` (the date and author of the last check, verified or not); `rules:check` refuses one without, and at most 3 may be `verified: false`.
+- Why: I5 says rules are data; a rule whose value the code never reads is not data. I5 also names a verification date on every entry.
+- Asked by: the Stage 1 review, round 3.
+
+### Fixtures are generated through the engine
+
+- Decision: `scripts/fixtures-v2.mjs` imports `computeTax` (run as `npm run fixtures:build`, which loads the TypeScript engine with tsx); a unit test holds all 20 fixture bills to the engine.
+- Why: I4 allows one tax calculation; the generator's own rounding was a second one.
+- Asked by: the Stage 1 review, round 3.
+
+### The tab bar is in the baselines
+
+- Decision: the screen baselines no longer mask `.eb-tabbar`.
+- Why: I10 approves the whole screen; a masked bar is not protected.
+- Asked by: the Stage 1 review, round 3.

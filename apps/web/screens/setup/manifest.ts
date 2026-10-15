@@ -19,6 +19,7 @@ export const manifest: ScreenManifest = {
   ],
   states: [...SETUP_STEPS],
   guides: ['hello', 'answer', 'next', 'skip', 'go', 'more'],
+  optionalGuides: ['skip', 'go', 'more'],
   tour: [
     { target: 'hello', say: 'Namaste ji! Hum pehli baar mil rahe hain, to apne baare mein thoda bataiye.' },
     { target: 'answer', say: 'Yahan jawab likho ya chuno. Ek baar mein ek hi sawaal.' },

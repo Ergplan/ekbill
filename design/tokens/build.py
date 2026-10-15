@@ -44,6 +44,7 @@ shared = {}
 flat("--eb-radius", T["shared"]["radius"], shared)
 flat("--eb-space", T["shared"]["space"], shared)
 flat("--eb-size", T["shared"]["size"], shared)
+flat("--eb-weight", T["shared"]["weight"], shared)
 flat("--eb", T["shared"]["semantic-fixed"], shared)
 shared["--eb-font"] = T["meta"]["fontFamily"]
 for k, spec in T["shared"]["type"].items():

@@ -5,17 +5,14 @@ import { paperOfBill } from '../paper';
 import type { Viewer } from '../viewer';
 
 export interface BillDoneData {
-  /** The paper the screen shows until the issued draft arrives from sessionStorage (and for screenshots). */
+  /** The paper the screen shows until the issued draft (sessionStorage) replaces it; blank for a brand-new owner. */
   fallback: PaperData;
   share: 'pdf' | 'jpg';
 }
 
-/**
- * The done screen renders the issued draft from sessionStorage; the newest
- * fixture bill is the fallback for screenshots. A brand-new owner has no
- * fixture bill: the issued draft is all there is, and the fallback stays blank.
- */
-export function loadBillDone(viewer: Viewer): BillDoneData {
+/** The done screen's data: the newest fixture bill as the fallback paper, the business's share format. */
+export function loadBillDone(viewer: Viewer): BillDoneData | null {
+  if (viewer.role === 'accountant') return null;
   const b = viewer.business;
   if (!b) {
     return {
@@ -31,6 +28,7 @@ export function loadBillDone(viewer: Viewer): BillDoneData {
       share: 'pdf',
     };
   }
-  const bill = billsOf(b).find((x) => x.status !== 'cancelled')!;
+  const bill = billsOf(b).find((x) => x.status !== 'cancelled');
+  if (!bill) return null;
   return { fallback: paperOfBill(b, bill, customerOf(b, bill.customer)), share: b.look.share };
 }

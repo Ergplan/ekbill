@@ -1,12 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { t } from '@ekbill/copy';
 import {
   AccentButton,
   AddLineButton,
   AttachmentRow,
+  Avatar,
+  CameraSheet,
+  Field,
+  FileDoor,
+  GhostButton,
+  IconButton,
+  InkButton,
+  Input,
+  Money,
+  Segmented,
+  TimelineEntry,
+  TopBar,
   CheckStrip,
   ChoiceList,
   EmptyState,
@@ -31,6 +43,8 @@ import {
   TabBar,
   ToneSegmented,
   TotalCard,
+  hasLiveCamera,
+  hasOsCamera,
   useTour,
   type GuideStep,
   type LineValue,
@@ -48,6 +62,10 @@ const TOUR: GuideStep[] = [
 const paise = (s: string) => Math.round((Number.parseFloat(s.replace(/,/g, '')) || 0) * 100);
 
 export function KitInteractive({ customerName }: { customerName: string }) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [seg, setSeg] = useState<'upi' | 'cash'>('upi');
+  const door = useRef<HTMLInputElement>(null);
   const [lines, setLines] = useState<LineValue[]>([
     { what: 'AMC visit — September', qty: '1', rate: '3500' },
     { what: 'Ceiling fan install', qty: '2', rate: '1350' },
@@ -177,6 +195,71 @@ export function KitInteractive({ customerName }: { customerName: string }) {
       </Stack>
 
       <SignaturePad onChange={setSigned} clearLabel="Phir se" hint={signed ? 'Theek hai ✓' : 'Ungli se sign karo'} />
+
+      {/* Every exported component is on this page (Stage 0 report): the shell bar, buttons, a field, a timeline, the doors. */}
+      <TopBar
+        back
+        onBack={() => undefined}
+        title="Mehta Traders"
+        sub="INV-042 · 22 Sep"
+        actions={<Avatar name="Sharma" index={1} />}
+      />
+      <div className="eb-actions">
+        <InkButton>Ink</InkButton>
+        <GhostButton>Ghost</GhostButton>
+        <IconButton name="bell" label="Yaad dilao" />
+      </div>
+      <Field id="kit-amount" label="Rakam (₹)" hint={<Money paise={135000} />}>
+        <Input id="kit-amount" numeric inputMode="decimal" defaultValue="1350" />
+      </Field>
+      <Segmented<'upi' | 'cash'>
+        label="Kaise aaye"
+        value={seg}
+        onChange={setSeg}
+        options={[
+          { value: 'upi', label: 'UPI' },
+          { value: 'cash', label: 'Cash' },
+        ]}
+      />
+      <ul className="eb-timeline">
+        <TimelineEntry title="Bill bheja" meta="22 Sep · WhatsApp" />
+        <TimelineEntry title="₹7,316 aaye" meta="25 Sep · UPI" latest paid />
+      </ul>
+      <div className="eb-actions">
+        <OutlineButton
+          onClick={() => (!hasOsCamera() && hasLiveCamera() ? setCameraOpen(true) : door.current?.click())}
+        >
+          Photo lo
+        </OutlineButton>
+        <OutlineButton onClick={() => door.current?.click()}>Gallery se</OutlineButton>
+        {picked ? <span className="eb-meta">{picked}</span> : null}
+      </div>
+      <FileDoor
+        source="photos"
+        label="Gallery se"
+        doorRef={door}
+        onPick={(files) => setPicked(files[0]?.name ?? null)}
+      />
+      <CameraSheet
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={(file) => {
+          setPicked(file.name);
+          setCameraOpen(false);
+        }}
+        onFallback={() => {
+          setCameraOpen(false);
+          door.current?.click();
+        }}
+        labels={{
+          title: 'Photo lo',
+          asking: 'Browser camera ki ijazat puchhega',
+          denied: 'Camera ki ijazat nahi mili',
+          shoot: 'Kheencho',
+          fallback: 'Gallery se chuno',
+          close: 'Cancel',
+        }}
+      />
 
       <OutlineButton onClick={tour.running ? tour.next : tour.start} data-testid="kit-tour">
         {tour.running ? 'Aage' : 'Tour'}

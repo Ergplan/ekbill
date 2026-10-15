@@ -24,6 +24,20 @@ async function hydrated(page: Page) {
   await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
 }
 
+/** The share sheet is the last step of (a) and (d): a stub Web Share records the call, so the walk is measured up to the hand-off. */
+async function stubShare(page: Page) {
+  await page.addInitScript(() => {
+    (window as unknown as { __shared: unknown[] }).__shared = [];
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: (data: unknown) => {
+        (window as unknown as { __shared: unknown[] }).__shared.push(data);
+        return Promise.resolve();
+      },
+    });
+  });
+}
+
 /** Playwright's "Slow 3G / 4× CPU" profile through the Chrome DevTools protocol (I9: path (a) within 20 s). */
 async function throttle(page: Page) {
   const cdp = await page.context().newCDPSession(page);
@@ -42,17 +56,7 @@ test('(a) repeat bill to a regular customer, sent on WhatsApp: 4 taps, within 20
   page,
 }) => {
   const c = { n: 0 };
-  // The share sheet is the last step: a stub Web Share records the call, so the walk is timed up to the hand-off.
-  await page.addInitScript(() => {
-    (window as unknown as { __shared: unknown[] }).__shared = [];
-    Object.defineProperty(navigator, 'share', {
-      configurable: true,
-      value: (data: unknown) => {
-        (window as unknown as { __shared: unknown[] }).__shared.push(data);
-        return Promise.resolve();
-      },
-    });
-  });
+  await stubShare(page);
   // The throttled timing is meaningful against a production build (CI sets E2E_PROD=1 and runs `next start`);
   // on the dev server the first visit compiles each screen, so the dev run warms them once and is not timed.
   const timed = process.env.E2E_PROD === '1';
@@ -128,6 +132,7 @@ test('(c) bill from a photo: 3 taps plus the picker', async ({ page }) => {
 
 test('(d) brand-new owner from welcome to the first bill on WhatsApp: 14 taps', async ({ page }) => {
   const c = { n: 0 };
+  await stubShare(page);
   await page.goto('/dev/switch/new');
   await expect(page).toHaveURL(/\/welcome/);
   await hydrated(page);
@@ -153,6 +158,7 @@ test('(d) brand-new owner from welcome to the first bill on WhatsApp: 14 taps', 
   await expect(page).toHaveURL(/\/bills\/new\/done/);
   await expect(page.locator('.eb-paper')).toContainText('Pehla Customer');
   await tap(page, c, () => page.getByRole('button', { name: 'WhatsApp pe bhejo' }).click());
+  await page.waitForFunction(() => (window as unknown as { __shared: unknown[] }).__shared.length === 1);
   expect(c.n).toBe(budget('d').taps.length);
   expect(c.n).toBeLessThanOrEqual(budget('d').budget);
 });

@@ -44,7 +44,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
         tour={manifest.tour.filter((s) => s.target === 'mic')}
       >
         <section className="eb-heading">
-          <Display emphasis={shopName ?? data.personName}>{t('home.hello')}</Display>
+          <Display emphasis={shopName ?? data.personName}>{t('home.greeting')}</Display>
           <Meta>{t('home.first.sub')}</Meta>
         </section>
         <HeroPanel
@@ -79,7 +79,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
           </>
         ) : (
           <>
-            <Display emphasis={data.personName}>{t('home.hello')}</Display>
+            <Display emphasis={data.personName}>{t('home.greeting')}</Display>
             <Meta>
               {data.businessName} · {data.city}
               {data.kind === 'staff' ? ` · ${t('home.staff.note', { business: data.businessName ?? '' })}` : ''}
@@ -92,7 +92,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
         <HeroPanel
           eyebrow={t('home.bill.eyebrow')}
           chip={t('home.bill.count', { n: data.customerCount })}
-          title={t('home.bill.lead')}
+          title={t('home.bill.title')}
           emphasis={t('home.bill.emphasis')}
           sub={t('home.bill.sub')}
           guide="kiska-bill"

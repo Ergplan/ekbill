@@ -13,6 +13,7 @@ export const manifest: ScreenManifest = {
   ],
   states: ['pick', 'reading', 'rows', 'done'],
   guides: ['pick', 'files', 'reading', 'rows', 'add'],
+  optionalGuides: ['pick', 'files', 'reading', 'add'],
   tour: [
     { target: 'pick', say: 'PDF, photo, CSV ya Excel: jo bhi hai, chuno.' },
     { target: 'rows', say: 'Jo mila woh yahan. Tick hatao jo nahi chahiye.' },

@@ -2,7 +2,8 @@
 // The independent review (master prompt rule 12).
 //
 //   npm run review:stage -- N              # review stage N: stage-N-start..HEAD
-//   npm run review:stage -- 0 --head stage-1-start   # an earlier stage on its own range
+//   npm run review:stage -- 0              # Stage 0's files as they are now: stage-0-start..HEAD, Stage 0's paths only
+//   npm run review:stage -- N --base A --head B   # any range (a stage split in parts)
 //   npm run review:stage -- N --dry        # build the prompt, print its size, call nothing
 //   npm run review:stage -- --check-model  # does OPENAI_REVIEW_MODEL resolve on the account?
 //
@@ -77,13 +78,55 @@ export function stagePrompt(markdown, stage) {
   return body.join('\n').trim();
 }
 
-export function stageDiff(stage, { root = ROOT, base, head = 'HEAD' } = {}) {
+/**
+ * Stage 0's ground (scripts, deploy, the kit, the checks) keeps changing in
+ * later stages as reviews find things; a re-review of Stage 0 reads those
+ * files as they are now, not the frozen first range (which would repeat
+ * findings already fixed). Later stages own their screens and modules.
+ */
+export const STAGE_PATHS = {
+  0: [
+    'scripts',
+    'deploy',
+    'packages/db',
+    'packages/ui',
+    'packages/ai',
+    'packages/render',
+    'apps/worker',
+    'apps/web/app/kit',
+    'apps/web/app/api',
+    'apps/web/app/layout.tsx',
+    'apps/web/app/globals.css',
+    'apps/web/lib',
+    'apps/web/proxy.ts',
+    'apps/web/next.config.ts',
+    'design/tokens',
+    'tests/e2e/kit.spec.ts',
+    'tests/unit/scripts.test.ts',
+    'tests/unit/review-stage.test.ts',
+    'tests/integration/health.test.ts',
+    'docs/stages/stage-0-report.md',
+    'docs/DECISIONS.md',
+    'docs/KNOWN-GAPS.md',
+    '.github',
+    'eslint.config.mjs',
+    'package.json',
+    'vitest.config.mts',
+    'playwright.config.ts',
+    'tokens-allow.txt',
+    'README.md',
+    'CLAUDE.md',
+  ],
+};
+
+export function stageDiff(stage, { root = ROOT, base, head = 'HEAD', paths } = {}) {
   const from = base ?? `stage-${stage}-start`;
+  const scope = paths ?? (base || head !== 'HEAD' ? ['.'] : (STAGE_PATHS[stage] ?? ['.']));
   const args = [
     'diff',
     `${from}..${head}`,
     '--',
-    '.',
+    ...scope,
     ':(exclude)package-lock.json',
     ':(exclude)*.png',
     ':(exclude)*.woff2',
@@ -94,7 +137,7 @@ export function stageDiff(stage, { root = ROOT, base, head = 'HEAD' } = {}) {
   if (diff.length > MAX_DIFF_CHARS) {
     // Never reviewed in part: a defect past the cut would go unseen. Split the range with --base/--head instead.
     throw new Error(
-      `the diff ${from}..${head} is ${diff.length} characters, over the ${MAX_DIFF_CHARS} the reviewer reads in one go; review it in parts with --base and --head`,
+      `the diff ${from}..${head} (${scope.join(' ')}) is ${diff.length} characters, over the ${MAX_DIFF_CHARS} the reviewer reads in one go; review it in parts with --base and --head`,
     );
   }
   return diff;
@@ -107,7 +150,7 @@ export function buildReviewPrompt({ stage, diff, claudeMd, prompt, report }) {
     system: `You are an independent reviewer of one build stage of EkBill, a Hinglish GST billing app. You have no access to the repository beyond the four inputs below and no memory of other stages. Be concrete and adversarial: a finding without a file and line is not a finding. ${CHECKLIST}`,
     user:
       `Stage ${stage}.` +
-      section('INPUT 1: STAGE DIFF (git diff stage-start..HEAD)', diff) +
+      section("INPUT 1: STAGE DIFF (git diff stage-start..HEAD, the stage's own paths)", diff) +
       section('INPUT 2: CLAUDE.md', claudeMd) +
       section('INPUT 3: STAGE PROMPT', prompt) +
       section('INPUT 4: STAGE REPORT (docs/stages/stage-N-report.md)', report),

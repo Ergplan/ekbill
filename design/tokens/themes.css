@@ -25,6 +25,11 @@
   --eb-size-field: 50px;
   --eb-size-nav: 60px;
   --eb-size-avatar: 38px;
+  --eb-weight-light: 300;
+  --eb-weight-regular: 400;
+  --eb-weight-medium: 500;
+  --eb-weight-semibold: 600;
+  --eb-weight-bold: 700;
   --eb-whatsapp: #25D366;
   --eb-on-whatsapp: #0B2A16;
   --eb-invoice-paper: #FFFFFF;

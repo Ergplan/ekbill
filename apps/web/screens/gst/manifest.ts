@@ -12,7 +12,7 @@ export const manifest: ScreenManifest = {
     { label: 'INV-042', to: '/bills/[number]', guide: 'b2b' },
     { label: 'Bills', to: '/bills', guide: 'tiles' },
   ],
-  states: ['default'],
+  states: ['default', 'month'],
   guides: ['period', 'tiles', 'rates', 'b2b', 'send'],
   tour: [
     { target: 'tiles', say: 'Is quarter kitne bills, kitna GST.' },

@@ -24,6 +24,7 @@
     "test:integration": "vitest run --project integration",
     "test:all": "vitest run",
     "e2e": "playwright test",
+    "fixtures:build": "node --import tsx scripts/fixtures-v2.mjs tests/fixtures/v2.json",
     "watch": "node scripts/watch.mjs",
     "review:stage": "node scripts/review-stage.mjs",
     "tokens:check": "node scripts/tokens-check.mjs",

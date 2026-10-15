@@ -9,6 +9,7 @@ import { findState } from './state-codes';
  * composition limits, the return calendar).
  */
 export type RuleKind = 'selectable-rates' | 'place-of-supply' | 'document-kinds';
+export type Supply = 'intra' | 'inter';
 export interface RuleEntry {
   id: string;
   kind: RuleKind;
@@ -16,6 +17,8 @@ export interface RuleEntry {
   effectiveTo: string | null;
   ratesPercent?: number[];
   rule?: string;
+  /** place-of-supply: the decision table the engine reads (intra or inter by the two state codes). */
+  decide?: { sameState: Supply; otherState: Supply; unknownState: Supply };
   kinds?: Record<string, 'tax-invoice' | 'bill-of-supply' | 'invoice'>;
   source: string;
   verified: boolean;
@@ -50,7 +53,6 @@ export function selectableRates(dateIso: string, rules: RulePack = GST_RULES): n
   return ruleOn('selectable-rates', dateIso, rules)?.ratesPercent ?? [];
 }
 
-export type Supply = 'intra' | 'inter';
 export type StateHead = 'SGST' | 'UTGST';
 export interface SupplyDecision {
   supply: Supply;
@@ -73,8 +75,14 @@ export function placeOfSupply(
 ): SupplyDecision {
   const rule = ruleOn('place-of-supply', dateIso, rules);
   if (!rule) throw new RuleError(`no place-of-supply rule for ${dateIso}`);
+  const decide = rule.decide;
+  if (!decide) throw new RuleError(`place-of-supply rule ${rule.id} has no decide table`);
   const supply: Supply =
-    !sellerStateCode || !customerStateCode || sellerStateCode === customerStateCode ? 'intra' : 'inter';
+    !sellerStateCode || !customerStateCode
+      ? decide.unknownState
+      : sellerStateCode === customerStateCode
+        ? decide.sameState
+        : decide.otherState;
   const seller = findState(sellerStateCode);
   return { supply, stateHead: seller?.taxAuthority === 'UTGST' ? 'UTGST' : 'SGST', ruleId: rule.id };
 }
@@ -91,16 +99,7 @@ export function supplyKind(
 
 export type DocumentKind = 'tax-invoice' | 'bill-of-supply' | 'invoice';
 
-/** The document a business issues on `dateIso`, from the pack: tax invoice, bill of supply or a plain invoice. */
-export function documentKind(
-  registration: 'regular' | 'composition' | 'unregistered' | 'unknown',
-  gstOn: boolean,
-  dateIso: string,
-  rules: RulePack = GST_RULES,
-): DocumentKind {
-  return documentKindRule(registration, gstOn, dateIso, rules).kind;
-}
-/** The document kind and the id of the pack entry that decided it (the snapshot records the id). */
+/** The document a business issues on `dateIso`, from the pack (tax invoice, bill of supply or a plain invoice), with the entry that decided it. */
 export function documentKindRule(
   registration: 'regular' | 'composition' | 'unregistered' | 'unknown',
   gstOn: boolean,
@@ -113,4 +112,12 @@ export function documentKindRule(
   const kind = rule.kinds[key];
   if (!kind) throw new RuleError(`document-kinds rule ${rule.id} has no entry for ${key}`);
   return { kind, ruleId: rule.id };
+}
+export function documentKind(
+  registration: 'regular' | 'composition' | 'unregistered' | 'unknown',
+  gstOn: boolean,
+  dateIso: string,
+  rules: RulePack = GST_RULES,
+): DocumentKind {
+  return documentKindRule(registration, gstOn, dateIso, rules).kind;
 }

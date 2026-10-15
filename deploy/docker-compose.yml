@@ -77,6 +77,19 @@ services:
       app:
         condition: service_started
     command: ['node_modules/.bin/tsx', 'apps/worker/src/index.ts']
+    # The image's health check probes the web port; the worker has none. Its own probe: the alive file is under 90 s old.
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "const s=require('fs').statSync('/tmp/ekbill-worker-alive');process.exit(Date.now()-s.mtimeMs<90000?0:1)",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
     environment:
       DATABASE_URL: postgres://ekbill:${EKBILL_DB_PASSWORD}@db:5432/ekbill
       DOCLING_URL: http://docling:5001

@@ -85,10 +85,15 @@ for (const theme of THEMES) {
   });
 }
 
-test('shell at desktop width @desktop', async ({ page }) => {
-  await page.goto('/kit');
-  await expect(page.getByTestId('kit-tour')).toBeVisible();
-  const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-  const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
-  expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
-});
+for (const theme of THEMES) {
+  test(`shell at desktop width in ${theme} @desktop`, async ({ page, context, baseURL }) => {
+    await context.addCookies([{ name: 'eb-theme', value: theme, url: baseURL ?? 'http://127.0.0.1:3000' }]);
+    await page.goto('/kit');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    await expect(page.getByTestId('kit-tour')).toBeVisible();
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
+    await expect(page).toHaveScreenshot(`kit-desktop-${theme}.png`, { fullPage: false, animations: 'disabled' });
+  });
+}

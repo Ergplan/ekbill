@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  GST_RULES,
   computeTax,
   documentKind,
+  documentKindRule,
+  emptyTax,
   parseMoney,
   parseQuantity,
   placeOfSupply,
@@ -119,5 +122,30 @@ describe('the rule pack (I5)', () => {
     expect(documentKind('composition', true, DATE)).toBe('bill-of-supply');
     expect(documentKind('unregistered', true, DATE)).toBe('invoice');
     expect(documentKind('unknown', true, DATE)).toBe('invoice');
+  });
+  it('reads the place-of-supply decision from the pack, not from code', () => {
+    const entry = GST_RULES.entries.find((e) => e.id === 'place-of-supply-state')!;
+    const flipped = {
+      ...GST_RULES,
+      entries: GST_RULES.entries.map((e) =>
+        e.id === entry.id
+          ? {
+              ...e,
+              decide: { sameState: 'inter' as const, otherState: 'intra' as const, unknownState: 'inter' as const },
+            }
+          : e,
+      ),
+    };
+    expect(placeOfSupply('27', '27', DATE, flipped).supply).toBe('inter');
+    expect(placeOfSupply('27', '23', DATE, flipped).supply).toBe('intra');
+    expect(placeOfSupply('27', null, DATE, flipped).supply).toBe('inter');
+    expect(computeTax({ ...intra, rules: flipped, lines: [line('A', '1', '100', 18)] }).igstPaise).toBe(1800);
+  });
+  it('names the entries that decided a result, and the empty result names none', () => {
+    expect(documentKindRule('composition', true, DATE)).toEqual({
+      kind: 'bill-of-supply',
+      ruleId: 'document-kinds-2017',
+    });
+    expect(emptyTax()).toMatchObject({ totalPaise: 0, heads: [], rulesApplied: [] });
   });
 });
