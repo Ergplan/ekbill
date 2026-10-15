@@ -129,7 +129,7 @@ const OPTIONAL_GUIDES: Record<string, string[]> = {
   bill: ['customer', 'checks'],
   'bill-view': ['paid-sheet'],
   photo: ['camera', 'gallery', 'reading', 'retake', 'write'],
-  import: ['pick', 'reading', 'add'],
+  import: ['pick', 'files', 'reading', 'add'],
   team: ['send'],
   ask: ['go'],
   remind: [],

@@ -12,7 +12,7 @@ export const manifest: ScreenManifest = {
     { label: 'Peeche', to: '/customers', guide: 'back' },
   ],
   states: ['pick', 'reading', 'rows', 'done'],
-  guides: ['pick', 'reading', 'rows', 'add'],
+  guides: ['pick', 'files', 'reading', 'rows', 'add'],
   tour: [
     { target: 'pick', say: 'PDF, photo, CSV ya Excel: jo bhi hai, chuno.' },
     { target: 'rows', say: 'Jo mila woh yahan. Tick hatao jo nahi chahiye.' },

@@ -2079,3 +2079,45 @@ main.eb-screen.eb-flow {
 .eb-owedrow__link {
   display: contents;
 }
+
+/* The hidden file doors (camera, photos, files) and the live camera sheet */
+.eb-filedoor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.eb-camera {
+  display: grid;
+  gap: var(--eb-space-row-gap);
+  min-height: 160px;
+  border-radius: var(--eb-radius-row);
+  background: var(--eb-surface-2);
+  overflow: hidden;
+}
+.eb-camera__video {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  background: var(--eb-invoice-ink);
+}
+.eb-camera__note {
+  display: flex;
+  align-items: center;
+  gap: var(--eb-space-chip-gap);
+  margin: 0;
+  padding: var(--eb-space-card-pad);
+  color: var(--eb-text-muted);
+  font-size: var(--eb-type-meta-size);
+}
+.eb-logo-preview {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin: var(--eb-space-row-gap) 0 0;
+  border-radius: var(--eb-radius-row);
+  object-fit: contain;
+  background: var(--eb-surface);
+  box-shadow: var(--eb-shadow-card);
+}

@@ -119,6 +119,10 @@ Findings that are not code defects of this stage, with the rationale (rule 12):
 
 Round 3 (after the second review): GST workings are computed by the engine over the quarter's bills (the fixture carries only the period), half-bp rates are exact, `computeTax` takes the date and both state codes and names the state head (SGST or UTGST), document kinds and place of supply come from the rule pack, the item screen offers the pack's rates for today and shows the accountant a disabled field, every request carries a request id through `apps/web/proxy.ts`, a new customer's GSTIN reaches the paper, the draft key includes the new customer's name and the redo, cancel-and-redo starts the new bill from the cancelled one's lines, the import done step reads its count from the URL, `/flow` thumbnails follow the theme switch, `?to=` on the switch route must be a plain in-app path, and the WhatsApp buttons hand the message to the Web Share sheet (or wa.me) and are timed to that call.
 
+## Camera, photo library and files (added 15 Oct 2026 at the operator's ask)
+
+The app reaches the person's own things through the OS's own doors, so the OS asks for the permission and remembers it: "Photo lo" opens the phone's camera app (on a laptop, the live camera with the browser's prompt, with the library as the fallback when it is refused); "Gallery se" opens the photo library; "Files chuno" on the import screen opens the files folder (PDF, CSV, Excel, images, several at once); the logo row on Aap takes a picture from either. The picked photo is downscaled in the browser and kept in the draft, so the review shows the photo the person took; files over 10 MB are refused with the words. `packages/ui/src/files.tsx` (`FileDoor`, `CameraSheet`, `readPicked`); `tests/e2e/files.spec.ts` sets the doors' files the way the pickers would and walks the laptop camera against Chromium's fake device (5 tests, both projects). Nothing leaves the device in Stage 1 (`docs/KNOWN-GAPS.md`).
+
 ## Deferred by design
 
 Nothing persists, no model is called, no file leaves the phone: by the Stage 1 prompt. `docs/KNOWN-GAPS.md` lists each gap with the stage that closes it.

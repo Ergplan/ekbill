@@ -1,11 +1,24 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { t } from '@ekbill/copy';
-import { Avatar, Display, Meta, PrimaryCTA, Segmented, SettingGroup, SettingRow, ThemeSwitch } from '@ekbill/ui';
+import {
+  Avatar,
+  Display,
+  FileDoor,
+  Meta,
+  PrimaryCTA,
+  Segmented,
+  SettingGroup,
+  SettingRow,
+  ThemeSwitch,
+  readPicked,
+  type PickedFile,
+} from '@ekbill/ui';
 
+import { useDraft, writeDraft } from '../draft';
 import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { Business } from '../fixtures';
@@ -35,6 +48,9 @@ export function AapScreen({
   const [lang, setLang] = useState<'hi-Latn' | 'en'>(business.lang);
   const [voice, setVoice] = useState(business.voiceOnArrival);
   const [saved, setSaved] = useState(false);
+  // The logo comes from the photo library or the files folder; it lives in the draft until Stage 4 saves it.
+  const logoDoor = useRef<HTMLInputElement>(null);
+  const [logo] = useDraft<PickedFile | null>(`${viewer.personId}:logo`, null);
   const series = business.series.map((s) => `${s.prefix}-${String(s.next).padStart(3, '0')}`).join(' · ');
   const tour = manifest.tour.filter((s) => owner || s.target !== 'save');
   return (
@@ -106,9 +122,29 @@ export function AapScreen({
       <SettingGroup title={t('aap.look')} guide="look">
         <SettingRow
           label={t('aap.look.logo')}
-          value={business.look.logo ? t('aap.look.logo.on') : t('aap.look.logo.off')}
-          onClick={owner ? () => undefined : undefined}
+          value={
+            logo?.dataUrl ? (
+              <img src={logo.dataUrl} alt={logo.name} className="eb-logo-preview" />
+            ) : business.look.logo ? (
+              t('aap.look.logo.on')
+            ) : (
+              t('aap.look.logo.pick')
+            )
+          }
+          onClick={owner ? () => logoDoor.current?.click() : undefined}
+          guide="logo"
         />
+        {owner ? (
+          <FileDoor
+            source="files"
+            label={t('aap.look.logo.pick')}
+            doorRef={logoDoor}
+            onPick={async (files) => {
+              const file = files[0];
+              if (file?.type.startsWith('image/')) writeDraft(`${viewer.personId}:logo`, await readPicked(file, 512));
+            }}
+          />
+        ) : null}
         <SettingRow
           label={t('aap.look.sign')}
           value={business.look.signature ? t('aap.look.logo.on') : t('aap.look.logo.off')}

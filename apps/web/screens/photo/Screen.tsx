@@ -6,18 +6,24 @@ import { useEffect, useRef, useState } from 'react';
 import { t } from '@ekbill/copy';
 import type { Registration } from '@ekbill/engine';
 import {
+  CameraSheet,
   ChoiceList,
   ConfidenceField,
   Display,
   EmptyState,
+  FileDoor,
   GhostButton,
   MakeBar,
   Meta,
   OutlineButton,
   ProgressLine,
+  hasLiveCamera,
+  hasOsCamera,
+  readPicked,
+  type PickedFile,
 } from '@ekbill/ui';
 
-import { writeDraft } from '../draft';
+import { useDraft, writeDraft } from '../draft';
 import { compute } from '../bill/compute';
 import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
@@ -47,7 +53,24 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
   const router = useRouter();
   const as = (href: string) => withAs(href, viewer.as);
   const [fields, setFields] = useState(review.fields);
-  const picker = useRef<HTMLInputElement>(null);
+  // The doors to the camera and the photo library (the OS asks for permission); the picked photo lives in the draft.
+  const cameraDoor = useRef<HTMLInputElement>(null);
+  const photosDoor = useRef<HTMLInputElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [tooBig, setTooBig] = useState<string | null>(null);
+  const [picked] = useDraft<PickedFile | null>(`${viewer.personId}:photo`, null);
+  const photoSrc = picked?.dataUrl ?? review.photo;
+  const onPick = async (files: File[]) => {
+    const file = files[0];
+    if (!file) return;
+    writeDraft(`${viewer.personId}:photo`, await readPicked(file));
+    router.push(as('/bills/photo?state=reading'));
+  };
+  const openCamera = () => {
+    // A phone: the camera app through the file input. A laptop: the live camera; without one, the files folder.
+    if (!hasOsCamera() && hasLiveCamera()) setCameraOpen(true);
+    else cameraDoor.current?.click();
+  };
   useEffect(() => {
     if (state !== 'reading') return;
     const id = window.setTimeout(() => router.replace(as('/bills/photo?state=review')), 1600);
@@ -109,38 +132,63 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
           </section>
           <ChoiceList<'camera' | 'gallery'>
             label={t('photo.title')}
-            onChoose={() => picker.current?.click()}
+            onChoose={(v) => (v === 'camera' ? openCamera() : photosDoor.current?.click())}
             choices={[
               { value: 'camera', label: t('photo.camera'), icon: 'camera' },
               { value: 'gallery', label: t('photo.gallery'), icon: 'file' },
             ]}
           />
-          {/* The real picker: "Photo lo" and "Gallery se" open it; a chosen file starts the reading. */}
-          <input
-            ref={picker}
-            type="file"
-            accept="image/*"
-            data-guide="camera"
-            aria-label={t('photo.camera')}
-            style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }}
-            onChange={(e) => {
-              if (e.target.files?.length) router.push(as('/bills/photo?state=reading'));
+          {tooBig ? <Meta>{tooBig}</Meta> : null}
+          {/* The real doors: "Photo lo" opens the camera, "Gallery se" the library; a chosen photo starts the reading. */}
+          <FileDoor
+            source="camera"
+            label={t('photo.camera')}
+            guide="camera"
+            doorRef={cameraDoor}
+            onPick={onPick}
+            onTooBig={(f) => setTooBig(t('files.too.big', { name: f.name, mb: (f.size / 1048576).toFixed(1) }))}
+          />
+          <FileDoor
+            source="photos"
+            label={t('photo.gallery')}
+            guide="gallery"
+            doorRef={photosDoor}
+            onPick={onPick}
+            onTooBig={(f) => setTooBig(t('files.too.big', { name: f.name, mb: (f.size / 1048576).toFixed(1) }))}
+          />
+          <CameraSheet
+            open={cameraOpen}
+            onClose={() => setCameraOpen(false)}
+            onCapture={(file) => {
+              setCameraOpen(false);
+              void onPick([file]);
+            }}
+            onFallback={() => {
+              setCameraOpen(false);
+              photosDoor.current?.click();
+            }}
+            labels={{
+              title: t('files.camera.title'),
+              asking: t('files.camera.asking'),
+              denied: t('files.camera.denied'),
+              shoot: t('files.camera.shoot'),
+              fallback: t('files.camera.fallback'),
+              close: t('action.cancel'),
             }}
           />
-          <span data-guide="gallery" hidden />
         </>
       ) : null}
 
       {state === 'reading' ? (
         <>
-          <img src={review.photo} alt="" className="eb-photo" data-guide="photo" />
+          <img src={photoSrc} alt="" className="eb-photo" data-guide="photo" />
           <ProgressLine label={t('photo.reading')} guide="reading" />
         </>
       ) : null}
 
       {state === 'review' ? (
         <>
-          <img src={review.photo} alt="Kaccha bill" className="eb-photo" data-guide="photo" />
+          <img src={photoSrc} alt="Kaccha bill" className="eb-photo" data-guide="photo" />
           <section className="eb-heading">
             <Display as="h1" size="title">
               {t('photo.review.title')}

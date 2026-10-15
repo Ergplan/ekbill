@@ -1,11 +1,22 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { t } from '@ekbill/copy';
-import { Display, Meta, OutlineButton, PrimaryCTA, ProgressLine, StatusPill, SuccessHeader } from '@ekbill/ui';
+import {
+  Display,
+  FileDoor,
+  Meta,
+  OutlineButton,
+  PrimaryCTA,
+  ProgressLine,
+  StatusPill,
+  SuccessHeader,
+  type PickedFile,
+} from '@ekbill/ui';
 
+import { useDraft, writeDraft } from '../draft';
 import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { Fixture } from '../fixtures';
@@ -28,6 +39,11 @@ export function ImportScreen({
   const router = useRouter();
   const as = (href: string) => withAs(href, viewer.as);
   const [ticked, setTicked] = useState<boolean[]>(preview.rows.map((r) => !r.exists));
+  // The door to the files folder (PDF, CSV, Excel, photos); the chosen names live in the draft until Stage 8 reads them.
+  const filesDoor = useRef<HTMLInputElement>(null);
+  const [tooBig, setTooBig] = useState<string | null>(null);
+  const [chosen] = useDraft<{ files: PickedFile[] } | null>(`${viewer.personId}:import`, null);
+  const fileNames = chosen?.files.length ? chosen.files.map((f) => f.name) : preview.files;
   useEffect(() => {
     if (state !== 'reading') return;
     const id = window.setTimeout(() => router.replace(as('/customers/import?state=rows')), 1600);
@@ -52,18 +68,29 @@ export function ImportScreen({
             <Meta>{t('import.sub')}</Meta>
           </section>
           <div className="eb-sticky eb-sticky--bare">
-            <PrimaryCTA
-              data-guide="pick"
-              icon="plus"
-              onClick={() => router.push(as('/customers/import?state=reading'))}
-            >
+            <PrimaryCTA data-guide="pick" icon="plus" onClick={() => filesDoor.current?.click()}>
               {t('import.pick')}
             </PrimaryCTA>
           </div>
+          {tooBig ? <Meta>{tooBig}</Meta> : null}
+          <FileDoor
+            source="files"
+            multiple
+            label={t('import.pick')}
+            guide="files"
+            doorRef={filesDoor}
+            onPick={(files) => {
+              writeDraft(`${viewer.personId}:import`, {
+                files: files.map((f) => ({ name: f.name, type: f.type, size: f.size, dataUrl: null })),
+              });
+              router.push(as('/customers/import?state=reading'));
+            }}
+            onTooBig={(f) => setTooBig(t('files.too.big', { name: f.name, mb: (f.size / 1048576).toFixed(1) }))}
+          />
         </>
       ) : null}
       {state === 'reading' ? (
-        <ProgressLine label={t('import.reading', { n: preview.files.length })} guide="reading" />
+        <ProgressLine label={t('import.reading', { n: fileNames.length })} guide="reading" />
       ) : null}
       {state === 'rows' ? (
         <>
@@ -71,7 +98,7 @@ export function ImportScreen({
             <Display as="h1" size="title">
               {t('import.found', { n: preview.rows.length })}
             </Display>
-            <Meta>{preview.files.join(' · ')}</Meta>
+            <Meta>{fileNames.join(' · ')}</Meta>
           </section>
           <div className="eb-card eb-rows" data-guide="rows">
             {preview.rows.map((r, i) => (

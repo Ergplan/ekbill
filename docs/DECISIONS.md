@@ -275,3 +275,10 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `apps/web/screens/share.ts#handoffToWhatsApp()` calls the Web Share API (the phone's sheet offers WhatsApp) and falls back to a `wa.me` link; the buttons mark "sent" only after the sheet returns. Golden path (a) stubs `navigator.share` and is timed to that call. Stage 6 attaches the PDF/JPG.
 - Why: I9 measures the path up to the share sheet; a button that only changed its label measured nothing.
 - Asked by: the Stage 1 review, round 2.
+
+### Camera, photo library and files are the OS's own doors
+
+- Decision: `packages/ui/src/files.tsx` gives three doors, each a hidden `<input type="file">` the screen opens (`FileDoor`): `camera` (`capture="environment"`, the phone's camera app), `photos` (the library, `image/*`) and `files` (the folder: PDF, CSV, Excel, images, multiple). On a laptop, where `capture` is ignored, "Photo lo" opens the live camera (`CameraSheet`, `getUserMedia`) and falls back to the library when the browser refuses. The OS or the browser asks the person for permission the first time and remembers it; EkBill never asks on its own, never retries behind a refusal, and never reads a folder (the person picks each file). Files over 10 MB are refused with the words; images are downscaled to a 1600-px JPEG in the browser and kept in the draft, so the photo the person took is the photo the review shows. Doors: photo → bill (camera, library), import (files), Aap logo (library or files).
+- Options: a custom in-app gallery or folder browser (needs broad permissions the stores and browsers frown on); upload every file to the server on pick.
+- Why: the operator asked for camera, photo-library and files access on phones and laptops after the customer's permission. The OS pickers are what the person already knows, carry the permission prompt themselves, and need no broad storage permission. Nothing leaves the device in Stage 1; Stage 7 sends the picked photo to the model and Stage 9 the import files.
+- Asked by: the operator, 15 Oct 2026.

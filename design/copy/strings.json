@@ -1249,6 +1249,34 @@
     "hi-Latn": "Naya bill likho",
     "en": "Write a new bill"
   },
+  "files.camera.title": {
+    "hi-Latn": "Photo lo",
+    "en": "Take a photo"
+  },
+  "files.camera.asking": {
+    "hi-Latn": "Browser camera ki ijazat puchhega — \"Allow\" dabao",
+    "en": "The browser will ask for the camera — tap \"Allow\""
+  },
+  "files.camera.denied": {
+    "hi-Latn": "Camera ki ijazat nahi mili. Gallery se photo chuno, ya browser settings mein camera on karo",
+    "en": "Camera permission was refused. Pick a photo from the gallery, or turn the camera on in the browser settings"
+  },
+  "files.camera.shoot": {
+    "hi-Latn": "Kheencho",
+    "en": "Shoot"
+  },
+  "files.camera.fallback": {
+    "hi-Latn": "Gallery se chuno",
+    "en": "Pick from the gallery"
+  },
+  "files.too.big": {
+    "hi-Latn": "{name} badi hai ({mb} MB). 10 MB se chhoti file chuno",
+    "en": "{name} is too big ({mb} MB). Pick a file under 10 MB"
+  },
+  "files.picked": {
+    "hi-Latn": "{n} file chuni",
+    "en": "{n} files chosen"
+  },
   "paper.tax": {
     "hi-Latn": "TAX INVOICE",
     "en": "TAX INVOICE"
@@ -1592,6 +1620,10 @@
   "aap.look.logo.off": {
     "hi-Latn": "Lagao",
     "en": "Add"
+  },
+  "aap.look.logo.pick": {
+    "hi-Latn": "Logo lagao (photo ya file)",
+    "en": "Add a logo (photo or file)"
   },
   "aap.look.sign": {
     "hi-Latn": "Signature",

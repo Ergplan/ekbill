@@ -29,7 +29,11 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'retain-on-failure',
-    launchOptions: { ...(chromium ? { executablePath: chromium } : {}), args: ['--no-sandbox'] },
+    launchOptions: {
+      ...(chromium ? { executablePath: chromium } : {}),
+      // The fake camera lets the live-camera sheet (laptops) be walked without a webcam or a permission prompt.
+      args: ['--no-sandbox', '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
+    },
   },
   projects: [
     {

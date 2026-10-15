@@ -73,3 +73,14 @@ export {
   Sheet,
   type Choice,
 } from './flow';
+export {
+  ACCEPT,
+  CameraSheet,
+  FileDoor,
+  MAX_FILE_BYTES,
+  hasLiveCamera,
+  hasOsCamera,
+  readPicked,
+  type FileSource,
+  type PickedFile,
+} from './files';
