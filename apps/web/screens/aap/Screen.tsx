@@ -18,6 +18,7 @@ import {
   type PickedFile,
 } from '@ekbill/ui';
 
+import { setLanguage, setTheme } from '../../actions/user';
 import { useDraft, writeDraft } from '../draft';
 import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
@@ -45,7 +46,7 @@ export function AapScreen({
   const router = useRouter();
   const as = (href: string) => withAs(href, viewer.as);
   const owner = viewer.role === 'owner';
-  const [lang, setLang] = useState<'hi-Latn' | 'en'>(business.lang);
+  const [lang, setLang] = useState<'hi-Latn' | 'en'>(viewer.language ?? business.lang);
   const [voice, setVoice] = useState(business.voiceOnArrival);
   const [saved, setSaved] = useState(false);
   // The logo comes from the photo library or the files folder; it lives in the draft until Stage 4 saves it.
@@ -177,7 +178,10 @@ export function AapScreen({
         <SettingRow
           label={t('aap.theme')}
           control={
-            <ThemeSwitch labels={{ narangi: t('theme.narangi'), harmony: t('theme.harmony'), group: t('aap.theme') }} />
+            <ThemeSwitch
+              labels={{ narangi: t('theme.narangi'), harmony: t('theme.harmony'), group: t('aap.theme') }}
+              onChange={(theme) => void setTheme({ theme })}
+            />
           }
         />
       </SettingGroup>
@@ -188,7 +192,10 @@ export function AapScreen({
             <Segmented<'hi-Latn' | 'en'>
               label={t('aap.lang')}
               value={lang}
-              onChange={setLang}
+              onChange={(v) => {
+                setLang(v);
+                void setLanguage({ language: v });
+              }}
               options={[
                 { value: 'hi-Latn', label: t('aap.lang.hi') },
                 { value: 'en', label: t('aap.lang.en') },

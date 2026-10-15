@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { cookies } from 'next/headers';
 import type { ReactNode } from 'react';
 
 import '@ekbill/design/tokens/fonts.css';
@@ -25,9 +26,11 @@ export const viewport: Viewport = {
  * puts it on the user), else the OS. Stage 0 reads a cookie so /kit's switch
  * sticks across reloads.
  */
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // The person's language (users.language, echoed in a cookie by /dev/switch and the Aap action); Hinglish by default.
+  const lang = (await cookies()).get('eb-lang')?.value === 'en' ? 'en-IN' : 'hi-Latn';
   return (
-    <html lang="en-IN" suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

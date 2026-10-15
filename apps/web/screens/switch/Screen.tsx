@@ -43,7 +43,9 @@ export function SwitchScreen({ people, current }: { people: SwitchRow[]; current
                 <span className="eb-billrow__meta">{p.business ?? t('switch.none')}</span>
               </span>
               <span className="eb-billrow__right">
-                <StatusPill status={p.role === 'owner' ? 'paid' : 'sent'} label={t(`switch.role.${p.role}`)} />
+                {p.role ? (
+                  <StatusPill status={p.role === 'owner' ? 'paid' : 'sent'} label={t(`switch.role.${p.role}`)} />
+                ) : null}
               </span>
             </a>
           ))}

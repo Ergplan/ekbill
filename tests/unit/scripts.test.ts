@@ -6,7 +6,9 @@ import { describe, expect, it } from 'vitest';
 const ROOT = join(__dirname, '..', '..');
 const run = (script: string, args: string[] = [], env: Record<string, string> = {}) => {
   try {
-    const out = execFileSync('node', [join(ROOT, 'scripts', script), ...args], {
+    // The seed loads TypeScript (the schema), so it runs with tsx the way `npm run seed` does.
+    const nodeArgs = script === 'seed.mjs' ? ['--import', 'tsx'] : [];
+    const out = execFileSync('node', [...nodeArgs, join(ROOT, 'scripts', script), ...args], {
       cwd: ROOT,
       encoding: 'utf8',
       env: { ...process.env, ...env },
@@ -46,6 +48,8 @@ describe('seed', () => {
     expect(r.out).toContain('refusing');
   });
   it('accepts a dev database', () => {
-    expect(run('seed.mjs', [], { DATABASE_URL: 'postgres://x@h/ekbill2_dev' }).code).toBe(0);
+    const r = run('seed.mjs', ['--dry'], { DATABASE_URL: 'postgres://x@h/ekbill2_dev' });
+    expect(r.code).toBe(0);
+    expect(r.out).toContain('would seed');
   });
 });

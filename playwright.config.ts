@@ -18,6 +18,8 @@ const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:3000';
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  // The build's people in the server's database (the switcher issues their sessions).
+  globalSetup: './tests/e2e/global-setup.ts',
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   timeout: 60_000,
   expect: { timeout: 10_000, toHaveScreenshot: { threshold: 0.1, maxDiffPixelRatio: 0.005 } },

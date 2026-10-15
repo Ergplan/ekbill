@@ -24,6 +24,8 @@
     "test:integration": "vitest run --project integration",
     "test:all": "vitest run",
     "e2e": "playwright test",
+    "gen:tests": "node scripts/gen-tests.mjs",
+    "gen:check": "node scripts/gen-tests.mjs --check",
     "fixtures:build": "node --import tsx scripts/fixtures-v2.mjs tests/fixtures/v2.json",
     "watch": "node scripts/watch.mjs",
     "review:stage": "node scripts/review-stage.mjs",
@@ -39,7 +41,7 @@
     "db:migrate": "node packages/db/migrate.mjs",
     "db:generate": "drizzle-kit generate --config packages/db/drizzle.config.ts",
     "db:check": "drizzle-kit check --config packages/db/drizzle.config.ts",
-    "seed": "node scripts/seed.mjs"
+    "seed": "node --import tsx scripts/seed.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

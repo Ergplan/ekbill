@@ -16,6 +16,21 @@ import pg from 'pg';
 const MIGRATIONS = join(dirname(fileURLToPath(import.meta.url)), 'migrations');
 const LOCK_KEY = 7_201_019; // arbitrary, stable: one migrator at a time per database
 
+/** A line "-- include <file>" is replaced by that file (relative to packages/db): the tenancy toolkit lives once. */
+export async function expandIncludes(sql) {
+  const parts = [];
+  for (const line of sql.split('\n')) {
+    const m = line.match(/^--\s*include\s+(\S+)\s*$/);
+    if (!m) {
+      parts.push(line);
+      continue;
+    }
+    const file = join(dirname(fileURLToPath(import.meta.url)), m[1]);
+    parts.push(`-- >>> ${m[1]}`, await readFile(file, 'utf8'), `-- <<< ${m[1]}`);
+  }
+  return parts.join('\n');
+}
+
 export async function migrate(url, { log = console.log } = {}) {
   const client = new pg.Client({ connectionString: url });
   await client.connect();
@@ -29,7 +44,7 @@ export async function migrate(url, { log = console.log } = {}) {
     let count = 0;
     for (const file of files) {
       if (applied.has(file)) continue;
-      const sql = await readFile(join(MIGRATIONS, file), 'utf8');
+      const sql = await expandIncludes(await readFile(join(MIGRATIONS, file), 'utf8'));
       await client.query('begin');
       try {
         await client.query(sql);

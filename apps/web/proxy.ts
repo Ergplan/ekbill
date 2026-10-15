@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 /**
  * Every request gets a request id (I7): the caller's x-request-id when it
  * sends a sane one, else a fresh UUID. It travels to the page or route as a
- * request header (lib/log.ts reads it there), comes back on the response,
+ * request header (server/log.ts reads it there), comes back on the response,
  * and is logged as one JSON line. Static assets are left out of the matcher.
  */
 export function proxy(request: NextRequest) {

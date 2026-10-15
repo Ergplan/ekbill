@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { schemaStatus } from '@ekbill/db';
 
-import { logRequest, requestId } from '../../../lib/log';
+import { logRequest, requestId } from '../../../server/log';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

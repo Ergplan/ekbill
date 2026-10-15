@@ -18,6 +18,8 @@ export interface ShellViewer {
   registration: Registration | null;
   role: Role;
   as: string | null;
+  /** The person's own language (users.language); the dictionary switch arrives with the Aap wiring in Stage 4. */
+  language?: 'hi-Latn' | 'en';
 }
 
 /**

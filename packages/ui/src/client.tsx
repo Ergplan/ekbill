@@ -265,7 +265,7 @@ export function useTheme(fallback: ThemeName = 'narangi'): ThemeName {
   return useSyncExternalStore(subscribeTheme, readTheme, () => fallback);
 }
 
-/** Set the theme for this page and remember it (a cookie until Stage 2 puts it on the user). */
+/** Set the theme for this page and remember it in the cookie the layout reads before paint (the user's row holds it too, Stage 2). */
 function persistTheme(t: ThemeName) {
   document.documentElement.setAttribute('data-theme', t);
   try {
@@ -275,7 +275,14 @@ function persistTheme(t: ThemeName) {
   }
 }
 
-export function ThemeSwitch({ labels }: { labels: { narangi: string; harmony: string; group: string } }) {
+export function ThemeSwitch({
+  labels,
+  onChange,
+}: {
+  labels: { narangi: string; harmony: string; group: string };
+  /** Called after the page switched, so the owner can persist it (Stage 2: on the user). */
+  onChange?: (theme: ThemeName) => void;
+}) {
   const theme = useSyncExternalStore(subscribeTheme, readTheme, serverTheme);
   return (
     <div className="eb-seg" role="radiogroup" aria-label={labels.group}>
@@ -286,7 +293,10 @@ export function ThemeSwitch({ labels }: { labels: { narangi: string; harmony: st
           role="radio"
           aria-checked={theme === t}
           className="eb-seg__opt"
-          onClick={() => persistTheme(t)}
+          onClick={() => {
+            persistTheme(t);
+            onChange?.(t);
+          }}
         >
           <span className={`eb-swatch eb-swatch--${t}`} aria-hidden="true" />
           {labels[t]}

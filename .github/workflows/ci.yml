@@ -56,6 +56,7 @@ jobs:
           E2E_PROD: '1'
         run: |
           npm run db:migrate
+          npm run seed
           (npm run start -w apps/web >/tmp/web.log 2>&1 &)
           for i in $(seq 1 60); do curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1 && break; sleep 2; done
           npx playwright test

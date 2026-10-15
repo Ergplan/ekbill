@@ -1,12 +1,22 @@
 #!/usr/bin/env node
-// Seed people and businesses for the build (AUTH_MODE=switcher lists them on
-// /dev/switch). Stage 0: nothing to seed; the tables arrive in Stage 2, the
-// demo business (Sharma Electricals) in Stage 4–6, and the sized load seed in
-// Stage 10. It refuses a database whose name does not say dev or test.
+// Seed the build's people and businesses (AUTH_MODE=switcher lists them on
+// /dev/switch). Run with `npm run seed` (node --import tsx: the seed data and
+// the schema are TypeScript). It refuses a database whose name does not say
+// dev or test unless this is the build's own instance (AUTH_MODE=switcher,
+// sign-in off: test data only, as /api/health says). Stage 4–6 add the demo
+// business's customers and bills; Stage 10 the sized load seed.
+import { SEED, seedAllowed, seedBuild } from '../packages/db/src/seed.ts';
+
 const url = process.env.DATABASE_URL ?? '';
-const name = url.split('/').pop()?.split('?')[0] ?? '';
-if (!/dev|test/.test(name)) {
-  console.error(`seed: refusing to seed "${name || '(no DATABASE_URL)'}": the database name must contain dev or test`);
+const { ok, name } = seedAllowed(url);
+if (!ok) {
+  console.error(
+    `seed: refusing to seed "${name || '(no DATABASE_URL)'}": the database name must contain dev or test, or AUTH_MODE must be switcher`,
+  );
   process.exit(1);
 }
-console.log(`seed: nothing to seed yet for ${name} (tables arrive in Stage 2)`);
+if (process.argv.includes('--dry')) {
+  console.log(`seed: would seed ${name} (${SEED.users.length} people, ${SEED.businesses.length} businesses)`);
+  process.exit(0);
+}
+await seedBuild(url);

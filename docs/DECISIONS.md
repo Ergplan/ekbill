@@ -309,3 +309,41 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: the screen baselines no longer mask `.eb-tabbar`.
 - Why: I10 approves the whole screen; a masked bar is not protected.
 - Asked by: the Stage 1 review, round 3.
+
+## 2026-10-15 — Stage 2
+
+### The application role and forced row-level security
+
+- Decision: every scoped transaction runs as `ekbill_app` (`SET LOCAL ROLE` inside `withTenant()`), a role that logs in nowhere and owns nothing, so the policies bind it; the tables also carry `FORCE ROW LEVEL SECURITY`, so the login role that migrates (a superuser on the local Postgres and in the compose stack) is bound too wherever it is not a superuser, and the seed sets the scope per business rather than relying on ownership. The audit trigger is `security definer`: the trail is written only through it, and `ekbill_app` may only read it.
+- Options: rely on the login role and policies alone (a superuser bypasses RLS: the local and VM databases run as one); a separate login role for the app (a second password to manage on the VM).
+- Why: I1 and I7 must hold on the databases the build actually uses, and the proof (`tests/integration/rls.test.ts`) must run on a raw connection.
+- Asked by: I1, I6, I7.
+
+### Memberships without RLS
+
+- Decision: `memberships` has `business_id` but no policy: `resolveScope()` reads it before a scope exists, and `listMembers`/`remove` fence on `business_id = scope.businessId` in the query, which the generated tenancy test holds them to. It is audited and delete-refused like the other authoritative tables.
+- Why: I1 names it among the tables read once per request before a scope exists.
+- Asked by: I1.
+
+### Generated tests through probes
+
+- Decision: each repository module exports `allowedRoles` (the table I8 names), `roleProbes` (one call per write) and `tenancyProbes` (calls that report every business id they touched); `scripts/gen-tests.mjs` writes `tests/integration/roles.test.ts` (every write × every role) and `tenancy.test.ts` (every probe as A against B) from the module list in `packages/db/src/repos/index.ts`, formatted the way prettier would; `gen:check` in the watcher fails on drift.
+- Options: hand-written tests per repository (I1 and I8 say generated: a module nobody listed would go untested).
+- Asked by: I1, I8.
+
+### The seed on the build's own instance
+
+- Decision: `scripts/seed.mjs` refuses a database whose name says neither dev nor test, unless `AUTH_MODE=switcher` (the build's own instance, "sign-in switched off, test data only" as `/api/health` says); `deploy/vm/up.sh` seeds after the stack is healthy in that mode. Deterministic ids: the seed keys are the Stage 1 fixture ids, so the fixture screens map a session to a persona until the stages that wire them.
+- Why: the switcher needs people on the VM, and the VM's database is named `ekbill`.
+- Asked by: the Stage 2 prompt (seed, switcher).
+
+### Theme and language on the user, echoed in cookies
+
+- Decision: `users.theme` and `users.language` are the truth (`setTheme`, `setLanguage` actions through the repository, every role for their own row); `/dev/switch` and the actions echo them into `eb-theme` and `eb-lang`, which the root layout reads before paint (`data-theme`, `<html lang>`). The dictionary switch per user arrives with the Aap wiring in Stage 4.
+- Why: no flash of the wrong theme, no database read in the layout for every request.
+- Asked by: the Stage 2 prompt ("theme and language from the user").
+
+### Stage 2 started on "continue build"
+
+- Decision: the operator wrote "continue build for next 12 hours" after the round-3 reviews; the build agent took it as the go-ahead past the Stage 1 gate on the report's own proposals (`docs/stages/stage-1-answers.md`) and recorded the assumption there and in the Stage 2 report. "Run Stage 1 again" with a changed answer overturns any of them.
+- Asked by: the operator, 15 Oct 2026.

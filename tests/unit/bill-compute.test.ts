@@ -141,7 +141,15 @@ describe('every consumer reads the same engine result (I4)', () => {
     expect(paper.taxLines).toEqual(form.heads);
     expect(form.heads.map((h) => h.label)).toEqual(['IGST 18%']);
     const owner = FIXTURE.people.find((p) => p.business === 'sharma' && p.role === 'owner')!;
-    const gst = loadGst({ person: owner, business: sharmaBiz, role: 'owner', as: null })!;
+    const gst = loadGst({
+      person: owner,
+      business: sharmaBiz,
+      role: 'owner',
+      as: null,
+      session: null,
+      theme: 'narangi',
+      language: 'hi-Latn',
+    })!;
     const row = gst.b2b.find((r) => r.number === bill.number)!;
     expect(row.totalPaise).toBe(form.totalPaise);
     expect(row.gstPaise).toBe(form.gstPaise);

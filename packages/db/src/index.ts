@@ -1,21 +1,30 @@
 import 'server-only';
 
-import pg from 'pg';
+import { getPool } from './pool';
 
 /**
- * One pool per process. Scoped access (withTenant) arrives in Stage 2; in
- * Stage 0 the only consumer is /api/health, which asks the schema version.
+ * @ekbill/db: the one place that writes the database. Stage 2: identity,
+ * tenancy (withTenant), sessions (resolveScope), the repositories (TenantScope
+ * first, allowedRoles on every write) and the build seed.
  */
-let pool: pg.Pool | null = null;
-
-export function getPool(): pg.Pool {
-  if (!pool) {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error('DATABASE_URL is not set');
-    pool = new pg.Pool({ connectionString: url, max: 10, idleTimeoutMillis: 30_000 });
-  }
-  return pool;
-}
+export { closePool, getPool } from './pool';
+export { withTenant, withUser, type ActorKind, type Db, type Role, type TenantScope, type Tx } from './scope';
+export {
+  SESSION_DAYS,
+  createSession,
+  deleteSession,
+  membershipsOf,
+  resolveScope,
+  type Resolved,
+  type SessionUser,
+} from './auth';
+export { ForbiddenError, NotFoundError, allow } from './repos/allow';
+export { REPOSITORIES, type RepositoryName } from './repos/index';
+export * as businesses from './repos/businesses';
+export * as memberships from './repos/memberships';
+export * as users from './repos/users';
+export { SEED, seedAllowed, seedBuild, seedBusinessById, seedUser, seedUserById } from './seed';
+export * as schema from './schema';
 
 export interface SchemaStatus {
   ok: boolean;
