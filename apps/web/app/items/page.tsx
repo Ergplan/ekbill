@@ -9,5 +9,5 @@ export const dynamic = 'force-dynamic';
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const viewer = await getViewer(await searchParams);
   if (!viewer.business) redirect('/');
-  return <ItemsScreen items={loadItems(viewer)} viewer={shellOf(viewer)} />;
+  return <ItemsScreen items={await loadItems(viewer)} viewer={shellOf(viewer)} />;
 }

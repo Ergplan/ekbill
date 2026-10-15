@@ -2,6 +2,8 @@ import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 
+import fixture from '../../../tests/fixtures/v2.json';
+
 import * as schema from './schema';
 
 /**
@@ -235,6 +237,33 @@ export function seedUser(key: string) {
 export function seedUserById(id: string) {
   return SEED.users.find((u) => u.id === id) ?? null;
 }
+/**
+ * The fixture customers and items of the build (tests/fixtures/v2.json),
+ * seeded with ids derived from the business and the fixture's position, so
+ * the screens that still read fixture bills (Stage 6) find a customer's
+ * row by its fixture key and its key by the row.
+ */
+const hex = (n: number, width: number) => n.toString(16).padStart(width, '0');
+export function seedCustomerId(businessKey: string, fixtureId: string): string | null {
+  const b = SEED.businesses.findIndex((x) => x.key === businessKey);
+  const c = fixture.customers.filter((x) => x.business === businessKey).findIndex((x) => x.id === fixtureId);
+  return b < 0 || c < 0 ? null : `00000000-0000-4000-b000-${hex(b + 1, 4)}${hex(c + 1, 8)}`;
+}
+export function seedCustomerKey(id: string): { business: string; customer: string } | null {
+  const m = /^00000000-0000-4000-b000-([0-9a-f]{4})([0-9a-f]{8})$/.exec(id);
+  if (!m) return null;
+  const business = SEED.businesses[parseInt(m[1]!, 16) - 1]?.key;
+  const customer = business
+    ? fixture.customers.filter((x) => x.business === business)[parseInt(m[2]!, 16) - 1]?.id
+    : undefined;
+  return business && customer ? { business, customer } : null;
+}
+export function seedItemId(businessKey: string, fixtureId: string): string | null {
+  const b = SEED.businesses.findIndex((x) => x.key === businessKey);
+  const i = fixture.items.filter((x) => x.business === businessKey).findIndex((x) => x.id === fixtureId);
+  return b < 0 || i < 0 ? null : `00000000-0000-4000-b100-${hex(b + 1, 4)}${hex(i + 1, 8)}`;
+}
+
 export function seedBusinessById(id: string) {
   return SEED.businesses.find((b) => b.id === id) ?? null;
 }
@@ -320,6 +349,41 @@ export async function seedBuild(url: string, { log = console.log }: { log?: (s: 
         .update(schema.businesses)
         .set({ defaultSeriesId: firstBillSeries, setupDoneAt: b.profile ? new Date() : null })
         .where(eq(schema.businesses.id, b.id));
+      // The fixture customers and items (Stage 5): upserted, never rewinding what the owner changed since.
+      for (const c of fixture.customers.filter((x) => x.business === b.key)) {
+        await db
+          .insert(schema.customers)
+          .values({
+            id: seedCustomerId(b.key, c.id)!,
+            businessId: b.id,
+            name: c.name,
+            contactPerson: c.contact ?? null,
+            phone: c.phone ?? null,
+            gstin: c.gstin ?? null,
+            pan: c.pan ?? null,
+            stateCode: c.stateCode ?? null,
+            language: c.lang ?? 'hi-Latn',
+            languageSource: c.lang ? 'owner' : null,
+            notes: c.notes ?? null,
+            createdBy: owner.id,
+          })
+          .onConflictDoNothing({ target: schema.customers.id });
+      }
+      for (const it of fixture.items.filter((x) => x.business === b.key)) {
+        await db
+          .insert(schema.items)
+          .values({
+            id: seedItemId(b.key, it.id)!,
+            businessId: b.id,
+            name: it.name,
+            hsnSac: it.hsn ?? null,
+            unit: it.unit ?? null,
+            defaultRatePaise: it.ratePaise ?? null,
+            defaultTaxBp: it.gstRate === null || it.gstRate === undefined ? null : Math.round(it.gstRate * 100),
+            createdBy: owner.id,
+          })
+          .onConflictDoNothing({ target: schema.items.id });
+      }
       for (const [role, key] of [
         ['owner', b.owner],
         ['staff', b.staff],

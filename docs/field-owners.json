@@ -9,5 +9,9 @@
   "lookInput.billDesign": "businesses.bill_design",
   "lookInput.billPaper": "businesses.bill_paper",
   "lookInput.billShareAs": "businesses.bill_share_as",
-  "lookInput.billAccent": "businesses.bill_accent"
+  "lookInput.billAccent": "businesses.bill_accent",
+  "customerInput.id": "customers.id (the row changed; absent for a new customer)",
+  "itemInput.id": "items.id (the row changed; absent for a new item)",
+  "commitImportInput.importId": "imports.id (status → committed)",
+  "commitImportInput.rowIds": "import_rows.id → customers (one per ticked row)"
 }

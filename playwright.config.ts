@@ -15,6 +15,11 @@ const candidates = [
 ];
 const chromium = candidates.find((p) => p && existsSync(p));
 const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:3000';
+// The servers Playwright starts are the build's own: sign-in switched off, the local dev database.
+const serverEnv = {
+  AUTH_MODE: process.env.AUTH_MODE ?? 'switcher',
+  DATABASE_URL: process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5440/ekbill2_dev',
+};
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -51,5 +56,22 @@ export default defineConfig({
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
-    : { command: 'npm run dev', url: `${baseURL}/api/health`, reuseExistingServer: true, timeout: 120_000 },
+    : [
+        {
+          command: 'npm run dev',
+          url: `${baseURL}/api/health`,
+          reuseExistingServer: true,
+          timeout: 120_000,
+          env: serverEnv,
+        },
+        // The worker reads uploaded old bills (Stage 5, read-import); ready once it logs that it started.
+        {
+          command: 'npm run start -w apps/worker',
+          env: serverEnv,
+          wait: { stdout: /worker started/ },
+          stdout: 'pipe',
+          timeout: 120_000,
+          gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
+        },
+      ],
 });

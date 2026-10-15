@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sp = await searchParams;
   const viewer = await getViewer(sp);
-  const data = loadImport(viewer, { state: one(sp.state), n: one(sp.n) });
+  const data = await loadImport(viewer, { state: one(sp.state), n: one(sp.n), id: one(sp.id) });
   if (!data) redirect('/');
-  return <ImportScreen state={data.state} preview={data.preview} added={data.added} viewer={shellOf(viewer)} />;
+  return <ImportScreen data={data} viewer={shellOf(viewer)} />;
 }

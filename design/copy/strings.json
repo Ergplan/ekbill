@@ -2448,5 +2448,133 @@
   "paper.signatory": {
     "hi-Latn": "Authorised signatory",
     "en": "Authorised signatory"
+  },
+  "error.phoneTaken": {
+    "hi-Latn": "Yeh number pehle se kisi customer ka hai",
+    "en": "This number already belongs to a customer"
+  },
+  "error.itemTaken": {
+    "hi-Latn": "Is naam ka item pehle se hai",
+    "en": "An item with this name already exists"
+  },
+  "error.hsn": {
+    "hi-Latn": "HSN 2, 4, 6 ya 8 digit; SAC 99 se shuru 6 digit",
+    "en": "HSN is 2, 4, 6 or 8 digits; SAC is 6 digits starting 99"
+  },
+  "error.rate": {
+    "hi-Latn": "Yeh GST rate chalta hai: {rates}%",
+    "en": "GST rates that apply: {rates}%"
+  },
+  "error.gstin": {
+    "hi-Latn": "GST number theek nahi lag raha",
+    "en": "That GST number does not look right"
+  },
+  "newcust.lang.offer": {
+    "hi-Latn": "{because} — {language} mein bhejein?",
+    "en": "{because} — write to them in {language}?"
+  },
+  "lang.name.hi": {
+    "hi-Latn": "Hindi",
+    "en": "Hindi"
+  },
+  "lang.name.mr": {
+    "hi-Latn": "Marathi",
+    "en": "Marathi"
+  },
+  "lang.name.gu": {
+    "hi-Latn": "Gujarati",
+    "en": "Gujarati"
+  },
+  "lang.name.ta": {
+    "hi-Latn": "Tamil",
+    "en": "Tamil"
+  },
+  "lang.name.te": {
+    "hi-Latn": "Telugu",
+    "en": "Telugu"
+  },
+  "lang.name.kn": {
+    "hi-Latn": "Kannada",
+    "en": "Kannada"
+  },
+  "lang.name.bn": {
+    "hi-Latn": "Bangla",
+    "en": "Bangla"
+  },
+  "lang.name.hi-Latn": {
+    "hi-Latn": "Hinglish",
+    "en": "Hinglish"
+  },
+  "lang.name.en": {
+    "hi-Latn": "English",
+    "en": "English"
+  },
+  "item.hsn.search": {
+    "hi-Latn": "Code ya kaam ka naam",
+    "en": "A code or what the work is"
+  },
+  "item.hsn.none": {
+    "hi-Latn": "Kuch nahi mila — CA se poochein",
+    "en": "Nothing found — ask your CA"
+  },
+  "import.none": {
+    "hi-Latn": "Koi customer nahi mila. {problems}",
+    "en": "No customers found. {problems}"
+  },
+  "import.failed": {
+    "hi-Latn": "Padh nahi paaye. Phir se koshish karein.",
+    "en": "Could not read the files. Please try again."
+  },
+  "import.again": {
+    "hi-Latn": "Phir se chuno",
+    "en": "Pick again"
+  },
+  "import.problem.no-text": {
+    "hi-Latn": "kuch likha nahi mila",
+    "en": "no text in it"
+  },
+  "import.problem.scanned": {
+    "hi-Latn": "photo/scan yahan nahi padh sakte",
+    "en": "a photo or scan cannot be read here"
+  },
+  "import.problem.unrecognised": {
+    "hi-Latn": "customer ka naam nahi pehchaana",
+    "en": "no customer name recognised"
+  },
+  "import.problem.unsupported": {
+    "hi-Latn": "yeh file nahi padh sakte",
+    "en": "this kind of file cannot be read"
+  },
+  "import.problem.too-big": {
+    "hi-Latn": "file 8 MB se badi hai",
+    "en": "the file is over 8 MB"
+  },
+  "import.problem.ocr-failed": {
+    "hi-Latn": "photo padhne wala abhi band hai",
+    "en": "the photo reader is not answering"
+  },
+  "import.error.no-files": {
+    "hi-Latn": "Koi file nahi chuni",
+    "en": "No files were picked"
+  },
+  "import.error.too-many": {
+    "hi-Latn": "Ek baar mein 20 files tak",
+    "en": "Up to 20 files at a time"
+  },
+  "import.error.too-big": {
+    "hi-Latn": "Har file 8 MB tak",
+    "en": "Each file up to 8 MB"
+  },
+  "import.error.not-ready": {
+    "hi-Latn": "Abhi padh rahe hain, thoda ruko",
+    "en": "Still reading, wait a moment"
+  },
+  "import.error.already-committed": {
+    "hi-Latn": "Yeh pehle hi add ho gaye",
+    "en": "These were added already"
+  },
+  "auth.forbidden": {
+    "hi-Latn": "Yeh aapke role mein nahi hai",
+    "en": "Your role cannot do this"
   }
 }

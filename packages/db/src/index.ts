@@ -25,14 +25,30 @@ export type { Business, BusinessProfile } from './repos/businesses';
 export type { Series } from './repos/series';
 export type { BusinessFile } from './repos/files';
 export type { Document } from './repos/documents';
+export type { Customer } from './repos/customers';
+export type { Item } from './repos/items';
+export type { Import, ImportRow, FileReading, FileSummary } from './repos/imports';
 export { REPOSITORIES, type RepositoryName } from './repos/index';
 export * as businesses from './repos/businesses';
+export * as customers from './repos/customers';
 export * as documents from './repos/documents';
 export * as files from './repos/files';
+export * as imports from './repos/imports';
+export * as items from './repos/items';
 export * as memberships from './repos/memberships';
 export * as series from './repos/series';
 export * as users from './repos/users';
-export { SEED, seedAllowed, seedBuild, seedBusinessById, seedUser, seedUserById } from './seed';
+export {
+  SEED,
+  seedAllowed,
+  seedBuild,
+  seedBusinessById,
+  seedCustomerId,
+  seedCustomerKey,
+  seedItemId,
+  seedUser,
+  seedUserById,
+} from './seed';
 export * as schema from './schema';
 
 export interface SchemaStatus {

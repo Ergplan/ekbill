@@ -433,3 +433,42 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 
 - Decision: the `setup--review` baselines were re-taken: the review now shows the state (and the IRN answer and the composition legend), as the Stage 4 prompt's "sheher/rajya" asks. Every other Stage 1 baseline is unchanged.
 - Asked by: the Stage 4 prompt, I10.
+
+## 2026-10-15 — Stage 5
+
+### Import files in Postgres, read by the worker
+
+- Decision: the picked files are kept as bytes in `import_files` (≤ 8 MB each, 20 per import) and read by the worker's `read-import` job; the web server only stores and queues. The screen asks the server again until the import is read.
+- Options: reading inline in the request (a scan through Docling takes minutes; the prompt puts the pipeline in the worker); the filesystem (another thing to back up and to fence by tenant).
+- Why: the Stage 5 prompt (the import pipeline in the worker), Stage 4's rule that files stay in Postgres, I6 (the reading is staging, the owner's tick is the write).
+- Asked by: the Stage 5 prompt.
+
+### The worker runs with React's server condition
+
+- Decision: `tsx --conditions=react-server` in the worker's scripts, the compose command and CI, because `@ekbill/db` imports `server-only` (which throws under the default condition).
+- Options: dropping `server-only` from the db package (it is what keeps the database out of a client bundle).
+- Asked by: the worker's first use of the repositories.
+
+### A CSV reader in the engine
+
+- Decision: `packages/engine/src/import/csv.ts` (quotes, doubled quotes, BOM, the delimiter the header uses) instead of the MVP's csv-parse.
+- Why: the engine is pure and dependency-light; a party list needs no more.
+- Asked by: rule 6 (salvage), I4.
+
+### Seeded customers keep their fixture keys in their ids
+
+- Decision: the seed's customers and items get ids derived from the business and the fixture position (`00000000-0000-4000-b000-<business><index>`); `seedCustomerKey(id)` maps back, so the fixture bills (Stage 6 replaces them) show on a real customer's folder and link to it.
+- Why: the customer screens are real now and the bill screens are not yet; the two must agree on who a customer is.
+- Asked by: I10 (the screens keep working between stages).
+
+### The language is offered, never applied
+
+- Decision: Naya customer offers the reminder language `guessLanguage` reads from the name or the GSTIN's state ("Patil — Marathi mein bhejein?") as a third choice; Hinglish stays the default until the owner taps it; `language_source` records whether it was chosen or accepted from the offer.
+- Why: the MVP's rule (a reminder in the wrong language is the one mistake a customer remembers).
+- Asked by: the Stage 5 prompt (language guess).
+
+### Playwright starts its own servers with their own environment
+
+- Decision: `playwright.config.ts` passes `AUTH_MODE=switcher` and the dev database to the dev server and the worker it starts, and starts the worker beside the dev server.
+- Why: the journeys depended on a shell variable that a restarted shell did not have.
+- Asked by: the Stage 5 Playwright run.

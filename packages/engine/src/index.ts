@@ -252,3 +252,27 @@ export {
   type FileProblem,
   type ParsedDataUrl,
 } from './files';
+export {
+  CUSTOMER_LANGUAGES,
+  checkCustomer,
+  fromGstin,
+  offerLanguage,
+  type CustomerCheck,
+  type CustomerClean,
+  type CustomerField,
+  type CustomerInput,
+  type CustomerLanguageCode,
+} from './customer';
+export {
+  ITEM_UNITS,
+  checkItem,
+  isHsnSac,
+  lookupHsnSac,
+  type HsnHit,
+  type ItemCheck,
+  type ItemClean,
+  type ItemField,
+  type ItemInput,
+} from './item';
+export * as importing from './import/index';
+export type { ImportedCustomer, ExistingCustomer } from './import/index';

@@ -3,11 +3,13 @@ import { writeFileSync } from 'node:fs';
 import { PgBoss } from 'pg-boss';
 import pino from 'pino';
 
+import { READ_IMPORT, runReadImport, type ReadImportJob } from './import/job';
+
 /**
  * The worker: pg-boss on the same Postgres, one queue per job kind. Stage 0
- * starts it with a heartbeat job so the container is proven; Stage 5 onward
- * register the real handlers (read-bill, render-other-sizes, index-search,
- * reminders-due, backup-check).
+ * started it with a heartbeat; Stage 5 adds read-import (old bills and
+ * party lists into staging rows); later stages add read-bill,
+ * render-other-sizes, index-search, reminders-due, backup-check.
  */
 const ALIVE_FILE = process.env.WORKER_ALIVE_FILE ?? '/tmp/ekbill-worker-alive';
 const log = pino({ name: 'ekbill-worker', level: process.env.LOG_LEVEL ?? 'info' });
@@ -33,6 +35,13 @@ async function main() {
     log.info('heartbeat');
   });
   await boss.schedule('heartbeat', '*/15 * * * *');
+  await boss.createQueue(READ_IMPORT, { retryLimit: 2, retryDelay: 5, expireInSeconds: 600 });
+  await boss.work<ReadImportJob>(READ_IMPORT, async (jobs) => {
+    for (const job of jobs) {
+      const { found } = await runReadImport(job.data);
+      log.info({ requestId: job.data.requestId, importId: job.data.importId, found }, 'import read');
+    }
+  });
   log.info('worker started');
   const stop = async () => {
     log.info('worker stopping');

@@ -1,9 +1,12 @@
-import { TODAY, type Customer } from '../fixtures';
+import { NotFoundError, customers } from '@ekbill/db';
+
+import { TODAY } from '../fixtures';
 import { billsOf, customerOf, rowOf, type RowData } from '../common';
+import { avatarIndex, customerIdOf, customerViewOf, fixtureKeyOf, type CustomerView } from '../people';
 import type { Viewer } from '../viewer';
 
 export interface CustomerData {
-  customer: Customer & { index: number };
+  customer: CustomerView & { index: number };
   peeks: Array<{ title: string; sub: string; amountPaise: number }>;
   yearPaise: number;
   duePaise: number;
@@ -11,12 +14,30 @@ export interface CustomerData {
   timeline: Array<RowData & { paidOn: string | null; method: string | null; waStatus: 'sent' | 'read' }>;
 }
 
-export function loadCustomer(viewer: Viewer, id: string): CustomerData | null {
+/** The customer's folder: the row (Stage 5) and, until Stage 6, the fixture bills of a seeded customer. */
+export async function loadCustomer(viewer: Viewer, idOrKey: string): Promise<CustomerData | null> {
   const b = viewer.business;
   if (!b) return null;
-  const customer = customerOf(b, id);
-  if (!customer) return null;
-  const bills = billsOf(b).filter((x) => x.customer === id);
+  const scope = viewer.session?.scope;
+  let customer: CustomerView & { index: number };
+  let billKey: string | null = idOrKey;
+  if (scope) {
+    const id = customerIdOf(b.id, idOrKey);
+    if (!id) return null;
+    try {
+      const row = await customers.getCustomer(scope, id);
+      customer = { ...customerViewOf(row, b.id), index: avatarIndex(row.id) };
+      billKey = fixtureKeyOf(row.id);
+    } catch (e) {
+      if (e instanceof NotFoundError) return null;
+      throw e;
+    }
+  } else {
+    const c = customerOf(b, idOrKey);
+    if (!c) return null;
+    customer = { ...c, language: c.lang, email: null, address: null, city: null, pincode: null, archived: false };
+  }
+  const bills = billKey ? billsOf(b).filter((x) => x.customer === billKey) : [];
   const year = bills.filter((x) => x.date.startsWith(TODAY.slice(0, 4)) && x.status !== 'cancelled');
   const yearPaise = year.reduce((s, x) => s + x.totalPaise, 0);
   const duePaise = year.reduce((s, x) => s + x.duePaise, 0);

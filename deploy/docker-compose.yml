@@ -76,7 +76,8 @@ services:
         condition: service_healthy
       app:
         condition: service_started
-    command: ['node_modules/.bin/tsx', 'apps/worker/src/index.ts']
+    # The db package guards itself with server-only; the worker is server code, so it runs with React's server condition.
+    command: ['node_modules/.bin/tsx', '--conditions=react-server', 'apps/worker/src/index.ts']
     # The image's health check probes the web port; the worker has none. Its own probe: the alive file is under 90 s old.
     healthcheck:
       test:

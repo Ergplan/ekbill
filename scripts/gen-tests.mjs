@@ -41,7 +41,8 @@ function tenancyProbesOf(source, mod) {
     console.error(`gen:tests: ${mod}.ts has no tenancyProbes`);
     process.exit(2);
   }
-  return [...m[1].matchAll(/name: (['"])(.*?)\1,/g)].map((x) => x[2]);
+  // A probe is { name, run }: only a name followed by its run counts (a file's name inside a probe does not).
+  return [...m[1].matchAll(/name:\s*(['"])(.*?)\1,\s*run:/g)].map((x) => x[2]);
 }
 
 const ROLES = ['owner', 'staff', 'accountant'];

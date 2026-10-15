@@ -3,8 +3,11 @@
 import { describe, expect, it } from 'vitest';
 
 import * as businesses from '../../packages/db/src/repos/businesses';
+import * as customers from '../../packages/db/src/repos/customers';
 import * as documents from '../../packages/db/src/repos/documents';
 import * as files from '../../packages/db/src/repos/files';
+import * as imports from '../../packages/db/src/repos/imports';
+import * as items from '../../packages/db/src/repos/items';
 import * as memberships from '../../packages/db/src/repos/memberships';
 import * as series from '../../packages/db/src/repos/series';
 import * as users from '../../packages/db/src/repos/users';
@@ -23,6 +26,27 @@ describe('tenancy (I1): every repository, business A against business B', () => 
     const a = await scopeFor('sharma', 'owner');
     const b = await otherBusiness('gupta');
     const { touched } = await businesses.tenancyProbes[1]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it('customers: listCustomers lists only its own customers', async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await customers.tenancyProbes[0]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("customers: updateCustomer cannot reach another business's customer", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await customers.tenancyProbes[1]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it('customers: existingForMatch sees only its own customers', async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await customers.tenancyProbes[2]!.run(a, b);
     expect(touched).not.toContain(b.businessId);
     for (const id of touched) expect(id).toBe(a.businessId);
   });
@@ -58,6 +82,34 @@ describe('tenancy (I1): every repository, business A against business B', () => 
     const a = await scopeFor('sharma', 'owner');
     const b = await otherBusiness('gupta');
     const { touched } = await files.tenancyProbes[1]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("imports: getImport cannot read another business's import", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await imports.tenancyProbes[0]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("imports: commitImport cannot add another business's rows", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await imports.tenancyProbes[1]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it('items: listItems lists only its own items', async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await items.tenancyProbes[0]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("items: getItem cannot read another business's item", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await items.tenancyProbes[1]!.run(a, b);
     expect(touched).not.toContain(b.businessId);
     for (const id of touched) expect(id).toBe(a.businessId);
   });

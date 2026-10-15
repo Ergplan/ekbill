@@ -1,5 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 
+import { todayIst } from '@ekbill/engine';
+
 import { ItemScreen } from '../../../screens/item/Screen';
 import { TODAY } from '../../../screens/fixtures';
 import { loadItem } from '../../../screens/items/data';
@@ -18,7 +20,15 @@ export default async function Page({
   const b = viewer.business;
   if (!b) redirect('/');
   const { id } = await params;
-  const item = id === 'new' ? null : loadItem(viewer, id);
+  const item = id === 'new' ? null : await loadItem(viewer, id);
   if (id !== 'new' && !item) notFound();
-  return <ItemScreen item={item} registration={b.registration} today={TODAY} viewer={shellOf(viewer)} />;
+  return (
+    <ItemScreen
+      item={item}
+      registration={b.registration}
+      today={viewer.session ? todayIst(new Date()) : TODAY}
+      live={Boolean(viewer.session?.scope)}
+      viewer={shellOf(viewer)}
+    />
+  );
 }

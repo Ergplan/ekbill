@@ -110,7 +110,13 @@ export function CustomerScreen({ data, viewer }: { data: CustomerData; viewer: S
             <SettingRow label={t('customer.state')} value={c.stateName ?? '—'} />
             <SettingRow
               label={t('customer.lang')}
-              value={c.lang === 'en' ? t('customer.lang.en') : t('customer.lang.hi')}
+              value={
+                c.language && c.language !== 'hi-Latn' && c.language !== 'en'
+                  ? t(`lang.name.${c.language}`)
+                  : c.lang === 'en'
+                    ? t('customer.lang.en')
+                    : t('customer.lang.hi')
+              }
             />
             <SettingRow label={t('customer.notes')} value={c.notes ?? '—'} />
           </SettingGroup>

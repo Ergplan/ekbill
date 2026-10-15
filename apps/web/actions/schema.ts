@@ -84,3 +84,42 @@ export const seriesPatchInput = z.object({
 export const defaultSeriesInput = z.object({
   defaultSeriesId: z.string().uuid(),
 });
+// table: customers
+export const customerInput = z.object({
+  id: z.string().uuid().nullable().optional(),
+  name: z.string().trim().min(1).max(200),
+  contactPerson: z.string().trim().max(100).nullable().optional(),
+  phone: z.string().trim().max(30).nullable().optional(),
+  email: z.string().trim().max(120).nullable().optional(),
+  gstin: z.string().trim().max(15).nullable().optional(),
+  pan: z.string().trim().max(10).nullable().optional(),
+  address: z.string().trim().max(200).nullable().optional(),
+  city: z.string().trim().max(100).nullable().optional(),
+  pincode: z.string().trim().max(10).nullable().optional(),
+  stateCode: z.string().trim().max(2).nullable().optional(),
+  language: z.string().max(10).nullable().optional(),
+  languageSource: z.enum(['owner', 'guess']).nullable().optional(),
+  notes: z.string().trim().max(500).nullable().optional(),
+});
+// table: customers
+export const archiveCustomerInput = z.object({ id: z.string().uuid(), archived: z.boolean() });
+// table: items
+export const itemInput = z.object({
+  id: z.string().uuid().nullable().optional(),
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(300).nullable().optional(),
+  hsnSac: z.string().trim().max(8).nullable().optional(),
+  unit: z.string().trim().max(12).nullable().optional(),
+  defaultRatePaise: z.number().int().min(0).nullable().optional(),
+  defaultTaxBp: z.number().int().min(0).max(10000).nullable().optional(),
+  priceIncludesTax: z.boolean().nullable().optional(),
+});
+// table: items
+export const archiveItemInput = z.object({ id: z.string().uuid(), archived: z.boolean() });
+// table: import_rows
+export const commitImportInput = z.object({
+  /** The import the rows belong to (imports.id). */
+  importId: z.string().uuid(),
+  /** The rows the owner ticked (import_rows.id). */
+  rowIds: z.array(z.string().uuid()).max(500),
+});

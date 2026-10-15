@@ -391,3 +391,167 @@ export const businessFiles = pgTable(
     check('business_files_sha256', sql`${t.sha256} ~ '^[0-9a-f]{64}$'`),
   ],
 );
+
+/**
+ * Who the bills go to (Stage 5). One row per customer per business; a phone,
+ * when given, is unique within the business. Nothing is deleted: archived
+ * customers leave the lists and keep their bills.
+ */
+export const customers = pgTable(
+  'customers',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    name: text('name').notNull(),
+    contactPerson: text('contact_person'),
+    phone: text('phone'),
+    email: text('email'),
+    address: text('address'),
+    city: text('city'),
+    pincode: text('pincode'),
+    stateCode: text('state_code'),
+    gstin: text('gstin'),
+    pan: text('pan'),
+    /** hi-Latn | en | hi | mr | gu | ta | te | kn | bn: the language reminders go out in. */
+    language: text('language').notNull().default('hi-Latn'),
+    /** owner (chosen) | guess (offered and accepted); null when never set. */
+    languageSource: text('language_source'),
+    notes: text('notes'),
+    archived: boolean('archived').notNull().default(false),
+    lastBilledAt: date('last_billed_at', { mode: 'string' }),
+    /** The import row this customer came from, when it came from one (I6: the owner ticked it). */
+    importRowId: uuid('import_row_id'),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('customers_business_phone')
+      .on(t.businessId, t.phone)
+      .where(sql`${t.phone} is not null`),
+    index('customers_business_name').on(t.businessId, t.name),
+    check('customers_phone', sql`${t.phone} is null or ${t.phone} ~ '^\\+[1-9][0-9]{7,14}$'`),
+    check('customers_gstin', sql`${t.gstin} is null or ${t.gstin} ~ '^[0-9]{2}[A-Z0-9]{13}$'`),
+    check('customers_pan', sql`${t.pan} is null or ${t.pan} ~ '^[A-Z]{5}[0-9]{4}[A-Z]$'`),
+    check('customers_state_code', sql`${t.stateCode} is null or ${t.stateCode} ~ '^[0-9]{2}$'`),
+    check('customers_pincode', sql`${t.pincode} is null or ${t.pincode} ~ '^[1-9][0-9]{5}$'`),
+    check('customers_language', sql`${t.language} in ('hi-Latn', 'en', 'hi', 'mr', 'gu', 'ta', 'te', 'kn', 'bn')`),
+    check('customers_language_source', sql`${t.languageSource} is null or ${t.languageSource} in ('owner', 'guess')`),
+  ],
+);
+
+/** What is usually on the bills (Stage 5): the name is unique per business, case aside. */
+export const items = pgTable(
+  'items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    name: text('name').notNull(),
+    description: text('description'),
+    hsnSac: text('hsn_sac'),
+    unit: text('unit'),
+    defaultRatePaise: bigint('default_rate_paise', { mode: 'number' }),
+    /** Basis points (1800 = 18 %); null: the bill's rate applies. */
+    defaultTaxBp: integer('default_tax_bp'),
+    priceIncludesTax: boolean('price_includes_tax').notNull().default(false),
+    archived: boolean('archived').notNull().default(false),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('items_business_name').on(t.businessId, sql`lower(${t.name})`),
+    check('items_hsn_sac', sql`${t.hsnSac} is null or ${t.hsnSac} ~ '^[0-9]{2,8}$'`),
+    check('items_rate', sql`${t.defaultRatePaise} is null or ${t.defaultRatePaise} >= 0`),
+    check('items_tax', sql`${t.defaultTaxBp} is null or ${t.defaultTaxBp} between 0 and 10000`),
+  ],
+);
+
+/**
+ * "Purane bills upload karo" (Stage 5; I6): one import is the files the
+ * owner picked; the worker reads them into import_rows; nothing becomes a
+ * customer until the owner ticks it and taps "add karo".
+ */
+export const imports = pgTable(
+  'imports',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    /** reading | ready | failed | committed */
+    status: text('status').notNull().default('reading'),
+    /** What each file gave: [{ name, kind, reader, pages, found, problem }] (written by the worker). */
+    summary: jsonb('summary')
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    error: text('error'),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    committedAt: timestamp('committed_at', { withTimezone: true }),
+    addedCount: integer('added_count'),
+  },
+  (t) => [
+    index('imports_business_created').on(t.businessId, t.createdAt),
+    check('imports_status', sql`${t.status} in ('reading', 'ready', 'failed', 'committed')`),
+  ],
+);
+
+/** The files of an import, as bytes in Postgres for the worker to read (8 MB each at most). */
+export const importFiles = pgTable(
+  'import_files',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    importId: uuid('import_id')
+      .notNull()
+      .references(() => imports.id),
+    name: text('name').notNull(),
+    mime: text('mime').notNull(),
+    bytes: bytea('bytes').notNull(),
+    size: integer('size').notNull(),
+    sha256: text('sha256').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('import_files_import').on(t.importId),
+    check('import_files_size', sql`${t.size} between 1 and ${sql.raw(String(8 * 1024 * 1024))}`),
+  ],
+);
+
+/** One customer read from an import, before the owner says yes (I6: staging only). */
+export const importRows = pgTable(
+  'import_rows',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    importId: uuid('import_id')
+      .notNull()
+      .references(() => imports.id),
+    position: integer('position').notNull(),
+    fileName: text('file_name').notNull(),
+    /** The ImportedCustomer the reader produced. */
+    candidate: jsonb('candidate').notNull(),
+    /** The customer it already is ("Pehle se hai"), when the matcher found one. */
+    existingCustomerId: uuid('existing_customer_id').references(() => customers.id),
+    /** The customer the owner's tick created. */
+    customerId: uuid('customer_id').references(() => customers.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('import_rows_import_position').on(t.importId, t.position)],
+);

@@ -16,7 +16,7 @@ export default async function Page({
   const viewer = await getViewer(await searchParams);
   if (!viewer.business) redirect('/');
   const { id } = await params;
-  const data = loadCustomer(viewer, id);
+  const data = await loadCustomer(viewer, id);
   if (!data) notFound();
   return <CustomerScreen data={data} viewer={shellOf(viewer)} />;
 }

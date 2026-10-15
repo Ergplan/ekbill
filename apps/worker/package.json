@@ -5,11 +5,13 @@
   "description": "Background jobs on a Postgres-backed queue (pg-boss): read-bill, render-other-sizes, index-search, reminders-due, backup-check.",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts"
+    "dev": "tsx watch --conditions=react-server src/index.ts",
+    "start": "tsx --conditions=react-server src/index.ts"
   },
   "dependencies": {
     "@ekbill/db": "*",
+    "@ekbill/engine": "*",
+    "pdfjs-dist": "^4.10.38",
     "pg-boss": "^12.0.0",
     "pino": "^10.0.0",
     "tsx": "^4.20.0"
