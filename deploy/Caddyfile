@@ -7,12 +7,10 @@
 {$EKBILL_DOMAIN} {
 	encode zstd gzip
 
-	# The shared password in front of the app while sign-in is switched off (AUTH_MODE=switcher).
-	# Health stays open so uptime checks and the operator can see state without it.
-	@gated not path /api/health
-	basic_auth @gated {
-		{$EKBILL_GATE_USER} {$EKBILL_GATE_HASH}
-	}
+	# The gate: deploy/caddy/gate-on.caddy puts a shared password in front of everything but
+	# /api/health; gate-off.caddy puts nothing. deploy/vm/up.sh mounts one of them as gate.caddy
+	# (EKBILL_GATE=on|off; off during the build, by the operator's decision of 15 Oct 2026).
+	import /etc/caddy/gate.caddy
 
 	header {
 		Strict-Transport-Security "max-age=31536000"

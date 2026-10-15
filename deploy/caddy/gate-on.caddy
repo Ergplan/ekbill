@@ -1,0 +1,5 @@
+# A shared password in front of the app while sign-in is switched off. Health stays open.
+@gated not path /api/health
+basic_auth @gated {
+	{$EKBILL_GATE_USER} {$EKBILL_GATE_HASH}
+}

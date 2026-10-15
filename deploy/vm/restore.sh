@@ -22,7 +22,7 @@ db="$(container_of db)"
 if [ -z "$db" ]; then
   EKBILL_DB_PASSWORD="$(secret ekbill-db-password)"
   [ -n "$EKBILL_DB_PASSWORD" ] || { echo "ekbill-db-password has no value, or this VM cannot read it."; exit 1; }
-  export EKBILL_DB_PASSWORD EKBILL_DOMAIN=unused EKBILL_GATE_HASH=unused
+  export EKBILL_DB_PASSWORD EKBILL_DOMAIN=unused EKBILL_GATE_HASH=off EKBILL_GATE_MODE=off
   "${COMPOSE[@]}" up -d --no-build db
   db="$(container_of db)"
 fi

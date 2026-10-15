@@ -24,16 +24,26 @@ say "Secrets"
 load_env
 EKBILL_DB_PASSWORD="$(secret ekbill-db-password)"
 [ -n "$EKBILL_DB_PASSWORD" ] || { echo "ekbill-db-password has no value in Secret Manager."; exit 1; }
-gate="$(secret ekbill-gate-password)"
-[ -n "$gate" ] || { echo "ekbill-gate-password has no value in Secret Manager."; exit 1; }
 if [ -z "${OPENAI_API_KEY:-}" ]; then OPENAI_API_KEY="$(secret ekbill-openai-api-key)"; fi
-echo "database password: present; gate password: present; OpenAI key: $([ -n "${OPENAI_API_KEY:-}" ] && echo present || echo 'not set (photo reading, voice and Poocho stay off)')"
+echo "database password: present; OpenAI key: $([ -n "${OPENAI_API_KEY:-}" ] && echo present || echo 'not set (photo reading, voice and Poocho stay off)')"
 
-EKBILL_GATE_HASH="$(printf '%s' "$gate" | docker run --rm -i caddy:2 sh -c 'caddy hash-password --plaintext "$(cat)"')"
-unset gate
+# The gate: off during the build (operator's decision, 15 Oct 2026); EKBILL_GATE=on deploy/vm/up.sh
+# puts the shared password from Secret Manager back in front of everything but /api/health.
+if [ "${EKBILL_GATE:-off}" = "on" ]; then
+  gate="$(secret ekbill-gate-password)"
+  [ -n "$gate" ] || { echo "ekbill-gate-password has no value in Secret Manager."; exit 1; }
+  EKBILL_GATE_HASH="$(printf '%s' "$gate" | docker run --rm -i caddy:2 sh -c 'caddy hash-password --plaintext "$(cat)"')"
+  unset gate
+  EKBILL_GATE_MODE=on
+  echo "gate: on (user ${EKBILL_GATE_USER:-ekbill})"
+else
+  EKBILL_GATE_HASH=off
+  EKBILL_GATE_MODE=off
+  echo "gate: off (no password in front of the app; EKBILL_GATE=on deploy/vm/up.sh to put one back)"
+fi
 EKBILL_DOMAIN="$(domain)"
 [ -n "$EKBILL_DOMAIN" ] || { echo "Could not work out a domain. Set EKBILL_DOMAIN in .env or write it to deploy/vm/domain."; exit 1; }
-export EKBILL_DB_PASSWORD OPENAI_API_KEY EKBILL_GATE_HASH EKBILL_DOMAIN
+export EKBILL_DB_PASSWORD OPENAI_API_KEY EKBILL_GATE_HASH EKBILL_GATE_MODE EKBILL_DOMAIN
 export AUTH_MODE="${AUTH_MODE:-switcher}" SESSION_SECRET="${SESSION_SECRET:-}"
 export OPENAI_VISION_MODEL="${OPENAI_VISION_MODEL:-}" OPENAI_TEXT_MODEL="${OPENAI_TEXT_MODEL:-}" OPENAI_REALTIME_MODEL="${OPENAI_REALTIME_MODEL:-}"
 echo "domain: $EKBILL_DOMAIN   auth mode: $AUTH_MODE"
@@ -56,5 +66,9 @@ done
 curl -sS http://127.0.0.1:8080/api/health; echo
 
 say "Public address"
-echo "https://$EKBILL_DOMAIN  (user: ${EKBILL_GATE_USER:-ekbill}; password: gcloud secrets versions access latest --secret=ekbill-gate-password)"
+if [ "$EKBILL_GATE_MODE" = "on" ]; then
+  echo "https://$EKBILL_DOMAIN  (user: ${EKBILL_GATE_USER:-ekbill}; password: gcloud secrets versions access latest --secret=ekbill-gate-password)"
+else
+  echo "https://$EKBILL_DOMAIN  (no password)"
+fi
 echo "The first HTTPS request can take ~30s while Caddy gets the certificate."

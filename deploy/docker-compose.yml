@@ -93,13 +93,15 @@ services:
       EKBILL_DOMAIN: ${EKBILL_DOMAIN:?run deploy/vm/up.sh, which works it out}
       EKBILL_ACME_EMAIL: ${EKBILL_ACME_EMAIL:-venture@aayuda.energy}
       EKBILL_GATE_USER: ${EKBILL_GATE_USER:-ekbill}
-      EKBILL_GATE_HASH: ${EKBILL_GATE_HASH:?run deploy/vm/up.sh, which hashes the gate password}
+      # "off" when the gate is off; the hash of the gate password when it is on (deploy/vm/up.sh).
+      EKBILL_GATE_HASH: ${EKBILL_GATE_HASH:-off}
     ports:
       - '80:80'
       - '443:443'
       - '443:443/udp'
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/gate-${EKBILL_GATE_MODE:-off}.caddy:/etc/caddy/gate.caddy:ro
       - caddy_data:/data
       - caddy_config:/config
 

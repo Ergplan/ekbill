@@ -227,3 +227,9 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `/dev/switch/[person]` answers 303 with `Location: /`, not an absolute URL.
 - Why: an absolute URL built from `request.url` carried `localhost`, so the cookie set on 127.0.0.1 never reached the next page.
 - Asked by: path (d).
+
+### The Caddy gate is off during the build
+
+- Decision: `deploy/vm/up.sh` mounts `deploy/caddy/gate-off.caddy` by default; `EKBILL_GATE=on deploy/vm/up.sh` mounts `gate-on.caddy` with the shared password from Secret Manager. The site is open; `AUTH_MODE=switcher` shows seeded test data only.
+- Why: the operator asked for no login or password in front of the prototype (15 Oct 2026). Stage 10 turns OTP on, which replaces the gate.
+- Asked by: the operator.
