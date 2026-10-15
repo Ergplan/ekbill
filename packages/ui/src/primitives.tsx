@@ -141,10 +141,11 @@ export function OutlineButton({ children, small, ...rest }: ButtonProps & { smal
 export function IconButton({
   name,
   label,
+  className = '',
   ...rest
 }: { name: IconName; label: string } & ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button type="button" className="eb-iconbtn" aria-label={label} {...rest}>
+    <button type="button" className={`eb-iconbtn ${className}`.trim()} aria-label={label} {...rest}>
       <Icon name={name} size={22} />
     </button>
   );

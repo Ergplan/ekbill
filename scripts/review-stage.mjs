@@ -92,7 +92,10 @@ export function stageDiff(stage, { root = ROOT, base, head = 'HEAD' } = {}) {
   ];
   const diff = execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
   if (diff.length > MAX_DIFF_CHARS) {
-    return `${diff.slice(0, MAX_DIFF_CHARS)}\n\n[diff truncated at ${MAX_DIFF_CHARS} characters of ${diff.length}; the reviewer saw the first part only]\n`;
+    // Never reviewed in part: a defect past the cut would go unseen. Split the range with --base/--head instead.
+    throw new Error(
+      `the diff ${from}..${head} is ${diff.length} characters, over the ${MAX_DIFF_CHARS} the reviewer reads in one go; review it in parts with --base and --head`,
+    );
   }
   return diff;
 }
@@ -111,8 +114,14 @@ export function buildReviewPrompt({ stage, diff, claudeMd, prompt, report }) {
   };
 }
 
+/** Exactly one line that starts with VERDICT:, and it is the last such line; anything else is unclear. */
 export function parseVerdict(text) {
-  const m = text.match(/VERDICT:\s*(no new code defect|defects found)/i);
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => /^VERDICT:/i.test(l));
+  if (lines.length !== 1) return 'unclear';
+  const m = lines[0].match(/^VERDICT:\s*(no new code defect|defects found)\s*\.?$/i);
   if (!m) return 'unclear';
   return m[1].toLowerCase().startsWith('no') ? 'clean' : 'defects';
 }
@@ -192,6 +201,8 @@ export async function reviewStage(
   const baseUrl = (env.OPENAI_BASE_URL ?? 'https://api.openai.com').replace(/\/$/, '');
   const text = await call({ apiKey, model, baseUrl, system, user });
   const verdict = parseVerdict(text);
+  if (verdict === 'unclear')
+    console.error('the reviewer did not end with exactly one VERDICT line; recorded as unclear (not clean)');
   const path = nextReviewPath(stage, root);
   const headSha = execFileSync('git', ['rev-parse', '--short', head], { cwd: root, encoding: 'utf8' }).trim();
   writeFileSync(

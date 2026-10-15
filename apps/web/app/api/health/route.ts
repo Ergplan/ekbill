@@ -27,7 +27,7 @@ function lastBackup(): (BackupState & { ageHours: number }) | 'none' {
   try {
     const state = JSON.parse(readFileSync(file, 'utf8')) as BackupState;
     const at = Date.parse(state.at);
-    if (Number.isNaN(at)) return 'none';
+    if (Number.isNaN(at) || !(typeof state.bytes === 'number' && state.bytes > 0)) return 'none';
     return { at: state.at, bytes: state.bytes, ageHours: Math.round((Date.now() - at) / 3_600_000) };
   } catch {
     return 'none';

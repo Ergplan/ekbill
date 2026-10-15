@@ -1,5 +1,5 @@
 import { t } from '@ekbill/copy';
-import { computeTax, supplyKind } from '@ekbill/engine';
+import { computeTax } from '@ekbill/engine';
 import type { PaperData } from '@ekbill/ui';
 
 import type { Bill, Business, Customer } from './fixtures';
@@ -20,7 +20,9 @@ export function paperOfBill(business: Business, bill: Bill, customer: Customer |
     })),
     registration: business.registration,
     gstOn: bill.kind === 'tax-invoice',
-    supply: supplyKind(business.stateCode, customer?.stateCode ?? null),
+    dateIso: bill.date,
+    sellerStateCode: business.stateCode,
+    customerStateCode: customer?.stateCode ?? null,
   });
   const bos = tax.documentKind === 'bill-of-supply';
   return {

@@ -8,18 +8,19 @@ import { Display, Field, FilterChips, Input, OutlineButton, PrimaryCTA } from '@
 
 import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
+import { ratesFor } from '../bill/compute';
 import type { Item } from '../fixtures';
 import { manifest } from './manifest';
-
-const RATES = ['0', '5', '12', '18', '28', '40'];
 
 export function ItemScreen({
   item,
   registration,
+  today,
   viewer,
 }: {
   item: Item | null;
   registration: string | null;
+  today: string;
   viewer: ShellViewer;
 }) {
   const router = useRouter();
@@ -33,6 +34,7 @@ export function ItemScreen({
   });
   const [saved, setSaved] = useState(false);
   const canEdit = viewer.role !== 'accountant';
+  const rates = ratesFor(today);
   return (
     <AppShell viewer={viewer} tab="you" back="/items" title={item ? item.name : t('items.new')} tour={manifest.tour}>
       <section className="eb-heading">
@@ -91,12 +93,16 @@ export function ItemScreen({
       </div>
       {registration === 'regular' ? (
         <Field id="it-gst" label={t('item.gst')}>
-          <FilterChips<string>
-            label={t('item.gst')}
-            value={d.gst}
-            onChange={(v) => setD({ ...d, gst: v })}
-            options={RATES.map((r) => ({ value: r, label: `${r}%` }))}
-          />
+          {canEdit ? (
+            <FilterChips<string>
+              label={t('item.gst')}
+              value={d.gst}
+              onChange={(v) => setD({ ...d, gst: v })}
+              options={rates.map((r) => ({ value: String(r), label: `${r}%` }))}
+            />
+          ) : (
+            <Input id="it-gst" value={`${d.gst}%`} disabled readOnly />
+          )}
         </Field>
       ) : null}
       {canEdit ? (

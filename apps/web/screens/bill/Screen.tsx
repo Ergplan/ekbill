@@ -51,23 +51,30 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
   );
   // The customer just added on /customers/new, for the "new-customer" mode.
   const [newCustomer] = useDraft<NewCustomerDraft | null>(`${viewer.personId}:new-customer`, null);
+  // The brand-new owner's registration comes from the setup answers too: a regular business starts with GST on.
+  const base = useMemo<BillDraft>(
+    () =>
+      data.business.name
+        ? data.initial
+        : { ...data.initial, gst: { ...data.initial.gst, on: business.registration === 'regular' } },
+    [data.business.name, data.initial, business.registration],
+  );
+  const newGst = useMemo(() => (newCustomer?.gstin ? checkGstin(newCustomer.gstin) : null), [newCustomer]);
   const initial = useMemo<BillDraft>(() => {
-    if (
-      data.mode !== 'new-customer' ||
-      !newCustomer ||
-      (data.initial.customerName && data.initial.customerName !== newCustomer.name)
-    )
-      return data.initial;
-    const gst = newCustomer.gstin ? checkGstin(newCustomer.gstin) : null;
+    if (data.mode !== 'new-customer' || !newCustomer || (base.customerName && base.customerName !== newCustomer.name))
+      return base;
     return {
-      ...data.initial,
+      ...base,
       customerName: newCustomer.name,
-      customerState: gst?.ok ? (gst.stateCode ?? null) : data.initial.customerState,
+      customerState: newGst?.ok ? (newGst.stateCode ?? null) : base.customerState,
     };
-  }, [data.initial, data.mode, newCustomer]);
-  // One draft per person, bill number and customer: a half-typed bill survives a reload and never leaks to another business.
+  }, [base, data.mode, newCustomer, newGst]);
+  // One draft per person, bill number, customer (an existing one by id, a new one by name) and redo: a half-typed
+  // bill survives a reload, never leaks to another business and never bleeds into a different new customer's bill.
   const [d, setD] = useDraft<BillDraft>(
-    `${viewer.personId}:bill:${data.initial.number}:${data.initial.customer ?? data.mode}`,
+    `${viewer.personId}:bill:${data.initial.number}:${data.initial.customer ?? `${data.mode}:${initial.customerName}`}${
+      data.redo ? `:redo-${data.redo}` : ''
+    }`,
     initial,
   );
   const [filled, setFilled] = useState(false);
@@ -104,7 +111,12 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
       setError(t('bill.check.empty'));
       return;
     }
-    writeDraft(`${viewer.personId}:issued`, { draft: d, computed: c, business, customer: data.customer });
+    const customer =
+      data.customer ??
+      (d.customerName.trim()
+        ? { id: null, name: d.customerName.trim(), gstin: newGst?.ok ? newGst.normalised : null }
+        : null);
+    writeDraft(`${viewer.personId}:issued`, { draft: d, computed: c, business, customer });
     router.push(as('/bills/new/done'));
   };
   const setLine = (i: number, p: Partial<LineValue>) =>

@@ -144,16 +144,8 @@ export interface Fixture {
   creditNotes: CreditNote[];
   photoReview: PhotoReview;
   failingCheck: { customer: string; check: string };
-  gstQuarter: {
-    label: string;
-    period: string;
-    bills: number;
-    taxablePaise: number;
-    gstPaise: number;
-    byRate: Array<{ rate: number; taxablePaise: number; cgstPaise: number; sgstPaise: number }>;
-    b2bBills: number;
-    b2cBills: number;
-  };
+  /** The GST screen's period (ISO from/to); the workings are computed by the engine over the bills (I4). */
+  gstQuarter: { label: string; period: string; from: string; to: string };
   importPreview: {
     files: string[];
     rows: Array<{ name: string; phone: string | null; gstin: string | null; exists: boolean }>;

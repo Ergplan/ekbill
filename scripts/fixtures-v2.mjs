@@ -482,19 +482,8 @@ const fixture = {
     },
   },
   failingCheck: { customer: 'priya', check: 'state-missing' },
-  gstQuarter: {
-    label: 'Jul – Sep 2026',
-    period: '2026-Q2',
-    bills: 14,
-    taxablePaise: 11240000,
-    gstPaise: 1939200,
-    byRate: [
-      { rate: 18, taxablePaise: 9840000, cgstPaise: 885600, sgstPaise: 885600 },
-      { rate: 12, taxablePaise: 1400000, cgstPaise: 84000, sgstPaise: 84000 },
-    ],
-    b2bBills: 6,
-    b2cBills: 8,
-  },
+  // The GST screen's period; its workings are computed by the engine over the bills (I4), never stored.
+  gstQuarter: { label: 'Jul – Sep 2026', period: '2026-Q2', from: '2026-07-01', to: '2026-09-30' },
   importPreview: {
     files: ['bills-2025.pdf', 'customers.xlsx', 'IMG_2041.jpg'],
     rows: [

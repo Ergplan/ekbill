@@ -13,6 +13,7 @@ import {
   OutlineButton,
   StatusPill,
   ThemeSwitch,
+  useTheme,
 } from '@ekbill/ui';
 
 import type { GoldenPath } from '../golden-paths';
@@ -45,6 +46,7 @@ const ROLES: Role[] = ['owner', 'staff', 'accountant'];
  * start of a path.
  */
 export function FlowScreen(p: FlowProps) {
+  const theme = useTheme(p.theme);
   const [view, setView] = useState<'map' | 'paths' | 'roles' | 'questions'>('map');
   const [role, setRole] = useState<Role>('owner');
   const byId = new Map(p.screens.map((s) => [s.id, s]));
@@ -82,7 +84,7 @@ export function FlowScreen(p: FlowProps) {
         {view === 'map' ? (
           <div className="eb-flow__grid">
             {p.screens.map((s) => {
-              const thumb = p.thumbs[s.id]?.[p.theme];
+              const thumb = p.thumbs[s.id]?.[theme];
               const outs = [...(s.primary ? [s.primary] : []), ...s.taps];
               return (
                 <Card

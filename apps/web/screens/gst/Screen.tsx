@@ -55,6 +55,7 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
               <th>{t('gst.taxable')}</th>
               <th>{t('gst.cgst')}</th>
               <th>{t('gst.sgst')}</th>
+              <th>{t('gst.igst')}</th>
             </tr>
           </thead>
           <tbody>
@@ -69,6 +70,9 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
                 </td>
                 <td>
                   <Money paise={r.sgstPaise} whole />
+                </td>
+                <td>
+                  <Money paise={r.igstPaise} whole />
                 </td>
               </tr>
             ))}

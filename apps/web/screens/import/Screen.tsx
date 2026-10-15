@@ -16,10 +16,13 @@ type State = 'pick' | 'reading' | 'rows' | 'done';
 export function ImportScreen({
   state,
   preview,
+  added,
   viewer,
 }: {
   state: State;
   preview: Fixture['importPreview'];
+  /** How many the rows step added (from the URL), shown on the done step. */
+  added: number;
   viewer: ShellViewer;
 }) {
   const router = useRouter();
@@ -104,7 +107,7 @@ export function ImportScreen({
       ) : null}
       {state === 'done' ? (
         <>
-          <SuccessHeader title={t('import.done', { n })} />
+          <SuccessHeader title={t('import.done', { n: added })} />
           <div className="eb-actions">
             <OutlineButton onClick={() => router.push(as('/customers'))}>{t('customers.title')}</OutlineButton>
           </div>

@@ -254,3 +254,24 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `tests/e2e/golden-path.spec.ts` throttles to Slow 3G / 4× CPU and asserts ≤ 20 s when `E2E_PROD=1` (CI, `next start`); against the dev server it counts taps untimed. Measured: 2.5 s.
 - Why: the dev server's unminified bundles measure the compiler, not the app.
 - Asked by: I9 and the Stage 1 review.
+
+## 2026-10-15 — after the second independent reviews
+
+### The engine takes the date and both state codes
+
+- Decision: `computeTax({ lines, registration, gstOn, dateIso, sellerStateCode, customerStateCode })` selects the rule pack by date and decides the place of supply, the state head (SGST or UTGST) and the document kind from the pack entries (`place-of-supply-state`, `document-kinds-2017`); the result names `rulesApplied`. Half rates are exact (`taxable × bp / 20 000`, rounded once). The GST screen's workings are computed by the engine over the period's bills; the fixture carries only the period.
+- Options: keep `supplyKind(seller, customer)` without a date and the document kinds in code.
+- Why: the second review found I4 and I5 still violated (hard-coded workings, truncated half rates, kinds in code, rates constant on the item screen). Stage 3 verifies the pack; its shape is now what the engine reads.
+- Asked by: the Stage 1 review, round 2 (rule 12).
+
+### A request id on every request
+
+- Decision: `apps/web/proxy.ts` (Next's proxy convention, Node runtime) stamps `x-request-id` on every non-asset request, passes it to the page or route as a request header and logs one JSON line; `lib/log.ts#requestId()` reads it there.
+- Why: I7 asks for a request id on every request; the routes had one, the pages did not.
+- Asked by: the Stage 1 review, round 2.
+
+### WhatsApp is a real hand-off
+
+- Decision: `apps/web/screens/share.ts#handoffToWhatsApp()` calls the Web Share API (the phone's sheet offers WhatsApp) and falls back to a `wa.me` link; the buttons mark "sent" only after the sheet returns. Golden path (a) stubs `navigator.share` and is timed to that call. Stage 6 attaches the PDF/JPG.
+- Why: I9 measures the path up to the share sheet; a button that only changed its label measured nothing.
+- Asked by: the Stage 1 review, round 2.

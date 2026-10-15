@@ -24,6 +24,7 @@ import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { BillDraft, Computed } from '../bill/compute';
 import { longDate } from '../fixtures';
+import { handoffToWhatsApp } from '../share';
 import { manifest } from './manifest';
 
 interface Issued {
@@ -37,7 +38,7 @@ interface Issued {
     upi: string | null;
     address: string | null;
   };
-  customer: { id: string; name: string; gstin: string | null } | null;
+  customer: { id: string | null; name: string; gstin: string | null } | null;
 }
 
 export function BillDoneScreen({
@@ -97,7 +98,23 @@ export function BillDoneScreen({
         <InvoicePaper data={paper} />
       </div>
       <div className="eb-sticky eb-sticky--bare" data-guide="whatsapp">
-        <WhatsAppButton onClick={() => setSent(true)} aria-pressed={sent}>
+        <WhatsAppButton
+          onClick={() => {
+            void handoffToWhatsApp({
+              title: `${paper.title} ${paper.number}`,
+              text: t('done.wa.text', {
+                customer: paper.customer.name,
+                business: paper.seller.name,
+                title: paper.title,
+                number: paper.number,
+                amount: rupees(paper.totalPaise),
+              }),
+            }).then((r) => {
+              if (r !== 'cancelled') setSent(true);
+            });
+          }}
+          aria-pressed={sent}
+        >
           {sent ? t('done.sent') : t('action.whatsapp')}
         </WhatsAppButton>
       </div>

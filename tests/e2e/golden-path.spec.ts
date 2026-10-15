@@ -42,18 +42,28 @@ test('(a) repeat bill to a regular customer, sent on WhatsApp: 4 taps, within 20
   page,
 }) => {
   const c = { n: 0 };
-  await page.goto('/');
-  await hydrated(page);
-  // Warm the three screens once (the dev server compiles on first visit); the timed walk below is the second visit.
-  await page.goto('/bills/new?customer=mehta');
-  await hydrated(page);
-  await page.goto('/bills/new/done');
-  await hydrated(page);
-  await page.goto('/');
-  await hydrated(page);
+  // The share sheet is the last step: a stub Web Share records the call, so the walk is timed up to the hand-off.
+  await page.addInitScript(() => {
+    (window as unknown as { __shared: unknown[] }).__shared = [];
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: (data: unknown) => {
+        (window as unknown as { __shared: unknown[] }).__shared.push(data);
+        return Promise.resolve();
+      },
+    });
+  });
   // The throttled timing is meaningful against a production build (CI sets E2E_PROD=1 and runs `next start`);
-  // the dev server's unminified bundles would measure the compiler, not the app.
+  // on the dev server the first visit compiles each screen, so the dev run warms them once and is not timed.
   const timed = process.env.E2E_PROD === '1';
+  if (!timed) {
+    for (const path of ['/bills/new?customer=mehta', '/bills/new/done']) {
+      await page.goto(path);
+      await hydrated(page);
+    }
+  }
+  await page.goto('/');
+  await hydrated(page);
   const cdp = timed ? await throttle(page) : null;
   const started = Date.now();
   await tap(page, c, () => page.getByRole('link', { name: 'Mehta Traders' }).click());
@@ -63,8 +73,13 @@ test('(a) repeat bill to a regular customer, sent on WhatsApp: 4 taps, within 20
   await expect(page).toHaveURL(/\/bills\/new\/done/);
   await expect(page.locator('.eb-paper')).toContainText('Mehta Traders');
   await tap(page, c, () => page.getByRole('button', { name: 'WhatsApp pe bhejo' }).click());
-  await expect(page.getByRole('button', { name: /WhatsApp pe gaya/ })).toBeVisible();
+  await page.waitForFunction(() => (window as unknown as { __shared: unknown[] }).__shared.length === 1);
   const elapsed = (Date.now() - started) / 1000;
+  await expect(page.getByRole('button', { name: /WhatsApp pe gaya/ })).toBeVisible();
+  const shared = (await page.evaluate(() => (window as unknown as { __shared: unknown[] }).__shared))[0] as {
+    text: string;
+  };
+  expect(shared.text).toContain('Mehta');
   if (cdp) {
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
     await cdp.detach();

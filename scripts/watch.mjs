@@ -68,7 +68,7 @@ function checks(changed) {
   ];
   for (const pkg of pkgs) {
     if (existsSync(join(ROOT, pkg)))
-      list.push([`vitest unit ${pkg}`, 'npx', ['vitest', 'run', '--project', 'unit', pkg]]);
+      list.push([`vitest unit ${pkg}`, 'npx', ['vitest', 'run', '--project', 'unit', '--passWithNoTests', pkg]]);
   }
   list.push(['vitest unit', 'npx', ['vitest', 'run', '--project', 'unit']]);
   list.push(['drizzle-kit check', 'npx', ['drizzle-kit', 'check', '--config', 'packages/db/drizzle.config.ts']]);

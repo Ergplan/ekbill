@@ -27,7 +27,6 @@ import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
 import { TODAY, shortDate } from '../fixtures';
-import { writeDraft } from '../draft';
 import { manifest } from './manifest';
 import type { BillViewData } from './data';
 
@@ -68,7 +67,6 @@ export function BillViewScreen({
     setMode(null);
   };
   const cancelAndRedo = () => {
-    writeDraft('bill', null);
     router.push(as(`/bills/new?customer=${bill.customer}&redo=${bill.number}`));
   };
 

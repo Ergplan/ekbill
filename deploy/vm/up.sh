@@ -63,7 +63,11 @@ for _ in $(seq 1 60); do
   if curl -fsS http://127.0.0.1:8080/api/health >/dev/null 2>&1; then break; fi
   sleep 3
 done
-curl -sS http://127.0.0.1:8080/api/health; echo
+if ! curl -fsS http://127.0.0.1:8080/api/health; then
+  echo; echo "The app is not healthy. Logs: docker logs \$(docker ps -q --filter label=com.docker.compose.project=$COMPOSE_PROJECT --filter label=com.docker.compose.service=app)"
+  exit 1
+fi
+echo
 
 say "Public address"
 if [ "$EKBILL_GATE_MODE" = "on" ]; then

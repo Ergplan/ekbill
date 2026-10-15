@@ -28,7 +28,7 @@ Every screen is `apps/web/screens/<id>/{manifest.ts,data.ts,Screen.tsx}` plus a 
 | ask, help                                 | `/poocho`, `/help`                                                     | question box with example chips and sourced answer; the three contract choices                                                                                                                                     |
 | switch, kit, flow                         | `/dev/switch`, `/kit`, `/flow`                                         | the build's door, the parts bin, the review screen                                                                                                                                                                 |
 
-**The guide highlight (rule 17):** every section, field and button the voice can mention carries a `data-guide` id; each manifest lists them and the tour (the spoken Hinglish per id). The "Tour" button and the mic walk them with `GuideHighlight`; Stage 9 hands the same component to the Realtime voice. The e2e suite checks every declared id is in the DOM and that the tour moves from caption to caption.
+**The guide highlight (rule 17):** every section, field and button the voice can mention carries a `data-guide` id; each manifest lists them and the tour (the spoken Hinglish per id). The "Tour" button walks them with `GuideHighlight`; in Stage 1 the mic button starts or stops that same tour (no voice yet); Stage 9 hands the component to the Realtime voice. The e2e suite checks that every guide id a manifest declares as required is in the DOM on the screen's default state (ids a manifest marks optional may belong to another state) and that the tour moves from caption to caption.
 
 **Roles (8.3):** `?as=staff|accountant` (or the switch) hides what the matrix forbids; each manifest's `hidden` lists the ids that must be absent, and the suite asserts it. Accountants cannot reach bill-making (`/bills/new`, `/bills/new/done`), remind, photo, credit note, team or help: the routes redirect, and the payment sheet never opens for them even with `?paid=1`.
 
@@ -49,14 +49,14 @@ Path (d) meets the budget only with the short setup (question 1), the inline cus
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------- |
 | Manifest completeness: every screen folder in the registry, every tap resolves to a route or an external door, every tour step a declared guide id, every state URL a declared state, every golden path within budget | `tests/unit/manifests.test.ts`                                     | 7                          |
 | GSTIN/PAN checks and money arithmetic copied from the MVP, with their tests                                                                                                                                           | `tests/unit/engine-ids.test.ts`, `tests/unit/engine-money.test.ts` | 19                         |
-| Bill draft arithmetic (one rate, per line, composition, junk input, CGST/SGST vs IGST)                                                                                                                                | `tests/unit/bill-compute.test.ts`                                  | 5                          |
+| Bill draft arithmetic (one rate, per line, composition, junk input, CGST/SGST vs IGST, rates by date, setup business) and the cross-consumer agreement of form, paper and GST workings on one fixture bill            | `tests/unit/bill-compute.test.ts`                                  | 8                          |
 | Every screen in both themes: guide ids in the DOM, tap labels on screen, ≤ 1 primary, no sideways scroll, visual baseline (pixelmatch 0.1, max 0.5 %)                                                                 | `tests/e2e/screens.spec.ts`                                        | 50 screens + 44 states + 2 |
 | Role-hidden elements absent; the tour moves caption to caption                                                                                                                                                        | `tests/e2e/screens.spec.ts`                                        | in the above               |
 | Golden-path tap counts                                                                                                                                                                                                | `tests/e2e/golden-path.spec.ts`                                    | 4                          |
 | Kit baseline                                                                                                                                                                                                          | `tests/e2e/kit.spec.ts`                                            | 3                          |
 | Watcher once (eslint, prettier, tsc, unit, drizzle, rules, tokens, copy, trace, flow, integration)                                                                                                                    | `npm run watch -- --once`                                          | GREEN                      |
 
-Playwright: **106 passed** in one run after the review fixes (the earlier run was 103). Baselines: `tests/e2e/__screenshots__/screens.spec.ts/` (94 PNG at device scale 2), copied as references to `design/screens/<theme>/v2-<id>.png` (50).
+Playwright: **106 passed** twice after the round-3 fixes (once rebuilding the baselines, once against them; golden path (a) now runs to the Web Share call, 4 taps). Baselines: `tests/e2e/__screenshots__/screens.spec.ts/` (94 PNG at device scale 2), copied as references to `design/screens/<theme>/v2-<id>.png` (50).
 
 ## Pixel difference against the pack's own PNGs (for the eye, not a gate)
 
@@ -87,7 +87,7 @@ The numbers are high because the content differs on purpose (the pack's screens 
 5. Harmony's Home shows two folders (latest bills behind Kiska bill, oldest dues behind Kiske paise). Proposal: keep; drop the first folder's peeks if you prefer one.
 6. GST rate chips 0/5/12/18/28/40 until Stage 3's rule pack says which apply on the bill's date. Proposal: keep until then.
 7. Accountant: Download yes, WhatsApp dobara no. Proposal as stated.
-8. Poocho and the contract helper have no Home entry; the mic and Aap reach them. Proposal: keep Home to three cards.
+8. Poocho and the contract helper have no Home entry; Aap reaches them (the mic will, from Stage 9). Proposal: keep Home to three cards.
 
 ## Independent review
 
@@ -107,7 +107,7 @@ What was fixed (file in brackets):
 - Bill view: partial payments accumulate. Dues: role links keep `?as=` correctly (one `withAs` helper everywhere).
 - Reminders: the direct tone fills `{days}` and `{business}`. Photo: the corrected date is kept; "Photo lo" opens the real file picker. Fixture bills across states print IGST (`INV-037`).
 - `/flow` is in the screenshot suite (both themes, and 1280 px); `/kit` renders the six flow components; literal type sizes in the kit are now tokens (tokens.json 1.3.0) and `tokens:check` fails on a `px` font size; the drawn kaccha-bill SVG is listed in `tokens-allow.txt` with its reason.
-- The Aap, team, items and photo pages read through `data.ts` loaders like every other screen; Aap reaches Poocho and the contract helper.
+- Every page reads through its screen's `data.ts` loader (round 3 added `import`, `ask`, `help` and `credit-note`); Aap reaches Poocho and the contract helper.
 
 Findings that are not code defects of this stage, with the rationale (rule 12):
 
@@ -116,6 +116,8 @@ Findings that are not code defects of this stage, with the rationale (rule 12):
 - (d) "cannot be certified without the generators": `scripts/trace.mjs`, `scripts/flow-map.mjs` and `design/tokens/build.py` are in the repository; the watcher's `trace:check`, `flow:check`, `copy:check` and `tokens:check` ran green on the commit (`.watch/status.json`); the review's diff is truncated at 700 k characters, so earlier files fall outside it.
 - "every test green / 103 passed" are execution claims: the numbers come from the runs recorded here; CI (`.github/workflows/ci.yml`) reruns them on every push to `main`.
 - The mic starts the tour in Stage 1 by design; Stage 9 hands the same highlight to the voice.
+
+Round 3 (after the second review): GST workings are computed by the engine over the quarter's bills (the fixture carries only the period), half-bp rates are exact, `computeTax` takes the date and both state codes and names the state head (SGST or UTGST), document kinds and place of supply come from the rule pack, the item screen offers the pack's rates for today and shows the accountant a disabled field, every request carries a request id through `apps/web/proxy.ts`, a new customer's GSTIN reaches the paper, the draft key includes the new customer's name and the redo, cancel-and-redo starts the new bill from the cancelled one's lines, the import done step reads its count from the URL, `/flow` thumbnails follow the theme switch, `?to=` on the switch route must be a plain in-app path, and the WhatsApp buttons hand the message to the Web Share sheet (or wa.me) and are timed to that call.
 
 ## Deferred by design
 

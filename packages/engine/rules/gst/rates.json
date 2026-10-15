@@ -31,10 +31,27 @@
       "effectiveFrom": "2017-07-01",
       "effectiveTo": null,
       "rule": "Supplier and place of supply in the same State or UT: CGST + SGST/UTGST, each at half the rate. Different States: IGST at the full rate.",
-      "source": "IGST Act 2017, sections 7 and 8; CGST Act 2017 section 9",
+      "source": "https://cbic-gst.gov.in/CGST-IGST-act.html (IGST Act 2017 ss. 7–8; CGST Act 2017 s. 9)",
       "verified": false,
       "verifiedOn": null,
       "verifiedBy": null
+    },
+    {
+      "id": "document-kinds-2017",
+      "kind": "document-kinds",
+      "effectiveFrom": "2017-07-01",
+      "effectiveTo": null,
+      "kinds": {
+        "regular": "tax-invoice",
+        "regular-gst-off": "invoice",
+        "composition": "bill-of-supply",
+        "unregistered": "invoice",
+        "unknown": "invoice"
+      },
+      "source": "https://cbic-gst.gov.in/CGST-rules.html (CGST Rules 2017, rules 46 and 49: tax invoice, bill of supply)",
+      "verified": true,
+      "verifiedOn": "2026-10-15",
+      "verifiedBy": "build agent, against the text of CGST Rules 2017 r. 46 (tax invoice) and r. 49 (bill of supply); the operator re-confirms in Stage 3"
     }
   ]
 }

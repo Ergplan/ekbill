@@ -74,7 +74,13 @@ export function KitInteractive({ customerName }: { customerName: string }) {
         doneLabel={t('bill.repeat.done')}
         freshLabel={t('bill.repeat.fresh')}
         filled={filled}
-        onFill={() => setFilled(true)}
+        onFill={() => {
+          setLines([
+            { what: 'AMC visit — September', qty: '1', rate: '3500' },
+            { what: 'Ceiling fan install', qty: '2', rate: '1350' },
+          ]);
+          setFilled(true);
+        }}
         onFresh={() => {
           setFilled(false);
           setLines([{ what: '', qty: '1', rate: '' }]);

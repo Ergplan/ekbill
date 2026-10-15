@@ -22,6 +22,9 @@ describe('GET /dev/switch/[person] (the build’s door while sign-in is off)', (
     expect((await call('new', '?to=/setup/name')).headers.get('location')).toBe('/setup/name');
     expect((await call('new', '?to=https://evil.example')).headers.get('location')).toBe('/welcome');
     expect((await call('new', '?to=//evil.example')).headers.get('location')).toBe('/welcome');
+    expect((await call('new', '?to=/%09/evil.example')).headers.get('location')).toBe('/welcome');
+    expect((await call('new', '?to=/\\evil.example')).headers.get('location')).toBe('/welcome');
+    expect((await call('new', '?to=/setup/name?x=1')).headers.get('location')).toBe('/setup/name?x=1');
   });
   it('sends an unknown person back to the list without a cookie', async () => {
     const res = await call('nobody');

@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 
 import { ItemScreen } from '../../../screens/item/Screen';
+import { TODAY } from '../../../screens/fixtures';
 import { loadItem } from '../../../screens/items/data';
 import { getViewer, shellOf, type SearchParams } from '../../../screens/viewer';
 
@@ -19,5 +20,5 @@ export default async function Page({
   const { id } = await params;
   const item = id === 'new' ? null : loadItem(viewer, id);
   if (id !== 'new' && !item) notFound();
-  return <ItemScreen item={item} registration={b.registration} viewer={shellOf(viewer)} />;
+  return <ItemScreen item={item} registration={b.registration} today={TODAY} viewer={shellOf(viewer)} />;
 }

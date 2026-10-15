@@ -6,6 +6,7 @@
 // migrations/ is applied in one transaction and recorded in schema_migrations
 // by its file name; a file that is already recorded is skipped. Migrations
 // are never edited after they are applied: add a new one.
+import { readFileSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,10 +50,27 @@ export async function migrate(url, { log = console.log } = {}) {
   }
 }
 
+/** DATABASE_URL from the environment, else from .env at the repository root (never printed). */
+function databaseUrl() {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+  try {
+    const env = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', '.env'), 'utf8');
+    const line = env.split('\n').find((l) => l.startsWith('DATABASE_URL='));
+    return line
+      ? line
+          .slice('DATABASE_URL='.length)
+          .trim()
+          .replace(/^["']|["']$/g, '')
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const url = process.env.DATABASE_URL;
+  const url = databaseUrl();
   if (!url) {
-    console.error('DATABASE_URL is not set');
+    console.error('DATABASE_URL is not set (export it, or put it in .env at the repository root)');
     process.exit(1);
   }
   migrate(url).catch((error) => {

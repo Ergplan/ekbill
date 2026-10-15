@@ -16,6 +16,7 @@ import {
 
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { shortDate } from '../fixtures';
+import { handoffToWhatsApp } from '../share';
 import { manifest } from './manifest';
 import type { RemindData } from './data';
 
@@ -66,7 +67,14 @@ export function RemindScreen({ data, viewer }: { data: RemindData; viewer: Shell
       </div>
       <Meta>{t('remind.attach')}</Meta>
       <div className="eb-sticky eb-sticky--bare" data-guide="open">
-        <WhatsAppButton onClick={() => setOpened(true)} aria-pressed={opened}>
+        <WhatsAppButton
+          onClick={() => {
+            void handoffToWhatsApp({ text, title: data.fileName }).then((r) => {
+              if (r !== 'cancelled') setOpened(true);
+            });
+          }}
+          aria-pressed={opened}
+        >
           {opened ? t('done.sent') : t('remind.open')}
         </WhatsAppButton>
       </div>

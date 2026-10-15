@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { businessFromSetup, compute, ratesFor } from '../../apps/web/screens/bill/compute';
+import { billOf, customerOf } from '../../apps/web/screens/common';
+import { FIXTURE } from '../../apps/web/screens/fixtures';
+import { loadGst } from '../../apps/web/screens/gst/data';
+import { paperOfBill } from '../../apps/web/screens/paper';
 
 const gst = { on: true, mode: 'one' as const, rate: 18, perLine: [] };
+const date = '2026-10-15';
 const sharma = { registration: 'regular' as const, stateCode: '27' };
 
 describe('the bill form reads the engine (I4)', () => {
@@ -15,6 +20,7 @@ describe('the bill form reads the engine (I4)', () => {
         ],
         gst,
         customerState: '27',
+        date,
       },
       sharma,
     );
@@ -32,6 +38,7 @@ describe('the bill form reads the engine (I4)', () => {
         ],
         gst: { ...gst, mode: 'perline', perLine: [5, 18] },
         customerState: '23',
+        date,
       },
       sharma,
     );
@@ -41,13 +48,13 @@ describe('the bill form reads the engine (I4)', () => {
   it('never taxes a composition business or a bill with GST switched off', () => {
     expect(
       compute(
-        { lines: [{ what: 'A', qty: '1', rate: '100' }], gst, customerState: '27' },
+        { lines: [{ what: 'A', qty: '1', rate: '100' }], gst, customerState: '27', date },
         { registration: 'composition', stateCode: '27' },
       ).gstPaise,
     ).toBe(0);
     expect(
       compute(
-        { lines: [{ what: 'A', qty: '1', rate: '100' }], gst: { ...gst, on: false }, customerState: '27' },
+        { lines: [{ what: 'A', qty: '1', rate: '100' }], gst: { ...gst, on: false }, customerState: '27', date },
         sharma,
       ).gstPaise,
     ).toBe(0);
@@ -61,6 +68,7 @@ describe('the bill form reads the engine (I4)', () => {
         ],
         gst,
         customerState: '27',
+        date,
       },
       sharma,
     );
@@ -69,7 +77,7 @@ describe('the bill form reads the engine (I4)', () => {
   });
   it('marks an overflow instead of crashing the form', () => {
     const c = compute(
-      { lines: [{ what: 'A', qty: '100000000', rate: '100000000' }], gst, customerState: '27' },
+      { lines: [{ what: 'A', qty: '100000000', rate: '100000000' }], gst, customerState: '27', date },
       sharma,
     );
     expect(c.overflow).toBe(true);
@@ -100,5 +108,34 @@ describe('the bill form reads the engine (I4)', () => {
     expect(b.upi).toBe('naya@upi');
     expect(businessFromSetup({ name: 'X', gst: 'no' }, fallback).registration).toBe('unregistered');
     expect(businessFromSetup(null, fallback)).toBe(fallback);
+  });
+});
+
+describe('every consumer reads the same engine result (I4)', () => {
+  const sharmaBiz = FIXTURE.businesses.find((b) => b.id === 'sharma')!;
+  it('the form, the paper and the GST workings agree on a fixture bill', () => {
+    const bill = billOf(sharmaBiz, 'INV-037')!; // Bansal, Madhya Pradesh: IGST
+    const customer = customerOf(sharmaBiz, bill.customer);
+    const form = compute(
+      {
+        lines: bill.lines.map((l) => ({ what: l.what, qty: String(l.qty), rate: String(l.ratePaise / 100) })),
+        gst: { on: bill.kind === 'tax-invoice', mode: 'one', rate: bill.lines[0]?.gstRate ?? 0, perLine: [] },
+        customerState: customer?.stateCode ?? null,
+        date: bill.date,
+      },
+      { registration: sharmaBiz.registration, stateCode: sharmaBiz.stateCode },
+    );
+    const paper = paperOfBill(sharmaBiz, bill, customer);
+    expect(paper.totalPaise).toBe(form.totalPaise);
+    expect(paper.taxLines).toEqual(form.heads);
+    expect(form.heads.map((h) => h.label)).toEqual(['IGST 18%']);
+    const owner = FIXTURE.people.find((p) => p.business === 'sharma' && p.role === 'owner')!;
+    const gst = loadGst({ person: owner, business: sharmaBiz, role: 'owner', as: null })!;
+    const row = gst.b2b.find((r) => r.number === bill.number)!;
+    expect(row.totalPaise).toBe(form.totalPaise);
+    expect(row.gstPaise).toBe(form.gstPaise);
+    expect(gst.byRate.find((r) => r.rate === 18)!.igstPaise).toBeGreaterThanOrEqual(form.igstPaise);
+    expect(gst.taxablePaise).toBe(gst.byRate.reduce((a, r) => a + r.taxablePaise, 0));
+    expect(gst.gstPaise).toBe(gst.byRate.reduce((a, r) => a + r.cgstPaise + r.sgstPaise + r.igstPaise, 0));
   });
 });

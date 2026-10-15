@@ -125,6 +125,7 @@ export function SignaturePad({
     drawing.current = true;
     e.currentTarget.setPointerCapture(e.pointerId);
     const ctx = e.currentTarget.getContext('2d');
+    if (ctx) ctx.strokeStyle = getComputedStyle(e.currentTarget).color; // the theme at the moment of the stroke
     const p = pos(e);
     ctx?.beginPath();
     ctx?.moveTo(p.x, p.y);
@@ -258,6 +259,11 @@ function subscribeTheme(onChange: () => void) {
 const readTheme = (): ThemeName =>
   document.documentElement.getAttribute('data-theme') === 'harmony' ? 'harmony' : 'narangi';
 const serverTheme = (): ThemeName => 'narangi';
+
+/** The theme on <html>, live: follows the switch without a reload. */
+export function useTheme(fallback: ThemeName = 'narangi'): ThemeName {
+  return useSyncExternalStore(subscribeTheme, readTheme, () => fallback);
+}
 
 /** Set the theme for this page and remember it (a cookie until Stage 2 puts it on the user). */
 function persistTheme(t: ThemeName) {

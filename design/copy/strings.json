@@ -989,6 +989,10 @@
     "hi-Latn": "WhatsApp pe gaya ✓",
     "en": "Sent on WhatsApp ✓"
   },
+  "done.wa.text": {
+    "hi-Latn": "Namaste {customer}! {business} se {title} {number} — {amount}. Dhanyavaad!",
+    "en": "Hello {customer}! {title} {number} from {business} — {amount}. Thank you!"
+  },
   "done.share.pdf": {
     "hi-Latn": "PDF",
     "en": "PDF"
@@ -1492,6 +1496,10 @@
   "gst.sgst": {
     "hi-Latn": "SGST",
     "en": "SGST"
+  },
+  "gst.igst": {
+    "hi-Latn": "IGST",
+    "en": "IGST"
   },
   "gst.total": {
     "hi-Latn": "Total",

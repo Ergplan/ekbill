@@ -62,7 +62,7 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
     rate: business.defaultRate,
     perLine: [],
   };
-  const c = compute({ lines, gst, customerState: business.stateCode }, business);
+  const c = compute({ lines, gst, customerState: business.stateCode, date: fields.date.value || today }, business);
   const make = () => {
     const draft = {
       customer: review.customer,

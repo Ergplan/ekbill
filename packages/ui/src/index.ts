@@ -52,7 +52,16 @@ export {
   type PaperLine,
 } from './bill';
 export { AttachmentRow, MessagePreview, TimelineEntry, ToneSegmented, type Tone } from './remind';
-export { ConfidenceField, GuideHighlight, SignaturePad, Stack, ThemeSwitch, useTour, type GuideStep } from './client';
+export {
+  ConfidenceField,
+  GuideHighlight,
+  SignaturePad,
+  Stack,
+  ThemeSwitch,
+  useTheme,
+  useTour,
+  type GuideStep,
+} from './client';
 export {
   ChoiceList,
   EmptyState,

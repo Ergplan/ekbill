@@ -4,7 +4,6 @@ import {
   parseMoney,
   parseQuantity,
   selectableRates,
-  supplyKind,
   type Registration,
   type TaxResult,
 } from '@ekbill/engine';
@@ -53,7 +52,7 @@ function parseOr(f: () => number): number {
 
 /** The engine's result for the draft. An unparsable field counts as zero; a product beyond the safe range marks `overflow` instead of throwing. */
 export function compute(
-  draft: Pick<BillDraft, 'lines' | 'gst' | 'customerState'>,
+  draft: Pick<BillDraft, 'lines' | 'gst' | 'customerState' | 'date'>,
   business: Pick<BusinessForBill, 'registration' | 'stateCode'>,
 ): Computed {
   const input = {
@@ -65,7 +64,9 @@ export function compute(
     })),
     registration: business.registration,
     gstOn: draft.gst.on,
-    supply: supplyKind(business.stateCode, draft.customerState),
+    dateIso: draft.date,
+    sellerStateCode: business.stateCode,
+    customerStateCode: draft.customerState,
   };
   try {
     return { ...computeTax(input), overflow: false };

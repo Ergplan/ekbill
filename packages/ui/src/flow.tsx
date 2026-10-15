@@ -27,15 +27,21 @@ export function Sheet({
   guide?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  // The latest onClose, read by the key handler, so a parent's inline callback never re-runs the focus.
+  const close = useRef(onClose);
+  useEffect(() => {
+    close.current = onClose;
+  }, [onClose]);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') close.current();
     };
     window.addEventListener('keydown', onKey);
-    ref.current?.querySelector<HTMLElement>('button, input, [tabindex]')?.focus();
+    // Focus the first control once, when the sheet opens; typing in it must not be interrupted.
+    ref.current?.querySelector<HTMLElement>('input, button:not(.eb-iconbtn), [tabindex]')?.focus();
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <div className="eb-sheet" role="presentation">

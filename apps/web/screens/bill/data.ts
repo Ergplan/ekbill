@@ -35,13 +35,22 @@ export interface BillFormData {
   /** For the picker (bill-start): customers by recency. */
   pick: Array<{ id: string; name: string; index: number }>;
   mode: 'existing' | 'new-customer' | 'first';
+  /** The cancelled bill this one redoes (its lines start the draft), else null. */
+  redo: string | null;
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function loadBillForm(
   viewer: Viewer,
-  opts: { customer: string | null; first: boolean; newCustomer: boolean; state: string | null; name?: string | null },
+  opts: {
+    customer: string | null;
+    first: boolean;
+    newCustomer: boolean;
+    state: string | null;
+    name?: string | null;
+    redo?: string | null;
+  },
 ): BillFormData {
   const b = viewer.business;
   const registration = b?.registration ?? 'unregistered';
@@ -65,6 +74,7 @@ export function loadBillForm(
   const bills = b ? billsOf(b) : [];
   const last = new Map<string, string>();
   for (const x of bills) if (!last.has(x.customer)) last.set(x.customer, x.date);
+  const redoBill = b && opts.redo ? billsOf(b).find((x) => x.number === opts.redo && x.status === 'cancelled') : null;
   const pick = b ? [...customersOf(b)].sort((x, y) => (last.get(y.id) ?? '').localeCompare(last.get(x.id) ?? '')) : [];
   return {
     business: {
@@ -91,8 +101,15 @@ export function loadBillForm(
       customer: customer?.id ?? null,
       customerName: customer?.name ?? opts.name?.trim() ?? '',
       customerState,
-      lines: [{ what: '', qty: '1', rate: '' }],
-      gst: { on: registration === 'regular', mode: 'one', rate: previous?.gstRate ?? defaultRate, perLine: [] },
+      lines: redoBill
+        ? redoBill.lines.map((l) => ({ what: l.what, qty: String(l.qty), rate: String(l.ratePaise / 100) }))
+        : [{ what: '', qty: '1', rate: '' }],
+      gst: {
+        on: registration === 'regular',
+        mode: 'one',
+        rate: redoBill?.lines[0]?.gstRate ?? previous?.gstRate ?? defaultRate,
+        perLine: [],
+      },
       series: series.prefix,
       number,
       date: TODAY,
@@ -104,5 +121,6 @@ export function loadBillForm(
       : [],
     pick: pick.map((c) => ({ id: c.id, name: c.name, index: c.index })),
     mode,
+    redo: redoBill?.number ?? null,
   };
 }
