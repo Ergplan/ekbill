@@ -14,3 +14,10 @@ On 15 Oct 2026 the operator wrote "continue build for next 12 hours" after the r
 | 8   | Poocho and the contract helper reached from Aap, not Home             | Keep Home to three cards                                             |
 
 Baselines: `tests/e2e/__screenshots__` and `design/screens/<theme>/v2-*.png` as of the round-4 commit are the approved screens (I10); later stages change the data behind them, never the design.
+
+## 16 Oct 2026: two baselines re-recorded (I10)
+
+The operator walked the live app and sent screenshots of two defects that were in the approved screens themselves; asked whether to fix them, the screenshots were the answer. Re-recorded, both themes, with no other change:
+
+- **Home** (and its staff, accountant and composition states): the "Bheje hue bills" count used classes with no style, so the figure and its words ran together ("03bills gaye is mahine"). The figure is now the pack's figure size with the words beside it.
+- **The switcher** (`/dev/switch`): the list cancelled the card's padding, so avatars and role pills touched the card's edges. The rows now sit inside the card.

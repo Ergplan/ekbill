@@ -949,6 +949,24 @@
   font-size: var(--eb-type-meta-size);
   color: var(--eb-text-muted);
 }
+/* Home's "Bheje hue bills" count: the figure, then what it counts (the classes were used without a rule, so the
+   number and the words ran together as one line of body text: "03bills"). */
+.eb-count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+}
+.eb-count__figure {
+  font-size: var(--eb-type-figure-size);
+  line-height: 1;
+  font-weight: var(--eb-weight-medium);
+  letter-spacing: -0.03em;
+}
+.eb-count__sub {
+  font-size: var(--eb-type-meta-size);
+  color: var(--eb-text-muted);
+}
 .eb-spark rect {
   fill: var(--eb-text);
 }

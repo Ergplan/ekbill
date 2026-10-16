@@ -29,26 +29,29 @@ export function SwitchScreen({ people, current }: { people: SwitchRow[]; current
           <Display as="h1">{t('switch.title')}</Display>
           <Meta>{t('switch.sub')}</Meta>
         </section>
-        <div className="eb-rows eb-card" data-guide="people">
-          {people.map((p) => (
-            <a
-              key={p.id}
-              href={`/dev/switch/${p.id}`}
-              className="eb-billrow"
-              aria-current={current === p.id ? 'true' : undefined}
-            >
-              <Avatar name={p.name} index={p.index} />
-              <span className="eb-billrow__text">
-                <span className="eb-billrow__name">{p.name}</span>
-                <span className="eb-billrow__meta">{p.business ?? t('switch.none')}</span>
-              </span>
-              <span className="eb-billrow__right">
-                {p.role ? (
-                  <StatusPill status={p.role === 'owner' ? 'paid' : 'sent'} label={t(`switch.role.${p.role}`)} />
-                ) : null}
-              </span>
-            </a>
-          ))}
+        {/* The card keeps its padding; the list inside it (eb-rows on the card itself zeroed the padding). */}
+        <div className="eb-card" data-guide="people">
+          <div className="eb-rows">
+            {people.map((p) => (
+              <a
+                key={p.id}
+                href={`/dev/switch/${p.id}`}
+                className="eb-billrow"
+                aria-current={current === p.id ? 'true' : undefined}
+              >
+                <Avatar name={p.name} index={p.index} />
+                <span className="eb-billrow__text">
+                  <span className="eb-billrow__name">{p.name}</span>
+                  <span className="eb-billrow__meta">{p.business ?? t('switch.none')}</span>
+                </span>
+                <span className="eb-billrow__right">
+                  {p.role ? (
+                    <StatusPill status={p.role === 'owner' ? 'paid' : 'sent'} label={t(`switch.role.${p.role}`)} />
+                  ) : null}
+                </span>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
       <GuideHighlight step={guide.step} onDone={guide.next} />
