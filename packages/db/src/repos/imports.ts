@@ -23,13 +23,19 @@ export const MAX_IMPORT_FILES = 20;
 /** All the files of one import together: the engine's (the screen checks it too). */
 export const MAX_IMPORT_TOTAL_BYTES = importing.MAX_TOTAL_BYTES;
 
+/**
+ * The most customers one import keeps (Stage 5 review: a sheet of 501 could not be added, the action took 500).
+ * The rest are left for another go, and the file that was cut says so ('too-many'). commitImportInput takes this many.
+ */
+export const MAX_IMPORT_ROWS = 2000;
+
 export interface FileSummary {
   name: string;
   kind: 'pdf' | 'csv' | 'xlsx' | 'image' | 'unknown';
   reader: 'text' | 'docling' | 'sheet' | null;
   pages: number;
   found: number;
-  problem: 'no-text' | 'scanned' | 'unrecognised' | 'unsupported' | 'too-big' | 'ocr-failed' | null;
+  problem: 'no-text' | 'scanned' | 'unrecognised' | 'unsupported' | 'too-big' | 'ocr-failed' | 'too-many' | null;
 }
 export interface FileReading extends FileSummary {
   customers: ImportedCustomer[];
@@ -97,7 +103,12 @@ export async function filesOf(
  * one staging row per customer found, each matched against the business's
  * customers, and the import marked ready. Deduplicated across files.
  */
-export async function recordReading(scope: TenantScope, importId: string, readings: FileReading[]): Promise<Import> {
+export async function recordReading(
+  scope: TenantScope,
+  importId: string,
+  readings: FileReading[],
+  max = MAX_IMPORT_ROWS,
+): Promise<Import> {
   allow(scope, allowedRoles.recordReading, 'read old bills');
   return withTenant(scope, async ({ db }) => {
     const current = (await db.select().from(schema.imports).where(eq(schema.imports.id, importId)).for('update'))[0];
@@ -111,20 +122,33 @@ export async function recordReading(scope: TenantScope, importId: string, readin
         phone: schema.customers.phone,
       })
       .from(schema.customers);
-    const all = importing.dedupeWithin(readings.flatMap((r) => r.customers.map((c) => ({ ...c, fileName: r.name }))));
+    const found = importing
+      .dedupeWithin(readings.flatMap((r) => r.customers.map((c) => ({ ...c, fileName: r.name }))))
+      .map((c, i) => {
+        const { fileName, ...candidate } = c;
+        return { i, fileName, candidate, existingCustomerId: importing.matchExisting(candidate, existing) };
+      });
+    // New customers take the places first, so sending the same file again brings the ones cut last time.
+    const fresh = found.filter((c) => !c.existingCustomerId);
+    const known = found.filter((c) => c.existingCustomerId);
+    const keptFresh = fresh.slice(0, max);
+    const kept = [...keptFresh, ...known.slice(0, max - keptFresh.length)].sort((a, b) => a.i - b.i);
+    const cut = new Set(fresh.slice(max).map((c) => c.fileName));
     let position = 0;
-    for (const c of all) {
-      const { fileName, ...candidate } = c;
+    for (const c of kept)
       await db.insert(schema.importRows).values({
         businessId: scope.businessId,
         importId,
         position: position++,
-        fileName,
-        candidate,
-        existingCustomerId: importing.matchExisting(candidate, existing),
+        fileName: c.fileName,
+        candidate: c.candidate,
+        existingCustomerId: c.existingCustomerId,
       });
-    }
-    const summary: FileSummary[] = readings.map(({ customers, ...s }) => ({ ...s, found: customers.length }));
+    const summary: FileSummary[] = readings.map(({ customers, ...s }) => ({
+      ...s,
+      found: customers.length,
+      problem: s.problem ?? (cut.has(s.name) ? 'too-many' : null),
+    }));
     const [row] = await db
       .update(schema.imports)
       .set({ status: 'ready', summary, readAt: sql`now()` })

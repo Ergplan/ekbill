@@ -49,6 +49,52 @@ describe('the load seed', () => {
     expect(nightly.length).toBeGreaterThan(0);
   });
 
+  it('carries on after a stop between a draft and its issue, and after the last bill but before the payments', async () => {
+    const { createDraft } = await import('../../packages/db/src/repos/documents');
+    const b = (await getPool().query('select id, default_series_id from businesses where load_test')).rows[0];
+    const owner = (await getPool().query('select id from users where phone_e164 = $1', [loadPhone(1)])).rows[0];
+    const scope = {
+      businessId: b.id as string,
+      userId: owner.id as string,
+      role: 'owner' as const,
+      requestId: 'load-test-stop',
+      actorKind: 'system' as const,
+    };
+    const customer = (
+      await getPool().query('select id, name, state_code from customers where business_id = $1 limit 1', [b.id])
+    ).rows[0];
+    await createDraft(scope, {
+      seriesId: b.default_series_id,
+      customer: { id: customer.id, name: customer.name, stateCode: customer.state_code, phone: null, gstin: null },
+      placeOfSupplyStateCode: customer.state_code,
+      dateIso: '2026-08-01',
+      gstOn: true,
+      lines: [
+        { description: 'AMC visit', quantityMilli: 1000, unitPricePaise: 150000, gstBp: 1800, taxRateChosen: true },
+      ],
+    });
+    const paid = await count('select count(*) as n from payments where business_id = $1', [b.id]);
+    expect(paid).toBeGreaterThan(0);
+    // The payments not yet made: as if the run stopped after the last bill.
+    const c = await getPool().connect();
+    try {
+      await c.query('begin');
+      await c.query('set local session_replication_role = replica');
+      await c.query('delete from payments where business_id = $1', [b.id]);
+      await c.query('commit');
+    } finally {
+      c.release();
+    }
+    const again = await seedLoad({ scale: 0.002, today: '2026-10-15', log: () => undefined, freeBytes: 1e12, shape });
+    expect(again.issued).toBe(1);
+    expect(await count("select count(*) as n from documents where business_id = $1 and status = 'draft'", [b.id])).toBe(
+      0,
+    );
+    expect(await count('select count(*) as n from payments where business_id = $1', [b.id])).toBeGreaterThanOrEqual(
+      paid,
+    );
+  });
+
   it('the removal takes only the load-test businesses and what hangs off them', async () => {
     const others = await count(
       'select count(*) as n from documents d join businesses b on b.id = d.business_id where not b.load_test',

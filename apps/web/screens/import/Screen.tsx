@@ -174,6 +174,9 @@ export function ImportScreen({ data, viewer }: { data: ImportData; viewer: Shell
           {problem}
         </p>
       ) : null}
+      {state === 'rows' && live && preview.rows.length && preview.summary.some((f) => f.problem === 'too-many') ? (
+        <Meta>{t('import.too-many')}</Meta>
+      ) : null}
       {state === 'rows' && live && !preview.rows.length ? (
         <Meta>
           {t('import.none', {

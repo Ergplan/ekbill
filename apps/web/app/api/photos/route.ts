@@ -4,6 +4,7 @@ import { ForbiddenError, photos } from '@ekbill/db';
 
 import { log } from '../../../server/log';
 import { enqueue } from '../../../server/queue';
+import { sendOrUndo } from '../../../server/send-or-undo';
 import { current } from '../../../server/session';
 
 export const dynamic = 'force-dynamic';
@@ -35,13 +36,24 @@ export async function POST(request: Request) {
       mime: photo.type || 'image/jpeg',
       bytes: new Uint8Array(await photo.arrayBuffer()),
     });
-    await enqueue('read-bill', {
-      extractionId: started.extractionId,
-      businessId: me.scope.businessId,
-      userId: me.scope.userId,
-      role: me.scope.role,
-      requestId: me.scope.requestId,
-    });
+    const scope = me.scope;
+    const sent = await sendOrUndo(
+      () =>
+        enqueue('read-bill', {
+          extractionId: started.extractionId,
+          businessId: scope.businessId,
+          userId: scope.userId,
+          role: scope.role,
+          requestId: scope.requestId,
+        }),
+      () => photos.discardReading(scope, started.extractionId),
+      (err, step) =>
+        log.error(
+          { err, step, requestId: scope.requestId, extractionId: started.extractionId },
+          'photo read not queued',
+        ),
+    );
+    if (!sent) return NextResponse.json({ error: 'photo.error.queue' }, { status: 503 });
     log.info({ requestId: me.scope.requestId, extractionId: started.extractionId }, 'photo read queued');
     return NextResponse.json({ id: started.extractionId }, { status: 202 });
   } catch (e) {

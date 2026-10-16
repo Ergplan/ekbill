@@ -1,10 +1,11 @@
-import { and, asc, desc, eq, gte, inArray, isNull, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNull, lte, ne, sql } from 'drizzle-orm';
 
 import {
   GST_RULES,
   TaxEngineError,
   type Balance,
   RuleError,
+  addDays,
   ageInDays,
   afterAllocation,
   assertCivilDate,
@@ -742,6 +743,8 @@ export async function listBills(
     limit?: number;
     /** Only bills dated on or after this day (Home's eight weeks). */
     since?: string;
+    /** Only bills dated on or before this day (the daily dues: terms already ended). */
+    until?: string;
   } = {},
 ): Promise<BillRow[]> {
   return withTenant(scope, async (tx) => {
@@ -778,6 +781,7 @@ export async function listBills(
           ...(filter.customerId ? [eq(schema.documents.customerId, filter.customerId)] : []),
           ...(filter.seriesId ? [eq(schema.documents.seriesId, filter.seriesId)] : []),
           ...(filter.since ? [gte(schema.documents.issueDate, filter.since)] : []),
+          ...(filter.until ? [lte(schema.documents.issueDate, filter.until)] : []),
           ...(q
             ? [
                 sql`(${schema.documents.search} @@ plainto_tsquery('simple', ${q}) or ${schema.documents.number} ilike ${like(q)} or ${schema.documents.customerName} ilike ${like(q)})`,
@@ -834,6 +838,9 @@ export async function listBills(
   });
 }
 
+/** More unpaid bills than any one shop has: the daily list is never cut. */
+const DUES_ALL = 1_000_000;
+
 /**
  * The worker's daily "aaj yaad dilao" list (no message is sent; the owner
  * decides): unpaid bills whose payment terms end today, and those already
@@ -844,7 +851,8 @@ export async function duesToday(
   today: string,
   termsDays: number,
 ): Promise<{ dueToday: BillRow[]; overdue: BillRow[] }> {
-  const open = await listBills(scope, { status: 'due' });
+  // Every bill whose terms have ended, however many (Stage 6 review: the newest 500 dues left the oldest out).
+  const open = await listBills(scope, { status: 'due', until: addDays(today, -termsDays), limit: DUES_ALL });
   return {
     dueToday: open.filter((r) => ageInDays(r.issueDate, today) === termsDays),
     overdue: open.filter((r) => ageInDays(r.issueDate, today) > termsDays),

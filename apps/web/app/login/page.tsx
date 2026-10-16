@@ -1,4 +1,5 @@
 import { authMode } from '../../server/auth-mode';
+import { otpConfigOf } from '../../server/otp-config';
 import { LoginScreen } from '../../screens/login/Screen';
 import { one, type SearchParams } from '../../screens/viewer';
 
@@ -11,16 +12,6 @@ export const dynamic = 'force-dynamic';
  */
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const state = one((await searchParams).state) === 'code' ? 'code' : 'phone';
-  const e = process.env;
-  const otp =
-    authMode() === 'otp' && e.NEXT_PUBLIC_FIREBASE_API_KEY && e.NEXT_PUBLIC_FIREBASE_PROJECT_ID
-      ? {
-          apiKey: e.NEXT_PUBLIC_FIREBASE_API_KEY,
-          authDomain: e.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? `${e.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-          projectId: e.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-          appId: e.NEXT_PUBLIC_FIREBASE_APP_ID ?? '',
-          emulatorHost: e.FIREBASE_AUTH_EMULATOR_HOST || null,
-        }
-      : null;
+  const otp = otpConfigOf(process.env, authMode() === 'otp');
   return <LoginScreen state={state} otp={otp} />;
 }

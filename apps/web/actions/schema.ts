@@ -128,8 +128,8 @@ export const archiveItemInput = z.object({ id: z.string().uuid(), archived: z.bo
 export const commitImportInput = z.object({
   /** The import the rows belong to (imports.id). */
   importId: z.string().uuid(),
-  /** The rows the owner ticked (import_rows.id). */
-  rowIds: z.array(z.string().uuid()).max(500),
+  /** The rows the owner ticked (import_rows.id): all of an import's, at most (imports.MAX_IMPORT_ROWS). */
+  rowIds: z.array(z.string().uuid()).max(2000),
 });
 
 /** One line of the bill form as typed: the engine parses the strings (parseQuantity, parseMoney). */

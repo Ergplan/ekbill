@@ -110,6 +110,16 @@ describe('a CSV and "Pehle se hai"', () => {
     expect(matchExisting({ name: 'dr kulkarni', gstin: null, phone: null }, existing)).toBe('b');
     expect(matchExisting({ name: 'New One', gstin: null, phone: '12' }, existing)).toBeNull();
   });
+  it('the strongest identifier wins whatever the order (Stage 5 review)', () => {
+    const rows = [
+      { id: 'acme', name: 'Acme', gstin: null, phone: '9822100009' },
+      { id: 'phone', name: 'Someone', gstin: null, phone: '9822100001' },
+      { id: 'gstin', name: 'Acme Pvt', gstin: '27AAPFU0939F1ZV', phone: null },
+    ];
+    expect(matchExisting({ name: 'Acme', gstin: '27AAPFU0939F1ZV', phone: '9822100001' }, rows)).toBe('gstin');
+    expect(matchExisting({ name: 'Acme', gstin: null, phone: '9822100001' }, rows)).toBe('phone');
+    expect(matchExisting({ name: 'Acme', gstin: null, phone: null }, rows)).toBe('acme');
+  });
   it('folds the same customer read twice', () => {
     expect(
       dedupeWithin([

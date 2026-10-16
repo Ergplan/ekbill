@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { aiCalls, search, type SearchHit, type TenantScope } from '@ekbill/db';
-import { AiUnavailableError, askAnswer, callText, embedTexts, type Recorder } from '@ekbill/ai';
+import { AiUnavailableError, askAnswer, callText, embedModelName, embedTexts, type Recorder } from '@ekbill/ai';
 import { citationsIn, recordsMessage, renumberCitations } from '@ekbill/engine';
 
 import { log } from './log';
@@ -37,7 +37,7 @@ export async function askRecords(scope: TenantScope, question: string): Promise<
     log.warn({ requestId: scope.requestId, err: (e as Error).message }, 'search index refresh failed');
   });
   const [vector] = (await embedTexts({ purpose: 'ask-embed', texts: [q], record })) ?? [];
-  const hits = await search.search(scope, { question: q, vector: vector ?? null });
+  const hits = await search.search(scope, { question: q, vector: vector ?? null, model: embedModelName() });
   if (!hits.length) return { question: q, answer: null, sources: [], mode: 'nothing' };
   try {
     const { value } = await callText({

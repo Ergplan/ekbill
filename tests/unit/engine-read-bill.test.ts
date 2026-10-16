@@ -117,6 +117,26 @@ describe('checkReading', () => {
     expect(r.linesTotalPaise).toBe(30000 + 90000);
   });
 
+  it('derives and checks in whole paise, half up, and a misread huge quantity still checks (Stage 7 review, I4)', () => {
+    const r = checkReading(
+      reading({
+        lines: [
+          { what: f('Tape'), qty: f('3'), rate: f(null), amount: f('100') },
+          { what: f('Pipe'), qty: f('0.4'), rate: f(null), amount: f('0.01') },
+          { what: f('Bolt'), qty: f('999999'), rate: f('9999999999.99'), amount: f('1') },
+        ],
+        total: f('101.01'),
+      }),
+      ctx,
+    );
+    expect(r.lines[0]!.rate.value).toBe('33.33');
+    // 1 paisa for 0.4 of a unit: 2.5 paise a unit, half up to 3.
+    expect(r.lines[1]!.rate.value).toBe('0.03');
+    // ₹999,99,99,999.99 × 9,99,999: past what a bill's arithmetic holds, so a misread to fix, not a failed reading.
+    expect(r.lines[2]!.rate).toEqual({ value: null, confidence: 0, unreadable: true });
+    expect(r.warnings).toContainEqual({ code: 'number', path: 'lines.2.rate' });
+  });
+
   it('lights a number it cannot parse and a date that cannot be right', () => {
     const r = checkReading(
       reading({ date: f('12/12/26'), lines: [{ what: f('Fan'), qty: f('two'), rate: f('3S0'), amount: f('700') }] }),

@@ -269,6 +269,11 @@ describe('the daily dues listing (worker job dues-today)', () => {
     expect(overdue.every((r) => r.issueDate < '2026-10-01')).toBe(true);
     const later = await documents.duesToday(owner, '2026-10-16', 14);
     expect(later.overdue.map((r) => r.id)).toContain(bill.id);
+    // Chosen by date in the query, not cut by count (Stage 6 review): a bill still within its terms is not read.
+    const fresh = await issue(50000, '2026-10-10');
+    const now = await documents.duesToday(owner, '2026-10-15', 14);
+    expect([...now.dueToday, ...now.overdue].map((r) => r.id)).not.toContain(fresh.id);
+    expect([...now.dueToday, ...now.overdue].every((r) => r.issueDate <= '2026-10-01')).toBe(true);
   });
 });
 

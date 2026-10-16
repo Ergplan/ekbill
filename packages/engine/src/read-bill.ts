@@ -1,5 +1,5 @@
 import { addDays, compareDates, type CivilDate } from './dates';
-import { parseMoney, parseQuantity } from './money';
+import { divRound, formatMoneyPlain, parseMoney, parseQuantity } from './money';
 import { nameKey } from './names';
 import { toE164 } from './phone';
 import { computeTax } from './tax';
@@ -98,6 +98,12 @@ export function looseAmount(raw: string | null): string | null {
   // review: it overflowed the money and left the reading pending for good).
   if (!/^\d{1,10}(\.\d{1,2})?$/.test(s)) return null;
   return s.replace(/\.0+$/, '').replace(/(\.\d)0$/, '$1');
+}
+/** The largest quantity (milli) × rate (paise) the line arithmetic takes (lineGross, I4). */
+const MAX_PRODUCT = BigInt(Number.MAX_SAFE_INTEGER);
+/** n / d rounded half up, for non-negative integers; past 2^53 the answer is only as near as a number holds. */
+function halfUp(n: bigint, d: bigint): number {
+  return Number((2n * n + d) / (2n * d));
 }
 /** "2", "2 pcs", "1.5 kg" → { qty: "2", unit: "pcs" }. */
 export function looseQuantity(raw: string | null): { qty: string; unit: string | null } | null {
@@ -228,13 +234,18 @@ export function checkReading(reading: BillReading, ctx: ReadingContext): Checked
     const qtyMilli = qty.value ? parseQuantity(qty.value) : null;
     const ratePaise = rate.value ? parseMoney(rate.value) : null;
     const amountPaise = amount.value && amountText ? parseMoney(amount.value) : null;
+    // Integers only (I4), and in BigInt: a misread quantity times a rate can pass 2^53 (Stage 7 review).
     if (ratePaise === null && amountPaise !== null && qtyMilli) {
-      const derived = Math.round((amountPaise * 1000) / qtyMilli);
-      rate = { value: (derived / 100).toFixed(2).replace(/\.00$/, ''), confidence: Math.min(amount.confidence, 0.7) };
+      const derived = halfUp(BigInt(amountPaise) * 1000n, BigInt(qtyMilli));
+      rate = { value: formatMoneyPlain(derived).replace(/\.00$/, ''), confidence: Math.min(amount.confidence, 0.7) };
       warnings.push({ code: 'rate-derived', path: `lines.${i}.rate` });
+    } else if (ratePaise !== null && qtyMilli && BigInt(qtyMilli) * BigInt(ratePaise) > MAX_PRODUCT) {
+      // Past what the bill's arithmetic holds: a misread, lit for the person, never a reading that fails for good.
+      warnings.push({ code: 'number', path: `lines.${i}.rate` });
+      rate = { value: null, confidence: 0, unreadable: true };
     } else if (ratePaise !== null && amountPaise !== null && qtyMilli) {
-      const expected = Math.round((qtyMilli * ratePaise) / 1000);
-      if (Math.abs(expected - amountPaise) > Math.max(100, Math.round(amountPaise / 100)))
+      const expected = halfUp(BigInt(qtyMilli) * BigInt(ratePaise), 1000n);
+      if (Math.abs(expected - amountPaise) > Math.max(100, divRound(amountPaise, 100)))
         warnings.push({ code: 'line-amount', path: `lines.${i}.amount`, params: { expected, read: amountPaise } });
     }
     if (!what.value && !rate.value && !amount.value) continue;

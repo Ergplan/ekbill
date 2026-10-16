@@ -2781,6 +2781,10 @@
     "hi-Latn": "Koi customer nahi mila. {problems}",
     "en": "No customers found. {problems}"
   },
+  "import.too-many": {
+    "hi-Latn": "Pehle 2,000 naye customers hi dikhaye hain. Inhe jodne ke baad baaki ke liye file phir se bhejo.",
+    "en": "Only the first 2,000 new customers are shown. Add these, then send the file again for the rest."
+  },
   "import.failed": {
     "hi-Latn": "Padh nahi paaye. Phir se koshish karein.",
     "en": "Could not read the files. Please try again."
@@ -2813,6 +2817,10 @@
     "hi-Latn": "photo padhne wala abhi band hai",
     "en": "the photo reader is not answering"
   },
+  "import.problem.too-many": {
+    "hi-Latn": "2,000 se zyada customers, baaki agli baar",
+    "en": "over 2,000 customers, the rest next time"
+  },
   "import.error.no-files": {
     "hi-Latn": "Koi file nahi chuni",
     "en": "No files were picked"
@@ -2828,6 +2836,10 @@
   "import.error.too-big-total": {
     "hi-Latn": "Ek baar mein 36 MB tak hi. Files do baar mein bhejo.",
     "en": "Up to 36 MB at a time. Send the files in two goes."
+  },
+  "import.error.queue": {
+    "hi-Latn": "Padhna shuru nahi ho paaya. Thodi der mein files phir se bhejo.",
+    "en": "Reading could not start. Send the files again in a little while."
   },
   "import.error.not-ready": {
     "hi-Latn": "Abhi padh rahe hain, thoda ruko",
@@ -3024,6 +3036,10 @@
   "photo.error.too-big": {
     "hi-Latn": "Photo 8 MB se badi hai",
     "en": "The photo is larger than 8 MB"
+  },
+  "photo.error.queue": {
+    "hi-Latn": "Padhna shuru nahi ho paaya. Thodi der mein photo phir se bhejo.",
+    "en": "Reading could not start. Send the photo again in a little while."
   },
   "photo.error.not-a-photo": {
     "hi-Latn": "Yeh photo nahi lagti (JPG, PNG ya HEIC chuno)",

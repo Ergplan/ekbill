@@ -25,7 +25,7 @@ export async function indexBusiness(scope: TenantScope): Promise<{ written: numb
   let embedded = 0;
   if (!model) return { written, embedded };
   for (let i = 0; i < MAX_BATCHES; i += 1) {
-    const pending = await search.pendingEmbeddings(scope, BATCH);
+    const pending = await search.pendingEmbeddings(scope, BATCH, model);
     if (!pending.length) break;
     const vectors = await embedTexts({
       purpose: 'index-embed',

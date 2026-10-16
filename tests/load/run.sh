@@ -5,8 +5,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 SCALE="${LOAD_SCALE:-0.1}"
-npx tsx --conditions=react-server apps/worker/src/load/cli.ts seed "$SCALE"
+# The removal is set before the seed starts (Stage 10 review): a seed that fails half-way is removed too.
 trap 'npx tsx --conditions=react-server apps/worker/src/load/cli.ts remove' EXIT
+npx tsx --conditions=react-server apps/worker/src/load/cli.ts seed "$SCALE"
 if command -v k6 >/dev/null 2>&1; then
   k6 run -e BASE="${E2E_BASE_URL:-http://127.0.0.1:3000}" -e SCALE="$SCALE" tests/load/routes.k6.js
 else

@@ -21,13 +21,14 @@ export function matchExisting(
   c: Pick<ImportedCustomer, 'name' | 'gstin' | 'phone'>,
   existing: readonly ExistingCustomer[],
 ): string | null {
+  // The strongest identifier first across everyone, then the next (Stage 5 review: by row order, a same-named
+  // customer listed earlier won over the one with the same GSTIN).
   const phone = lastTen(c.phone);
-  for (const e of existing) {
-    if (c.gstin && e.gstin && c.gstin === e.gstin) return e.id;
-    if (phone.length === 10 && lastTen(e.phone) === phone) return e.id;
-    if (normaliseName(e.name) && normaliseName(e.name) === normaliseName(c.name)) return e.id;
-  }
-  return null;
+  const name = normaliseName(c.name);
+  const byGstin = c.gstin ? existing.find((e) => e.gstin === c.gstin) : undefined;
+  const byPhone = phone.length === 10 ? existing.find((e) => lastTen(e.phone) === phone) : undefined;
+  const byName = name ? existing.find((e) => normaliseName(e.name) === name) : undefined;
+  return (byGstin ?? byPhone ?? byName)?.id ?? null;
 }
 
 /** One row per customer within a reading: the same GSTIN, or the same name, twice is once. */

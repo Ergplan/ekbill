@@ -77,8 +77,7 @@ export async function seedLoad(opts: {
     `load seed: ${plan.businesses} businesses, ${plan.documents} documents, about ${(plan.bytes / 1024 ** 3).toFixed(1)} GB; ${(plan.freeBytes / 1024 ** 3).toFixed(1)} GB free`,
   );
   if (!plan.ok) throw new LoadRefusedError('the load seed would leave less than 8 GB free (rule 18); not started');
-  const { createDraft, issueDocument } = await import('./repos/documents');
-  const { createCustomer, listCustomers } = await import('./repos/customers');
+  const { issueDocument } = await import('./repos/documents');
   const { withTenant } = await import('./scope');
   const pool = getPool();
   let issued = 0;
@@ -126,45 +125,28 @@ export async function seedLoad(opts: {
       client.release();
     }
     const scope: TenantScope = { businessId, userId, role: 'owner', requestId: 'load-seed', actorKind: 'system' };
+    // A run stopped between a draft and its issue left that draft: it is the next bill, so it is issued first
+    // (Stage 10 review: a restart made another draft for the same place and left the first behind).
+    const stranded = await withTenant(
+      scope,
+      async ({ client }) =>
+        (
+          await client.query<{ id: string; date: string }>(
+            "select id, issue_date::text as date from documents where status = 'draft' order by created_at",
+          )
+        ).rows,
+    );
+    for (const d of stranded) {
+      await issueDocument(scope, { id: d.id, today: d.date });
+      issued += 1;
+    }
     const have = await withTenant(scope, async ({ client }) =>
       Number((await client.query("select count(*) as n from documents where status = 'issued'")).rows[0].n),
     );
     const total = shape.customers * shape.billsPerCustomer;
-    if (have >= total) continue;
-    const existing = await listCustomers(scope, { includeArchived: true });
-    const people = [...existing];
-    for (let c = existing.length + 1; c <= shape.customers; c += 1)
-      people.push(
-        await createCustomer(scope, {
-          name: `Load Customer ${String(c).padStart(2, '0')}`,
-          stateCode: c % 5 === 0 ? '29' : '27',
-          city: c % 5 === 0 ? 'Bengaluru' : 'Pune',
-        }),
-      );
-    // Bill k goes to customer k mod the customers, in date order, so a business carries on where it stopped.
-    for (let k = have; k < total; k += 1) {
-      const customer = people[k % shape.customers]!;
-      const dateIso = dateFor(k, total, opts.today);
-      const draft = await createDraft(scope, {
-        seriesId,
-        customer: { id: customer.id, name: customer.name, stateCode: customer.stateCode, phone: null, gstin: null },
-        placeOfSupplyStateCode: customer.stateCode,
-        dateIso,
-        gstOn: true,
-        lines: [
-          {
-            description: k % 3 ? 'AMC visit' : 'Wiring work',
-            quantityMilli: 1000 + (k % 4) * 500,
-            unitPricePaise: 150000 + (k % 7) * 25000,
-            gstBp: 1800,
-            taxRateChosen: true,
-            hsnCode: '998719',
-          },
-        ],
-      });
-      await issueDocument(scope, { id: draft.id, today: dateIso });
-      issued += 1;
-    }
+    // Bills done, the payments still run: a run stopped after the last bill has none yet.
+    if (have < total) await billsFor(scope, seriesId, have, total, shape, opts.today);
+    issued += Math.max(0, total - have);
     // Most bills older than a month are paid in full; the rest are the dues.
     await withTenant(scope, async ({ client }) => {
       await client.query(
@@ -179,6 +161,52 @@ export async function seedLoad(opts: {
     log(`load seed: business ${n}/${plan.businesses} done`);
   }
   return { businesses: plan.businesses, issued };
+}
+
+/** Bills have..total-1 of one business: customers made as needed, bill k to customer k mod the customers. */
+async function billsFor(
+  scope: TenantScope,
+  seriesId: string,
+  have: number,
+  total: number,
+  shape: LoadShape,
+  today: string,
+): Promise<void> {
+  const { createDraft, issueDocument } = await import('./repos/documents');
+  const { createCustomer, listCustomers } = await import('./repos/customers');
+  const existing = await listCustomers(scope, { includeArchived: true });
+  const people = [...existing];
+  for (let c = existing.length + 1; c <= shape.customers; c += 1)
+    people.push(
+      await createCustomer(scope, {
+        name: `Load Customer ${String(c).padStart(2, '0')}`,
+        stateCode: c % 5 === 0 ? '29' : '27',
+        city: c % 5 === 0 ? 'Bengaluru' : 'Pune',
+      }),
+    );
+  // Bill k goes to customer k mod the customers, in date order, so a business carries on where it stopped.
+  for (let k = have; k < total; k += 1) {
+    const customer = people[k % shape.customers]!;
+    const dateIso = dateFor(k, total, today);
+    const draft = await createDraft(scope, {
+      seriesId,
+      customer: { id: customer.id, name: customer.name, stateCode: customer.stateCode, phone: null, gstin: null },
+      placeOfSupplyStateCode: customer.stateCode,
+      dateIso,
+      gstOn: true,
+      lines: [
+        {
+          description: k % 3 ? 'AMC visit' : 'Wiring work',
+          quantityMilli: 1000 + (k % 4) * 500,
+          unitPricePaise: 150000 + (k % 7) * 25000,
+          gstBp: 1800,
+          taxRateChosen: true,
+          hsnCode: '998719',
+        },
+      ],
+    });
+    await issueDocument(scope, { id: draft.id, today: dateIso });
+  }
 }
 
 /**

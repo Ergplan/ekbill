@@ -224,7 +224,7 @@ const toVector = (v: readonly number[]) => `[${v.join(',')}]`;
 export const MAX_DISTANCE = 0.7;
 export async function search(
   scope: TenantScope,
-  input: { question: string; vector?: readonly number[] | null; k?: number },
+  input: { question: string; vector?: readonly number[] | null; model?: string | null; k?: number },
 ): Promise<SearchHit[]> {
   const q = tsQueryFor(input.question);
   return withTenant(scope, async (tx) => {
@@ -246,14 +246,17 @@ export async function search(
           )
         ).rows,
       );
-    if (input.vector?.length)
+    // Only vectors made by the question's own model from the record's current text (Stage 9 review: another
+    // model's vectors are not comparable, and a record edited since its embedding no longer says what it did).
+    if (input.vector?.length && input.model)
       keep(
         (
           await tx.client.query<SearchHit>(
             `select ${cols} from search_records
-              where not hidden and embedding is not null and embedding <=> $1::vector < $2
+              where not hidden and embedding is not null and embed_model = $3 and embedded_version = version
+                and embedding <=> $1::vector < $2
               order by embedding <=> $1::vector limit 20`,
-            [toVector(input.vector), MAX_DISTANCE],
+            [toVector(input.vector), MAX_DISTANCE, input.model],
           )
         ).rows,
       );
@@ -263,18 +266,20 @@ export async function search(
   });
 }
 
-/** Rows whose embedding is missing or behind their text (the worker's batch). */
+/** Rows whose embedding is missing, behind their text, or made by another model (the worker's batch). */
 export async function pendingEmbeddings(
   scope: TenantScope,
   limit = 64,
+  model: string | null = null,
 ): Promise<Array<{ id: string; version: string; text: string }>> {
   return withTenant(scope, async (tx) =>
     (
       await tx.client.query<{ id: string; version: string; title: string; text: string }>(
         `select id, version, title, text from search_records
-          where not hidden and embedded_version is distinct from version
+          where not hidden and (embedded_version is distinct from version
+                                or ($2::text is not null and embed_model is distinct from $2))
           order by updated_at limit $1`,
-        [limit],
+        [limit, model],
       )
     ).rows.map((r) => ({ id: r.id, version: r.version, text: `${r.title}\n${r.text}` })),
   );

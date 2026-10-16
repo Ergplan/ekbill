@@ -14,6 +14,8 @@ import { fileURLToPath } from 'node:url';
 
 import pg from 'pg';
 
+import { BROKEN_SNAPSHOT } from './snapshot-check.mjs';
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const url = process.argv[2] ?? process.env.DATABASE_URL;
 if (!url) {
@@ -94,10 +96,7 @@ try {
     await client.query(
       `select number from documents
         where status in ('issued', 'cancelled')
-          and (issued_snapshot is null
-               or (issued_snapshot->'totals'->>'totalPaise')::bigint
-                  <> (issued_snapshot->'totals'->>'totalBeforeRoundingPaise')::bigint
-                     + (issued_snapshot->'totals'->>'roundOffPaise')::bigint)
+          and ${BROKEN_SNAPSHOT}
         limit 10`,
     )
   ).rows;

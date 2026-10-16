@@ -43,9 +43,15 @@ describe('GET /api/metrics', () => {
     try {
       await boss.createQueue('metrics-probe');
       await boss.send('metrics-probe', { x: 1 });
+      await boss.createQueue('metrics-probe-2');
+      await boss.send('metrics-probe-2', { x: 2 });
       const { GET } = await import('../../apps/web/app/api/metrics/route');
       const text = await (await GET(new Request('http://127.0.0.1:3000/api/metrics'))).text();
       expect(text).toMatch(/ekbill_queue_waiting\{queue="metrics-probe"\} 1/);
+      expect(text).toMatch(/ekbill_queue_waiting\{queue="metrics-probe-2"\} 1/);
+      // Two kinds waiting: each family still declares its HELP and TYPE once (Stage 10 review).
+      const declared = text.split('\n').filter((l) => l.startsWith('# HELP ') || l.startsWith('# TYPE '));
+      expect(new Set(declared).size).toBe(declared.length);
       const health = await (
         await import('../../apps/web/app/api/health/route')
       ).GET(new Request('http://127.0.0.1:3000/api/health'));

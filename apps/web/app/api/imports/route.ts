@@ -4,6 +4,7 @@ import { ForbiddenError, imports } from '@ekbill/db';
 
 import { log } from '../../../server/log';
 import { enqueue } from '../../../server/queue';
+import { sendOrUndo } from '../../../server/send-or-undo';
 import { current } from '../../../server/session';
 
 export const dynamic = 'force-dynamic';
@@ -34,13 +35,20 @@ export async function POST(request: Request) {
         files.map(async (f) => ({ name: f.name, mime: f.type, bytes: new Uint8Array(await f.arrayBuffer()) })),
       ),
     );
-    await enqueue('read-import', {
-      importId: started.id,
-      businessId: me.scope.businessId,
-      userId: me.scope.userId,
-      role: me.scope.role,
-      requestId: me.scope.requestId,
-    });
+    const scope = me.scope;
+    const sent = await sendOrUndo(
+      () =>
+        enqueue('read-import', {
+          importId: started.id,
+          businessId: scope.businessId,
+          userId: scope.userId,
+          role: scope.role,
+          requestId: scope.requestId,
+        }),
+      () => imports.failImport(scope, started.id, 'queue'),
+      (err, step) => log.error({ err, step, requestId: scope.requestId, importId: started.id }, 'import not queued'),
+    );
+    if (!sent) return NextResponse.json({ error: 'import.error.queue' }, { status: 503 });
     log.info({ requestId: me.scope.requestId, importId: started.id, files: files.length }, 'import started');
     return NextResponse.json({ id: started.id }, { status: 202 });
   } catch (e) {

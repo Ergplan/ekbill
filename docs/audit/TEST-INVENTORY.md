@@ -6,8 +6,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 41    | 386    |
-| integration | 24    | 271    |
+| unit        | 43    | 392    |
+| integration | 26    | 278    |
 | e2e         | 16    | 66     |
 
 ## unit
@@ -276,6 +276,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - finds HSN chapters and SAC headings by code or by words
 - reads quotes, doubled quotes, a BOM, semicolons and blank lines
 - matches by GSTIN, then the last ten digits of the phone, then the name
+- the strongest identifier wins whatever the order (Stage 5 review)
 - folds the same customer read twice
 
 ### `tests/unit/engine-poocho.test.ts`
@@ -320,6 +321,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - a clean reading is ready, matched, with the engine adding the lines
 - never trusts the total written on the photo: the lines decide, the difference is said
 - flags quantity Ã— rate that is not the amount, and derives a missing rate from the amount
+- derives and checks in whole paise, half up, and a misread huge quantity still checks (Stage 7 review, I4)
 - lights a number it cannot parse and a date that cannot be right
 - keeps unreadable fields empty, clamps confidences, and matches by phone first
 - says unreadable for a blurred photo and no-bill for a photo of something else
@@ -430,6 +432,11 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - $name: the issued snapshot and the GSTR-1 built from it carry the same figures
 - $name: the form preview shows what the bill will say
 
+### `tests/unit/otp-config.test.ts`
+
+- an empty auth domain, as Compose passes it, falls back to the projectâ€™s own
+- none with OTP off, or without the key or the project
+
 ### `tests/unit/print-fields.test.ts`
 
 - a tax invoice on %s: place of supply with its code, and reverse charge
@@ -466,6 +473,11 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - agree with the committed documents
 - refuses a database that is not dev or test
 - accepts a dev database
+
+### `tests/unit/send-or-undo.test.ts`
+
+- a send that works undoes nothing
+- a failed send is undone and reported; a failed undo is reported too, and the answer is still false
 
 ### `tests/unit/share.test.ts`
 
@@ -602,6 +614,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 - plans the full run as 600,000 documents and refuses what would leave less than 8 GB
 - seeds real bills once, carries on idempotently, and refuses on a full disk
+- carries on after a stop between a draft and its issue, and after the last bill but before the payments
 - the removal takes only the load-test businesses and what hangs off them
 
 ### `tests/integration/logout.test.ts`
@@ -668,6 +681,11 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 ### `tests/integration/render.test.ts`
 
 - prints the issued snapshot: title, number, seller, buyer, totals, "For" and the signatory
+
+### `tests/integration/restore-check.test.ts`
+
+- whole
+- missing, empty, a total missing, or not adding up
 
 ### `tests/integration/rls.test.ts`
 
@@ -865,6 +883,13 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - series: listSeries lists only its own series
 - series: updateSeries cannot reach another business's series
 - users: setTheme changes only the acting user
+
+### `tests/integration/uploads.test.ts`
+
+- photo: the pending reading is discarded by staff
+- import: the reading import is failed, with the reason
+- new customers take the places first, and the cut file says so
+- the add action takes all of an importâ€™s rows
 
 ## e2e
 

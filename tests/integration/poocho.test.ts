@@ -130,8 +130,22 @@ describe('the index follows the records', () => {
     ).toBe(pending.length);
     expect((await rowOf(owner, bill.id))!.embedded_version).toBe((await rowOf(owner, bill.id))!.version);
     // By meaning alone (no shared whole word with the question): the cleaning bill ranks first.
-    const hits = await search.search(owner, { question: 'zzz', vector: fakeVector(`solar panels cleaned ${RUN}`) });
+    const asked = { question: 'zzz', vector: fakeVector(`solar panels cleaned ${RUN}`) };
+    const hits = await search.search(owner, { ...asked, model: 'fake-embedder' });
     expect(hits[0]?.sourceId).toBe(bill.id);
+
+    // Stage 9 review: another model's vectors are not compared, and that model's run embeds every row again.
+    expect(await search.search(owner, { ...asked, model: 'other-embedder' })).toEqual([]);
+    expect(await search.search(owner, asked)).toEqual([]);
+    expect((await search.pendingEmbeddings(owner, 500, 'fake-embedder')).map((p) => p.id)).not.toContain(hits[0]!.id);
+    expect((await search.pendingEmbeddings(owner, 500, 'other-embedder')).map((p) => p.id)).toContain(hits[0]!.id);
+    // A record whose text moved on since its vector was made is not found by that vector.
+    await withTenant(owner, ({ client }) =>
+      client.query(`update search_records set version = 'edited' where kind = 'bill' and source_id = $1`, [bill.id]),
+    );
+    expect((await search.search(owner, { ...asked, model: 'fake-embedder' })).map((h) => h.sourceId)).not.toContain(
+      bill.id,
+    );
   });
 });
 

@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { getPool, installationCounts, queueStatus } from '@ekbill/db';
 
 import { logRequest, requestId } from '../../../server/log';
+import { family } from '../../../server/metrics-text';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -14,14 +15,7 @@ export const runtime = 'nodejs';
  * rows, no names, no phones): the process, the database pool, the queue (waiting and the oldest
  * job's age per kind), what the installation holds, model calls and their cost, the last backup.
  */
-function line(name: string, help: string, value: number, labels?: Record<string, string>): string {
-  const l = labels
-    ? `{${Object.entries(labels)
-        .map(([k, v]) => `${k}="${v.replace(/["\\\n]/g, '_')}"`)
-        .join(',')}}`
-    : '';
-  return `# HELP ${name} ${help}\n# TYPE ${name} gauge\n${name}${l} ${Number.isFinite(value) ? value : 0}`;
-}
+const line = (name: string, help: string, value: number) => family(name, help, [{ value }]);
 
 function backupAgeSeconds(): number {
   try {
@@ -63,12 +57,16 @@ export async function GET(request: Request) {
     line('ekbill_db_pool_waiting', 'Requests waiting for a database connection.', pool.waitingCount),
     line('ekbill_backup_age_seconds', 'Age of the last backup (-1: none yet).', backupAgeSeconds()),
     ...Object.entries(counts).map(([k, v]) => line(`ekbill_${k}`, `Installation total: ${k.replace(/_/g, ' ')}.`, v)),
-    ...queue.flatMap((q) => [
-      line('ekbill_queue_waiting', 'Jobs waiting, per kind.', q.waiting, { queue: q.name }),
-      line('ekbill_queue_oldest_seconds', 'Age of the oldest waiting job, per kind.', q.oldestSeconds, {
-        queue: q.name,
-      }),
-    ]),
+    family(
+      'ekbill_queue_waiting',
+      'Jobs waiting, per kind.',
+      queue.map((q) => ({ value: q.waiting, labels: { queue: q.name } })),
+    ),
+    family(
+      'ekbill_queue_oldest_seconds',
+      'Age of the oldest waiting job, per kind.',
+      queue.map((q) => ({ value: q.oldestSeconds, labels: { queue: q.name } })),
+    ),
   ];
   logRequest('GET /api/metrics', id, { queues: queue.length });
   return new NextResponse(`${out.join('\n')}\n`, {
