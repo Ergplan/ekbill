@@ -9,14 +9,14 @@ Rule 12: every stage is reviewed by an independent OpenAI model on the VM (`npm 
 | 0     | [report](../stages/stage-0-report.md)  | 3             | defects          |
 | 1     | [report](../stages/stage-1-report.md)  | 3             | defects          |
 | 2     | [report](../stages/stage-2-report.md)  | 2             | defects          |
-| 3     | [report](../stages/stage-3-report.md)  | 0             | not reviewed yet |
-| 4     | [report](../stages/stage-4-report.md)  | 0             | not reviewed yet |
-| 5     | [report](../stages/stage-5-report.md)  | 0             | not reviewed yet |
-| 6     | [report](../stages/stage-6-report.md)  | 0             | not reviewed yet |
-| 7     | [report](../stages/stage-7-report.md)  | 0             | not reviewed yet |
-| 8     | [report](../stages/stage-8-report.md)  | 0             | not reviewed yet |
-| 9     | [report](../stages/stage-9-report.md)  | 0             | not reviewed yet |
-| 10    | [report](../stages/stage-10-report.md) | 0             | not reviewed yet |
+| 3     | [report](../stages/stage-3-report.md)  | 1             | defects          |
+| 4     | [report](../stages/stage-4-report.md)  | 1             | defects          |
+| 5     | [report](../stages/stage-5-report.md)  | 1             | defects          |
+| 6     | [report](../stages/stage-6-report.md)  | 1             | defects          |
+| 7     | [report](../stages/stage-7-report.md)  | 1             | defects          |
+| 8     | [report](../stages/stage-8-report.md)  | 1             | defects          |
+| 9     | [report](../stages/stage-9-report.md)  | 1             | defects          |
+| 10    | [report](../stages/stage-10-report.md) | 1             | defects          |
 | 11    | [report](../stages/stage-11-report.md) | 0             | not reviewed yet |
 
 ## Stage 0
@@ -36,3 +36,35 @@ Rule 12: every stage is reviewed by an independent OpenAI model on the VM (`npm 
 
 - [stage-2-review-1.md](../stages/stage-2-review-1.md): commit 100ae55, 2026-10-16, verdict **defects**
 - [stage-2-review-2.md](../stages/stage-2-review-2.md): commit 100ae55, 2026-10-16, verdict **defects**
+
+## Stage 3
+
+- [stage-3-review-1.md](../stages/stage-3-review-1.md): commit 3552e4b, 2026-10-16, verdict **defects**
+
+## Stage 4
+
+- [stage-4-review-1.md](../stages/stage-4-review-1.md): commit 31d690f, 2026-10-16, verdict **defects**
+
+## Stage 5
+
+- [stage-5-review-1.md](../stages/stage-5-review-1.md): commit 0d71b3c, 2026-10-16, verdict **defects**
+
+## Stage 6
+
+- [stage-6-review-1.md](../stages/stage-6-review-1.md): commit 67717f7, 2026-10-16, verdict **defects**
+
+## Stage 7
+
+- [stage-7-review-1.md](../stages/stage-7-review-1.md): commit 25c1f71, 2026-10-16, verdict **defects**
+
+## Stage 8
+
+- [stage-8-review-1.md](../stages/stage-8-review-1.md): commit 30ed7e6, 2026-10-16, verdict **defects**
+
+## Stage 9
+
+- [stage-9-review-1.md](../stages/stage-9-review-1.md): commit ab19a4f, 2026-10-16, verdict **defects**
+
+## Stage 10
+
+- [stage-10-review-1.md](../stages/stage-10-review-1.md): commit 7ebd63a, 2026-10-16, verdict **defects**
