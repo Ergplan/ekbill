@@ -15,12 +15,16 @@ export interface BillPrefill {
   gstOn?: boolean | null;
 }
 
+/** Said when lines are handed over: a form already open for the same bill takes them at once. */
+export const PREFILL_EVENT = 'ekbill:prefill';
+
 export function writePrefill(p: BillPrefill): void {
   try {
     sessionStorage.setItem(PREFILL_KEY, JSON.stringify(p));
   } catch {
     // No storage: the form opens with the customer only.
   }
+  window.dispatchEvent(new Event(PREFILL_EVENT));
 }
 
 /** Reads and removes it: the form places it once. */

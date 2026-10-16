@@ -1,7 +1,15 @@
 'use server';
 
 import { customers, documents } from '@ekbill/db';
-import { ageInDays, linesFromSpeech, matchCustomer, todayIst, whoOwesReply, type SpokenLine } from '@ekbill/engine';
+import {
+  ageInDays,
+  linesFromSpeech,
+  matchCustomer,
+  reminderFor,
+  todayIst,
+  whoOwesReply,
+  type SpokenLine,
+} from '@ekbill/engine';
 import { askRecords } from '../server/ask';
 import { current } from '../server/session';
 import { voiceAskInput, voiceBillInput, voiceNameInput } from './schema';
@@ -67,11 +75,10 @@ export async function voiceRemind(input: unknown): Promise<VoiceReply> {
   if (!s) return { ok: false, reply: NOT_YET };
   const said = parsed.data.customerName;
   const due = await dues(s);
-  const customer = matchCustomer(said, await customers.listCustomers(s));
-  const row = due
-    .filter((d) => (customer ? d.customerId === customer.id : matchCustomer(said, [{ id: 'x', name: d.customerName }])))
-    .sort((a, b) => b.days - a.days)[0];
-  if (!row) return { ok: false, reply: `${customer?.name ?? said} ke koi paise baaki nahi.` };
+  const who = reminderFor(said, await customers.listCustomers(s), due);
+  if (who.kind === 'ask') return { ok: false, reply: `Kaunse ${said}? ${who.names.join(', ')}.` };
+  if (who.kind === 'none') return { ok: false, reply: `${who.name} ke koi paise baaki nahi.` };
+  const row = who.row;
   return {
     ok: true,
     href: `/bills/${encodeURIComponent(row.number)}/remind${row.financialYear ? `?fy=${row.financialYear}` : ''}`,

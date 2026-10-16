@@ -165,6 +165,7 @@ test('a customer added earlier lends their GSTIN to nobody else’s bill (Stage 
   await page.getByLabel('Customer ka naam').fill(`Other ${s}`);
   await page.getByLabel('Kya kiya?').first().fill('Switch repair');
   await page.getByLabel('Rate (₹)').first().fill('500');
+  // The form opens in the added customer's name; once it is someone else's bill, their State is not lent either.
   await sameState(page);
   await page.getByRole('button', { name: /Bill banao/ }).click();
   await expect(page).toHaveURL(/\/bills\/new\/done\?id=/, { timeout: 20_000 });

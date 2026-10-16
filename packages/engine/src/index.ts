@@ -190,6 +190,7 @@ export {
   checkGstin,
   checkPan,
   gstinCheckDigit,
+  isUuid,
   isValidGstin,
   stateCodeOfGstin,
   type GstinCheck,
@@ -333,6 +334,7 @@ export {
 } from './poocho';
 export {
   linesFromSpeech,
+  reminderFor,
   matchCustomer,
   whoOwesReply,
   type SpokenLine,

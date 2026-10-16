@@ -1,4 +1,5 @@
 import { NotFoundError, items, seedItemId } from '@ekbill/db';
+import { isUuid } from '@ekbill/engine';
 
 import { FIXTURE, type Item } from '../fixtures';
 import { itemViewOf } from '../people';
@@ -18,7 +19,7 @@ export async function loadItem(viewer: Viewer, id: string): Promise<Item | null>
   const scope = viewer.session?.scope;
   if (scope) {
     // A fixture key (the seeded demo items, as links and the flow audit name them) or the row's id.
-    const rowId = /^[0-9a-f-]{36}$/i.test(id) ? id : seedItemId(b.id, id);
+    const rowId = isUuid(id) ? id : seedItemId(b.id, id);
     if (!rowId) return null;
     try {
       return itemViewOf(await items.getItem(scope, rowId), b.id);

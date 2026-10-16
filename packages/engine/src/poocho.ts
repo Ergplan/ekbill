@@ -12,6 +12,19 @@ import { financialYearOf, formatDateShort, type CivilDate } from './dates';
  *
  * Pure: tested without a database or a model.
  */
+/**
+ * Free text an owner typed (a note, a description, a cancel reason) can carry a phone, a GSTIN or a bank account;
+ * the records go to the model and into the index, so those are taken out (Stage 9 review). What is left still
+ * reads: "ph [hidden]".
+ */
+export function redact(text: string): string {
+  return text
+    .replace(/\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b/gi, '[hidden]')
+    .replace(/\b[A-Z]{4}0[A-Z0-9]{6}\b/gi, '[hidden]')
+    .replace(/(?:\+?91[\s-]?)?\b[6-9]\d{4}[\s-]?\d{5}\b/g, '[hidden]')
+    .replace(/\b\d(?:[\s-]?\d){8,17}\b/g, '[hidden]');
+}
+
 export type RecordKind = 'bill' | 'customer' | 'item';
 
 export interface SearchRecord {
@@ -58,7 +71,7 @@ export function billRecord(b: BillForSearch): SearchRecord {
     .map((l) => {
       const amount = Math.round((l.quantityMilli * l.unitPricePaise) / 1000);
       const rate = l.gstBp ? `, GST ${pctText(l.gstBp)}%` : '';
-      return `${l.description.trim() || 'Item'}: ${qty(l.quantityMilli)} x ${moneyForMessage(l.unitPricePaise)} = ${moneyForMessage(amount)}${rate}`;
+      return `${redact(l.description.trim()) || 'Item'}: ${qty(l.quantityMilli)} x ${moneyForMessage(l.unitPricePaise)} = ${moneyForMessage(amount)}${rate}`;
     });
   const parts = [
     note
@@ -70,7 +83,7 @@ export function billRecord(b: BillForSearch): SearchRecord {
   ];
   if (b.status === 'cancelled') {
     parts.push(
-      `This ${note ? 'credit note' : 'bill'} was cancelled${b.cancelledReason ? ` (${b.cancelledReason})` : ''}.`,
+      `This ${note ? 'credit note' : 'bill'} was cancelled${b.cancelledReason ? ` (${redact(b.cancelledReason)})` : ''}.`,
     );
   } else if (!note) {
     for (const p of b.payments)
@@ -86,7 +99,7 @@ export function billRecord(b: BillForSearch): SearchRecord {
         : 'Fully settled.',
     );
   }
-  if (b.notes?.trim()) parts.push(`Note on the bill: ${b.notes.trim().slice(0, 300)}`);
+  if (b.notes?.trim()) parts.push(`Note on the bill: ${redact(b.notes.trim()).slice(0, 300)}`);
   return {
     kind: 'bill',
     sourceId: b.id,
@@ -116,7 +129,7 @@ export function customerRecord(c: CustomerForSearch): SearchRecord {
     text: [
       `Customer ${c.name}${c.contactPerson ? `, contact ${c.contactPerson}` : ''}${c.city ? `, ${c.city}` : ''}${c.stateName ? ` (${c.stateName})` : ''}.`,
       c.lastBilledAt ? `Last billed on ${formatDateShort(c.lastBilledAt)}.` : 'Not billed yet.',
-      c.notes?.trim() ? `Note: ${c.notes.trim().slice(0, 300)}` : '',
+      c.notes?.trim() ? `Note: ${redact(c.notes.trim()).slice(0, 300)}` : '',
     ]
       .filter(Boolean)
       .join(' '),
@@ -140,7 +153,7 @@ export function itemRecord(i: ItemForSearch): SearchRecord {
     sourceId: i.id,
     title: `Item · ${i.name}`,
     text: [
-      `Item ${i.name}${i.description ? `: ${i.description}` : ''}.`,
+      `Item ${i.name}${i.description ? `: ${redact(i.description)}` : ''}.`,
       i.defaultRatePaise !== null
         ? `Usual rate ${moneyForMessage(i.defaultRatePaise)}${i.unit ? ` per ${i.unit}` : ''}.`
         : 'No usual rate.',

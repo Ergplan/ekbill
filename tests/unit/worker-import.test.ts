@@ -185,3 +185,16 @@ describe('a file that cannot be read', () => {
     }
   });
 });
+
+describe('a workbook that unpacks to gigabytes (a zip bomb) is too big, not read (Stage 5 review)', () => {
+  it('is refused before its bytes are made, as too-big', async () => {
+    const { zipSync } = await import('fflate');
+    const { XLSX_MAX_INFLATED, XlsxTooBigError, readXlsx } = await import('../../apps/worker/src/import/xlsx');
+    // A few hundred kilobytes that would inflate to more than the limit.
+    const bomb = zipSync({ 'xl/worksheets/sheet1.xml': new Uint8Array(XLSX_MAX_INFLATED + 1024 * 1024) }, { level: 9 });
+    expect(bomb.length).toBeLessThan(1_000_000);
+    expect(() => readXlsx(bomb)).toThrow(XlsxTooBigError);
+    const r = await readFile('parties.xlsx', bomb, owner);
+    expect(r.problem).toBe('too-big');
+  });
+});

@@ -11,6 +11,7 @@ import {
 import * as businesses from '../../packages/db/src/repos/businesses';
 import { ForbiddenError, NotFoundError } from '../../packages/db/src/repos/allow';
 import * as memberships from '../../packages/db/src/repos/memberships';
+import { getPool } from '../../packages/db/src/pool';
 import { businessOf, scopeFor, seeded } from './helpers';
 
 /**
@@ -59,6 +60,18 @@ describe('invites (owner only)', () => {
     const back = await memberships.invite(owner, { phoneE164: number, name: 'Raju', role: 'staff' });
     expect(back.status).toBe('invited');
     expect(await acceptInvites(m.userId)).toBe(1);
+  });
+
+  it('accepting is audited as the person, under the request (Stage 9 review)', async () => {
+    const owner = await scopeFor('sharma', 'owner');
+    const m = await memberships.invite(owner, { phoneE164: phone(), name: 'Meena', role: 'staff' });
+    const requestId = `accept-${Date.now()}`;
+    expect(await acceptInvites(m.userId, requestId)).toBe(1);
+    const r = await getPool().query(
+      'select actor_user_id::text as actor, table_name, action, row_id from audit_events where request_id = $1',
+      [requestId],
+    );
+    expect(r.rows).toEqual([{ actor: m.userId, table_name: 'memberships', action: 'UPDATE', row_id: m.id }]);
   });
 
   it('never touches the owner, never invites yourself; staff and the accountant cannot shape the team', async () => {

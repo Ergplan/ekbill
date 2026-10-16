@@ -6,9 +6,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 40    | 377    |
-| integration | 24    | 268    |
-| e2e         | 16    | 64     |
+| unit        | 41    | 386    |
+| integration | 24    | 271    |
+| e2e         | 16    | 66     |
 
 ## unit
 
@@ -45,6 +45,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - lines at different rates come back per line
 - lines at one rate come back as one rate
 - a line with no rate takes the businessâ€™s default, and none at all gives the default
+- a blank first row leaves each line its own per-line rate
+- a different name drops the State the added customer lent; their name brings it back
+- a State the owner chose stays; with nothing lent the name is all that changes
 
 ### `tests/unit/bill-links.test.ts`
 
@@ -285,6 +288,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - a record both searches rank high comes first
 - numbers the records for the model, and the answer cites only ones that exist
 - keeps its words whole
+- a customer note
+- an item description
 
 ### `tests/unit/engine-profile.test.ts`
 
@@ -392,6 +397,10 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - asks for the customer first
 - fills what it can read and counts it
 
+### `tests/unit/is-uuid.test.ts`
+
+- takes a uuid and nothing shaped only by length
+
 ### `tests/unit/manifests.test.ts`
 
 - every screen folder (one with a Screen.tsx) has a manifest, and every manifest is in the registry
@@ -485,6 +494,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - no tool makes, saves, sends or pays: the voice opens, lights, fills and presses safe items only (rule 17)
 - every mint is one ai_calls row; a refusal is an error row
 - is off without a model and a key, and makes no row; the stand-in says it is fake
+- a rate the model did not hear is no line: null, empty or true never become â‚¹0 or â‚¹1
+- a reminder for a name two customers fit is asked about, never sent to one of them
 
 ### `tests/unit/worker-import.test.ts`
 
@@ -501,6 +512,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - every row of the CSV as read (the repeated one folds when the import is recorded)
 - refuses what it cannot read, and says which
 - is "unrecognised", and the import goes on
+- is refused before its bytes are made, as too-big
 
 ### `tests/unit/worker-normalise.test.ts`
 
@@ -573,6 +585,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - is a bill of supply: its own title, no tax, no composition legend
 - is reported in Table 8 by supply type, in Table 13â€™s range, and in 3Bâ€™s 3.1(c)
 - a composition dealerâ€™s bills of supply stay out of GSTR-1
+- asking for November and January leaves December out
 
 ### `tests/integration/gst.test.ts`
 
@@ -619,6 +632,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 - switcher: POST /api/auth/otp is 404 and /dev/switch/sharma signs in
 - otp: /dev/switch is 404, and a token that does not verify is 401 with no session
+- otp: any JSON body that is not an object is 401, never a 500 (Stage 10 review)
 
 ### `tests/integration/otp.test.ts`
 
@@ -816,6 +830,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 - invite â†’ sign in â†’ act â†’ change role â†’ remove â†’ no access
 - an invite can be withdrawn before it is accepted, and re-sent
+- accepting is audited as the person, under the request (Stage 9 review)
 - never touches the owner, never invites yourself; staff and the accountant cannot shape the team
 - an owner invited elsewhere still lands in their own business first
 
@@ -964,3 +979,5 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the setup walk-through: the voice asks, fills the answer and goes on; the start is the ownerâ€™s
 - the photo-review walk-through: the voice reads the fields, corrects a doubtful rate, and leaves Bill banao to staff
 - the voice cannot record money: the "Poore" choice on the money sheet is the ownerâ€™s
+- a tap on the mic while the voice is still connecting stops it for good (Stage 9 review)
+- the voice asks for a bill while a bill form is open: the lines land on it, and on no later form (Stage 9 review)

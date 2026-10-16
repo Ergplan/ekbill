@@ -1,5 +1,5 @@
 import { NotFoundError, imports, type FileSummary } from '@ekbill/db';
-import type { ImportedCustomer } from '@ekbill/engine';
+import { isUuid, type ImportedCustomer } from '@ekbill/engine';
 
 import { FIXTURE } from '../fixtures';
 import type { Viewer } from '../viewer';
@@ -48,7 +48,7 @@ export async function loadImport(
       added: Math.min(added, FIXTURE.importPreview.rows.length),
     };
   }
-  if (!opts.id || !/^[0-9a-f-]{36}$/i.test(opts.id) || requested === 'pick') {
+  if (!opts.id || !isUuid(opts.id) || requested === 'pick') {
     return {
       state: requested === 'done' ? 'done' : 'pick',
       importId: null,

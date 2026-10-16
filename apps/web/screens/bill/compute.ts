@@ -120,3 +120,43 @@ export function businessFromSetup(setup: SetupAnswers | null, fallback: Business
     address: setup.city?.trim() || null,
   };
 }
+
+/**
+ * The form's lines as the issue's checks take them (assess): each line's rate by its place in the form, read
+ * before the blank rows are left out (Stage 8 review: after the filter, a blank first row moved every per-line
+ * rate onto the line above it).
+ */
+export function assessLinesOf(
+  d: Pick<BillDraft, 'lines' | 'gst'>,
+  gstOn: boolean,
+  hsnOf: (what: string) => string | null,
+): Array<{ description: string; gstBp: number; taxRateChosen: boolean; hsnCode: string | null }> {
+  return d.lines
+    .map((l, i) => ({ l, i }))
+    .filter(({ l }) => l.what.trim() || l.rate.trim())
+    .map(({ l, i }) => ({
+      description: l.what,
+      gstBp: gstOn ? Math.round((d.gst.mode === 'perline' ? (d.gst.perLine[i] ?? d.gst.rate) : d.gst.rate) * 100) : 0,
+      taxRateChosen: true,
+      hsnCode: hsnOf(l.what),
+    }));
+}
+
+/**
+ * The name typed on a bill opened for the customer just added (/customers/new). That customer's State came from
+ * their GSTIN; typing a different name makes it someone else's bill, so the State goes back to what it was before
+ * (asked again), and typing the name back brings it back. A State the owner chose stays.
+ */
+export function renamed(
+  cur: BillDraft,
+  name: string,
+  lent: { name: string; stateCode: string | null } | null,
+  before: string | null,
+): BillDraft {
+  if (!lent?.stateCode) return { ...cur, customerName: name };
+  const was = cur.customerName.trim() === lent.name.trim();
+  const is = name.trim() === lent.name.trim();
+  if (was && !is && cur.customerState === lent.stateCode) return { ...cur, customerName: name, customerState: before };
+  if (!was && is && cur.customerState === before) return { ...cur, customerName: name, customerState: lent.stateCode };
+  return { ...cur, customerName: name };
+}

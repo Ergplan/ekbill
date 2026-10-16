@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { NotFoundError, photos } from '@ekbill/db';
+import { isUuid } from '@ekbill/engine';
 
 import { current } from '../../../../../server/session';
 
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
 /** The photo as the model saw it (upright, ≤ 2000 px), for the review screen; members of the business only. */
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return new NextResponse(null, { status: 404 });
+  if (!isUuid(id)) return new NextResponse(null, { status: 404 });
   const me = await current();
   if (!me?.scope) return new NextResponse(null, { status: 401 });
   try {

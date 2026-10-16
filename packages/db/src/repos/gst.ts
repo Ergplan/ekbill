@@ -83,17 +83,21 @@ export async function periodDocuments(scope: TenantScope, months: MonthPeriod[])
         ),
       )
       .orderBy(asc(schema.documents.issueDate), asc(schema.documents.number));
-    return rows.map((r) => ({
-      id: r.id,
-      number: r.number ?? '',
-      kind: r.kind as PeriodDocument['kind'],
-      status: r.status as PeriodDocument['status'],
-      issueDate: r.issueDate,
-      customerName: r.customerName,
-      customerGstin: r.customerGstin,
-      totalPaise: (r.totals as { totalPaise?: number } | null)?.totalPaise ?? 0,
-      snapshot: r.snapshot as IssuedSnapshot,
-    }));
+    // Only the months asked for: ['2026-04', '2026-06'] is not April to June (Stage 8 review).
+    const asked = new Set(months);
+    return rows
+      .filter((r) => asked.has(r.issueDate.slice(0, 7) as MonthPeriod))
+      .map((r) => ({
+        id: r.id,
+        number: r.number ?? '',
+        kind: r.kind as PeriodDocument['kind'],
+        status: r.status as PeriodDocument['status'],
+        issueDate: r.issueDate,
+        customerName: r.customerName,
+        customerGstin: r.customerGstin,
+        totalPaise: (r.totals as { totalPaise?: number } | null)?.totalPaise ?? 0,
+        snapshot: r.snapshot as IssuedSnapshot,
+      }));
   });
 }
 

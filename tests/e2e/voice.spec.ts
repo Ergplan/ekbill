@@ -152,3 +152,43 @@ test('the voice cannot record money: the "Poore" choice on the money sheet is th
   await expect(page.locator('main')).not.toContainText('Poore aa gaye');
   await expect(page.getByRole('dialog')).toBeVisible();
 });
+
+test('a tap on the mic while the voice is still connecting stops it for good (Stage 9 review)', async ({ page }) => {
+  let release: () => void = () => undefined;
+  const held = new Promise<void>((r) => (release = r));
+  await page.route('**/api/voice/session', async (route) => {
+    await held;
+    await route.continue();
+  });
+  await page.goto('/dev/switch/sharma?to=/');
+  await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
+  await page.locator('[data-guide="mic"]').click();
+  await page.locator('[data-guide="mic"]').click();
+  release();
+  await page.waitForTimeout(1500);
+  await expect(page.getByTestId('voice-live')).toHaveCount(0);
+  expect(await page.evaluate(() => 'ekbillVoice' in window || '__ekbillVoice' in window)).toBe(false);
+});
+
+test('the voice asks for a bill while a bill form is open: the lines land on it, and on no later form (Stage 9 review)', async ({
+  page,
+}) => {
+  await page.goto('/dev/switch/sharma?to=/');
+  await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
+  await page.getByRole('link', { name: 'Mehta Traders' }).first().click();
+  await expect(page).toHaveURL(/\/bills\/new\?customer=/);
+  await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
+  await page.locator('[data-guide="mic"]').click();
+  await expect(page.getByTestId('voice-live')).toBeVisible();
+  await page.evaluate(() =>
+    (window as unknown as { __ekbillVoice: { run: (n: string, a: unknown) => Promise<unknown> } }).__ekbillVoice.run(
+      'start_bill',
+      { customer_name: 'Mehta Traders', lines: [{ what: 'Fan regulator', rate: 450 }] },
+    ),
+  );
+  await expect(page.getByLabel('Kya kiya?').first()).toHaveValue('Fan regulator', { timeout: 10_000 });
+  // Another customer's form: nothing carried over.
+  await page.goto('/bills/new?new=1');
+  await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
+  await expect(page.getByLabel('Kya kiya?').first()).not.toHaveValue('Fan regulator');
+});

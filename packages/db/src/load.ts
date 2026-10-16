@@ -199,6 +199,15 @@ export async function removeLoad(url: string, log: (s: string) => void = console
       log('load remove: no load-test businesses');
       return 0;
     }
+    // The load's own people, named before their businesses go: the owners who made them and their members. Only
+    // these may be removed; a real person whose phone happens to start +91 70000 is never touched (Stage 10 review).
+    const people = (
+      await client.query<{ id: string }>(
+        `select created_by as id from businesses where id = any($1)
+          union select user_id from memberships where business_id = any($1)`,
+        [ids],
+      )
+    ).rows.map((r) => r.id);
     const tables = (
       await client.query<{ table_name: string }>(
         `select table_name from information_schema.columns
@@ -210,9 +219,10 @@ export async function removeLoad(url: string, log: (s: string) => void = console
     await client.query('delete from businesses where id = any($1) and load_test', [ids]);
     // The load owners, when they belong to nothing else.
     await client.query(
-      `delete from users u where u.phone_e164 like '+9170000%'
+      `delete from users u where u.id = any($1) and u.phone_e164 like '+9170000%'
           and not exists (select 1 from memberships m where m.user_id = u.id)
           and not exists (select 1 from businesses b where b.created_by = u.id)`,
+      [people],
     );
     await client.query('commit');
     log(`load remove: ${ids.length} load-test businesses removed`);

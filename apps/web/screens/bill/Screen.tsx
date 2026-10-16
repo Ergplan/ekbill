@@ -40,8 +40,16 @@ import { sayRefusal } from '../refusal';
 import { withAs } from '../links';
 import { rupees } from '../money';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
-import { takePrefill } from './prefill';
-import { businessFromSetup, compute, ratesFor, type BillDraft, type SetupAnswers } from './compute';
+import { PREFILL_EVENT, takePrefill } from './prefill';
+import {
+  assessLinesOf,
+  businessFromSetup,
+  compute,
+  ratesFor,
+  renamed,
+  type BillDraft,
+  type SetupAnswers,
+} from './compute';
 import { manifest } from './manifest';
 import type { BillFormData } from './data';
 
@@ -83,6 +91,14 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
   }, [base, data.mode, newCustomer, newGst]);
   // One draft per person, bill number, customer (an existing one by id, a new one by name) and redo: a half-typed
   // bill survives a reload, never leaks to another business and never bleeds into a different new customer's bill.
+  // The State the added customer's GSTIN gave, only while the bill is still in their name (Stage 6 review).
+  const lent = useMemo(
+    () =>
+      data.mode === 'new-customer' && newCustomer && newGst?.ok
+        ? { name: newCustomer.name, stateCode: newGst.stateCode ?? null }
+        : null,
+    [data.mode, newCustomer, newGst],
+  );
   const draftKey = `${viewer.personId}:bill:${data.initial.number}:${data.initial.customer ?? `${data.mode}:${initial.customerName}`}${
     data.redo ? `:redo-${data.redo}` : ''
   }`;
@@ -99,20 +115,25 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
   const [why, setWhy] = useState<string | null>(null);
   const patch = (p: Partial<BillDraft>) => setD((cur) => ({ ...cur, ...p }));
   // Lines handed over once (Stage 9): what the voice heard, or the contract helper's working, with its GST.
+  // On arrival, and again whenever lines are handed over while this form is open (the voice asked for this same
+  // bill): the lines are placed here, never left in storage for whichever form opens next (Stage 9 review).
   useEffect(() => {
-    const p = takePrefill();
-    if (!p) return;
-    setD((cur) => {
-      const rate = p.gstRate ?? cur.gst.rate;
-      return {
-        ...cur,
-        lines: p.lines,
-        gst: { ...cur.gst, on: p.gstOn === false ? false : cur.gst.on, rate, perLine: p.lines.map(() => rate) },
-      };
-    });
-    // Once, on arrival.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const place = () => {
+      const p = takePrefill();
+      if (!p) return;
+      setD((cur) => {
+        const rate = p.gstRate ?? cur.gst.rate;
+        return {
+          ...cur,
+          lines: p.lines,
+          gst: { ...cur.gst, on: p.gstOn === false ? false : cur.gst.on, rate, perLine: p.lines.map(() => rate) },
+        };
+      });
+    };
+    place();
+    window.addEventListener(PREFILL_EVENT, place);
+    return () => window.removeEventListener(PREFILL_EVENT, place);
+  }, [setD]);
   const regular = business.registration === 'regular';
   const rates = useMemo(() => ratesFor(d.date), [d.date]);
   const c = useMemo(() => compute(d, business), [d, business]);
@@ -146,23 +167,20 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
           name: data.customer?.name ?? d.customerName,
           gstin: data.customer?.gstin ?? (newGst?.ok ? newGst.normalised : null),
           stateCode: d.customerState,
-          address: null,
+          // The address the issue will use (Stage 8 review: the form passed none, and blocked a ₹50,000 bill the
+          // server would have issued).
+          address: data.customer?.address ?? null,
         },
         document: {
           kind: 'bill',
           dateIso: d.date,
           gstOn: gstOnNow,
           placeOfSupplyStateCode: d.customerState ?? (gstOnNow ? null : business.stateCode),
-          lines: d.lines
-            .filter((l) => l.what.trim() || l.rate.trim())
-            .map((l, i) => ({
-              description: l.what,
-              gstBp: gstOnNow
-                ? Math.round((d.gst.mode === 'perline' ? (d.gst.perLine[i] ?? d.gst.rate) : d.gst.rate) * 100)
-                : 0,
-              taxRateChosen: true,
-              hsnCode: data.items.find((it) => it.name.toLowerCase() === l.what.trim().toLowerCase())?.hsn ?? null,
-            })),
+          lines: assessLinesOf(
+            d,
+            gstOnNow,
+            (what) => data.items.find((it) => it.name.toLowerCase() === what.trim().toLowerCase())?.hsn ?? null,
+          ),
           flags: [],
           totals: { totalPaise: c.totalPaise, supply: c.supply },
         },
@@ -324,7 +342,10 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
               large
               autoFocus
               value={d.customerName}
-              onChange={(e) => patch({ customerName: e.target.value })}
+              onChange={(e) => {
+                const name = e.target.value;
+                setD((cur) => renamed(cur, name, lent, base.customerState));
+              }}
               maxLength={120}
             />
           </div>

@@ -102,3 +102,11 @@ export function stateCodeOfGstin(gstin: string | null | undefined): string | nul
   const check = checkGstin(gstin);
   return check.ok ? check.stateCode! : null;
 }
+
+/**
+ * A uuid's own shape (8-4-4-4-12 hex). A looser test (36 of [0-9a-f-]) lets 36 hyphens through, which Postgres
+ * rejects as a uuid: a 500 where "not found" was meant (Stage 4 and 7 reviews).
+ */
+export function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+}

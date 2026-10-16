@@ -141,3 +141,36 @@ describe('a question in Hindi or Tamil', () => {
     expect(tsQueryFor('கடை பில்')).toBe('கடை:* | பில்:*');
   });
 });
+
+describe('what goes to the model and the index carries no phone, GSTIN or bank detail (Stage 9 review)', () => {
+  const note = 'Bank account 123456789012 IFSC HDFC0001234, ph 98765 43210, +91-9876543210, GSTIN 27AAAAA0000A1Z5';
+  const leaks = /\d{9,}|98765|HDFC0|27AAAAA/;
+  it('a customer note', () => {
+    const c = customerRecord({
+      id: 'c',
+      name: 'Mehta Traders',
+      contactPerson: null,
+      city: null,
+      stateName: null,
+      lastBilledAt: null,
+      notes: note,
+    });
+    expect(c.text).not.toMatch(leaks);
+    expect(c.text).toContain('[hidden]');
+  });
+  it('an item description', () => {
+    const i = itemRecord({
+      id: 'i',
+      name: 'AMC',
+      description: note,
+      hsnSac: '998719',
+      unit: 'visit',
+      defaultRatePaise: 350000,
+      defaultTaxBp: 1800,
+    });
+    expect(i.text).not.toMatch(leaks);
+    // An HSN code (up to 8 digits) and a money figure are not mistaken for an account.
+    expect(i.text).toContain('HSN/SAC 998719');
+    expect(i.text).toContain('3,500');
+  });
+});

@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { seedCustomerId, seedCustomerKey, type Customer as CustomerRow, type Item as ItemRow } from '@ekbill/db';
-import { findState } from '@ekbill/engine';
+import { findState, isUuid } from '@ekbill/engine';
 
 import { FIXTURE, type Customer, type Item } from './fixtures';
 
@@ -17,7 +17,7 @@ export function fixtureKeyOf(id: string): string | null {
 }
 /** The row id a fixture key (or an id) names, for a business by its seed key. */
 export function customerIdOf(businessKey: string, idOrKey: string): string | null {
-  if (/^[0-9a-f-]{36}$/i.test(idOrKey)) return idOrKey;
+  if (isUuid(idOrKey)) return idOrKey;
   return seedCustomerId(businessKey, idOrKey);
 }
 /** The avatar colour: the fixture's position for a seeded customer, else a hash of the id. */

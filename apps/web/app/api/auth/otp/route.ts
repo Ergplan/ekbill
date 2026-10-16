@@ -21,10 +21,14 @@ export async function POST(request: Request) {
   const id = requestId(request);
   if (authMode() !== 'otp')
     return NextResponse.json({ error: 'otp.off' }, { status: 404, headers: { 'x-request-id': id } });
-  const body = (await request.json().catch(() => ({}))) as { idToken?: unknown };
+  // Any JSON at all may arrive: null, a number, an array. Only an object's idToken is read (Stage 10 review: a
+  // null body threw before the try's refusal could answer, and the sign-in door answered 500).
+  const raw: unknown = await request.json().catch(() => null);
+  const idToken = raw && typeof raw === 'object' ? (raw as { idToken?: unknown }).idToken : undefined;
   try {
-    const r = await signInWithIdToken(String(body.idToken ?? ''), firebaseVerifier(), {
+    const r = await signInWithIdToken(String(idToken ?? ''), firebaseVerifier(), {
       userAgent: request.headers.get('user-agent'),
+      requestId: id,
     });
     const me = await resolveScope(r.sessionId, id);
     const res = NextResponse.json({ to: r.to }, { headers: { 'x-request-id': id } });

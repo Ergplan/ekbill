@@ -140,3 +140,10 @@ describe('the CA pack files the bills under the GSTIN they were issued with (Sta
     },
   );
 });
+
+describe('months that are not side by side (Stage 8 review)', () => {
+  it('asking for November and January leaves December out', async () => {
+    const w = await gst.workingsFor(await scopeFor('sharma', 'accountant'), ['2025-11', '2026-01']);
+    expect(w.documents.some((d) => d.issueDate.startsWith('2025-12'))).toBe(false);
+  });
+});

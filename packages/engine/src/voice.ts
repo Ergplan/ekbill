@@ -83,8 +83,11 @@ export function linesFromSpeech(raw: unknown): SpokenLine[] {
   const out: SpokenLine[] = [];
   for (const item of raw as Array<{ what?: unknown; qty?: unknown; rate?: unknown }>) {
     const what = typeof item?.what === 'string' ? item.what.trim().slice(0, 300) : '';
-    const rate = Number(item?.rate);
-    const qty = item?.qty === undefined || item?.qty === null || item?.qty === '' ? 1 : Number(item.qty);
+    // A rate the model did not hear is no rate: null, '' or true would become ₹0 or ₹1 under Number() (Stage 9).
+    const asNumber = (v: unknown) =>
+      typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v.trim()) : Number.NaN;
+    const rate = asNumber(item?.rate);
+    const qty = item?.qty === undefined || item?.qty === null || item?.qty === '' ? 1 : asNumber(item.qty);
     if (!what || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(qty) || qty <= 0) continue;
     out.push({ what, qty: String(qty), rate: String(rate) });
     if (out.length >= 30) break;
@@ -101,4 +104,26 @@ export function whoOwesReply(due: readonly VoiceDue[]): string {
     .slice(0, 6)
     .map((d) => `${d.customerName}: ${moneyForMessage(d.amountPaise)}, ${d.days} din`);
   return `Total ${moneyForMessage(total)} baaki, ${due.length} bills. ${rows.join('. ')}.`;
+}
+
+/**
+ * Whose reminder "<name> ko reminder bhejo" means: a customer by name, else one of those who owe. Two who both fit
+ * ("Sharma": Sharma Electricals and Sharma Sweets) are asked about, never chosen between (Stage 9 review): a
+ * reminder to the wrong party is a money message to the wrong person. Of the one meant, the oldest due bill.
+ */
+export function reminderFor<T extends { customerId: string | null; customerName: string; days: number }>(
+  said: string,
+  known: ReadonlyArray<{ id: string; name: string }>,
+  due: readonly T[],
+): { kind: 'bill'; row: T } | { kind: 'ask'; names: string[] } | { kind: 'none'; name: string } {
+  const key = (d: T) => d.customerId ?? d.customerName;
+  const owing = [...new Map(due.map((d) => [key(d), { id: key(d), name: d.customerName }])).values()];
+  const customer = matchCustomer(said, known) ?? matchCustomer(said, owing);
+  if (!customer) {
+    const fits = owing.filter((o) => matchCustomer(said, [o]));
+    if (fits.length > 1) return { kind: 'ask', names: fits.slice(0, 3).map((f) => f.name) };
+    return { kind: 'none', name: said };
+  }
+  const row = due.filter((d) => key(d) === customer.id).sort((a, b) => b.days - a.days)[0];
+  return row ? { kind: 'bill', row } : { kind: 'none', name: customer.name };
 }

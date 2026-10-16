@@ -56,7 +56,12 @@ describe('the load seed', () => {
     const otherAudit = await count(
       'select count(*) as n from audit_events a join businesses b on b.id = a.business_id where not b.load_test',
     );
+    // A real person whose phone starts +91 70000 and who has no business yet (signed in, not set up): not the load's.
+    await getPool().query(
+      "insert into users (phone_e164, name) values ('+917000099999', 'Real person') on conflict (phone_e164) do nothing",
+    );
     expect(await removeLoad(process.env.DATABASE_URL!, () => undefined)).toBe(1);
+    expect(await count("select count(*) as n from users where phone_e164 = '+917000099999'")).toBe(1);
     expect(await count('select count(*) as n from businesses where load_test')).toBe(0);
     expect(await count("select count(*) as n from documents where number like 'LT-%'")).toBe(0);
     expect(await count('select count(*) as n from users where phone_e164 = $1', [loadPhone(1)])).toBe(0);

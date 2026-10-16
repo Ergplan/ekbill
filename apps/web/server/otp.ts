@@ -31,7 +31,7 @@ export const MAX_TOKEN_AGE_MS = 5 * 60 * 1000;
 export async function signInWithIdToken(
   idToken: string,
   verify: Verifier,
-  opts: { userAgent?: string | null; now?: number } = {},
+  opts: { userAgent?: string | null; now?: number; requestId?: string } = {},
 ): Promise<{ sessionId: string; expiresAt: Date; userId: string; to: '/' | '/welcome' }> {
   if (typeof idToken !== 'string' || idToken.length < 20 || idToken.length > 8192) throw new OtpError('otp.invalid');
   let decoded: VerifiedToken;
@@ -44,7 +44,7 @@ export async function signInWithIdToken(
   const phone = toE164(decoded.phone_number ?? '');
   if (!phone) throw new OtpError('otp.noPhone');
   const user = await userForPhone(phone);
-  await acceptInvites(user.id);
+  await acceptInvites(user.id, opts.requestId);
   const business = (await membershipsOf(user.id))[0] ?? null;
   const session = await createSession({
     userId: user.id,

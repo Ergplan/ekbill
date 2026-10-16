@@ -26,6 +26,8 @@ export interface BillFormData {
     stateCode: string | null;
     stateName: string | null;
     gstin: string | null;
+    /** The address on record (address, city), for the ₹50,000 B2C check the issue makes. */
+    address: string | null;
   } | null;
   /** The previous bill for this customer, for "Pichle jaisa hi?" */
   previous: {
@@ -152,6 +154,7 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
           stateCode: customerState,
           stateName: customerState ? (findState(customerState)?.name ?? null) : null,
           gstin: row.gstin,
+          address: [row.address, row.city].filter(Boolean).join(', ') || null,
         }
       : null,
     previous,
@@ -260,6 +263,7 @@ function loadFixtureForm(
           stateCode: customerState,
           stateName: customerState ? customer.stateName : null,
           gstin: customer.gstin,
+          address: null,
         }
       : null,
     previous,

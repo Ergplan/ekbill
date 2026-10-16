@@ -2,7 +2,7 @@ import type { FileReading } from '@ekbill/db';
 import { importing, type ImportedCustomer } from '@ekbill/engine';
 
 import { doclingConfig, readWithDocling, type DoclingConfig } from './docling';
-import { readXlsx } from './xlsx';
+import { XlsxTooBigError, readXlsx } from './xlsx';
 
 /**
  * One uploaded file, read (Stage 5, the read-import job). Salvaged from the
@@ -44,8 +44,9 @@ export async function readFile(
   // whole import's (Stage 11 review: it threw, and the other nineteen files' customers were lost).
   try {
     return await readKnown(kind, filename, bytes, owner, docling, base, done);
-  } catch {
-    return { ...base, problem: 'unrecognised' };
+  } catch (e) {
+    // A workbook that unpacks past the limit (a zip bomb) is too big, said as such (Stage 5 review).
+    return { ...base, problem: e instanceof XlsxTooBigError ? 'too-big' : 'unrecognised' };
   }
 }
 

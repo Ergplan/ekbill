@@ -45,4 +45,15 @@ describe('AUTH_MODE', () => {
     expect(await res.json()).toEqual({ error: 'otp.invalid' });
     expect(res.headers.get('set-cookie')).toBeNull();
   });
+
+  it('otp: any JSON body that is not an object is 401, never a 500 (Stage 10 review)', async () => {
+    process.env.AUTH_MODE = 'otp';
+    process.env.FIREBASE_PROJECT_ID = 'demo-ekbill';
+    const otp = await import('../../apps/web/app/api/auth/otp/route');
+    for (const body of ['null', '3', '"x"', '[]', 'not json']) {
+      const res = await otp.POST(new Request('http://127.0.0.1:3000/api/auth/otp', { method: 'POST', body }));
+      expect(res.status, body).toBe(401);
+      expect(await res.json()).toEqual({ error: 'otp.invalid' });
+    }
+  });
 });

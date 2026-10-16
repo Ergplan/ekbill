@@ -63,7 +63,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ pers
     logRequest('GET /dev/switch/[person]', id, { person, found: false });
     return new NextResponse(null, { status: 303, headers: { Location: '/dev/switch', 'x-request-id': id } });
   }
-  await acceptInvites(found.id);
+  await acceptInvites(found.id, id);
   const memberships = await membershipsOf(found.id);
   const business = memberships[0] ?? null;
   const session = await createSession({

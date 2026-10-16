@@ -161,13 +161,29 @@ export async function deleteSessionsOf(userId: string): Promise<number> {
  * The invites waiting for a phone become memberships when that phone signs in
  * (the switcher during the build; OTP in Stage 10). Answers how many.
  */
-export async function acceptInvites(userId: string): Promise<number> {
-  const rows = await db()
-    .update(schema.memberships)
-    .set({ status: 'active', acceptedAt: sql`now()` })
-    .where(and(eq(schema.memberships.userId, userId), eq(schema.memberships.status, 'invited')))
-    .returning({ id: schema.memberships.id });
-  return rows.length;
+export async function acceptInvites(userId: string, requestId = 'accept-invites'): Promise<number> {
+  // Across businesses (an invite is the business's row, not yet the person's), so outside a tenant scope;
+  // but the person and the request are set, so the audit trail says who accepted and when (Stage 9 review).
+  const client = await getPool().connect();
+  try {
+    await client.query('begin');
+    await client.query(
+      "select set_config('app.user_id', $1, true), set_config('app.actor_kind', 'user', true), set_config('app.request_id', $2, true)",
+      [userId, requestId],
+    );
+    const rows = await drizzle(client, { schema })
+      .update(schema.memberships)
+      .set({ status: 'active', acceptedAt: sql`now()` })
+      .where(and(eq(schema.memberships.userId, userId), eq(schema.memberships.status, 'invited')))
+      .returning({ id: schema.memberships.id });
+    await client.query('commit');
+    return rows.length;
+  } catch (error) {
+    await client.query('rollback').catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 /** A person by phone (E.164), for a sign-in by number. */

@@ -114,7 +114,12 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
     else if (channel.current?.readyState === 'open') channel.current.send(JSON.stringify(event));
   }, []);
 
+  // Each start is one attempt; stop() ends the current one, and a start still awaiting (the session, the mic
+  // prompt, OpenAI's answer) sees it ended and lets go of what it opened (Stage 9 review: a tap on stop while
+  // connecting left the mic streaming once the connection came up).
+  const attempt = useRef(0);
   const stop = useCallback(() => {
+    attempt.current += 1;
     channel.current?.close();
     pc.current?.getSenders().forEach((s) => s.track?.stop());
     pc.current?.close();
@@ -257,6 +262,8 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
     if (!available || state === 'connecting' || state === 'live') return;
     setNote(null);
     setState('connecting');
+    const mine = ++attempt.current;
+    const ended = () => attempt.current !== mine;
     try {
       const res = await fetch('/api/voice/session', { method: 'POST' });
       const body = (await res.json().catch(() => ({}))) as {
@@ -266,6 +273,7 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
         baseUrl?: string;
         fake?: boolean;
       };
+      if (ended()) return;
       if (!res.ok || !body.secret) {
         setNote(t(body.error ?? 'voice.failed'));
         setState('error');
@@ -287,6 +295,10 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
       } catch {
         setNote(t('voice.noMic'));
         setState('error');
+        return;
+      }
+      if (ended()) {
+        mic.getTracks().forEach((track) => track.stop());
         return;
       }
       const peer = new RTCPeerConnection();
@@ -319,14 +331,17 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
       dc.onclose = () => stop();
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
+      if (ended()) return;
       const answer = await fetch(`${body.baseUrl}/v1/realtime/calls?model=${encodeURIComponent(body.model ?? '')}`, {
         method: 'POST',
         headers: { authorization: `Bearer ${body.secret}`, 'content-type': 'application/sdp' },
         body: offer.sdp,
       });
+      if (ended()) return;
       if (!answer.ok) throw new Error('voice.failed');
       await peer.setRemoteDescription({ type: 'answer', sdp: await answer.text() });
     } catch {
+      if (ended()) return;
       stop();
       setNote(t('voice.failed'));
       setState('error');

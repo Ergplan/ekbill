@@ -23,5 +23,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
     redo: one(sp.redo),
   });
   if (!first && !newCustomer && !data.customer) return <BillStartScreen pick={data.pick} viewer={shellOf(viewer)} />;
-  return <BillScreen data={data} viewer={shellOf(viewer)} />;
+  // One form per bill asked for: a move to another customer's form (the voice from an open form, a chip) starts
+  // that form afresh, with what was handed over to it, rather than keeping the last one's state.
+  const key = [
+    customer ?? '',
+    newCustomer ? 'new' : '',
+    first ? 'first' : '',
+    one(sp.redo) ?? '',
+    one(sp.name) ?? '',
+  ].join('|');
+  return <BillScreen key={key} data={data} viewer={shellOf(viewer)} />;
 }

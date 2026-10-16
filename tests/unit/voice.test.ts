@@ -10,7 +10,7 @@ import {
   voiceInstructions,
   type AiCallRow,
 } from '../../packages/ai/src/index';
-import { linesFromSpeech, matchCustomer, whoOwesReply } from '../../packages/engine/src/index';
+import { linesFromSpeech, matchCustomer, reminderFor, whoOwesReply } from '../../packages/engine/src/index';
 
 /** Stage 9, the voice: the intents (salvaged), the session the server mints, and what the tools may do. */
 const CUSTOMERS = [
@@ -158,5 +158,40 @@ describe('the session the server mints', () => {
     } finally {
       process.env = env;
     }
+  });
+});
+
+describe('the voice and money (Stage 9 review)', () => {
+  it('a rate the model did not hear is no line: null, empty or true never become ₹0 or ₹1', () => {
+    expect(
+      linesFromSpeech([
+        { what: 'AMC visit', rate: null },
+        { what: 'x', rate: '' },
+        { what: 'y', rate: true },
+        { what: 'z', rate: [] },
+      ]),
+    ).toEqual([]);
+    expect(
+      linesFromSpeech([
+        { what: 'Fan', rate: '1250' },
+        { what: 'Wire', rate: 80, qty: '2' },
+      ]),
+    ).toEqual([
+      { what: 'Fan', qty: '1', rate: '1250' },
+      { what: 'Wire', qty: '2', rate: '80' },
+    ]);
+  });
+  it('a reminder for a name two customers fit is asked about, never sent to one of them', () => {
+    const due = [
+      { customerId: 'a', customerName: 'Sharma Electricals', days: 40 },
+      { customerId: 'b', customerName: 'Sharma Sweets', days: 10 },
+    ];
+    const known = [
+      { id: 'a', name: 'Sharma Electricals' },
+      { id: 'b', name: 'Sharma Sweets' },
+    ];
+    expect(reminderFor('Sharma', known, due)).toEqual({ kind: 'ask', names: ['Sharma Electricals', 'Sharma Sweets'] });
+    expect(reminderFor('Sharma Sweets', known, due)).toMatchObject({ kind: 'bill', row: { customerId: 'b' } });
+    expect(reminderFor('Gupta', known, due)).toEqual({ kind: 'none', name: 'Gupta' });
   });
 });

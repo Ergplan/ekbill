@@ -10,12 +10,24 @@
  */
 import { inflateRawSync } from 'node:zlib';
 
+/** The most a workbook's parts may inflate to, together (a party list is kilobytes; a zip bomb is gigabytes). */
+export const XLSX_MAX_INFLATED = 64 * 1024 * 1024;
+
+/** A workbook that would inflate past the limit: refused before its bytes are made (Stage 5 review). */
+export class XlsxTooBigError extends Error {
+  constructor() {
+    super('xlsx: too big once unpacked');
+    this.name = 'XlsxTooBigError';
+  }
+}
+
 interface Entry {
   name: string;
   data: Uint8Array;
 }
 
-function readZip(bytes: Uint8Array): Entry[] {
+/** The entries `wanted` names (all when null), each inflated within what is left of XLSX_MAX_INFLATED. */
+function readZip(bytes: Uint8Array, wanted: ((name: string) => boolean) | null = null): Entry[] {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   // End of central directory: search back for its signature.
   let eocd = -1;
@@ -30,10 +42,12 @@ function readZip(bytes: Uint8Array): Entry[] {
   let offset = view.getUint32(eocd + 16, true);
   const entries: Entry[] = [];
   const dec = new TextDecoder();
+  let budget = XLSX_MAX_INFLATED;
   for (let n = 0; n < count; n += 1) {
     if (view.getUint32(offset, true) !== 0x02014b50) throw new Error('Bad central directory');
     const method = view.getUint16(offset + 10, true);
     const compressed = view.getUint32(offset + 20, true);
+    const declared = view.getUint32(offset + 24, true);
     const nameLen = view.getUint16(offset + 28, true);
     const extraLen = view.getUint16(offset + 30, true);
     const commentLen = view.getUint16(offset + 32, true);
@@ -42,10 +56,23 @@ function readZip(bytes: Uint8Array): Entry[] {
     const localNameLen = view.getUint16(localOffset + 26, true);
     const localExtraLen = view.getUint16(localOffset + 28, true);
     const start = localOffset + 30 + localNameLen + localExtraLen;
-    const raw = bytes.subarray(start, start + compressed);
-    const data = method === 8 ? new Uint8Array(inflateRawSync(raw)) : method === 0 ? raw : null;
-    if (data) entries.push({ name, data });
     offset += 46 + nameLen + extraLen + commentLen;
+    if (wanted && !wanted(name)) continue;
+    // The size the zip declares is checked first; the inflate is capped too, since a declared size can lie.
+    if (declared > budget) throw new XlsxTooBigError();
+    const raw = bytes.subarray(start, start + compressed);
+    let data: Uint8Array | null;
+    try {
+      data =
+        method === 8 ? new Uint8Array(inflateRawSync(raw, { maxOutputLength: budget })) : method === 0 ? raw : null;
+    } catch (e) {
+      if (e instanceof RangeError || (e as { code?: string }).code === 'ERR_BUFFER_TOO_LARGE')
+        throw new XlsxTooBigError();
+      throw e;
+    }
+    if (!data) continue;
+    budget -= data.length;
+    entries.push({ name, data });
   }
   return entries;
 }
@@ -69,7 +96,8 @@ function columnIndex(ref: string): number {
 
 /** A sheet (the first unless `sheet` names another, 1-based), as rows of strings. Empty cells are ''. */
 export function readXlsx(bytes: Uint8Array, sheetNumber = 1): string[][] {
-  const entries = readZip(bytes);
+  // Only the parts a sheet needs are unpacked: the shared strings and the worksheets.
+  const entries = readZip(bytes, (n) => n === 'xl/sharedStrings.xml' || /^xl\/worksheets\/sheet\d+\.xml$/.test(n));
   const dec = new TextDecoder();
   const file = (name: string) => entries.find((e) => e.name === name);
   const shared: string[] = [];
