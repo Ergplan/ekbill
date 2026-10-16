@@ -469,7 +469,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - drops nonsense instead of guessing
 - biggest first, with the total, at most six
 - the instructions are the versioned prompt with the business and its customers; a name cannot break out
-- the body: ten minutes, the tools baked in, the Hinglish transcription hint
+- the body: ten minutes, the tools baked in; a transcript only when a transcription model is set
 - no tool makes, saves, sends or pays: the voice opens, lights, fills and presses safe items only (rule 17)
 - every mint is one ai_calls row; a refusal is an error row
 - is off without a model and a key, and makes no row; the stand-in says it is fake

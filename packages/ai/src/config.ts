@@ -8,6 +8,11 @@ export interface ModelConfig {
   embedModel: string | null;
   /** The Realtime voice's voice (OPENAI_REALTIME_VOICE). */
   realtimeVoice: string;
+  /**
+   * A transcript of what the owner says (OPENAI_TRANSCRIBE_MODEL). Optional: the realtime model hears the audio
+   * itself; the transcript is only a written copy, and nothing in the app reads it yet.
+   */
+  transcribeModel: string | null;
 }
 
 export function modelConfig(env: NodeJS.ProcessEnv = process.env): ModelConfig {
@@ -19,5 +24,6 @@ export function modelConfig(env: NodeJS.ProcessEnv = process.env): ModelConfig {
     realtimeModel: env.OPENAI_REALTIME_MODEL?.trim() || null,
     embedModel: env.OPENAI_EMBED_MODEL?.trim() || null,
     realtimeVoice: env.OPENAI_REALTIME_VOICE?.trim() || 'marin',
+    transcribeModel: env.OPENAI_TRANSCRIBE_MODEL?.trim() || null,
   };
 }

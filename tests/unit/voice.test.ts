@@ -90,12 +90,22 @@ describe('the session the server mints', () => {
     expect(voiceInstructions({ businessName: null, customers: [] })).toContain('RIGHT NOW the owner is setting up');
   });
 
-  it('the body: ten minutes, the tools baked in, the Hinglish transcription hint', () => {
+  it('the body: ten minutes, the tools baked in; a transcript only when a transcription model is set', () => {
     const body = realtimeSessionBody({ businessName: 'X', customers: [], model: 'm', voice: 'marin' });
     expect(body.expires_after).toEqual({ anchor: 'created_at', seconds: 600 });
     expect(body.session.tools).toBe(VOICE_TOOLS);
-    expect(body.session.audio.input.transcription.prompt).toContain('Hinglish');
     expect(body.session.audio.output.voice).toBe('marin');
+    // No model named for it: no transcription asked for (a model the account lacks would refuse the session).
+    expect(body.session.audio.input).not.toHaveProperty('transcription');
+    const written = realtimeSessionBody({
+      businessName: 'X',
+      customers: [],
+      model: 'm',
+      voice: 'marin',
+      transcribeModel: 'a-transcriber',
+    });
+    expect(written.session.audio.input.transcription).toMatchObject({ model: 'a-transcriber' });
+    expect(written.session.audio.input.transcription?.prompt).toContain('Hinglish');
   });
 
   it('no tool makes, saves, sends or pays: the voice opens, lights, fills and presses safe items only (rule 17)', () => {

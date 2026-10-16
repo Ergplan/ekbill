@@ -171,6 +171,8 @@ export function realtimeSessionBody(args: {
   customers: ReadonlyArray<{ name: string }>;
   model: string;
   voice: string;
+  /** A written copy of what the owner says; left out when no model is set (the realtime model hears the audio). */
+  transcribeModel?: string | null;
 }) {
   return {
     expires_after: { anchor: 'created_at', seconds: 600 },
@@ -181,10 +183,14 @@ export function realtimeSessionBody(args: {
       audio: {
         input: {
           // Without a hint the transcriber guesses the language from a few syllables of Hinglish.
-          transcription: {
-            model: 'gpt-4o-mini-transcribe',
-            prompt: loadPrompt(TRANSCRIBE_PROMPT.name, TRANSCRIBE_PROMPT.version).trim(),
-          },
+          ...(args.transcribeModel
+            ? {
+                transcription: {
+                  model: args.transcribeModel,
+                  prompt: loadPrompt(TRANSCRIBE_PROMPT.name, TRANSCRIBE_PROMPT.version).trim(),
+                },
+              }
+            : {}),
           // A phone held close to the mouth, often in a shop with noise around.
           noise_reduction: { type: 'near_field' },
         },
@@ -252,7 +258,7 @@ export async function mintVoiceSession(args: {
   const cfg = modelConfig();
   const model = fake ? 'fake-realtime' : override ? 'test-realtime' : cfg.realtimeModel;
   if (!model) throw new AiUnavailableError('OPENAI_REALTIME_MODEL is not set');
-  const body = realtimeSessionBody({ ...args, model, voice: cfg.realtimeVoice });
+  const body = realtimeSessionBody({ ...args, model, voice: cfg.realtimeVoice, transcribeModel: cfg.transcribeModel });
   const inputHash = createHash('sha256').update(body.session.instructions).digest('hex');
   const started = Date.now();
   const controller = new AbortController();
