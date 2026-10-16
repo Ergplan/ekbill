@@ -20,6 +20,8 @@ const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:3000';
 const serverEnv = {
   AUTH_MODE: process.env.AUTH_MODE ?? 'switcher',
   DATABASE_URL: process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5440/ekbill2_dev',
+  // Poocho and the voice session answer from the stand-in model: no model is called from the build.
+  AI_TRANSPORT: 'fake',
 };
 
 export default defineConfig({

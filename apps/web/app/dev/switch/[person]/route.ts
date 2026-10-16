@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { createSession, membershipsOf, resolveScope, seedUser } from '@ekbill/db';
+import { acceptInvites, createSession, membershipsOf, resolveScope, seedUser, userByPhone } from '@ekbill/db';
+import { toE164 } from '@ekbill/engine';
 
 import { authMode } from '../../../../server/auth-mode';
 import { logRequest, requestId } from '../../../../server/log';
@@ -9,7 +10,8 @@ import { sessionCookie } from '../../../../server/session';
 export const dynamic = 'force-dynamic';
 
 /**
- * Become a seeded person (AUTH_MODE=switcher, the build only): a real
+ * Become a seeded person, or a person by phone number (an invited member:
+ * the build's stand-in for the OTP sign-in) (AUTH_MODE=switcher, the build only): a real
  * session row for that user, bound to their one active membership (none for
  * the owner who has no business yet), the session cookie, the person's own
  * theme and language in the cookies the layout reads before paint, then
@@ -31,12 +33,26 @@ export async function GET(request: Request, { params }: { params: Promise<{ pers
   const id = requestId(request);
   if (authMode() !== 'switcher') return new NextResponse(null, { status: 404, headers: { 'x-request-id': id } });
   const { person } = await params;
-  const found = seedUser(person);
+  const seeded = seedUser(person);
+  // A phone number: whoever has it, with the invites waiting for it accepted (Stage 9).
+  const phone = seeded ? null : toE164(decodeURIComponent(person));
+  const byPhone = phone ? await userByPhone(phone) : null;
+  const found = seeded
+    ? seeded
+    : byPhone
+      ? {
+          id: byPhone.id,
+          key: phone!,
+          theme: byPhone.theme as 'narangi' | 'harmony' | 'system',
+          language: byPhone.language as 'hi-Latn' | 'en',
+        }
+      : null;
   // A relative Location keeps the host the browser used (127.0.0.1 or localhost), so the cookie travels with it.
   if (!found) {
     logRequest('GET /dev/switch/[person]', id, { person, found: false });
     return new NextResponse(null, { status: 303, headers: { Location: '/dev/switch', 'x-request-id': id } });
   }
+  await acceptInvites(found.id);
   const memberships = await membershipsOf(found.id);
   const business = memberships[0] ?? null;
   const session = await createSession({

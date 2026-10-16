@@ -9,5 +9,6 @@ export const dynamic = 'force-dynamic';
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const viewer = await getViewer(await searchParams);
   if (!viewer.business || viewer.role !== 'owner') redirect('/aap');
-  return <TeamScreen members={loadTeam(viewer)} viewer={shellOf(viewer)} />;
+  const team = await loadTeam(viewer);
+  return <TeamScreen members={team.members} live={team.live} viewer={shellOf(viewer)} />;
 }

@@ -19,8 +19,9 @@ export interface VisionRequest {
   model: string;
   system: string;
   text: string;
-  imageJpeg: Buffer;
-  /** What the fake transport answers by (the upload's sha256); never sent to a model. */
+  /** Absent for a text-only call (Poocho's answer). */
+  imageJpeg?: Buffer;
+  /** What the fake transport answers by (the upload's sha256, or "ask"); never sent to a model. */
   key: string;
 }
 export interface TransportAnswer {
@@ -84,13 +85,15 @@ export const openAiTransport: Transport = async (req, signal) => {
         { role: 'system', content: req.system },
         {
           role: 'user',
-          content: [
-            { type: 'text', text: req.text },
-            {
-              type: 'image_url',
-              image_url: { url: `data:image/jpeg;base64,${req.imageJpeg.toString('base64')}`, detail: 'high' },
-            },
-          ],
+          content: req.imageJpeg
+            ? [
+                { type: 'text', text: req.text },
+                {
+                  type: 'image_url',
+                  image_url: { url: `data:image/jpeg;base64,${req.imageJpeg.toString('base64')}`, detail: 'high' },
+                },
+              ]
+            : req.text,
         },
       ],
     }),
@@ -116,6 +119,7 @@ export const openAiTransport: Transport = async (req, signal) => {
  * and by `eval:read-bill --fake` to check the harness; never in production.
  */
 export const fakeTransport: Transport = async (req) => {
+  if (!req.imageJpeg) return { text: JSON.stringify(fakeAnswer(req.text)), tokensIn: 400, tokensOut: 60 };
   const dir = process.env.AI_FAKE_DIR ?? join(process.cwd(), 'tests', 'fixtures', 'bills', 'fake');
   const file = join(dir, `${req.key}.json`);
   const text = existsSync(file)
@@ -132,20 +136,43 @@ export const fakeTransport: Transport = async (req) => {
   return { text, tokensIn: 1200, tokensOut: 300 };
 };
 
+/**
+ * The stand-in for Poocho's answer: the numbered record that shares the most
+ * words with the question, its first sentence, cited. Nothing shared is
+ * "not found", as the real prompt asks.
+ */
+function fakeAnswer(message: string): { found: boolean; answer: string } {
+  const question = /Question: (.*)$/s.exec(message)?.[1] ?? '';
+  const words = new Set(question.toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) ?? []);
+  let best = { n: 0, score: 0, text: '' };
+  for (const m of message.matchAll(/^\[(\d+)\] [^\n]*\n([^\n]*)/gm)) {
+    const text = m[2] ?? '';
+    const score = (text.toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) ?? []).filter((w) => words.has(w)).length;
+    if (score > best.score) best = { n: Number(m[1]), score, text };
+  }
+  if (!best.n) return { found: false, answer: 'Records mein yeh nahi mila.' };
+  const first = /^(.*?\.)(\s|$)/.exec(best.text)?.[1] ?? best.text;
+  return { found: true, answer: `${first} [${best.n}]` };
+}
+
 function transport(): Transport {
   if (override) return override;
   return process.env.AI_TRANSPORT === 'fake' ? fakeTransport : openAiTransport;
 }
 
-/** USD per million tokens is micro-USD per token: the env's prices (OPENAI_VISION_PRICE_IN/OUT) give cost_micros. */
+/**
+ * USD per million tokens is micro-USD per token: the env's prices
+ * (OPENAI_VISION_PRICE_IN/OUT; OPENAI_TEXT_…, OPENAI_EMBED_… for the others) give cost_micros.
+ */
 export function costMicros(
   tokensIn: number | null,
   tokensOut: number | null,
   env: Record<string, string | undefined> = process.env,
+  prefix: 'OPENAI_VISION' | 'OPENAI_TEXT' | 'OPENAI_EMBED' | 'OPENAI_REALTIME' = 'OPENAI_VISION',
 ): number | null {
-  const pin = Number(env.OPENAI_VISION_PRICE_IN);
-  const pout = Number(env.OPENAI_VISION_PRICE_OUT);
-  if (!Number.isFinite(pin) || !Number.isFinite(pout) || !env.OPENAI_VISION_PRICE_IN || tokensIn === null) return null;
+  const pin = Number(env[`${prefix}_PRICE_IN`]);
+  const pout = Number(env[`${prefix}_PRICE_OUT`] ?? 0);
+  if (!Number.isFinite(pin) || !Number.isFinite(pout) || !env[`${prefix}_PRICE_IN`] || tokensIn === null) return null;
   return Math.round(tokensIn * pin + (tokensOut ?? 0) * pout);
 }
 
@@ -173,9 +200,28 @@ export async function callVision<T>(call: VisionCall<T>): Promise<VisionResult<T
   const fake = !override && process.env.AI_TRANSPORT === 'fake';
   const model = fake ? 'fake-reader' : override ? 'test-transport' : modelConfig().visionModel;
   if (!model) throw new AiUnavailableError('OPENAI_VISION_MODEL is not set');
+  return callJson(call, model, 'OPENAI_VISION');
+}
+
+/** A text call with a JSON answer (Poocho): the same prompt files, checks, retries and ai_calls row as a photo's. */
+export type TextCall<T> = Omit<VisionCall<T>, 'imageJpeg'>;
+export async function callText<T>(call: TextCall<T>): Promise<VisionResult<T>> {
+  const fake = !override && process.env.AI_TRANSPORT === 'fake';
+  const model = fake ? 'fake-answerer' : override ? 'test-transport' : modelConfig().textModel;
+  if (!model) throw new AiUnavailableError('OPENAI_TEXT_MODEL is not set');
+  return callJson(call, model, 'OPENAI_TEXT');
+}
+
+async function callJson<T>(
+  call: TextCall<T> & { imageJpeg?: Buffer },
+  model: string,
+  prices: 'OPENAI_VISION' | 'OPENAI_TEXT',
+): Promise<VisionResult<T>> {
   const system = loadPrompt(call.prompt.name, call.prompt.version);
   const promptVersion = `${call.prompt.name}/v${call.prompt.version}`;
-  const inputHash = createHash('sha256').update(system).update(call.text).update(call.imageJpeg).digest('hex');
+  const hash = createHash('sha256').update(system).update(call.text);
+  if (call.imageJpeg) hash.update(call.imageJpeg);
+  const inputHash = hash.digest('hex');
   const retries = call.retries ?? 2;
   const started = Date.now();
   let lastError: unknown = null;
@@ -189,7 +235,7 @@ export async function callVision<T>(call: VisionCall<T>): Promise<VisionResult<T
         controller.signal,
       );
       const latencyMs = Date.now() - started;
-      const cost = costMicros(answer.tokensIn, answer.tokensOut);
+      const cost = costMicros(answer.tokensIn, answer.tokensOut, process.env, prices);
       let parsed: T;
       try {
         const json: unknown = JSON.parse(answer.text.replace(/^```(?:json)?\s*|\s*```$/g, ''));

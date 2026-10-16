@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sp = await searchParams;
   const viewer = await getViewer(sp);
-  const data = loadAsk(viewer, { state: one(sp.state) });
+  const data = await loadAsk(viewer, { state: one(sp.state) });
   if (!data) redirect('/');
-  return <AskScreen ask={data.ask} state={data.state} viewer={shellOf(viewer)} />;
+  return <AskScreen ask={data.ask} state={data.state} live={data.live} viewer={shellOf(viewer)} />;
 }

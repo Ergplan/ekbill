@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 
 import { t } from '@ekbill/copy';
 import {
@@ -16,15 +17,56 @@ import {
   WhatsAppButton,
 } from '@ekbill/ui';
 
+import { changeMemberRole, inviteMember, removeMember } from '../../actions/team';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
-import type { Person } from '../fixtures';
+import { handoffToWhatsApp } from '../share';
+import type { TeamMember } from './data';
 import { manifest } from './manifest';
 
-export function TeamScreen({ members, viewer }: { members: Person[]; viewer: ShellViewer }) {
+export function TeamScreen({ members, live, viewer }: { members: TeamMember[]; live: boolean; viewer: ShellViewer }) {
+  const router = useRouter();
   const [inviting, setInviting] = useState(false);
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<'staff' | 'accountant'>('staff');
   const [sent, setSent] = useState<string | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  /** A team write, then the list again from the server. */
+  const act = (run: () => Promise<{ ok: boolean; error?: string }>, after?: () => void) => {
+    setProblem(null);
+    startTransition(async () => {
+      const r = await run();
+      if (!r.ok) {
+        setProblem(t(r.error ?? 'error.generic'));
+        return;
+      }
+      after?.();
+      router.refresh();
+    });
+  };
+  const sendInvite = () => {
+    if (!live) {
+      setSent(phone);
+      setInviting(false);
+      setPhone('');
+      return;
+    }
+    act(
+      () => inviteMember({ phone, role }),
+      () => {
+        const text = t('team.wa.text', {
+          business: viewer.businessName ?? '',
+          role: t(`team.role.${role}`),
+          link: typeof window === 'undefined' ? '' : window.location.origin,
+        });
+        void handoffToWhatsApp({ text, phone });
+        setSent(phone);
+        setInviting(false);
+        setPhone('');
+      },
+    );
+  };
   return (
     <AppShell viewer={viewer} tab="you" back="/aap" title={t('team.title')} tour={manifest.tour}>
       <section className="eb-heading">
@@ -40,16 +82,44 @@ export function TeamScreen({ members, viewer }: { members: Person[]; viewer: She
             <span className="eb-billrow__text">
               <span className="eb-billrow__name">
                 {m.name}
-                {m.id === 'sharma' ? ` (${t('team.you')})` : ''}
+                {m.you ? ` (${t('team.you')})` : ''}
               </span>
-              <span className="eb-billrow__meta">{m.phone}</span>
+              <span className="eb-billrow__meta">
+                {m.phone}
+                {m.status === 'invited' ? ` · ${t('team.status.invited')}` : ''}
+              </span>
             </span>
             <span className="eb-billrow__right">
               <StatusPill status={m.role === 'owner' ? 'paid' : 'sent'} label={t(`team.role.${m.role}`)} />
               {m.role !== 'owner' ? (
                 <span className="eb-actions">
-                  <OutlineButton small>{t('team.change')}</OutlineButton>
-                  <OutlineButton small>{t('team.remove')}</OutlineButton>
+                  <OutlineButton
+                    small
+                    disabled={pending}
+                    onClick={() =>
+                      live &&
+                      act(() => changeMemberRole({ userId: m.id, role: m.role === 'staff' ? 'accountant' : 'staff' }))
+                    }
+                  >
+                    {t('team.change')}
+                  </OutlineButton>
+                  <OutlineButton
+                    small
+                    disabled={pending}
+                    onClick={() => {
+                      if (!live) return;
+                      if (removing !== m.id) {
+                        setRemoving(m.id);
+                        return;
+                      }
+                      act(
+                        () => removeMember({ userId: m.id }),
+                        () => setRemoving(null),
+                      );
+                    }}
+                  >
+                    {removing === m.id ? t('team.remove.sure') : t('team.remove')}
+                  </OutlineButton>
                 </span>
               ) : null}
             </span>
@@ -57,6 +127,11 @@ export function TeamScreen({ members, viewer }: { members: Person[]; viewer: She
         ))}
       </div>
       {sent ? <Meta>{t('team.sent', { phone: sent })}</Meta> : null}
+      {problem ? (
+        <p className="eb-meta" role="alert">
+          {problem}
+        </p>
+      ) : null}
       {inviting ? (
         <div className="eb-card" data-guide="invite">
           <Field id="inv-phone" label={t('team.invite.phone')}>
@@ -80,14 +155,7 @@ export function TeamScreen({ members, viewer }: { members: Person[]; viewer: She
             ]}
           />
           <div className="eb-sticky eb-sticky--bare" data-guide="send">
-            <WhatsAppButton
-              disabled={phone.replace(/\D/g, '').length < 10}
-              onClick={() => {
-                setSent(phone);
-                setInviting(false);
-                setPhone('');
-              }}
-            >
+            <WhatsAppButton disabled={phone.replace(/\D/g, '').length < 10 || pending} onClick={sendInvite}>
               {t('team.send')}
             </WhatsAppButton>
           </div>

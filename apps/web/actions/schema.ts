@@ -199,3 +199,19 @@ export const photoBillInput = issueBillInput.extend({
     )
     .max(200),
 });
+// table: memberships
+/** "Naya member": a phone and a role (the owner shares the invite on WhatsApp). */
+export const inviteInput = z.object({
+  phone: z.string().trim().min(10).max(16),
+  name: z.string().trim().max(80).optional(),
+  role: z.enum(['staff', 'accountant']),
+});
+// table: memberships
+/** A member's role changed, or the member removed (role absent). */
+export const memberInput = z.object({
+  userId: z.string().uuid(),
+  role: z.enum(['staff', 'accountant']).optional(),
+});
+
+/** Poocho's question (Stage 9): searched and answered, never stored (ai_calls keeps its hash). */
+export const askInput = z.object({ question: z.string().trim().min(2).max(500) });

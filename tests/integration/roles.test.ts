@@ -15,6 +15,7 @@ import * as memberships from '../../packages/db/src/repos/memberships';
 import * as payments from '../../packages/db/src/repos/payments';
 import * as photos from '../../packages/db/src/repos/photos';
 import * as reminders from '../../packages/db/src/repos/reminders';
+import * as search from '../../packages/db/src/repos/search';
 import * as series from '../../packages/db/src/repos/series';
 import * as users from '../../packages/db/src/repos/users';
 import { scopeFor, seeded } from './helpers';
@@ -29,9 +30,9 @@ describe('roles (I8): every repository write, every role', () => {
     const scope = await scopeFor('sharma', 'staff');
     await expect(ai_calls.roleProbes.recordAiCall(scope)).resolves.toBeDefined();
   });
-  it('ai-calls.recordAiCall: accountant may not', async () => {
+  it('ai-calls.recordAiCall: accountant may', async () => {
     const scope = await scopeFor('sharma', 'accountant');
-    await expect(ai_calls.roleProbes.recordAiCall(scope)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(ai_calls.roleProbes.recordAiCall(scope)).resolves.toBeDefined();
   });
   it('businesses.rename: owner may', async () => {
     const scope = await scopeFor('sharma', 'owner');
@@ -321,6 +322,18 @@ describe('roles (I8): every repository write, every role', () => {
     const scope = await scopeFor('sharma', 'accountant');
     await expect(memberships.roleProbes.remove(scope)).rejects.toBeInstanceOf(ForbiddenError);
   });
+  it('memberships.changeRole: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(memberships.roleProbes.changeRole(scope)).resolves.toBeDefined();
+  });
+  it('memberships.changeRole: staff may not', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(memberships.roleProbes.changeRole(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('memberships.changeRole: accountant may not', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(memberships.roleProbes.changeRole(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
   it('payments.recordPayment: owner may', async () => {
     const scope = await scopeFor('sharma', 'owner');
     await expect(payments.roleProbes.recordPayment(scope)).resolves.toBeDefined();
@@ -428,6 +441,30 @@ describe('roles (I8): every repository write, every role', () => {
   it('reminders.recordReminder: accountant may not', async () => {
     const scope = await scopeFor('sharma', 'accountant');
     await expect(reminders.roleProbes.recordReminder(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('search.refreshIndex: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(search.roleProbes.refreshIndex(scope)).resolves.toBeDefined();
+  });
+  it('search.refreshIndex: staff may', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(search.roleProbes.refreshIndex(scope)).resolves.toBeDefined();
+  });
+  it('search.refreshIndex: accountant may', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(search.roleProbes.refreshIndex(scope)).resolves.toBeDefined();
+  });
+  it('search.storeEmbeddings: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(search.roleProbes.storeEmbeddings(scope)).resolves.toBeDefined();
+  });
+  it('search.storeEmbeddings: staff may', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(search.roleProbes.storeEmbeddings(scope)).resolves.toBeDefined();
+  });
+  it('search.storeEmbeddings: accountant may', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(search.roleProbes.storeEmbeddings(scope)).resolves.toBeDefined();
   });
   it('series.create: owner may', async () => {
     const scope = await scopeFor('sharma', 'owner');

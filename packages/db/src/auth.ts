@@ -147,6 +147,31 @@ export async function deleteSession(sessionId: string): Promise<void> {
   await db().delete(schema.sessions).where(eq(schema.sessions.id, sessionId));
 }
 
+/**
+ * The invites waiting for a phone become memberships when that phone signs in
+ * (the switcher during the build; OTP in Stage 10). Answers how many.
+ */
+export async function acceptInvites(userId: string): Promise<number> {
+  const rows = await db()
+    .update(schema.memberships)
+    .set({ status: 'active', acceptedAt: sql`now()` })
+    .where(and(eq(schema.memberships.userId, userId), eq(schema.memberships.status, 'invited')))
+    .returning({ id: schema.memberships.id });
+  return rows.length;
+}
+
+/** A person by phone (E.164), for a sign-in by number. */
+export async function userByPhone(phoneE164: string): Promise<{ id: string; theme: string; language: string } | null> {
+  const row = (
+    await db()
+      .select({ id: schema.users.id, theme: schema.users.theme, language: schema.users.language })
+      .from(schema.users)
+      .where(eq(schema.users.phoneE164, phoneE164))
+      .limit(1)
+  )[0];
+  return row ?? null;
+}
+
 /** The businesses a user may act for, with the role: what /dev/switch lists and a sign-in offers. */
 export async function membershipsOf(
   userId: string,

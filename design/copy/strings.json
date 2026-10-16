@@ -434,7 +434,7 @@
     "en": "Pay by UPI"
   },
   "remind.msg.warm": {
-    "hi-Latn": "Namaste {contact} ji 🙏 {customer} ke bill no. {number} ({amount}, {date}) ka payment abhi baaki hai. Jab suvidha ho, UPI se bhej dijiye: {upi}. Bill saath mein laga hai.\nDhanyavaad! — {business}",
+    "hi-Latn": "Namaste {contact} ji 🙏 {business} ke bill no. {number} ({amount}, {date}) ka payment abhi baaki hai. Jab suvidha ho, UPI se bhej dijiye: {upi}. Bill saath mein laga hai.\nDhanyavaad! — {business}",
     "en": "Hello {contact}, a gentle reminder that payment for bill {number} ({amount}, {date}) is pending. Please pay by UPI when convenient: {upi}. The bill is attached.\nThank you! — {business}"
   },
   "remind.msg.direct": {
@@ -1821,6 +1821,38 @@
     "hi-Latn": "Aur poochho",
     "en": "Ask more"
   },
+  "ask.error.short": {
+    "hi-Latn": "Thoda aur likho.",
+    "en": "Write a little more."
+  },
+  "ask.thinking": {
+    "hi-Latn": "Records dekh rahe hain…",
+    "en": "Looking through your records…"
+  },
+  "ask.nothing": {
+    "hi-Latn": "Aapke records mein is baare mein kuch nahi mila.",
+    "en": "Nothing about this in your records."
+  },
+  "ask.search.note": {
+    "hi-Latn": "Seedha jawab nahi bana. Yeh records mile:",
+    "en": "No direct answer. These records matched:"
+  },
+  "ask.example.due": {
+    "hi-Latn": "{name} ka kitna baaki hai?",
+    "en": "How much does {name} owe?"
+  },
+  "ask.example.last": {
+    "hi-Latn": "{name} ko pichla bill kab gaya?",
+    "en": "When did {name} get the last bill?"
+  },
+  "ask.example.rate": {
+    "hi-Latn": "{item} ka rate kya hai?",
+    "en": "What is the rate for {item}?"
+  },
+  "ask.failed": {
+    "hi-Latn": "Abhi jawab nahi mil paaya. Thodi der mein phir poocho.",
+    "en": "Could not answer just now. Ask again in a while."
+  },
   "help.title": {
     "hi-Latn": "Mera bill thoda complex hai",
     "en": "My bill is a bit complex"
@@ -2820,5 +2852,29 @@
   "assess.rates-by-date": {
     "hi-Latn": "{from} ko GST rates badle the: yeh bill apni tareekh ke rates lagata hai.",
     "en": "GST rates changed on {from}: this bill uses the rates of its own date."
+  },
+  "team.status.invited": {
+    "hi-Latn": "Invite bheja · login ka intezaar",
+    "en": "Invited · waiting for sign-in"
+  },
+  "team.wa.text": {
+    "hi-Latn": "Namaste! {business} ne aapko EkBill pe {role} banaya hai. Isi number se login karein: {link}",
+    "en": "Hello! {business} has added you on EkBill as {role}. Sign in with this number: {link}"
+  },
+  "team.remove.sure": {
+    "hi-Latn": "Pakka hatao?",
+    "en": "Remove for sure?"
+  },
+  "team.error.owner": {
+    "hi-Latn": "Malik ko yahan se nahi badal sakte",
+    "en": "The owner cannot be changed here"
+  },
+  "team.error.self": {
+    "hi-Latn": "Apne aap ko invite ya badal nahi sakte",
+    "en": "You cannot invite or change yourself"
+  },
+  "error.notFound.sub": {
+    "hi-Latn": "Yeh link ab kisi cheez pe nahi jaata. Ghar se dhoondo.",
+    "en": "This link no longer leads anywhere. Find it from Home."
   }
 }

@@ -192,7 +192,14 @@ export {
   type GstinCheck,
   type GstinProblem,
 } from './ids';
-export { GST_STATES, STATE_CODE_TABLE_VERSION, findState, type GstState, type TaxAuthority } from './state-codes';
+export {
+  GST_STATES,
+  STATE_CODE_TABLE_VERSION,
+  findState,
+  stateName,
+  type GstState,
+  type TaxAuthority,
+} from './state-codes';
 export {
   MoneyError,
   amountInWords,
@@ -303,3 +310,19 @@ export {
   type ReadLine,
 } from './read-bill';
 export { gstnDate, gstnPeriod, toGstr1Json, type Gstr1Json, type ItemDetail } from './gstr1-json';
+export {
+  billRecord,
+  citationsIn,
+  customerRecord,
+  fuseRanks,
+  itemRecord,
+  questionWords,
+  recordsMessage,
+  renumberCitations,
+  tsQueryFor,
+  type BillForSearch,
+  type CustomerForSearch,
+  type ItemForSearch,
+  type RecordKind,
+  type SearchRecord,
+} from './poocho';

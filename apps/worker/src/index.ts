@@ -12,13 +12,15 @@ import {
 } from './bills/jobs';
 import { READ_IMPORT, runReadImport, type ReadImportJob } from './import/job';
 import { READ_BILL, runReadBill, type ReadBillJob } from './read-bill/job';
+import { INDEX_SEARCH, runIndexSearch, type IndexSearchJob } from './search/job';
 
 /**
  * The worker: pg-boss on the same Postgres, one queue per job kind. Stage 0
  * started it with a heartbeat; Stage 5 adds read-import (old bills and
  * party lists into staging rows); Stage 6 render-other-sizes and the daily
  * dues-today listing (search is a generated column, no job); Stage 7
- * read-bill (a photographed bill into an extraction); later, backup-check.
+ * read-bill (a photographed bill into an extraction); Stage 9 index-search
+ * (Poocho's index and embeddings, after an issue and nightly); later, backup-check.
  */
 const ALIVE_FILE = process.env.WORKER_ALIVE_FILE ?? '/tmp/ekbill-worker-alive';
 const log = pino({ name: 'ekbill-worker', level: process.env.LOG_LEVEL ?? 'info' });
@@ -71,6 +73,14 @@ async function main() {
   });
   // 08:00 in India (02:30 UTC), before the shop opens.
   await boss.schedule(DUES_TODAY, '30 2 * * *');
+  await boss.createQueue(INDEX_SEARCH, { retryLimit: 1, retryDelay: 30, expireInSeconds: 1800 });
+  await boss.work<IndexSearchJob>(INDEX_SEARCH, async (jobs) => {
+    for (const job of jobs)
+      for (const line of await runIndexSearch(job.data))
+        log.info({ requestId: job.data.requestId, ...line }, 'search indexed');
+  });
+  // 02:30 in India (21:00 UTC), when nobody is billing.
+  await boss.schedule(INDEX_SEARCH, '0 21 * * *');
   log.info('worker started');
   const stop = async () => {
     log.info('worker stopping');

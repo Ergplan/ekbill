@@ -9,6 +9,7 @@ export { loadPrompt } from './prompts';
 export {
   AiOutputError,
   AiUnavailableError,
+  callText,
   callVision,
   costMicros,
   fakeTransport,
@@ -17,9 +18,21 @@ export {
   type AiCallRow,
   type Recorder,
   type Transport,
+  type TextCall,
   type TransportAnswer,
   type VisionCall,
   type VisionRequest,
   type VisionResult,
 } from './client';
 export { readBillAnswer, type ReadBillAnswer } from './read-bill';
+export { askAnswer, type AskAnswer } from './ask';
+export {
+  EMBED_DIMENSIONS,
+  embedModelName,
+  embedTexts,
+  fakeEmbedTransport,
+  fakeVector,
+  openAiEmbedTransport,
+  setEmbedTransport,
+  type EmbedTransport,
+} from './embed';

@@ -621,3 +621,51 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `scripts/rules-update.mjs` lists the entries (`rules:update`) and writes `docs/GST-RULES.md` (`rules:doc`) with a prose section for the CA; the watcher runs `rules:doc:check`; Prettier leaves the generated file alone.
 - Why: the CA reads what the app applies, generated so it cannot drift.
 - Asked by: the Stage 8 prompt (rule-update workflow).
+
+### An invitation waits for the phone to sign in
+
+- Decision: inviting writes a membership with status `invited` for the phone (a person row is created by phone if there is none); it turns `active` when that phone signs in (`acceptInvites`, called by the switcher now and by the OTP sign-in in Stage 10). Nothing is sent: the screen hands the owner a WhatsApp message with the link.
+- Why: the approved flow ("the invitee signs in with that phone and lands in the business") without a messaging provider; an invitation never grants anything until the number proves itself.
+- Asked by: the Stage 9 prompt (invites).
+
+### The switcher signs in by phone
+
+- Decision: `/dev/switch/<person>` accepts a phone number as well as a seed key, finds the person by `users.phone_e164`, and accepts their invitations before listing their businesses.
+- Why: the invite journey can run end to end during the build exactly as it will with OTP; the switcher stays off in production by `AUTH_MODE`.
+- Asked by: the Stage 9 prompt ("switcher during the build").
+
+### The flow audit's calibration
+
+- Decision: the audit counts a tap target by its own box, except a field inside the search pill (the pill is the target); radio chips are exempt from the English-only check (they are values, such as "B2B"); the welcome screen needs no way back; the composition business is audited on its own bill, customer and item.
+- Why: the MVP's audit spared the same cases; anything else is a finding to fix, not to exempt.
+- Asked by: the Stage 9 flow audit's first run.
+
+### A link to nothing has its own page
+
+- Decision: `app/not-found.tsx` shows "Yeh mila nahi" in the person's theme with a "Ghar" link; the layout's hydration applies the theme cookie when a page rendered without one.
+- Why: the flow audit found `/bills/<unknown>` in the default theme with no way out.
+- Asked by: the Stage 9 flow audit.
+
+### Poocho's index is one row per record, rewritten in place
+
+- Decision: `search_records` holds one row per bill, credit note, customer and item, keyed by (business, kind, source); a record whose fingerprint (status, payments, credit notes, the customer's city, the row's own fields) moved is rewritten in place; an archived customer or item is kept and hidden. The table is not audited (the records it is written from are).
+- Why: the MVP's delete-and-reinsert would break 8.3 (nothing is deleted); a bill's text is short enough not to need chunks; auditing derived text would copy every bill into audit_events on every payment.
+- Asked by: the Stage 9 prompt (Poocho: hybrid search + grounded answer, salvaged).
+
+### The text is refreshed when someone asks; the embeddings in the worker
+
+- Decision: `askRecords` brings the index up to date before searching (only the moved records are rewritten), so money recorded a minute ago is in the answer; the worker's `index-search` (after each issue, and nightly) fills the embeddings in batches of 64.
+- Why: words search must never be stale; an embedding call per question is one short input, per record it is a batch job.
+- Asked by: master prompt section 3 ("indexing in the worker") and the MVP's catch-up.
+
+### Search by meaning has a floor
+
+- Decision: a record joins the results by meaning only when its cosine distance to the question is below 0.7 (similarity above 0.3); words have no floor.
+- Why: without it the nearest records to a question about nothing come back, and the model is asked to answer from unrelated bills; "Records mein yeh nahi mila" must be reachable.
+- Asked by: the Stage 9 integration test ("a question about nothing finds nothing, and asks no model").
+
+### The accountant's questions are recorded too
+
+- Decision: `recordAiCall` allows the accountant (Poocho is every member's).
+- Why: rule 9 (every call one row) for a role that may ask.
+- Asked by: the Stage 9 roles table (Poocho: accountant "Full.").

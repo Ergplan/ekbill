@@ -15,6 +15,7 @@ import * as memberships from '../../packages/db/src/repos/memberships';
 import * as payments from '../../packages/db/src/repos/payments';
 import * as photos from '../../packages/db/src/repos/photos';
 import * as reminders from '../../packages/db/src/repos/reminders';
+import * as search from '../../packages/db/src/repos/search';
 import * as series from '../../packages/db/src/repos/series';
 import * as users from '../../packages/db/src/repos/users';
 import { otherBusiness, scopeFor, seeded } from './helpers';
@@ -193,6 +194,13 @@ describe('tenancy (I1): every repository, business A against business B', () => 
     const a = await scopeFor('sharma', 'owner');
     const b = await otherBusiness('gupta');
     const { touched } = await reminders.tenancyProbes[0]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("search: search finds nothing of another business's records", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await search.tenancyProbes[0]!.run(a, b);
     expect(touched).not.toContain(b.businessId);
     for (const id of touched) expect(id).toBe(a.businessId);
   });

@@ -14,6 +14,7 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  vector,
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 
@@ -781,4 +782,44 @@ export const extractionCorrections = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('extraction_corrections_extraction').on(t.extractionId)],
+);
+
+/**
+ * Poocho's index (Stage 9): one row per issued bill or credit note, customer
+ * and item, as the plain sentences the engine writes (packages/engine
+ * poocho.ts), searched by words (the generated tsvector) and by meaning (the
+ * embedding, filled by the worker when an embedding model is set up). Derived
+ * and rebuilt from the records: a changed record rewrites its row in place
+ * (version is the fingerprint of what the text was written from); nothing is
+ * deleted (an archived customer's row says so and is skipped).
+ */
+export const searchRecords = pgTable(
+  'search_records',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    /** bill | customer | item */
+    kind: text('kind').notNull(),
+    sourceId: uuid('source_id').notNull(),
+    title: text('title').notNull(),
+    text: text('text').notNull(),
+    href: text('href').notNull(),
+    version: text('version').notNull(),
+    hidden: boolean('hidden').notNull().default(false),
+    tsv: tsvector('tsv').generatedAlwaysAs(sql`to_tsvector('simple', title || ' ' || text)`),
+    embedding: vector('embedding', { dimensions: 256 }),
+    /** The version the embedding was made from; behind `version` means it is due again. */
+    embeddedVersion: text('embedded_version'),
+    embedModel: text('embed_model'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('search_records_source').on(t.businessId, t.kind, t.sourceId),
+    index('search_records_tsv').using('gin', t.tsv),
+    index('search_records_embedding').using('hnsw', t.embedding.op('vector_cosine_ops')),
+    check('search_records_kind', sql`${t.kind} in ('bill', 'customer', 'item')`),
+  ],
 );

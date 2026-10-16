@@ -18,6 +18,7 @@ export const REPOSITORIES = [
   'payments',
   'photos',
   'reminders',
+  'search',
   'series',
   'users',
 ] as const;

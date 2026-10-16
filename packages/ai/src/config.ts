@@ -5,6 +5,9 @@ export interface ModelConfig {
   visionModel: string | null;
   textModel: string | null;
   realtimeModel: string | null;
+  embedModel: string | null;
+  /** The Realtime voice's voice (OPENAI_REALTIME_VOICE). */
+  realtimeVoice: string;
 }
 
 export function modelConfig(env: NodeJS.ProcessEnv = process.env): ModelConfig {
@@ -14,5 +17,7 @@ export function modelConfig(env: NodeJS.ProcessEnv = process.env): ModelConfig {
     visionModel: env.OPENAI_VISION_MODEL?.trim() || null,
     textModel: env.OPENAI_TEXT_MODEL?.trim() || null,
     realtimeModel: env.OPENAI_REALTIME_MODEL?.trim() || null,
+    embedModel: env.OPENAI_EMBED_MODEL?.trim() || null,
+    realtimeVoice: env.OPENAI_REALTIME_VOICE?.trim() || 'marin',
   };
 }

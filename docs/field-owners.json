@@ -19,5 +19,8 @@
   "issueBillInput.lines": "derived: engine parseQuantity/parseMoney → documents.lines (IssueLine[])",
   "creditNoteBillInput.amount": "derived: engine proportionalCredit → documents.lines of the credit note",
   "paymentInput.amount": "derived: engine parseMoney → payments.amount_paise",
-  "reversalInput.id": "payments.id (the entry reversed)"
+  "reversalInput.id": "payments.id (the entry reversed)",
+  "inviteInput.phone": "derived: engine toE164 → users.phone_e164 (the invited person)",
+  "inviteInput.name": "users.name (a person new to EkBill; an existing one keeps theirs)",
+  "askInput.question": "not stored: searched (search_records) and sent to the text model; ai_calls.input_hash keeps its hash"
 }

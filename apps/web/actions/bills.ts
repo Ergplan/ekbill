@@ -211,6 +211,12 @@ async function issueFrom(
       role: scope.role,
       requestId: scope.requestId,
     }).catch((error: unknown) => log.warn({ err: error }, 'render-other-sizes not queued'));
+    // Poocho's index and its embeddings (the text is also brought up to date when someone asks).
+    await enqueue('index-search', {
+      businessId: scope.businessId,
+      userId: scope.userId,
+      requestId: scope.requestId,
+    }).catch((error: unknown) => log.warn({ err: error }, 'index-search not queued'));
     log.info({ requestId: scope.requestId, documentId: issued.id, number: issued.number, renderMs }, 'bill issued');
     touched();
     return { ok: true, value: { id: issued.id, number: issued.number ?? '', renderMs } };

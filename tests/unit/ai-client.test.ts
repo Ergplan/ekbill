@@ -3,13 +3,19 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   AiOutputError,
   AiUnavailableError,
+  EMBED_DIMENSIONS,
+  askAnswer,
+  callText,
   callVision,
   costMicros,
+  embedTexts,
   loadPrompt,
   readBillAnswer,
+  setEmbedTransport,
   setTransport,
   type AiCallRow,
 } from '../../packages/ai/src/index';
+import { recordsMessage } from '../../packages/engine/src/index';
 
 /** Rule 9: one client, a versioned prompt, a typed answer, retries, a timeout, one ai_calls row per call. */
 const GOOD = JSON.stringify({
@@ -120,5 +126,96 @@ describe('callVision', () => {
   it('prices a call from the env (USD per million tokens = micro-USD per token)', () => {
     expect(costMicros(1000, 200, { OPENAI_VISION_PRICE_IN: '2.5', OPENAI_VISION_PRICE_OUT: '10' })).toBe(4500);
     expect(costMicros(1000, 200, {})).toBeNull();
+  });
+});
+
+describe('callText and embedTexts (Poocho, Stage 9)', () => {
+  it('a text call uses the versioned ask prompt, sends no image, and records one ok row', async () => {
+    const rows: AiCallRow[] = [];
+    const seen: Array<{ image: boolean; system: string }> = [];
+    setTransport(async (req) => {
+      seen.push({ image: Boolean(req.imageJpeg), system: req.system });
+      return { text: '{"found":true,"answer":"₹3,500 [1]"}', tokensIn: 300, tokensOut: 20 };
+    });
+    const r = await callText({
+      purpose: 'ask',
+      prompt: { name: 'ask', version: 1 },
+      text: recordsMessage('rate?', [{ title: 'Item · AMC', text: 'Usual rate ₹3,500.' }]),
+      key: 'ask',
+      output: askAnswer,
+      record: async (row) => {
+        rows.push(row);
+        return 'call-1';
+      },
+    });
+    expect(r.value).toEqual({ found: true, answer: '₹3,500 [1]' });
+    expect(seen).toEqual([{ image: false, system: loadPrompt('ask', 1) }]);
+    expect(rows).toMatchObject([{ purpose: 'ask', promptVersion: 'ask/v1', outcome: 'ok' }]);
+  });
+
+  it('the stand-in answers from the record that shares the question’s words, cited, or says not found', async () => {
+    process.env.AI_TRANSPORT = 'fake';
+    try {
+      const call = (q: string) =>
+        callText({
+          purpose: 'ask',
+          prompt: { name: 'ask', version: 1 },
+          text: recordsMessage(q, [
+            { title: 'Customer · Gupta', text: 'Customer Gupta Stores, Nagpur. Last billed on 01 Oct 2026.' },
+            { title: 'Item · AMC visit', text: 'Item AMC visit. Usual rate ₹3,500 per visit.' },
+          ]),
+          key: 'ask',
+          output: askAnswer,
+          record: async () => null,
+        });
+      expect((await call('AMC visit ka rate')).value).toEqual({ found: true, answer: 'Item AMC visit. [2]' });
+      expect((await call('xyz')).value.found).toBe(false);
+    } finally {
+      delete process.env.AI_TRANSPORT;
+    }
+  });
+
+  it('embeddings: one row per batch; null without a model; the stand-in puts similar words close', async () => {
+    const rows: AiCallRow[] = [];
+    const record = async (row: AiCallRow) => {
+      rows.push(row);
+      return null;
+    };
+    delete process.env.OPENAI_EMBED_MODEL;
+    expect(await embedTexts({ purpose: 'ask-embed', texts: ['x'], record })).toBeNull();
+    expect(rows).toEqual([]);
+    process.env.AI_TRANSPORT = 'fake';
+    try {
+      const v = await embedTexts({ purpose: 'index', texts: ['Mehta Traders AMC', 'mehta', 'cement bags'], record });
+      expect(v).toHaveLength(3);
+      expect(v![0]).toHaveLength(EMBED_DIMENSIONS);
+      const dot = (a: number[], b: number[]) => a.reduce((s, x, i) => s + x * b[i]!, 0);
+      expect(dot(v![0]!, v![1]!)).toBeGreaterThan(dot(v![2]!, v![1]!));
+      expect(rows).toMatchObject([
+        { purpose: 'index', model: 'fake-embedder', outcome: 'ok', promptVersion: 'embed/none' },
+      ]);
+    } finally {
+      delete process.env.AI_TRANSPORT;
+    }
+  });
+
+  it('a failing embedding endpoint is an error row and words-only search, never a throw', async () => {
+    const rows: AiCallRow[] = [];
+    setEmbedTransport(async () => {
+      throw new Error('embeddings 500');
+    });
+    try {
+      expect(
+        await embedTexts({ purpose: 'ask-embed', texts: ['x'], record: async (r) => (rows.push(r), null) }),
+      ).toBeNull();
+      expect(rows).toMatchObject([{ outcome: 'error', error: 'embeddings 500' }]);
+    } finally {
+      setEmbedTransport(null);
+    }
+  });
+
+  it('prices by the call kind', () => {
+    expect(costMicros(1000, 0, { OPENAI_EMBED_PRICE_IN: '0.02' }, 'OPENAI_EMBED')).toBe(20);
+    expect(costMicros(1000, 100, { OPENAI_TEXT_PRICE_IN: '1', OPENAI_TEXT_PRICE_OUT: '4' }, 'OPENAI_TEXT')).toBe(1400);
   });
 });

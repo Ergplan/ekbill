@@ -456,6 +456,14 @@
   "ask.go": "Ask",
   "ask.sources": "Where this came from",
   "ask.more": "Ask more",
+  "ask.error.short": "Write a little more.",
+  "ask.thinking": "Looking through your records…",
+  "ask.nothing": "Nothing about this in your records.",
+  "ask.search.note": "No direct answer. These records matched:",
+  "ask.example.due": "How much does {name} owe?",
+  "ask.example.last": "When did {name} get the last bill?",
+  "ask.example.rate": "What is the rate for {item}?",
+  "ask.failed": "Could not answer just now. Ask again in a while.",
   "help.title": "My bill is a bit complex",
   "help.sub": "Tell us how it works and we set up the bill's shape.",
   "help.next": "Continue",
@@ -705,5 +713,11 @@
   "check.why.title": "Why this?",
   "check.source": "Rule: {source}",
   "assess.gstin-state-differs": "The customer’s GSTIN is from state {gstinState}, but the place of supply says {pos}. Is that right?",
-  "assess.rates-by-date": "GST rates changed on {from}: this bill uses the rates of its own date."
+  "assess.rates-by-date": "GST rates changed on {from}: this bill uses the rates of its own date.",
+  "team.status.invited": "Invited · waiting for sign-in",
+  "team.wa.text": "Hello! {business} has added you on EkBill as {role}. Sign in with this number: {link}",
+  "team.remove.sure": "Remove for sure?",
+  "team.error.owner": "The owner cannot be changed here",
+  "team.error.self": "You cannot invite or change yourself",
+  "error.notFound.sub": "This link no longer leads anywhere. Find it from Home."
 }

@@ -12,7 +12,9 @@ export { closePool, getPool } from './pool';
 export { withTenant, withUser, type ActorKind, type Db, type Role, type TenantScope, type Tx } from './scope';
 export {
   SESSION_DAYS,
+  acceptInvites,
   createSession,
+  userByPhone,
   adoptBusiness,
   deleteSession,
   membershipsOf,
@@ -32,6 +34,7 @@ export type { Payment } from './repos/payments';
 export type { ReminderSent } from './repos/reminders';
 export type { Correction, Extraction, Reading } from './repos/photos';
 export type { AiCall } from './repos/ai-calls';
+export type { SearchHit } from './repos/search';
 export type { PeriodDocument, Workings } from './repos/gst';
 export type { Import, ImportRow, FileReading, FileSummary } from './repos/imports';
 export { REPOSITORIES, type RepositoryName } from './repos/index';
@@ -48,6 +51,7 @@ export * as memberships from './repos/memberships';
 export * as payments from './repos/payments';
 export * as photos from './repos/photos';
 export * as reminders from './repos/reminders';
+export * as search from './repos/search';
 export * as series from './repos/series';
 export * as users from './repos/users';
 export {

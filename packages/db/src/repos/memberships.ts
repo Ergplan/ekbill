@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 
 import * as schema from '../schema';
 import { withTenant, type Role, type TenantScope } from '../scope';
@@ -19,7 +19,16 @@ export interface Member {
 export const allowedRoles = {
   invite: ['owner'],
   remove: ['owner'],
+  changeRole: ['owner'],
 } as const satisfies Record<string, readonly Role[]>;
+
+/** The owner's membership is never changed through the team screen (one active owner per business). */
+export class TeamError extends Error {
+  constructor(public readonly code: 'owner' | 'self') {
+    super(`team: ${code}`);
+    this.name = 'TeamError';
+  }
+}
 
 const columns = {
   id: schema.memberships.id,
@@ -49,8 +58,9 @@ export async function listMembers(scope: TenantScope): Promise<Member[]> {
  * Invite a person by phone as staff or accountant (a second owner is never
  * invited: one active owner per business). A person unknown to EkBill gets
  * a users row with the name given; an existing one keeps their own name.
- * Stage 10 sends the WhatsApp invite; until then the membership is created
- * active, so the build's switcher can use it.
+ * The membership waits as "invited" until that phone signs in
+ * (auth.acceptInvites); the owner shares the invite on WhatsApp. Inviting
+ * someone already active only changes nothing but the role.
  */
 export async function invite(
   scope: TenantScope,
@@ -59,6 +69,16 @@ export async function invite(
   allow(scope, allowedRoles.invite, 'invite a member');
   return withTenant(scope, async ({ db }) => {
     const existing = (await db.select().from(schema.users).where(eq(schema.users.phoneE164, input.phoneE164)))[0];
+    if (existing?.id === scope.userId) throw new TeamError('self');
+    if (existing) {
+      const current = (
+        await db
+          .select({ role: schema.memberships.role })
+          .from(schema.memberships)
+          .where(and(eq(schema.memberships.businessId, scope.businessId), eq(schema.memberships.userId, existing.id)))
+      )[0];
+      if (current?.role === 'owner') throw new TeamError('owner');
+    }
     const user =
       existing ??
       (await db.insert(schema.users).values({ phoneE164: input.phoneE164, name: input.name.trim() }).returning())[0]!;
@@ -68,13 +88,17 @@ export async function invite(
         businessId: scope.businessId,
         userId: user.id,
         role: input.role,
-        status: 'active',
+        status: 'invited',
         invitedBy: scope.userId,
-        acceptedAt: sql`now()`,
       })
       .onConflictDoUpdate({
         target: [schema.memberships.businessId, schema.memberships.userId],
-        set: { role: input.role, status: 'active', invitedBy: scope.userId, invitedAt: sql`now()` },
+        set: {
+          role: input.role,
+          status: sql`case when ${schema.memberships.status} = 'active' then 'active' else 'invited' end`,
+          invitedBy: scope.userId,
+          invitedAt: sql`now()`,
+        },
       })
       .returning();
     return {
@@ -86,6 +110,41 @@ export async function invite(
       status: m!.status as Member['status'],
       invitedAt: m!.invitedAt,
       acceptedAt: m!.acceptedAt,
+    };
+  });
+}
+
+/** Staff ↔ accountant, for an active or invited member; never the owner. */
+export async function changeRole(
+  scope: TenantScope,
+  input: { userId: string; role: 'staff' | 'accountant' },
+): Promise<Member> {
+  allow(scope, allowedRoles.changeRole, 'change a role');
+  if (input.userId === scope.userId) throw new TeamError('self');
+  return withTenant(scope, async ({ db }) => {
+    const [m] = await db
+      .update(schema.memberships)
+      .set({ role: input.role })
+      .where(
+        and(
+          eq(schema.memberships.businessId, scope.businessId),
+          eq(schema.memberships.userId, input.userId),
+          inArray(schema.memberships.status, ['active', 'invited']),
+          sql`${schema.memberships.role} <> 'owner'`,
+        ),
+      )
+      .returning();
+    if (!m) throw new NotFoundError('member');
+    const user = (await db.select().from(schema.users).where(eq(schema.users.id, m.userId)))[0]!;
+    return {
+      id: m.id,
+      userId: m.userId,
+      name: user.name,
+      phoneE164: user.phoneE164,
+      role: m.role as Role,
+      status: m.status as Member['status'],
+      invitedAt: m.invitedAt,
+      acceptedAt: m.acceptedAt,
     };
   });
 }
@@ -102,7 +161,8 @@ export async function remove(scope: TenantScope, input: { userId: string }): Pro
         and(
           eq(schema.memberships.businessId, scope.businessId),
           eq(schema.memberships.userId, input.userId),
-          eq(schema.memberships.status, 'active'),
+          inArray(schema.memberships.status, ['active', 'invited']),
+          sql`${schema.memberships.role} <> 'owner'`,
         ),
       )
       .returning();
@@ -126,6 +186,11 @@ export const roleProbes: Record<keyof typeof allowedRoles, RoleProbe> = {
   remove: async (scope) => {
     const m = await invite(scope, { phoneE164: '+919800000098', name: 'Probe Gone', role: 'staff' });
     return remove(scope, { userId: m.userId });
+  },
+  changeRole: async (scope) => {
+    const owner = { ...scope, role: 'owner' as const };
+    const m = await invite(owner, { phoneE164: '+919800000097', name: 'Probe Role', role: 'staff' });
+    return changeRole(scope, { userId: m.userId, role: 'accountant' });
   },
 };
 export const tenancyProbes: TenancyProbe[] = [

@@ -13,7 +13,8 @@ import { allow, type RoleProbe, type TenancyProbe } from './allow';
 export type AiCall = typeof schema.aiCalls.$inferSelect;
 
 export const allowedRoles = {
-  recordAiCall: ['owner', 'staff'],
+  // Poocho is every member's, the accountant's too (Stage 9).
+  recordAiCall: ['owner', 'staff', 'accountant'],
 } as const satisfies Record<string, readonly Role[]>;
 
 export async function recordAiCall(

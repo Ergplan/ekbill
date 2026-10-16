@@ -1,4 +1,4 @@
-import { NotFoundError, items } from '@ekbill/db';
+import { NotFoundError, items, seedItemId } from '@ekbill/db';
 
 import { FIXTURE, type Item } from '../fixtures';
 import { itemViewOf } from '../people';
@@ -17,9 +17,11 @@ export async function loadItem(viewer: Viewer, id: string): Promise<Item | null>
   if (!b) return null;
   const scope = viewer.session?.scope;
   if (scope) {
-    if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+    // A fixture key (the seeded demo items, as links and the flow audit name them) or the row's id.
+    const rowId = /^[0-9a-f-]{36}$/i.test(id) ? id : seedItemId(b.id, id);
+    if (!rowId) return null;
     try {
-      return itemViewOf(await items.getItem(scope, id), b.id);
+      return itemViewOf(await items.getItem(scope, rowId), b.id);
     } catch (e) {
       if (e instanceof NotFoundError) return null;
       throw e;
