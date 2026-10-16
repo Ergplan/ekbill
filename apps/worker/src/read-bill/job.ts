@@ -104,12 +104,26 @@ export async function runReadBill(job: ReadBillJob, now: Date = new Date()): Pro
     return error;
   }
 
-  const checked = checkReading(call.value as BillReading, {
-    today,
-    customers: people.map((c) => ({ id: c.id, name: c.name, phone: c.phone })),
-    registration: ENGINE_REGISTRATION[profile.registrationType],
-    sellerStateCode: profile.stateCode,
-  });
+  let checked: ReturnType<typeof checkReading>;
+  try {
+    checked = checkReading(call.value as BillReading, {
+      today,
+      customers: people.map((c) => ({ id: c.id, name: c.name, phone: c.phone })),
+      registration: ENGINE_REGISTRATION[profile.registrationType],
+      sellerStateCode: profile.stateCode,
+    });
+  } catch {
+    // An answer the engine cannot take (Stage 11 review: an overflowing amount threw here, the job failed without
+    // a word, and the screen waited on "Padh rahe hain…" for ever). Recorded as a failed reading, not retried.
+    await photos.recordReading(model, job.extractionId, {
+      status: 'failed',
+      error: 'invalid',
+      image: jpeg,
+      doclingUsed: Boolean(hint),
+      promptVersion: `${PROMPT.name}/v${PROMPT.version}`,
+    });
+    return 'invalid';
+  }
   await photos.recordReading(model, job.extractionId, {
     status: checked.outcome === 'ready' ? 'ready' : 'failed',
     error: checked.outcome === 'ready' ? null : checked.outcome,

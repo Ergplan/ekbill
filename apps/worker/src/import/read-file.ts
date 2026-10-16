@@ -40,6 +40,24 @@ export async function readFile(
   const base: FileReading = { name: filename, kind, reader: null, pages: 0, found: 0, problem: null, customers: [] };
   const done = (r: FileReading): FileReading => ({ ...r, found: r.customers.length });
   if (bytes.length > MAX_FILE_BYTES) return { ...base, problem: 'too-big' };
+  // One file that cannot be read (a corrupt PDF or workbook, HTML named .pdf) is that file's problem, never the
+  // whole import's (Stage 11 review: it threw, and the other nineteen files' customers were lost).
+  try {
+    return await readKnown(kind, filename, bytes, owner, docling, base, done);
+  } catch {
+    return { ...base, problem: 'unrecognised' };
+  }
+}
+
+async function readKnown(
+  kind: FileReading['kind'],
+  filename: string,
+  bytes: Uint8Array,
+  owner: importing.Owner,
+  docling: DoclingConfig,
+  base: FileReading,
+  done: (r: FileReading) => FileReading,
+): Promise<FileReading> {
   switch (kind) {
     case 'pdf': {
       const pages = await pdfPages(bytes);

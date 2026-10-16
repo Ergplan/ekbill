@@ -50,26 +50,42 @@ async function main() {
   };
   alive();
   const ticker = setInterval(alive, 30_000);
-  await boss.createQueue('heartbeat');
+  // The worker's options are the queue's, whoever created it first (Stage 11 review: the web or the load CLI could
+  // create a queue with pg-boss's defaults, and createQueue never changes an existing one).
+  const ensureQueue = async (
+    name: string,
+    options?: { retryLimit?: number; retryDelay?: number; expireInSeconds?: number },
+  ) => {
+    await boss.createQueue(name, options);
+    if (options) await boss.updateQueue(name, options);
+  };
+  await ensureQueue('heartbeat');
   await boss.work('heartbeat', async () => {
     log.info('heartbeat');
   });
   await boss.schedule('heartbeat', '*/15 * * * *');
-  await boss.createQueue(READ_IMPORT, { retryLimit: 2, retryDelay: 5, expireInSeconds: 600 });
-  await boss.work<ReadImportJob>(READ_IMPORT, async (jobs) => {
-    for (const job of jobs) {
-      const { found } = await runReadImport(job.data);
-      log.info({ requestId: job.data.requestId, importId: job.data.importId, found }, 'import read');
-    }
-  });
-  await boss.createQueue(READ_BILL, { retryLimit: 1, retryDelay: 10, expireInSeconds: 300 });
+  // Expiry above the longest a run can take (Stage 11 review: an expired job is retried while the first still runs):
+  // 20 files at Docling's 180 s each.
+  await ensureQueue(READ_IMPORT, { retryLimit: 2, retryDelay: 5, expireInSeconds: 3900 });
+  await boss.work<ReadImportJob, unknown, { includeMetadata: true }>(
+    READ_IMPORT,
+    { includeMetadata: true },
+    async (jobs) => {
+      for (const job of jobs) {
+        const { found } = await runReadImport(job.data, { final: job.retryCount >= job.retryLimit });
+        log.info({ requestId: job.data.requestId, importId: job.data.importId, found }, 'import read');
+      }
+    },
+  );
+  // Docling (180 s) and three vision attempts (3 × 60 s), with room.
+  await ensureQueue(READ_BILL, { retryLimit: 1, retryDelay: 10, expireInSeconds: 600 });
   await boss.work<ReadBillJob>(READ_BILL, { localConcurrency: concurrency('READ_BILL', 2) }, async (jobs) => {
     for (const job of jobs) {
       const outcome = await runReadBill(job.data);
       log.info({ requestId: job.data.requestId, extractionId: job.data.extractionId, outcome }, 'bill read');
     }
   });
-  await boss.createQueue(RENDER_OTHER_SIZES, { retryLimit: 2, retryDelay: 10, expireInSeconds: 600 });
+  await ensureQueue(RENDER_OTHER_SIZES, { retryLimit: 2, retryDelay: 10, expireInSeconds: 600 });
   await boss.work<RenderOtherSizesJob>(
     RENDER_OTHER_SIZES,
     { localConcurrency: concurrency('RENDER', 2) },
@@ -80,13 +96,14 @@ async function main() {
       }
     },
   );
-  await boss.createQueue(DUES_TODAY);
+  await ensureQueue(DUES_TODAY);
   await boss.work(DUES_TODAY, async () => {
     for (const line of await runDuesToday()) log.info(line, 'dues today');
   });
   // 08:00 in India (02:30 UTC), before the shop opens.
   await boss.schedule(DUES_TODAY, '30 2 * * *');
-  await boss.createQueue(INDEX_SEARCH, { retryLimit: 1, retryDelay: 30, expireInSeconds: 1800 });
+  // Every business in turn, nightly.
+  await ensureQueue(INDEX_SEARCH, { retryLimit: 1, retryDelay: 30, expireInSeconds: 3 * 3600 });
   await boss.work<IndexSearchJob>(INDEX_SEARCH, async (jobs) => {
     for (const job of jobs)
       for (const line of await runIndexSearch(job.data))
@@ -95,11 +112,11 @@ async function main() {
   // 02:30 in India (21:00 UTC), when nobody is billing.
   await boss.schedule(INDEX_SEARCH, '0 21 * * *');
   // Stage 10: the load seed and its removal, sent by hand (apps/worker/src/load/cli.ts); one at a time, never retried.
-  await boss.createQueue(LOAD_SEED, { retryLimit: 0, expireInSeconds: 6 * 3600 });
+  await ensureQueue(LOAD_SEED, { retryLimit: 0, expireInSeconds: 6 * 3600 });
   await boss.work<LoadSeedJob>(LOAD_SEED, async (jobs) => {
     for (const job of jobs) log.info(await runLoadSeed(job.data, (s) => log.info(s)), 'load seed finished');
   });
-  await boss.createQueue(LOAD_REMOVE, { retryLimit: 0, expireInSeconds: 3600 });
+  await ensureQueue(LOAD_REMOVE, { retryLimit: 0, expireInSeconds: 3600 });
   await boss.work(LOAD_REMOVE, async () => {
     log.info({ removed: await runLoadRemove((s) => log.info(s)) }, 'load removed');
   });

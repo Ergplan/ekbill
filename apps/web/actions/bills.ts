@@ -15,10 +15,12 @@ import {
   type TenantScope,
 } from '@ekbill/db';
 import {
+  correctionsFrom,
   fromGstin,
   parseMoney,
   parseQuantity,
   todayIst,
+  type CheckedReading,
   type IssueLine,
   type IssuedSnapshot,
   type Say,
@@ -387,18 +389,35 @@ export async function makeBillFromPhoto(
   if (!parsed.success) return { ok: false, error: 'form.invalid' };
   const s = await scoped();
   if ('error' in s) return { ok: false, error: s.error };
-  const { extractionId, corrections, ...bill } = parsed.data;
+  // The screen's own list of corrections is not taken: the server works them out (Stage 11 review).
+  const { extractionId, corrections: _fromScreen, ...bill } = parsed.data;
+  // The reading is claimed first: one photo makes one bill, however many taps or reloads (Stage 11 review).
+  let claim: Awaited<ReturnType<typeof photos.claimReading>>;
   try {
-    const reading = await photos.getExtraction(s.scope, extractionId);
-    if (reading.status !== 'ready' && reading.status !== 'reviewed') return { ok: false, error: 'photo.error.final' };
+    claim = await photos.claimReading(s.scope, extractionId);
   } catch (e) {
     return refused(e);
   }
-  const made = await issueFrom(s.scope, bill);
-  if (!made.ok) return made;
+  if (!claim.claimed) {
+    // Already made: the same bill again, not a second one.
+    const doc = await documents.getDocument(s.scope, claim.documentId);
+    return { ok: true, value: { id: doc.id, number: doc.number ?? '', renderMs: null } };
+  }
+  let made: Awaited<ReturnType<typeof issueFrom>>;
   try {
-    await photos.recordCorrections(s.scope, extractionId, corrections);
-    await photos.commitReading(s.scope, extractionId, made.value.id);
+    made = await issueFrom(s.scope, bill);
+  } catch (e) {
+    await photos.releaseReading(s.scope, extractionId).catch(() => undefined);
+    throw e;
+  }
+  if (!made.ok) {
+    await photos.releaseReading(s.scope, extractionId).catch(() => undefined);
+    return made;
+  }
+  try {
+    const reading = await photos.getExtraction(s.scope, extractionId);
+    const corrections = reading.result ? correctionsFrom(reading.result as CheckedReading, bill) : [];
+    await photos.finishReading(s.scope, extractionId, corrections, made.value.id);
   } catch (e) {
     // The bill is issued; a reading that cannot be committed (set aside meanwhile) does not undo it.
     log.warn({ requestId: s.scope.requestId, extractionId, err: e }, 'reading not committed');

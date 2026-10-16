@@ -11,10 +11,11 @@ What is done:
 - coverage of the unit and integration runs
 - dependency upgrades: no high or critical advisory left
 - CI that runs everything and reports everything (it had been stopping early since Stage 3)
-- twenty-four real defects, fixed with tests that fail without the fix:
+- thirty-three real defects, fixed with tests that fail without the fix:
   - The coverage runs, the clean-clone run and CI found four, one of which broke every bill link for a new business.
   - A review of what the seed never exercises found eleven: money, numbering and GST.
   - A review of the boundaries and the money's states found nine, among them credit notes past the bill and cancelled bills that kept their money.
+  - A review of the worker, model output and the commits found nine, among them the voice able to record a payment and one photo made into two bills.
 - the README: what EkBill is, how to run and deploy it, the design pack
 - `mvp-final` resolves in Ergplan/easybills (`7173c46`)
 
@@ -105,6 +106,22 @@ A second agent read the route handlers, the actions, the uploads, the sessions a
 | 30 February, and "%" in a bill path | 500                                                                                                                                                                                                          | Refused at the schema; taken as written                                                                                                     |
 | Model spend                         | No daily cap                                                                                                                                                                                                 | A gap                                                                                                                                       |
 
+## A third review: the worker, model output and the commits
+
+A third agent read the worker and its jobs, every path a model's answer takes, and the photo and import commits (read only; pure code run with the stand-in model). It reported nine findings. Each was verified here and fixed, with a test:
+
+| Finding                       | Before                                                                                                                                                  | Now                                                                                                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The voice and money           | On the open "Paise aa gaye" sheet the voice's fill could choose "Poore", which records the whole balance on the tap: a payment nobody pressed (rule 17) | A choice that commits is in the owner's region: listed OWNER-ONLY to the model, refused by the fill                                                                          |
+| One photo, two bills          | Two taps (or a reload and a tap) on "Bill banao" issued two bills; corrections and commit were separate, so a failure left the reading billable again   | The reading is claimed first (one claim wins; a repeat gets the bill already made); corrections and commit in one transaction; migration `0009` adds the `committing` status |
+| The photo's matched customer  | A phone match whose written name differed was dropped, and the bill went to a new customer                                                              | The match stands unless the owner types another name                                                                                                                         |
+| An absurd figure in a reading | A bank account read as an amount overflowed the money: the job threw, the reading stayed pending, the screen waited for ever                            | Amounts above ₹999 crore are not amounts; an answer the engine cannot take is recorded as failed; a reading pending ten minutes shows as unavailable                         |
+| One bad file in an import     | A corrupt PDF or workbook threw, and the other files' customers were lost; the first error made the import final                                        | That file is "unrecognised"; the import fails only on its last attempt                                                                                                       |
+| Job expiry                    | Shorter than the longest run, so a slow run was retried while it still ran                                                                              | Above the longest run (a gap remains: handlers do not stop on expiry)                                                                                                        |
+| The nightly jobs              | Walked load-test and archived businesses (embedding calls for synthetic bills)                                                                          | Real, active businesses only                                                                                                                                                 |
+| Queue options                 | Whoever created a queue first set them for good                                                                                                         | The worker applies its own on every start                                                                                                                                    |
+| Photo corrections             | Whatever the screen sent                                                                                                                                | Worked out on the server from the reading and the bill                                                                                                                       |
+
 ## Dependencies
 
 | Package        | Was               | Now               | Why                                                                              |
@@ -169,7 +186,7 @@ Before you send it:
 
 ## For the operator
 
-1. On the VM, run `git pull` and `deploy/vm/up.sh`. Nothing new to migrate in Stage 11. The image picks up sharp 0.35.5 and firebase-admin 14.
+1. On the VM, run `git pull` and `deploy/vm/up.sh`. It applies `0009_extraction_committing.sql`. The image picks up sharp 0.35.5 and firebase-admin 14.
 2. On the VM, run `npm run review:stage -- 2` through `-- 11`. Then run `npm run rules:verify`, `npm run audit:pack`, and commit.
 3. From the VM or any clone, run `git push origin v2.0.0-rc1`. Then hand the auditor the brief above.
 4. Carried over from Stage 10: the restore drill, the load run at 1/10 (and the full run on "go"), and phone OTP when you want sign-in on. The steps are in `stage-10-report.md`.

@@ -20,7 +20,7 @@ export const PHOTO_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic
 export const PHOTO_MAX_BYTES = 8 * 1024 * 1024;
 
 export class PhotoError extends Error {
-  constructor(public readonly code: 'empty' | 'too-big' | 'not-a-photo' | 'not-ready' | 'final') {
+  constructor(public readonly code: 'empty' | 'too-big' | 'not-a-photo' | 'not-ready' | 'final' | 'busy') {
     super(`photo: ${code}`);
     this.name = 'PhotoError';
   }
@@ -186,6 +186,88 @@ async function lockReadable(tx: Parameters<Parameters<typeof withTenant>[1]>[0],
   if (row.status === 'committed' || row.status === 'discarded') throw new PhotoError('final');
   if (row.status === 'pending' || row.status === 'failed') throw new PhotoError('not-ready');
   return row;
+}
+
+/** How long a claim may stand before it counts as abandoned (a request that died between claim and commit). */
+const CLAIM_MS = 5 * 60_000;
+
+/**
+ * "Bill banao" claims the reading before the bill is made (Stage 11 review: two taps, or a reload and a second tap,
+ * made two issued bills from one photo). Only one request moves it from ready or reviewed to committing; a second
+ * is refused as busy, and one after the commit gets the bill already made. A claim older than five minutes was
+ * abandoned and may be taken again.
+ */
+export async function claimReading(
+  scope: TenantScope,
+  extractionId: string,
+): Promise<{ claimed: true } | { claimed: false; documentId: string }> {
+  allow(scope, allowedRoles.commitReading, 'make a bill from a reading');
+  return withTenant(scope, async (tx) => {
+    const row = (
+      await tx.db
+        .select({ ...meta, updatedAt: schema.extractions.updatedAt })
+        .from(schema.extractions)
+        .where(eq(schema.extractions.id, extractionId))
+        .for('update')
+    )[0];
+    if (!row) throw new NotFoundError('extraction');
+    if (row.status === 'committed' && row.committedDocumentId)
+      return { claimed: false as const, documentId: row.committedDocumentId };
+    if (row.status === 'committing' && Date.now() - new Date(row.updatedAt).getTime() < CLAIM_MS)
+      throw new PhotoError('busy');
+    if (row.status === 'discarded' || row.status === 'committed') throw new PhotoError('final');
+    if (row.status === 'pending' || row.status === 'failed') throw new PhotoError('not-ready');
+    await tx.db
+      .update(schema.extractions)
+      .set({ status: 'committing', updatedAt: sql`now()` })
+      .where(eq(schema.extractions.id, extractionId));
+    return { claimed: true as const };
+  });
+}
+
+/** The bill was refused: the claim is let go, and the reading can be billed again. */
+export async function releaseReading(scope: TenantScope, extractionId: string): Promise<void> {
+  allow(scope, allowedRoles.commitReading, 'make a bill from a reading');
+  await withTenant(scope, async (tx) => {
+    await tx.db
+      .update(schema.extractions)
+      .set({ status: 'reviewed', updatedAt: sql`now()` })
+      .where(and(eq(schema.extractions.id, extractionId), eq(schema.extractions.status, 'committing')));
+  });
+}
+
+/**
+ * The bill is issued: the owner's corrections and the commit, in one transaction (Stage 11 review: two
+ * transactions could leave a reading "reviewed", billable again, when the second failed).
+ */
+export async function finishReading(
+  scope: TenantScope,
+  extractionId: string,
+  corrections: Array<{ field: string; modelValue: string | null; humanValue: string | null }>,
+  documentId: string,
+): Promise<Extraction> {
+  allow(scope, allowedRoles.commitReading, 'make a bill from a reading');
+  return withTenant(scope, async (tx) => {
+    await lockReadable(tx, extractionId);
+    const changed = corrections.filter((c) => (c.modelValue ?? '') !== (c.humanValue ?? '')).slice(0, 200);
+    if (changed.length)
+      await tx.db.insert(schema.extractionCorrections).values(
+        changed.map((c) => ({
+          businessId: scope.businessId,
+          extractionId,
+          field: c.field.slice(0, 60),
+          modelValue: c.modelValue?.slice(0, 500) ?? null,
+          humanValue: c.humanValue?.slice(0, 500) ?? null,
+          createdBy: scope.userId,
+        })),
+      );
+    const [row] = await tx.db
+      .update(schema.extractions)
+      .set({ status: 'committed', committedDocumentId: documentId, updatedAt: sql`now()` })
+      .where(eq(schema.extractions.id, extractionId))
+      .returning(meta);
+    return row as Extraction;
+  });
 }
 
 /** The owner's changes on the review screen, one row each (model value, human value). */

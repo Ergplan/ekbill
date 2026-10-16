@@ -168,3 +168,20 @@ describe('the worker reads the import fixtures (Stage 5)', () => {
     ).toBe('too-big');
   });
 });
+
+// Stage 11 review: one file that could not be parsed threw out of the reading, and every other file's customers
+// were lost with it. It is now that file's own problem.
+describe('a file that cannot be read', () => {
+  const owner = { gstin: null, pan: null, phone: null, name: 'Sharma Electricals' };
+  it('is "unrecognised", and the import goes on', async () => {
+    const enc = (s: string) => new TextEncoder().encode(s);
+    for (const [name, bytes] of [
+      ['bill.pdf', enc('<html><body>not a pdf</body></html>')],
+      ['cut.pdf', enc('%PDF-1.4\n1 0 obj')],
+      ['grahak.xlsx', enc('PK\u0003\u0004 not really a workbook')],
+    ] as const) {
+      const r = await readFile(name, bytes, owner, { docling: { url: null } as never });
+      expect({ name, problem: r.problem, found: r.found }).toEqual({ name, problem: 'unrecognised', found: 0 });
+    }
+  });
+});

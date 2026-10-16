@@ -295,15 +295,18 @@ export function BillViewScreen({
         guide="paid-sheet"
       >
         {mode !== 'part' ? (
-          <ChoiceList<'all' | 'part'>
-            label={t('view.paid.q')}
-            value={mode}
-            onChoose={(v) => (v === 'all' ? record(due) : setMode('part'))}
-            choices={[
-              { value: 'all', label: t('view.paid.all'), sub: rupees(due) },
-              { value: 'part', label: t('view.paid.part') },
-            ]}
-          />
+          // "Poore" records the whole balance on the tap: the owner's own press, never the voice's (rule 17).
+          <div data-voice="owner" style={{ display: 'contents' }}>
+            <ChoiceList<'all' | 'part'>
+              label={t('view.paid.q')}
+              value={mode}
+              onChoose={(v) => (v === 'all' ? record(due) : setMode('part'))}
+              choices={[
+                { value: 'all', label: t('view.paid.all'), sub: rupees(due) },
+                { value: 'part', label: t('view.paid.part') },
+              ]}
+            />
+          </div>
         ) : (
           <>
             <Field id="paid-amount" label={t('view.paid.amount')}>

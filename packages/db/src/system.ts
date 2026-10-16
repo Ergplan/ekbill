@@ -12,7 +12,10 @@ export async function businessesWithBills(): Promise<Array<{ businessId: string;
     `select distinct d.business_id, m.user_id as owner_id
        from documents d
        join memberships m on m.business_id = d.business_id and m.role = 'owner' and m.status = 'active'
-      where d.status = 'issued' and d.kind <> 'credit_note'`,
+       join businesses b on b.id = d.business_id
+      -- Real, standing businesses only (Stage 11 review): the load seed's 500 would have the nightly index make
+      -- embedding calls for synthetic bills, and an archived business has nobody to remind.
+      where d.status = 'issued' and d.kind <> 'credit_note' and b.status = 'active' and not b.load_test`,
   );
   return rows.map((r) => ({ businessId: r.business_id, ownerId: r.owner_id }));
 }

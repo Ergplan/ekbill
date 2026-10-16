@@ -303,6 +303,8 @@ export {
   looseDate,
   looseQuantity,
   nameLikeness,
+  keepsMatch,
+  correctionsFrom,
   type BillReading,
   type ReadingLine,
   type CheckedReading,

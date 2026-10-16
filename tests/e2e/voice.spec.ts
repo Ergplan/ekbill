@@ -133,3 +133,22 @@ test('the photo-review walk-through: the voice reads the fields, corrects a doub
   expect(await run(page, 'tap', { item_id: make!.split(' | ')[0]! })).toMatchObject({ ok: false });
   await expect(page).toHaveURL(/\/bills\/photo/);
 });
+
+// Stage 11 review: "Poore aa gaye" on the open money sheet records the whole balance on the tap, and the voice's
+// fill picked it like any choice: a payment the owner never pressed. It is the owner's now.
+test('the voice cannot record money: the "Poore" choice on the money sheet is the owner’s', async ({ page }) => {
+  await page.goto('/dev/switch/sharma?to=/dues');
+  await hydrated(page);
+  await page.locator('[data-guide="mic"]').click();
+  await expect(page.getByTestId('voice-live')).toBeVisible();
+  await page.locator('[data-guide="paid"]').first().click();
+  await expect(page).toHaveURL(/paid=1/);
+  await hydrated(page);
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect.poll(() => screenText(page)).toMatch(/paid-sheet \| choice \| .*OWNER-ONLY/);
+  const refused = await run(page, 'fill', { item_id: 'paid-sheet', value: 'Poore' });
+  expect(refused).toMatchObject({ ok: false, reason: 'owner only' });
+  await page.waitForTimeout(1500);
+  await expect(page.locator('main')).not.toContainText('Poore aa gaye');
+  await expect(page.getByRole('dialog')).toBeVisible();
+});

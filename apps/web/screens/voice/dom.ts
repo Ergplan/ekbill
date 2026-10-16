@@ -99,7 +99,11 @@ export function snapshot(root: ParentNode = document): ScreenItem[] {
       kind,
       label: labelOf(el),
       value: valueOf(el, kind),
-      ownerOnly: kind === 'button' || kind === 'link' ? ownerOnly(el) : false,
+      // A choice is the voice's to make, unless it commits on the tap (the owner's region, rule 17).
+      ownerOnly:
+        kind === 'button' || kind === 'link'
+          ? ownerOnly(el)
+          : Boolean(el.closest('[data-voice="owner"]') ?? el.querySelector('[data-voice="owner"]')),
     });
     // A section of several fields (a bill line, the photo's review): each field is an item of its own, "<section>/<field>".
     if (kind === 'section')
@@ -155,6 +159,8 @@ export function fillItem(id: string, value: string): ToolOutcome {
       textOf(o).toLowerCase().includes(want),
     );
     if (!option) return { ok: false, reason: 'no such choice' };
+    // Stage 11 review: a choice that commits on the tap ("Poore aa gaye" records the whole balance) is the owner's.
+    if (option.closest('[data-voice="owner"]')) return { ok: false, reason: 'owner only' };
     option.click();
     return { ok: true };
   }

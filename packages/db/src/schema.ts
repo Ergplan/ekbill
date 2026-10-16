@@ -757,7 +757,7 @@ export const extractions = pgTable(
     index('extractions_upload').on(t.uploadId),
     check(
       'extractions_status',
-      sql`${t.status} in ('pending', 'ready', 'failed', 'reviewed', 'committed', 'discarded')`,
+      sql`${t.status} in ('pending', 'ready', 'failed', 'reviewed', 'committing', 'committed', 'discarded')`,
     ),
     check(
       'extractions_error',

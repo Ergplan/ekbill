@@ -94,13 +94,15 @@ export function looseAmount(raw: string | null): string | null {
     .replace(/₹|rs\.?|inr|\/-|=|\s/gi, '')
     .replace(/,/g, '')
     .replace(/\.$/, '');
-  if (!/^\d+(\.\d{1,2})?$/.test(s)) return null;
+  // Ten digits of rupees at most (₹999 crore): a bank account or a barcode read as an amount is not one (Stage 11
+  // review: it overflowed the money and left the reading pending for good).
+  if (!/^\d{1,10}(\.\d{1,2})?$/.test(s)) return null;
   return s.replace(/\.0+$/, '').replace(/(\.\d)0$/, '$1');
 }
 /** "2", "2 pcs", "1.5 kg" → { qty: "2", unit: "pcs" }. */
 export function looseQuantity(raw: string | null): { qty: string; unit: string | null } | null {
   if (!raw) return null;
-  const m = /^\s*(\d+(?:\.\d{1,3})?)\s*([a-zA-Z.]{1,8})?\s*$/.exec(raw.replace(/,/g, ''));
+  const m = /^\s*(\d{1,6}(?:\.\d{1,3})?)\s*([a-zA-Z.]{1,8})?\s*$/.exec(raw.replace(/,/g, ''));
   if (!m) return null;
   return { qty: m[1]!.replace(/\.0+$/, ''), unit: m[2]?.replace(/\.$/, '').toLowerCase() ?? null };
 }
@@ -138,6 +140,17 @@ export function looseDate(raw: string | null, today: CivilDate): CivilDate | nul
     return validDate(Number(today.slice(0, 4)) - 1, month, Number(m[1])) ?? thisYear;
   }
   return null;
+}
+
+/**
+ * Whether the customer a reading matched (by phone, GSTIN or name) is the bill's customer: yes while the owner has
+ * left the name as it was read, or typed one close to the match's. Stage 11 review: a phone match whose written
+ * name differed was dropped, and the bill went to a new customer of the written name.
+ */
+export function keepsMatch(typed: string, read: string | null, matchName: string): boolean {
+  const name = typed.trim();
+  if (!name) return false;
+  return name === (read ?? '').trim() || nameLikeness(name, matchName) >= 0.85;
 }
 
 /** Name likeness, 0–1: the Dice coefficient over letter pairs, after dropping case, punctuation and "ji"/"m/s". */
@@ -283,4 +296,36 @@ export function checkReading(reading: BillReading, ctx: ReadingContext): Checked
     totalsDiffer,
     match,
   };
+}
+
+/**
+ * What the owner changed on the review: the reading against the bill made from it, one row per field that
+ * differs (model value, human value). Worked out on the server (Stage 11 review: the corrections were whatever
+ * the screen sent, unchecked, and a field it left out was never recorded).
+ */
+export function correctionsFrom(
+  reading: Pick<CheckedReading, 'customer' | 'date' | 'lines'>,
+  billed: {
+    customerName: string;
+    issueDate: string;
+    lines: ReadonlyArray<{ what: string; qty: string; rate: string }>;
+  },
+): Array<{ field: string; modelValue: string | null; humanValue: string | null }> {
+  const out: Array<{ field: string; modelValue: string | null; humanValue: string | null }> = [];
+  const add = (field: string, model: string | null | undefined, human: string | null | undefined) => {
+    const m = model?.trim() || null;
+    const h = human?.trim() || null;
+    if (m !== h) out.push({ field, modelValue: m, humanValue: h });
+  };
+  add('customer', reading.customer.value, billed.customerName);
+  add('date', reading.date.value, billed.issueDate);
+  const n = Math.max(reading.lines.length, billed.lines.length);
+  for (let i = 0; i < n; i += 1) {
+    const r = reading.lines[i];
+    const b = billed.lines[i];
+    add(`lines.${i}.what`, r?.what.value, b?.what);
+    add(`lines.${i}.qty`, r?.qty.value, b?.qty);
+    add(`lines.${i}.rate`, r?.rate.value, b?.rate);
+  }
+  return out;
 }

@@ -745,6 +745,7 @@
   "photo.error.too-big": "Photo 8 MB se badi hai",
   "photo.error.not-a-photo": "Yeh photo nahi lagti (JPG, PNG ya HEIC chuno)",
   "photo.error.not-ready": "Photo abhi padhi ja rahi hai",
+  "photo.error.busy": "Is photo ka bill ban raha hai, ek pal ruko",
   "photo.error.final": "Is photo se bill pehle hi ban chuka hai",
   "photo.unavailable": "Photo abhi nahi padh sakte",
   "photo.unavailable.sub": "Bill khud likh lo; photo baad mein phir try karna",

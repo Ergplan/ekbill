@@ -3005,6 +3005,10 @@
     "hi-Latn": "Photo abhi padhi ja rahi hai",
     "en": "The photo is still being read"
   },
+  "photo.error.busy": {
+    "hi-Latn": "Is photo ka bill ban raha hai, ek pal ruko",
+    "en": "The bill from this photo is being made; a moment"
+  },
   "photo.error.final": {
     "hi-Latn": "Is photo se bill pehle hi ban chuka hai",
     "en": "A bill was already made from this photo"

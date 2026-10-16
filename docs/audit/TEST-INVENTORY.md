@@ -6,9 +6,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 37    | 349    |
-| integration | 22    | 256    |
-| e2e         | 16    | 59     |
+| unit        | 37    | 353    |
+| integration | 22    | 257    |
+| e2e         | 16    | 60     |
 
 ## unit
 
@@ -294,6 +294,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - keeps unreadable fields empty, clamps confidences, and matches by phone first
 - says unreadable for a blurred photo and no-bill for a photo of something else
 - a name it cannot match is a new customer, said
+- stands while the name is as read, or close to the match; goes when the owner types someone else
+- is no amount and no quantity, and the reading is checked without throwing
+- is every field where the bill differs from the reading, and nothing else
 
 ### `tests/unit/engine-rules.test.ts`
 
@@ -464,6 +467,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - one customer from the PDF text layer
 - every row of the CSV as read (the repeated one folds when the import is recorded)
 - refuses what it cannot read, and says which
+- is "unrecognised", and the import goes on
 
 ### `tests/unit/worker-normalise.test.ts`
 
@@ -585,6 +589,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - a file that is not a photo is refused at the door, or read as unreadable
 - the accountant reads but does not upload or review
 - corrections are kept as rows; the commit needs an issued bill and is final
+- only one claim wins; a refused bill lets go; after the commit a claim answers the bill already made
 - refuses a model actor on documents and customers, and on every step but its own
 
 ### `tests/integration/poocho.test.ts`
@@ -904,3 +909,4 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the voice opens screens and the reminder; a link out to WhatsApp stays the ownerâ€™s
 - the setup walk-through: the voice asks, fills the answer and goes on; the start is the ownerâ€™s
 - the photo-review walk-through: the voice reads the fields, corrects a doubtful rate, and leaves Bill banao to staff
+- the voice cannot record money: the "Poore" choice on the money sheet is the ownerâ€™s

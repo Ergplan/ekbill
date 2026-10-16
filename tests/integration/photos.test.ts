@@ -193,6 +193,35 @@ describe('review and commit', () => {
   });
 });
 
+// Stage 11 review: two taps (or a reload and a second tap) on "Bill banao" made two issued bills from one photo.
+describe('one photo, one bill', () => {
+  it('only one claim wins; a refused bill lets go; after the commit a claim answers the bill already made', async () => {
+    const staff = await scopeFor('sharma', 'staff');
+    const { extractionId } = await read(staff, 'kaccha-07');
+    const both = await Promise.allSettled([
+      photos.claimReading(staff, extractionId),
+      photos.claimReading(staff, extractionId),
+    ]);
+    expect(both.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    expect((both.find((r) => r.status === 'rejected') as PromiseRejectedResult).reason).toMatchObject({ code: 'busy' });
+    expect((await photos.getExtraction(staff, extractionId)).status).toBe('committing');
+    // The bill was refused: the claim is let go and can be taken again.
+    await photos.releaseReading(staff, extractionId);
+    expect((await photos.getExtraction(staff, extractionId)).status).toBe('reviewed');
+    expect(await photos.claimReading(staff, extractionId)).toEqual({ claimed: true });
+    // Issued: corrections and the commit together.
+    const bill = await documents.probeIssuedBill(staff, 'Photo Once');
+    const done = await photos.finishReading(
+      staff,
+      extractionId,
+      [{ field: 'lines.0.rate', modelValue: '340', humanValue: '350' }],
+      bill,
+    );
+    expect(done).toMatchObject({ status: 'committed', committedDocumentId: bill });
+    expect(await photos.claimReading(staff, extractionId)).toEqual({ claimed: false, documentId: bill });
+  });
+});
+
 describe('I6 at the database: the model writes the reading and nothing else', () => {
   it('refuses a model actor on documents and customers, and on every step but its own', async () => {
     const owner = await scopeFor('sharma', 'owner');

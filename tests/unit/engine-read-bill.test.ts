@@ -4,6 +4,8 @@ import {
   checkReading,
   looseAmount,
   looseDate,
+  keepsMatch,
+  correctionsFrom,
   looseQuantity,
   nameLikeness,
   type BillReading,
@@ -159,5 +161,55 @@ describe('checkReading', () => {
     const r = checkReading(reading({ customer: f('Kale Hardware') }), ctx);
     expect(r.match).toBeNull();
     expect(r.warnings).toContainEqual({ code: 'customer-new', path: 'customer' });
+  });
+});
+
+// Stage 11 review: "Gupta Traders se mila (100%)" by phone, the paper said "Ramesh": the bill went to a new
+// customer called Ramesh. The match stands until the owner types another name.
+describe('the matched customer on the photo review', () => {
+  it('stands while the name is as read, or close to the match; goes when the owner types someone else', () => {
+    expect(keepsMatch('Ramesh', 'Ramesh', 'Gupta Traders')).toBe(true);
+    expect(keepsMatch('Gupta Traders', 'Ramesh', 'Gupta Traders')).toBe(true);
+    expect(keepsMatch('Mehta Traders', 'Ramesh', 'Gupta Traders')).toBe(false);
+    expect(keepsMatch('  ', 'Ramesh', 'Gupta Traders')).toBe(false);
+  });
+});
+
+// Stage 11 review: a bank account or a barcode read as an amount overflowed the money in checkReading, the job
+// threw, and the reading stayed pending for good. Such a figure is not an amount.
+describe('a figure too big to be an amount', () => {
+  it('is no amount and no quantity, and the reading is checked without throwing', () => {
+    expect(looseAmount('99999999999999999')).toBeNull();
+    expect(looseAmount('9999999999')).toBe('9999999999');
+    expect(looseQuantity('9999999')).toBeNull();
+    for (const patch of [
+      { lines: [{ what: f('Panel'), qty: f('1'), rate: f('99999999999999999'), amount: f(null) }] },
+      { lines: [{ what: f('Panel'), qty: f('999999'), rate: f('99999999999'), amount: f(null) }] },
+      { total: f('999999999999999999') },
+    ])
+      expect(() => checkReading(reading(patch), ctx)).not.toThrow();
+  });
+});
+
+// Stage 11 review: the corrections were whatever the screen sent. The server works them out from the reading and
+// the bill made from it.
+describe('what the owner changed on the review', () => {
+  it('is every field where the bill differs from the reading, and nothing else', () => {
+    const r = checkReading(reading(), ctx);
+    const billed = {
+      customerName: 'Joshi Builders',
+      issueDate: r.date.value!,
+      lines: [
+        { what: 'Doorbell', qty: '4', rate: '350' },
+        { what: 'Doorbell', qty: '1', rate: '310' },
+        { what: 'Wire', qty: '2', rate: '50' },
+      ],
+    };
+    expect(correctionsFrom(r, billed)).toEqual([
+      { field: 'lines.0.rate', modelValue: '340', humanValue: '350' },
+      { field: 'lines.2.what', modelValue: null, humanValue: 'Wire' },
+      { field: 'lines.2.qty', modelValue: null, humanValue: '2' },
+      { field: 'lines.2.rate', modelValue: null, humanValue: '50' },
+    ]);
   });
 });

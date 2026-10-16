@@ -1,0 +1,2 @@
+ALTER TABLE "extractions" DROP CONSTRAINT "extractions_status";--> statement-breakpoint
+ALTER TABLE "extractions" ADD CONSTRAINT "extractions_status" CHECK ("extractions"."status" in ('pending', 'ready', 'failed', 'reviewed', 'committing', 'committed', 'discarded'));

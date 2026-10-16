@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 
 import { t } from '@ekbill/copy';
-import { looseDate, nameLikeness, type Registration } from '@ekbill/engine';
+import { keepsMatch, looseDate, type Registration } from '@ekbill/engine';
 import {
   CameraSheet,
   ChoiceList,
@@ -118,7 +118,13 @@ export function PhotoScreen({ state, review, business, today, live, sendsPhotos,
   const c = compute({ lines, gst, customerState: business.stateCode, date: fields.date.value || today }, business);
   const makeLive = (reading: LiveReading) => {
     const name = fields.customer.value.trim();
-    const matched = reading.match && name && nameLikeness(name, reading.match.name) >= 0.85 ? reading.match : null;
+    // The customer the reading matched (by phone, GSTIN or name: the screen said "… se mila") stands unless the
+    // owner typed another name. Stage 11 review: a phone match whose written name differed was dropped, and the
+    // bill went to a new customer of that name.
+    const matched =
+      reading.match && keepsMatch(name, reading.modelValues.customer ?? null, reading.match.name)
+        ? reading.match
+        : null;
     const dateIso = fields.date.value ? looseDate(fields.date.value, today) : today;
     if (!dateIso) {
       setProblem(t('bill.check.date'));

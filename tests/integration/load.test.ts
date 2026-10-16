@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { getPool } from '../../packages/db/src/pool';
 import { MIN_FREE_BYTES, loadPhone, planLoad, removeLoad, seedLoad } from '../../packages/db/src/load';
+import { businessesWithBills } from '../../packages/db/src/system';
 import { seeded } from './helpers';
 
 /**
@@ -42,6 +43,10 @@ describe('the load seed', () => {
       await count('select count(*) as n from documents where business_id = $1 and issued_snapshot is null', [b[0].id]),
     ).toBe(0);
     expect(await count('select count(*) as n from audit_events where business_id = $1', [b[0].id])).toBeGreaterThan(6);
+    // The nightly jobs leave them alone (Stage 11 review: the index made embedding calls for synthetic bills).
+    const nightly = (await businessesWithBills()).map((x) => x.businessId);
+    expect(nightly).not.toContain(b[0].id);
+    expect(nightly.length).toBeGreaterThan(0);
   });
 
   it('the removal takes only the load-test businesses and what hangs off them', async () => {

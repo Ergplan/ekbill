@@ -17,7 +17,14 @@ export interface ReadImportJob {
   requestId: string;
 }
 
-export async function runReadImport(job: ReadImportJob): Promise<{ found: number }> {
+/**
+ * `final`: this is the last attempt. Only then does an error mark the import failed (Stage 11 review: the first
+ * error made it final, and the retry that might have read it recorded nothing and logged a success).
+ */
+export async function runReadImport(
+  job: ReadImportJob,
+  { final = true }: { final?: boolean } = {},
+): Promise<{ found: number }> {
   const scope: TenantScope = {
     businessId: job.businessId,
     userId: job.userId,
@@ -34,7 +41,7 @@ export async function runReadImport(job: ReadImportJob): Promise<{ found: number
     await imports.recordReading(scope, job.importId, readings);
     return { found: readings.reduce((s, r) => s + r.found, 0) };
   } catch (error) {
-    await imports.failImport(scope, job.importId, (error as Error).message).catch(() => undefined);
+    if (final) await imports.failImport(scope, job.importId, (error as Error).message).catch(() => undefined);
     throw error;
   }
 }

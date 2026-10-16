@@ -73,8 +73,12 @@ export async function loadPhoto(viewer: Viewer, extractionId: string | null): Pr
     throw e;
   }
   const result = row.result as CheckedReading | null;
-  const state: LiveReading['state'] =
-    row.status === 'pending'
+  // A reading still pending after ten minutes is not coming (a job that died, a worker that is down): said so,
+  // rather than "Padh rahe hain…" for ever (Stage 11 review).
+  const stale = row.status === 'pending' && Date.now() - new Date(row.createdAt).getTime() > 10 * 60_000;
+  const state: LiveReading['state'] = stale
+    ? 'unavailable'
+    : row.status === 'pending'
       ? 'reading'
       : row.status === 'failed'
         ? row.error === 'unreadable'
