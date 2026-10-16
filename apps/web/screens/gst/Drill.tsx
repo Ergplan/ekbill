@@ -4,7 +4,7 @@ import { t } from '@ekbill/copy';
 import { Display, Meta, Money } from '@ekbill/ui';
 
 import { AppShell, type ShellViewer } from '../shell/AppShell';
-import { withAs } from '../links';
+import { billPath, withAs } from '../links';
 import type { DrillData } from './data';
 
 /** The documents behind one GST figure; the total at the foot is the figure on the GST tab. */
@@ -20,7 +20,7 @@ export function GstDrillScreen({ data, viewer }: { data: DrillData; viewer: Shel
       </section>
       <div className="eb-card eb-rows" data-guide="docs">
         {data.rows.map((r) => (
-          <a key={r.number} href={as(`/bills/${r.number}`)} className="eb-billrow" data-testid="drill-row">
+          <a key={r.number} href={as(billPath(r.number))} className="eb-billrow" data-testid="drill-row">
             <span className="eb-billrow__text">
               <span className="eb-billrow__name">{r.name}</span>
               <span className="eb-billrow__meta">

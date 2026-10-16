@@ -17,6 +17,7 @@ import {
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { shortDate } from '../fixtures';
 import { reminderOpened } from '../../actions/bills';
+import { billPath } from '../links';
 import { billFileUrl, handoffToWhatsApp, handoffWithFile } from '../share';
 import { manifest } from './manifest';
 import type { RemindData } from './data';
@@ -30,7 +31,7 @@ export function RemindScreen({ data, viewer }: { data: RemindData; viewer: Shell
     <AppShell
       viewer={viewer}
       tab="home"
-      back={`/bills/${data.bill.number}`}
+      back={billPath(data.bill.number)}
       title={t('remind.title', { customer: data.customerName })}
       sub={t('remind.meta', { date: shortDate(data.bill.date), days: data.days })}
       tour={manifest.tour}

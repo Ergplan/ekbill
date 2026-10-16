@@ -64,7 +64,10 @@ jobs:
           # As playwright.config.ts gives the servers it starts: the stand-in model, never a real one.
           AI_TRANSPORT: fake
           AI_FAKE_DIR: ${{ github.workspace }}/tests/fixtures/bills/fake
+          # Its own database, as locally: the integration suite leaves its records in ekbill2_test.
+          DATABASE_URL: postgres://postgres@127.0.0.1:5440/ekbill2_dev
         run: |
+          psql -h 127.0.0.1 -p 5440 -U postgres -c 'create database ekbill2_dev'
           npm run db:migrate
           npm run seed
           (npm run start -w apps/web >/tmp/web.log 2>&1 &)

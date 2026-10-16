@@ -2,6 +2,7 @@ import { t } from '@ekbill/copy';
 
 import { daysBetween, shortDate, type Bill } from '../fixtures';
 import { billOf, customerOf } from '../common';
+import { billFileName } from '../links';
 import { rupees } from '../money';
 import { loadBillView } from '../bill-view/data';
 import { scopeOf } from '../live';
@@ -60,7 +61,7 @@ function build(
     lang: who.lang,
     days,
     share: b.look.share,
-    fileName: `${bill.number}.${b.look.share === 'pdf' ? 'pdf' : 'jpg'}`,
+    fileName: billFileName(bill.number, b.look.share === 'pdf' ? 'pdf' : 'jpg'),
     messages: { 'hi-Latn': msgs('hi-Latn'), en: msgs('en') },
     live,
   };

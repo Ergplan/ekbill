@@ -18,7 +18,7 @@ import {
 } from '@ekbill/ui';
 
 import { rupees } from '../money';
-import { withAs } from '../links';
+import { billPath, withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
 import { shortDate } from '../fixtures';
@@ -65,7 +65,7 @@ export function CustomerScreen({ data, viewer }: { data: CustomerData; viewer: S
               latest={i === 0}
               paid={r.status === 'paid'}
               title={
-                <a href={as(`/bills/${r.number}`)}>
+                <a href={as(billPath(r.number))}>
                   {r.number} · {rupees(r.totalPaise)}
                 </a>
               }
@@ -87,7 +87,7 @@ export function CustomerScreen({ data, viewer }: { data: CustomerData; viewer: S
                     <AccentButton
                       small
                       data-guide="remind"
-                      onClick={() => router.push(as(`/bills/${r.number}/remind`))}
+                      onClick={() => router.push(as(billPath(r.number, '/remind')))}
                     >
                       {t('action.remind')}
                     </AccentButton>

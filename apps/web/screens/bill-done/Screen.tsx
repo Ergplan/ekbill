@@ -24,6 +24,7 @@ import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { BillDraft, Computed } from '../bill/compute';
 import { longDate } from '../fixtures';
+import { billFileName } from '../links';
 import { billFileUrl, handoffToWhatsApp, handoffWithFile } from '../share';
 import type { BillDoneData } from './data';
 import { manifest } from './manifest';
@@ -97,7 +98,7 @@ export function BillDoneScreen({
       legend: kind === 'bill-of-supply' ? t('paper.bos.legend', undefined, 'en') : null,
     };
   }, [issued, fallback, live]);
-  const fileName = `${paper.number.replace(/[^A-Za-z0-9._-]+/g, '-')}.${share}`;
+  const fileName = billFileName(paper.number, share);
 
   return (
     <AppShell viewer={viewer} tab="bills" tour={manifest.tour} noTabs>

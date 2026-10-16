@@ -6,7 +6,7 @@ import { t } from '@ekbill/copy';
 import { Card, Display, FilterChips, GhostButton, Input, Meta, PrimaryCTA, SeriesChip } from '@ekbill/ui';
 
 import { ask as askAction } from '../../actions/ask';
-import { withAs } from '../links';
+import { billPath, withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { Fixture } from '../fixtures';
 import { manifest } from './manifest';
@@ -39,7 +39,7 @@ export function AskScreen({
     question: ask.answer.question,
     answer: ask.answer.text,
     note: null,
-    sources: ask.answer.sources.map((s) => ({ title: s, href: `/bills/${s}` })),
+    sources: ask.answer.sources.map((s) => ({ title: s, href: billPath(s) })),
   };
   const [q, setQ] = useState(state === 'answered' ? ask.answer.question : '');
   const [shown, setShown] = useState<Shown | null>(state === 'answered' ? fixtureAnswer : null);

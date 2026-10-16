@@ -6,9 +6,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 34    | 326    |
+| unit        | 35    | 329    |
 | integration | 21    | 245    |
-| e2e         | 16    | 57     |
+| e2e         | 16    | 58     |
 
 ## unit
 
@@ -39,6 +39,12 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - builds a brand-new ownerâ€™s business from the setup answers
 - the form, the paper and the GST workings agree on a fixture bill
 - every fixture bill was computed by the engine (no second tax calculation in the generator)
+
+### `tests/unit/bill-links.test.ts`
+
+- put the whole number in one path segment, and the route reads it back
+- name files without a slash
+- are never built raw: no `/bills/â€¦` in the product source but through billPath or encodeURIComponent
 
 ### `tests/unit/copy-dictionary.test.ts`
 
@@ -761,6 +767,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - a composition business (harmony) issues a bill of supply; the reminder is opened and kept
 - the accountant reads bills and downloads files, and records nothing
 - another business cannot fetch a bill file
+- a new business numbers with the year, and its bill opens from the list, the reminder and back
 
 ### `tests/e2e/customers.spec.ts`
 

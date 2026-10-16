@@ -17,7 +17,7 @@ import {
 } from '@ekbill/ui';
 
 import { rupees } from '../money';
-import { withAs } from '../links';
+import { billPath, withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { handoffWithFile } from '../share';
 import { manifest } from './manifest';
@@ -129,7 +129,7 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
         <Meta>{t('gst.b2b.sub', { n: data.b2b.length })}</Meta>
         <div className="eb-rows">
           {data.b2b.map((r) => (
-            <a key={r.number} href={as(`/bills/${r.number}`)} className="eb-billrow">
+            <a key={r.number} href={as(billPath(r.number))} className="eb-billrow">
               <span className="eb-billrow__text">
                 <span className="eb-billrow__name">{r.name}</span>
                 <span className="eb-billrow__meta">

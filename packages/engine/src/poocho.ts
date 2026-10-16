@@ -92,7 +92,8 @@ export function billRecord(b: BillForSearch): SearchRecord {
     sourceId: b.id,
     title: `${note ? 'Credit note' : 'Bill'} ${b.number} · ${b.customerName}`,
     text: parts.filter(Boolean).join(' '),
-    href: `/bills/${b.number}`,
+    // One path segment: a number with the financial year in it carries a slash (INV-2026-27/001).
+    href: `/bills/${encodeURIComponent(b.number)}`,
   };
 }
 

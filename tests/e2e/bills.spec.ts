@@ -239,3 +239,52 @@ test('another business cannot fetch a bill file', async ({ page }) => {
   await hydrated(page);
   expect((await page.request.get('/api/documents/INV-031/file?kind=pdf&paper=a4')).status()).toBe(404);
 });
+
+// Stage 11, found by the clean-clone run: every new business numbers with the year (INV-2026-27/001), and the
+// slash in it broke every link to the bill. A new owner's first bill opens from the list, its reminder and back.
+test('a new business numbers with the year, and its bill opens from the list, the reminder and back', async ({
+  page,
+}) => {
+  await page.goto(`/dev/switch/new?to=${encodeURIComponent('/setup/name')}`);
+  await hydrated(page);
+  await page.getByLabel(/dukaan ka naam/i).fill(`Saal Traders ${String(Date.now()).slice(-6)}`);
+  await page.getByRole('button', { name: 'Aage' }).click();
+  await page.getByRole('radio', { name: 'Composition mein hoon' }).click();
+  await page.getByLabel('GST number').fill('09AAACG1234A1ZC');
+  await page.getByRole('button', { name: 'Aage' }).click();
+  await page.getByRole('button', { name: 'Chalo, shuru karte hain' }).click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 20_000 });
+
+  const customer = `Saal ${String(Date.now()).slice(-6)}`;
+  await page.goto('/bills/new?new=1');
+  await hydrated(page);
+  await page.getByLabel('Customer ka naam').fill(customer);
+  await page.getByLabel('Kya kiya?').first().fill('Tiffin, October');
+  await page.getByLabel('Rate (₹)').first().fill('2400');
+  await page.getByRole('button', { name: /Bill banao/ }).click();
+  await expect(page).toHaveURL(/\/bills\/new\/done\?id=/, { timeout: 20_000 });
+  const id = new URL(page.url()).searchParams.get('id')!;
+  await expect(page.locator('main')).toContainText(/INV-\d{4}-\d{2}\/001/);
+  const number = (await page.locator('main').innerText()).match(/INV-\d{4}-\d{2}\/001/)![0];
+
+  // The file keeps a name a phone can save.
+  const pdf = await page.request.get(`/api/documents/${id}/file?kind=pdf&paper=a4&download=1`);
+  expect(pdf.headers()['content-disposition']).toContain(`filename="${number.replace('/', '-')}.pdf"`);
+
+  // From the list to the bill: one path segment, and the bill, not "Yeh mila nahi".
+  await page.goto('/bills');
+  await hydrated(page);
+  await page.getByText(customer).first().click();
+  await expect(page).toHaveURL(new RegExp(`/bills/${encodeURIComponent(number)}$`));
+  await hydrated(page);
+  await expect(page.locator('main')).toContainText(number);
+  await expect(page.locator('main')).toContainText('2,400');
+
+  // Its reminder, and back to the bill.
+  await page.getByRole('button', { name: 'Yaad dilao' }).click();
+  await expect(page).toHaveURL(new RegExp(`/bills/${encodeURIComponent(number)}/remind`));
+  await hydrated(page);
+  await expect(page.locator('main')).toContainText(customer);
+  await page.goBack();
+  await expect(page.locator('main')).toContainText(number);
+});

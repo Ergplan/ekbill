@@ -10,7 +10,7 @@ import { Display, Field, GhostButton, Input, Meta, MoneyHero, PrimaryCTA, Succes
 import { makeCreditNote } from '../../actions/bills';
 import { rupees } from '../money';
 import { sayRefusal } from '../refusal';
-import { withAs } from '../links';
+import { billPath, withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { manifest } from './manifest';
 import type { CreditNoteData } from './data';
@@ -60,7 +60,7 @@ export function CreditNoteScreen({ bill, viewer }: { bill: CreditNoteData; viewe
           sub={`${bill.number} · ${rupees(done)} · ${reason}`}
         />
         <div className="eb-actions eb-actions--stack">
-          <PrimaryCTA onClick={() => router.push(as(`/bills/${bill.number}`))}>{t('action.done')}</PrimaryCTA>
+          <PrimaryCTA onClick={() => router.push(as(billPath(bill.number)))}>{t('action.done')}</PrimaryCTA>
         </div>
       </AppShell>
     );
@@ -69,7 +69,7 @@ export function CreditNoteScreen({ bill, viewer }: { bill: CreditNoteData; viewe
     <AppShell
       viewer={viewer}
       tab="bills"
-      back={`/bills/${bill.number}`}
+      back={billPath(bill.number)}
       title={t('credit.title')}
       sub={`${bill.number} · ${bill.customerName}`}
       tour={manifest.tour}
@@ -106,7 +106,7 @@ export function CreditNoteScreen({ bill, viewer }: { bill: CreditNoteData; viewe
         <PrimaryCTA data-guide="make" onClick={make} disabled={!amount || !reason.trim() || pending}>
           {t('credit.make')}
         </PrimaryCTA>
-        <GhostButton onClick={() => router.push(as(`/bills/${bill.number}`))}>{t('action.cancel')}</GhostButton>
+        <GhostButton onClick={() => router.push(as(billPath(bill.number)))}>{t('action.cancel')}</GhostButton>
       </div>
     </AppShell>
   );

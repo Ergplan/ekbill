@@ -24,7 +24,7 @@ import {
 
 import { useDraft } from '../draft';
 import { rupees } from '../money';
-import { withAs } from '../links';
+import { billPath, withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
 import { manifest } from './manifest';
@@ -133,7 +133,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
                   amountPaise={r.totalPaise}
                   status={r.status}
                   statusLabel={t(statusKey(r.status))}
-                  href={as(`/bills/${r.number}`)}
+                  href={as(billPath(r.number))}
                 />
               ))}
             </div>
@@ -171,7 +171,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
               <OwedRow
                 key={r.number}
                 name={r.name}
-                href={as(`/bills/${r.number}`)}
+                href={as(billPath(r.number))}
                 age={t('home.owed.age', { days: r.days })}
                 overdue={r.days > 14}
                 amountPaise={r.duePaise}
@@ -182,17 +182,17 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
                       <AccentButton
                         small
                         data-guide="remind"
-                        onClick={() => router.push(as(`/bills/${r.number}/remind`))}
+                        onClick={() => router.push(as(billPath(r.number, '/remind')))}
                       >
                         {t('action.remind')}
                       </AccentButton>
                     ) : (
-                      <OutlineButton small onClick={() => router.push(as(`/bills/${r.number}/remind`))}>
+                      <OutlineButton small onClick={() => router.push(as(billPath(r.number, '/remind')))}>
                         {t('action.remind')}
                       </OutlineButton>
                     )
                   ) : (
-                    <OutlineButton small onClick={() => router.push(as(`/bills/${r.number}`))}>
+                    <OutlineButton small onClick={() => router.push(as(billPath(r.number)))}>
                       {t('action.more')}
                     </OutlineButton>
                   )

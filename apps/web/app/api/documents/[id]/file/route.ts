@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { NotFoundError, documents } from '@ekbill/db';
 import { PAPERS, printAndKeep, type Paper } from '@ekbill/render';
 
+import { billFileName } from '../../../../../screens/links';
 import { log } from '../../../../../server/log';
 import { current } from '../../../../../server/session';
 
@@ -30,7 +31,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   try {
     const doc = await documents.getDocument(me.scope, id);
     const file = await printAndKeep(me.scope, { documentId: id, kind, paper });
-    const name = `${(doc.number ?? 'bill').replace(/[^A-Za-z0-9._-]+/g, '-')}.${kind}`;
+    const name = billFileName(doc.number ?? 'bill', kind);
     const download = url.searchParams.get('download') === '1';
     return new NextResponse(new Uint8Array(file.bytes), {
       status: 200,

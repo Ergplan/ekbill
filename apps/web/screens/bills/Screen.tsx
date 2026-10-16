@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { t } from '@ekbill/copy';
 import { BillRow, Display, EmptyState, FilterChips, Meta, SearchInput, SeriesChip } from '@ekbill/ui';
 
-import { withAs } from '../links';
+import { billPath, withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
 import { manifest } from './manifest';
@@ -82,7 +82,7 @@ export function BillsScreen({ data, viewer }: { data: BillsData; viewer: ShellVi
               amountPaise={r.totalPaise}
               status={r.status}
               statusLabel={t(statusKey(r.status))}
-              href={as(`/bills/${r.number}`)}
+              href={as(billPath(r.number))}
             />
           ))
         ) : (

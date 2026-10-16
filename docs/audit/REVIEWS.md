@@ -17,6 +17,7 @@ Rule 12: every stage is reviewed by an independent OpenAI model on the VM (`npm 
 | 8     | [report](../stages/stage-8-report.md)  | 0             | not reviewed yet |
 | 9     | [report](../stages/stage-9-report.md)  | 0             | not reviewed yet |
 | 10    | [report](../stages/stage-10-report.md) | 0             | not reviewed yet |
+| 11    | [report](../stages/stage-11-report.md) | 0             | not reviewed yet |
 
 ## Stage 0
 

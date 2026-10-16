@@ -26,7 +26,7 @@ import { cancelBill, recordMoney, reverseMoney } from '../../actions/bills';
 import { rupees } from '../money';
 import { sayRefusal } from '../refusal';
 import { billFileUrl, handoffWithFile } from '../share';
-import { withAs } from '../links';
+import { billFileName, billPath, withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
 import { TODAY, shortDate } from '../fixtures';
@@ -69,7 +69,7 @@ export function BillViewScreen({
   const due = Math.max(0, bill.duePaise - recordedPaise);
   const status = recorded.length ? (due === 0 ? 'paid' : 'partial') : bill.status;
   const last = recorded[recorded.length - 1] ?? null;
-  const fileName = `${bill.number.replace(/[^A-Za-z0-9._-]+/g, '-')}.${data.share}`;
+  const fileName = billFileName(bill.number, data.share);
 
   /** A server write, then the page again from the server (the balance is never kept on the phone). */
   const act = (
@@ -200,7 +200,7 @@ export function BillViewScreen({
             {t('dues.paid')}
           </PrimaryCTA>
           <div className="eb-actions">
-            <OutlineButton data-guide="remind" onClick={() => router.push(as(`/bills/${bill.number}/remind`))}>
+            <OutlineButton data-guide="remind" onClick={() => router.push(as(billPath(bill.number, '/remind')))}>
               {t('action.remind')}
             </OutlineButton>
             <OutlineButton data-guide="wa" onClick={shareAgain}>
@@ -277,7 +277,7 @@ export function BillViewScreen({
               // A bill with a credit note is corrected already; it is not cancelled on top (the engine refuses).
               <OutlineButton onClick={() => setCancelOpen(true)}>{t('view.cancel')}</OutlineButton>
             )}
-            <OutlineButton onClick={() => router.push(as(`/bills/${bill.number}/credit-note`))}>
+            <OutlineButton onClick={() => router.push(as(billPath(bill.number, '/credit-note')))}>
               {t('view.credit')}
             </OutlineButton>
           </div>

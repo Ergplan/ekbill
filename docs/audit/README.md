@@ -52,6 +52,8 @@ The watcher runs, once, and exits non-zero on the first red:
 
 Its status is in `.watch/status.json`.
 
+**Expect one red: `rules:check`.** The 23 entries of the GST rule pack carry `verified: false` until `npm run rules:verify` fetches each official source and confirms its phrases. The build container cannot reach `*.gov.in`, so that waits on the operator's run on the VM (`KNOWN-GAPS.md`). The check is red on that count alone; the pack's structure and dates are checked on every run. Every other check should be green.
+
 ### 3. The browser journeys
 
 ```bash
