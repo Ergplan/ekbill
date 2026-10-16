@@ -149,6 +149,29 @@ test('a line naming a saved item carries its unit onto the bill', async ({ page 
   await expect(page.locator('.eb-paper')).toContainText('2 nos');
 });
 
+test('a customer added earlier lends their GSTIN to nobody else’s bill (Stage 6 review)', async ({ page }) => {
+  const s = String(Date.now()).slice(-6);
+  await page.goto('/dev/switch/ravi?to=/customers/new');
+  await hydrated(page);
+  await page.getByLabel('Naam').fill(`Asha G ${s}`);
+  const more = page.locator('details[data-guide="more"] summary');
+  if (await more.count()) await more.click();
+  await page.getByLabel('GSTIN (ho to)').fill('27AAPFU0939F1ZV');
+  await page.getByRole('button', { name: 'Customer jodo' }).click();
+  await expect(page).toHaveURL(/\/bills\/new\?new=1/, { timeout: 15_000 });
+  // Later, in the same tab: a bill for a different new name.
+  await page.goto('/bills/new?new=1');
+  await hydrated(page);
+  await page.getByLabel('Customer ka naam').fill(`Other ${s}`);
+  await page.getByLabel('Kya kiya?').first().fill('Switch repair');
+  await page.getByLabel('Rate (₹)').first().fill('500');
+  await sameState(page);
+  await page.getByRole('button', { name: /Bill banao/ }).click();
+  await expect(page).toHaveURL(/\/bills\/new\/done\?id=/, { timeout: 20_000 });
+  await expect(page.locator('.eb-paper')).toContainText(`Other ${s}`);
+  await expect(page.locator('.eb-paper')).not.toContainText('27AAPFU0939F1ZV');
+});
+
 test('the owner writes off, reverses, credits, then cancels and redoes a bill', async ({ page }) => {
   const name = `Kale Hardware ${String(Date.now()).slice(-6)}`;
   await page.goto('/dev/switch/sharma?to=/bills/new?new=1');

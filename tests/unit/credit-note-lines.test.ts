@@ -59,3 +59,31 @@ describe('creditNoteLines', () => {
     expect(creditNoteLines([], 1000, 'x')).toEqual([]);
   });
 });
+
+describe('creditNoteLines never credits more or less than asked (Stage 6 review)', () => {
+  const group = (hsnCode: string, totalPaise: number) => ({ ...bill.lines[0]!, hsnCode, totalPaise, blank: false });
+  it('four equal groups and 2 paise: 2 paise, no negative part', () => {
+    const lines = creditNoteLines([group('1', 100), group('2', 100), group('3', 100), group('4', 100)], 2, 'x');
+    expect(lines.reduce((s, l) => s + l.unitPricePaise, 0)).toBe(2);
+    expect(lines.every((l) => l.unitPricePaise > 0)).toBe(true);
+  });
+  it('any split adds up to the amount (a sweep of groups and amounts)', () => {
+    let seed = 7;
+    const rnd = (n: number) => {
+      seed = (seed * 1103515245 + 12345) % 2 ** 31;
+      return seed % n;
+    };
+    for (let k = 0; k < 500; k += 1) {
+      const groups = Array.from({ length: 1 + rnd(6) }, (_, i) => group(String(i), 1 + rnd(1_000_000)));
+      const whole = groups.reduce((s, g) => s + g.totalPaise, 0);
+      const amount = 1 + rnd(whole);
+      const lines = creditNoteLines(groups, amount, 'x');
+      expect(lines.reduce((s, l) => s + l.unitPricePaise, 0)).toBe(amount);
+      expect(lines.every((l) => l.unitPricePaise > 0)).toBe(true);
+    }
+  });
+  it('a ₹10 crore note on a ₹10 crore bill stays exact (BigInt)', () => {
+    const lines = creditNoteLines([group('1', 6_000_000_000), group('2', 4_000_000_000)], 9_999_999_999, 'x');
+    expect(lines.reduce((s, l) => s + l.unitPricePaise, 0)).toBe(9_999_999_999);
+  });
+});

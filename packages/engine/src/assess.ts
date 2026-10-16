@@ -162,9 +162,10 @@ export function assessDocument(
           allowed: slab.ratesPercent.join(', '),
         });
     }
-    // Every line nil-rated on a tax invoice: the document should be a bill of supply (s. 31(3)(c)); the owner switches GST off.
+    // Every line nil-rated on a tax invoice: the document must be a bill of supply (s. 31(3)(c)), not a tax invoice
+    // with no tax on it (Stage 3 review). The owner switches GST off for the bill, in one tap.
     if (document.lines.length && document.lines.every((l) => l.taxRateChosen && l.gstBp === 0))
-      note('nil-rated-on-tax-invoice');
+      block('nil-rated-on-tax-invoice');
   }
   if (business.registration === 'regular' && business.gstin && customer.gstin && customer.gstin === business.gstin)
     block('self-billing');

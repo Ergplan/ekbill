@@ -746,6 +746,11 @@ export const extractions = pgTable(
     costMicros: bigint('cost_micros', { mode: 'number' }),
     latencyMs: integer('latency_ms'),
     committedDocumentId: uuid('committed_document_id').references(() => documents.id),
+    /**
+     * While a "Bill banao" holds the reading (status committing): the draft that claim is making. A claim that died
+     * after its bill was issued is then finished, not taken again for a second bill (Stage 7 review).
+     */
+    claimDocumentId: uuid('claim_document_id').references(() => documents.id),
     createdBy: uuid('created_by')
       .notNull()
       .references(() => users.id),

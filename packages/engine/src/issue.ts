@@ -227,23 +227,34 @@ export function creditNoteLines(billLines: readonly TaxLine[], amountPaise: numb
   }
   const all = [...groups.values()];
   const whole = all.reduce((sum, g) => sum + g.gross, 0);
-  if (whole <= 0) return [];
-  let left = amountPaise;
+  if (whole <= 0 || amountPaise <= 0) return [];
+  // Largest remainder, in integers (I4): each group its floor share, then the paise left over to the largest
+  // remainders. Every part is ≥ 0 and the parts add up to the amount exactly; no group can go negative.
+  // In BigInt: ₹10 crore of credit against a ₹10 crore bill is 10¹⁸ paise² before the division, past 2⁵³.
+  const W = BigInt(whole);
+  const shares = all.map((g, i) => {
+    const exact = BigInt(amountPaise) * BigInt(g.gross);
+    return { i, floor: Number(exact / W), remainder: exact % W };
+  });
+  let left = amountPaise - shares.reduce((n, x) => n + x.floor, 0);
+  for (const x of [...shares].sort((a, b) =>
+    b.remainder > a.remainder ? 1 : b.remainder < a.remainder ? -1 : a.i - b.i,
+  )) {
+    if (left <= 0) break;
+    x.floor += 1;
+    left -= 1;
+  }
   return all
-    .map((g, i) => {
-      const part = i === all.length - 1 ? left : Math.round((amountPaise * g.gross) / whole);
-      left -= part;
-      return {
-        description,
-        quantityMilli: 1000,
-        unitPricePaise: part,
-        gstBp: g.gstBp,
-        ...(g.cessBp ? { cessBp: g.cessBp } : {}),
-        taxRateChosen: true,
-        priceIncludesTax: true,
-        hsnCode: g.hsnCode,
-        unit: g.unit,
-      };
-    })
+    .map((g, i) => ({
+      description,
+      quantityMilli: 1000,
+      unitPricePaise: shares[i]!.floor,
+      gstBp: g.gstBp,
+      ...(g.cessBp ? { cessBp: g.cessBp } : {}),
+      taxRateChosen: true,
+      priceIncludesTax: true,
+      hsnCode: g.hsnCode,
+      unit: g.unit,
+    }))
     .filter((l) => l.unitPricePaise > 0);
 }

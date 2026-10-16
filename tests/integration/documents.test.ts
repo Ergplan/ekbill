@@ -304,6 +304,16 @@ describe('issueDocument: the one writer (I2)', () => {
         ),
       ),
     ).rejects.toThrow(/only issueDocument/);
+    // Stage 3 review: nor as 'cancelled', complete with a forged number and snapshot.
+    await expect(
+      withTenant(scope, ({ client }) =>
+        client.query(
+          `insert into documents (business_id, series_id, kind, status, number, financial_year, issue_date, customer_name, issued_at, issued_snapshot, created_by)
+           values ($1, $2, 'tax_invoice', 'cancelled', 'X-3', '2026-27', $3, 'Nobody', now(), '{}'::jsonb, $4)`,
+          [scope.businessId, draft.seriesId, TODAY, scope.userId],
+        ),
+      ),
+    ).rejects.toThrow(/starts as a draft/);
   });
 
   it('audits the issue: one row for the document and one for the series, under the request id', async () => {

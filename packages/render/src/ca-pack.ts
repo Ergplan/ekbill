@@ -24,9 +24,29 @@ export interface CaPack {
   sheets: Sheet[];
 }
 
+/** A period whose bills were issued under two GSTINs (the profile's GSTIN or State changed): one return per GSTIN. */
+export class CaPackError extends Error {
+  constructor(public readonly code: 'mixed-gstin') {
+    super(`ca pack: ${code}`);
+  }
+}
+
 export async function buildCaPack(scope: TenantScope, months: MonthPeriod[]): Promise<CaPack> {
   const sorted = [...months].sort();
-  const [profile, w] = await Promise.all([businesses.getProfile(scope), gst.workingsFor(scope, sorted)]);
+  const [current, w] = await Promise.all([businesses.getProfile(scope), gst.workingsFor(scope, sorted)]);
+  // The seller as the bills were issued (I2), not as the profile is today: a GSTIN or State changed since would
+  // file September's bills under October's number and flip intra- and inter-State supplies.
+  const issuedAs = new Map(
+    w.documents.map((d) => [
+      `${d.snapshot.seller.gstin ?? ''}|${d.snapshot.seller.stateCode ?? ''}`,
+      d.snapshot.seller,
+    ]),
+  );
+  if (issuedAs.size > 1) throw new CaPackError('mixed-gstin');
+  const seller = [...issuedAs.values()][0];
+  const profile = seller
+    ? { legalName: seller.legalName, gstin: seller.gstin, stateCode: seller.stateCode }
+    : { legalName: current.legalName, gstin: current.gstin, stateCode: current.stateCode };
   const label =
     sorted.length === 1
       ? formatPeriodLong(sorted[0]!)

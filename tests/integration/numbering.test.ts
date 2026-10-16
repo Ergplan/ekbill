@@ -26,6 +26,37 @@ const draftIn = (seriesId: string, dateIso = TODAY): documents.DraftInput => ({
 describe('numbering (I3)', () => {
   seeded();
 
+  it('two series whose numbers meet cannot give one number twice in a year (Stage 3 review)', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    const tag = String(Date.now()).slice(-4);
+    const a = await series.createSeries(scope, {
+      name: `Meet A ${tag}`,
+      kind: 'bill',
+      prefix: `M${tag}-`,
+      padding: 3,
+      includeFy: false,
+    });
+    const b = await series.createSeries(scope, {
+      name: `Meet B ${tag}`,
+      kind: 'bill',
+      prefix: `M${tag}-0`,
+      padding: 2,
+      includeFy: false,
+    });
+    const first = await documents.issueDocument(scope, {
+      id: (await documents.createDraft(scope, draftIn(a.id))).id,
+      today: TODAY,
+    });
+    expect(first.number).toBe(`M${tag}-001`);
+    const second = await documents.createDraft(scope, draftIn(b.id));
+    await expect(documents.issueDocument(scope, { id: second.id, today: TODAY })).rejects.toMatchObject({
+      blockers: [expect.objectContaining({ code: 'number-taken' })],
+    });
+    // Nothing moved: the series still gives 01 next, and the draft is still a draft.
+    expect((await series.getSeries(scope, b.id)).nextNumber).toBe(1);
+    expect((await documents.getDocument(scope, second.id)).status).toBe('draft');
+  });
+
   it('50 concurrent issues on one fresh series produce exactly 1…50', async () => {
     const scope = await scopeFor('sharma', 'owner');
     const s = await series.createSeries(scope, {

@@ -154,10 +154,19 @@ describe('issuance assessment', () => {
     expect(codes(a)).toContain('rate-not-chosen');
     expect(a.blockers.find((b) => b.code === 'rate-not-chosen')!.message.params).toEqual({ n: 2 });
   });
-  it('allows a bill where every rate was answered, including a deliberate 0%, and says it should be a bill of supply', () => {
+  it('a tax invoice where every line is 0 % is refused: it is a bill of supply (s. 31(3)(c); Stage 3 review)', () => {
     const a = assess({}, customer, { lines: [{ description: 'A', gstBp: 0, taxRateChosen: true, hsnCode: '9987' }] });
-    expect(a.canIssue).toBe(true);
-    expect(a.notices.map((n) => n.code)).toContain('nil-rated-on-tax-invoice');
+    expect(a.canIssue).toBe(false);
+    expect(codes(a)).toEqual(['nil-rated-on-tax-invoice']);
+    expect(a.blockers[0]!.whatYouCanDo.key).toBe('assess.nil-rated-on-tax-invoice.do');
+    // One 0 % line among taxed ones is fine (it goes to Table 8).
+    const mixed = assess({}, customer, {
+      lines: [
+        { description: 'A', gstBp: 0, taxRateChosen: true, hsnCode: '9987' },
+        { description: 'B', gstBp: 1800, taxRateChosen: true, hsnCode: '9987' },
+      ],
+    });
+    expect(mixed.canIssue).toBe(true);
   });
   it('does not ask a business that charges no GST for a rate', () => {
     const a = assess({ registration: 'unregistered', gstin: null }, walkIn, {

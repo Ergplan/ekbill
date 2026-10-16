@@ -217,3 +217,58 @@ describe('CDNUR: a credit note against a B2C Large invoice (fourth review)', () 
     ]);
   });
 });
+
+describe('a credit note’s rate in gstr1.json is the rate it was issued at (Stage 8 review)', () => {
+  // 7 paise at 18 % within the State: CGST and SGST 1 paisa each. Worked back from the heads that read as 28.6 %.
+  const tiny = (o: Partial<OutwardDocument>) =>
+    row({
+      documentNumber: 'CN-030',
+      documentType: 'credit-note',
+      invoiceValuePaise: 9,
+      taxablePaise: 7,
+      cgstPaise: 1,
+      statePaise: 1,
+      ...o,
+    });
+  it('CDNR carries 18, not a rate guessed from a paisa of tax', () => {
+    const tables = buildGstr1({ period: '2026-10', documents: [tiny({ customerGstin: '27AABCG1234H1ZZ' })] });
+    const json = toGstr1Json({ gstin: '27AAAAA0000A1Z2', sellerStateCode: '27', tables });
+    expect(json.cdnr[0]!.nt[0]!.itms[0]!.itm_det.rt).toBe(18);
+  });
+  it('an unregistered note nets into the 18 % B2CS row', () => {
+    const tables = buildGstr1({
+      period: '2026-10',
+      documents: [row({ documentNumber: 'INV-030', documentType: 'invoice' }), tiny({})],
+    });
+    const json = toGstr1Json({ gstin: '27AAAAA0000A1Z2', sellerStateCode: '27', tables });
+    expect(json.b2cs.map((r) => r.rt)).toEqual([18]);
+  });
+});
+
+describe('two documents under one number are two documents in GSTR-1 (Stage 3 review)', () => {
+  it('B2B lists both, each with its own value', () => {
+    const g = '27AABCG1234H1ZZ';
+    const t = buildGstr1({
+      period: '2026-10',
+      documents: [
+        row({
+          documentNumber: 'INV-001',
+          documentType: 'invoice',
+          customerGstin: g,
+          sourceDocumentId: 'a',
+          invoiceValuePaise: 11800,
+        }),
+        row({
+          documentNumber: 'INV-001',
+          documentType: 'invoice',
+          customerGstin: g,
+          sourceDocumentId: 'b',
+          id: 'b__1800',
+          invoiceValuePaise: 23600,
+          taxablePaise: 20000,
+        }),
+      ],
+    });
+    expect(t.b2b[0]!.documents.map((d) => d.invoiceValuePaise).sort()).toEqual([11800, 23600]);
+  });
+});

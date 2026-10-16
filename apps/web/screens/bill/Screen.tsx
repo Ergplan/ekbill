@@ -215,22 +215,27 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
     setDupOpen(false);
     setError(null);
     const gstOn = regular && d.gst.on;
+    // The customer just added on /customers/new lends their GSTIN, phone and language only to their own bill: a
+    // draft left in the tab from an earlier customer must not dress a different name in them.
+    const added = newCustomer && newCustomer.name.trim() === d.customerName.trim() ? newCustomer : null;
+    const addedGst = added?.gstin ? checkGstin(added.gstin) : null;
     startTransition(async () => {
       const r = await issueBill({
         id: draftId,
         seriesId: live.seriesId,
         customerId: data.customer?.id ?? null,
         customerName: data.customer?.name ?? d.customerName.trim(),
-        customerGstin: data.customer ? null : newGst?.ok ? newGst.normalised : null,
-        customerPhone: data.customer ? null : newCustomer?.phone.trim() || null,
+        customerGstin: data.customer ? null : addedGst?.ok ? addedGst.normalised : null,
+        customerPhone: data.customer ? null : added?.phone.trim() || null,
         customerState: d.customerState,
-        customerLanguage: data.customer ? null : (newCustomer?.lang ?? null),
+        customerLanguage: data.customer ? null : (added?.lang ?? null),
         issueDate: d.date,
         gstOn,
         lines: d.lines.map((l, i) => ({ what: l.what, qty: l.qty, rate: l.rate, gstRate: gstOn ? rateOf(i) : null })),
       });
       if (r.ok) {
         clearDraft(draftKey);
+        if (added) clearDraft(`${viewer.personId}:new-customer`);
         router.push(as(`/bills/new/done?id=${r.value.id}`));
         return;
       }
@@ -341,7 +346,14 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
           filled={filled}
           onFill={() => {
             const lines = data.previous!.lines.map((l) => ({ ...l }));
-            patch({ lines, gst: { ...d.gst, perLine: lines.map(() => d.gst.rate) } });
+            // The last bill's own rates: per line when they differed, so a 5 % and an 18 % line stay so.
+            const rates = data.previous!.gstRates;
+            patch({
+              lines,
+              gst: rates.length
+                ? { ...d.gst, mode: 'perline', rate: rates[0]!, perLine: rates }
+                : { ...d.gst, perLine: lines.map(() => d.gst.rate) },
+            });
             setFilled(true);
           }}
           onFresh={() => {

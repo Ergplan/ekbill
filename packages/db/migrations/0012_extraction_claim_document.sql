@@ -1,0 +1,2 @@
+ALTER TABLE "extractions" ADD COLUMN "claim_document_id" uuid;--> statement-breakpoint
+ALTER TABLE "extractions" ADD CONSTRAINT "extractions_claim_document_id_documents_id_fk" FOREIGN KEY ("claim_document_id") REFERENCES "public"."documents"("id") ON DELETE no action ON UPDATE no action;

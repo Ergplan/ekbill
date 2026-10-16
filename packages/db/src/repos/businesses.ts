@@ -148,11 +148,53 @@ export async function getProfile(scope: TenantScope): Promise<BusinessProfile> {
   });
 }
 
-/** The owner's "Save karo": the whole profile, checked by the engine, written once. Marks the setup done. */
+/** A stored profile as the input that would write it again: what a save leaves alone is kept, not reset. */
+function inputOfProfile(p: Profile): ProfileInput {
+  return {
+    name: p.legalName,
+    tradeName: p.tradeName,
+    gst: p.registrationType,
+    gstin: p.gstin,
+    pan: p.pan,
+    turnoverBand: p.turnoverBand,
+    eInvoicingApplies: p.eInvoicingApplies,
+    compositionLegend: p.compositionLegend,
+    phone: p.phone,
+    email: p.email,
+    upi: p.upi,
+    address: p.address,
+    city: p.city,
+    pincode: p.pincode,
+    stateCode: p.stateCode,
+    bankName: p.bankName,
+    bankAccount: p.bankAccount,
+    bankIfsc: p.bankIfsc,
+    bankHolder: p.bankHolder,
+    defaultPaymentTermsDays: p.defaultPaymentTermsDays,
+    look: p.look,
+    voiceOnArrival: p.voiceOnArrival,
+  };
+}
+
+/**
+ * The owner's "Save karo": the profile, checked by the engine, written once. Marks the setup done. A field the
+ * input leaves out (undefined) keeps its stored value; null clears it. Aap's save carries no bill look and setup
+ * carries no bank details: neither may reset what the other screen set.
+ */
 export async function saveProfile(scope: TenantScope, input: ProfileInput): Promise<BusinessProfile> {
   allow(scope, allowedRoles.saveProfile, 'change the business profile');
-  const profile = checked(input);
   return withTenant(scope, async ({ db }) => {
+    const current = (
+      await db.select().from(schema.businesses).where(eq(schema.businesses.id, scope.businessId)).for('update')
+    )[0];
+    if (!current) throw new NotFoundError('business');
+    const given = Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)) as Partial<ProfileInput>;
+    const base = inputOfProfile(profileOf(current));
+    const profile = checked({
+      ...base,
+      ...given,
+      look: given.look === undefined ? base.look : { ...base.look, ...(given.look ?? {}) },
+    } as ProfileInput);
     const [row] = await db
       .update(schema.businesses)
       .set({

@@ -87,9 +87,22 @@ export async function createItem(scope: TenantScope, input: ItemInput, today: st
 
 export async function updateItem(scope: TenantScope, id: string, input: ItemInput, today: string): Promise<Item> {
   allow(scope, allowedRoles.updateItem, 'change an item');
-  const c = checked(input, today);
   try {
     return await withTenant(scope, async ({ db }) => {
+      // A patch: what the item screen does not show (the description, "price includes GST") stays as stored.
+      const stored = (await db.select().from(schema.items).where(eq(schema.items.id, id)).for('update'))[0];
+      if (!stored) throw new NotFoundError('item');
+      const base: ItemInput = {
+        name: stored.name,
+        description: stored.description,
+        hsnSac: stored.hsnSac,
+        unit: stored.unit,
+        defaultRatePaise: stored.defaultRatePaise,
+        defaultTaxBp: stored.defaultTaxBp,
+        priceIncludesTax: stored.priceIncludesTax,
+      };
+      const given = Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)) as Partial<ItemInput>;
+      const c = checked({ ...base, ...given }, today);
       const [row] = await db
         .update(schema.items)
         .set({ ...c, updatedAt: sql`now()` })

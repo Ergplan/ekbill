@@ -200,12 +200,16 @@ const CLAIM_MS = 5 * 60_000;
 export async function claimReading(
   scope: TenantScope,
   extractionId: string,
-): Promise<{ claimed: true } | { claimed: false; documentId: string }> {
+): Promise<{ claimed: true; draftId: string | null } | { claimed: false; documentId: string }> {
   allow(scope, allowedRoles.commitReading, 'make a bill from a reading');
   return withTenant(scope, async (tx) => {
     const row = (
       await tx.db
-        .select({ ...meta, updatedAt: schema.extractions.updatedAt })
+        .select({
+          ...meta,
+          updatedAt: schema.extractions.updatedAt,
+          claimDocumentId: schema.extractions.claimDocumentId,
+        })
         .from(schema.extractions)
         .where(eq(schema.extractions.id, extractionId))
         .for('update')
@@ -215,13 +219,43 @@ export async function claimReading(
       return { claimed: false as const, documentId: row.committedDocumentId };
     if (row.status === 'committing' && Date.now() - new Date(row.updatedAt).getTime() < CLAIM_MS)
       throw new PhotoError('busy');
+    // An abandoned claim whose bill was issued (the request died before the commit): the commit is finished now,
+    // and that bill is the answer, never a second one (Stage 7 review).
+    if (row.status === 'committing' && row.claimDocumentId) {
+      const made = (
+        await tx.db
+          .select({ status: schema.documents.status })
+          .from(schema.documents)
+          .where(eq(schema.documents.id, row.claimDocumentId))
+      )[0];
+      if (made && made.status !== 'draft') {
+        if (made.status === 'issued')
+          await tx.db
+            .update(schema.extractions)
+            .set({ status: 'committed', committedDocumentId: row.claimDocumentId, updatedAt: sql`now()` })
+            .where(eq(schema.extractions.id, extractionId));
+        return { claimed: false as const, documentId: row.claimDocumentId };
+      }
+    }
     if (row.status === 'discarded' || row.status === 'committed') throw new PhotoError('final');
     if (row.status === 'pending' || row.status === 'failed') throw new PhotoError('not-ready');
     await tx.db
       .update(schema.extractions)
       .set({ status: 'committing', updatedAt: sql`now()` })
       .where(eq(schema.extractions.id, extractionId));
-    return { claimed: true as const };
+    // The draft an earlier claim made, if any: the bill is made from it again rather than from a new draft.
+    return { claimed: true as const, draftId: row.claimDocumentId ?? null };
+  });
+}
+
+/** The claim's draft, recorded as soon as it exists: what an abandoned claim is checked against. */
+export async function markClaimDraft(scope: TenantScope, extractionId: string, draftId: string): Promise<void> {
+  allow(scope, allowedRoles.commitReading, 'make a bill from a reading');
+  await withTenant(scope, async (tx) => {
+    await tx.db
+      .update(schema.extractions)
+      .set({ claimDocumentId: draftId })
+      .where(and(eq(schema.extractions.id, extractionId), eq(schema.extractions.status, 'committing')));
   });
 }
 

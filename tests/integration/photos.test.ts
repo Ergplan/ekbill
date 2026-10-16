@@ -208,7 +208,7 @@ describe('one photo, one bill', () => {
     // The bill was refused: the claim is let go and can be taken again.
     await photos.releaseReading(staff, extractionId);
     expect((await photos.getExtraction(staff, extractionId)).status).toBe('reviewed');
-    expect(await photos.claimReading(staff, extractionId)).toEqual({ claimed: true });
+    expect(await photos.claimReading(staff, extractionId)).toEqual({ claimed: true, draftId: null });
     // Issued: corrections and the commit together.
     const bill = await documents.probeIssuedBill(staff, 'Photo Once');
     const done = await photos.finishReading(
@@ -219,6 +219,39 @@ describe('one photo, one bill', () => {
     );
     expect(done).toMatchObject({ status: 'committed', committedDocumentId: bill });
     expect(await photos.claimReading(staff, extractionId)).toEqual({ claimed: false, documentId: bill });
+  });
+});
+
+// Stage 7 review: a bill issued, then the commit failed (or the process died); five minutes on the claim counted as
+// abandoned, was taken again, and a second bill was issued from the same photo.
+describe('an abandoned claim whose bill was issued', () => {
+  it('is finished with that bill, not taken again; one whose draft was never issued makes the bill from it', async () => {
+    const staff = await scopeFor('sharma', 'staff');
+    const { extractionId } = await read(staff, 'kaccha-08');
+    expect(await photos.claimReading(staff, extractionId)).toEqual({ claimed: true, draftId: null });
+    const draft = await documents.createDraft(staff, {
+      customer: { name: 'Photo Twice', stateCode: null },
+      placeOfSupplyStateCode: null,
+      dateIso: '2026-10-15',
+      gstOn: false,
+      lines: [{ description: 'Repair', quantityMilli: 1000, unitPricePaise: 10000, gstBp: 0, taxRateChosen: true }],
+    });
+    await photos.markClaimDraft(staff, extractionId, draft.id);
+    const age = () =>
+      withTenant(staff, ({ client }) =>
+        client.query("update extractions set updated_at = now() - interval '6 minutes' where id = $1", [extractionId]),
+      );
+    // Not issued yet, and the claim abandoned: taken again, with the same draft.
+    await age();
+    expect(await photos.claimReading(staff, extractionId)).toEqual({ claimed: true, draftId: draft.id });
+    // Issued, and the commit never happened.
+    const issued = await documents.issueDocument(staff, { id: draft.id, today: '2026-10-15' });
+    await age();
+    expect(await photos.claimReading(staff, extractionId)).toEqual({ claimed: false, documentId: issued.id });
+    expect(await photos.getExtraction(staff, extractionId)).toMatchObject({
+      status: 'committed',
+      committedDocumentId: issued.id,
+    });
   });
 });
 

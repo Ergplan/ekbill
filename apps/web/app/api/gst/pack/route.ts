@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { isMonthPeriod, addMonthsToPeriod } from '@ekbill/engine';
-import { buildCaPack } from '@ekbill/render';
+import { CaPackError, buildCaPack } from '@ekbill/render';
 
 import { log } from '../../../../server/log';
 import { current } from '../../../../server/session';
@@ -23,9 +23,23 @@ export async function GET(request: Request) {
   const to = url.searchParams.get('to') ?? from;
   if (!isMonthPeriod(from) || !isMonthPeriod(to) || to < from) return new NextResponse(null, { status: 400 });
   const months: string[] = [];
-  for (let p = from; p <= to && months.length < 12; p = addMonthsToPeriod(p, 1)) months.push(p);
+  for (let p = from; p <= to; p = addMonthsToPeriod(p, 1)) {
+    months.push(p);
+    // More than a year is refused, never cut short silently (a pack that says it covers what it does not).
+    if (months.length > 12) return new NextResponse(null, { status: 400 });
+  }
   const t0 = Date.now();
-  const pack = await buildCaPack(me.scope, months);
+  let pack;
+  try {
+    pack = await buildCaPack(me.scope, months);
+  } catch (e) {
+    if (e instanceof CaPackError)
+      return NextResponse.json(
+        { error: 'gst.pack.mixed-gstin' },
+        { status: 409, headers: { 'cache-control': 'no-store' } },
+      );
+    throw e;
+  }
   log.info(
     { requestId: me.scope.requestId, months: months.length, documents: pack.documents, ms: Date.now() - t0 },
     'ca pack',

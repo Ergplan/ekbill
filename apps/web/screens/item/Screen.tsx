@@ -45,7 +45,8 @@ export function ItemScreen({
     hsn: item?.hsn ?? '',
     unit: item?.unit ?? 'nos',
     rate: item ? String(item.ratePaise / 100) : '',
-    gst: item?.gstRate !== null && item?.gstRate !== undefined ? String(item.gstRate) : '18',
+    // A new item starts at 18 %; a saved item with no rate keeps none (its bill's rate applies), never 18 by surprise.
+    gst: item ? (item.gstRate !== null && item.gstRate !== undefined ? String(item.gstRate) : '') : '18',
   });
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<{ field: string; text: string } | null>(null);
@@ -71,7 +72,8 @@ export function ItemScreen({
       hsnSac: d.hsn || null,
       unit: d.unit || null,
       defaultRatePaise: ratePaise,
-      defaultTaxBp: registration === 'regular' && d.gst !== '' ? Math.round(Number(d.gst) * 100) : null,
+      // Only a regular business sees the rate; for the others it is left as stored (undefined), not cleared.
+      defaultTaxBp: registration === 'regular' ? (d.gst !== '' ? Math.round(Number(d.gst) * 100) : null) : undefined,
     };
     const local = checkItem(input, today);
     if (!local.ok) {
@@ -157,7 +159,7 @@ export function ItemScreen({
               options={rates.map((r) => ({ value: String(r), label: `${r}%` }))}
             />
           ) : (
-            <Input id="it-gst" value={`${d.gst}%`} disabled readOnly />
+            <Input id="it-gst" value={d.gst ? `${d.gst}%` : '—'} disabled readOnly />
           )}
         </Field>
       ) : null}

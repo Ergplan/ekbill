@@ -1,8 +1,11 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { toGstr1Json, type IssuedSnapshot, type IssueLine } from '../../packages/engine/src/index';
 import * as documents from '../../packages/db/src/repos/documents';
 import * as gst from '../../packages/db/src/repos/gst';
+import { withTenant } from '../../packages/db/src/scope';
+import { browserPath, closeRenderer } from '../../packages/render/src/index';
+import { CaPackError, buildCaPack } from '../../packages/render/src/ca-pack';
 import { scopeFor, seeded } from './helpers';
 
 /**
@@ -30,6 +33,7 @@ let numbers: Record<'N1' | 'N2' | 'T', string>;
 let n1Snapshot: IssuedSnapshot;
 
 seeded();
+afterAll(() => closeRenderer());
 beforeAll(async () => {
   const owner = await scopeFor('sharma', 'owner');
   const before = await gst.workingsFor(owner, MONTH);
@@ -98,4 +102,41 @@ describe('a regular business’s bill with GST off', () => {
     expect(w.outward).toEqual([]);
     expect(w.gstr1.nilExempt).toEqual([]);
   });
+});
+
+describe('the CA pack files the bills under the GSTIN they were issued with (Stage 8 review)', () => {
+  it.skipIf(!browserPath())(
+    'a profile changed afterwards does not change the pack; two GSTINs in one period are refused',
+    { timeout: 120_000 },
+    async () => {
+      const owner = await scopeFor('sharma', 'owner');
+      const set = (gstin: string, state: string) =>
+        withTenant(owner, ({ client }) =>
+          client.query('update businesses set gstin = $1, state_code = $2 where id = $3', [
+            gstin,
+            state,
+            owner.businessId,
+          ]),
+        );
+      await set('29AAAAA0000A1Z5', '29');
+      try {
+        const pack = await buildCaPack(owner, MONTH);
+        expect(pack.gstr1.gstin).toBe('27AAAAA0000A1Z2');
+        // B2CS stays intra-State: the bills were issued in Maharashtra.
+        expect(pack.gstr1.b2cs.every((r) => r.sply_ty === 'INTRA')).toBe(true);
+        // A bill issued under the new GSTIN in the same month: one pack cannot file both.
+        const d = await documents.createDraft(owner, {
+          customer: { name: 'After the move', stateCode: '29' },
+          dateIso: '2025-12-20',
+          gstOn: true,
+          placeOfSupplyStateCode: '29',
+          lines: [line('Switch', 10000, 1800)],
+        });
+        await documents.issueDocument(owner, { id: d.id, today: '2025-12-20' });
+        await expect(buildCaPack(owner, MONTH)).rejects.toBeInstanceOf(CaPackError);
+      } finally {
+        await set('27AAAAA0000A1Z2', '27');
+      }
+    },
+  );
 });

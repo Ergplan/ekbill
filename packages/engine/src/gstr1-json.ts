@@ -227,7 +227,7 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
         inv_typ: 'R',
         itms: parts.map((p, i) => ({
           num: i + 1,
-          itm_det: detail({ ...p, gstBp: rateOf(p) }),
+          itm_det: detail(p),
         })),
       });
       cdnr.set(first.customerGstin, bucket);
@@ -241,10 +241,10 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
           parts.reduce((s, p) => s + p.taxablePaise + p.cgstPaise + p.statePaise + p.igstPaise + p.cessPaise, 0),
         ),
         pos: first.placeOfSupplyStateCode ?? args.sellerStateCode,
-        itms: parts.map((p, i) => ({ num: i + 1, itm_det: detail({ ...p, gstBp: rateOf(p) }) })),
+        itms: parts.map((p, i) => ({ num: i + 1, itm_det: detail(p) })),
       });
     } else {
-      for (const p of parts) addB2cs(p.placeOfSupplyStateCode ?? args.sellerStateCode, rateOf(p), -1, p);
+      for (const p of parts) addB2cs(p.placeOfSupplyStateCode ?? args.sellerStateCode, p.gstBp, -1, p);
     }
   }
 
@@ -306,14 +306,4 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
     hsn: { data: hsn },
     doc_issue: { doc_det: docDet },
   };
-}
-
-/** A credit-note row's rate, from its heads (the table keeps heads, not the rate). */
-function rateOf(p: { taxablePaise: number; cgstPaise: number; statePaise: number; igstPaise: number }): number {
-  if (!p.taxablePaise) return 0;
-  const tax = p.igstPaise || p.cgstPaise + p.statePaise;
-  const pct = (tax * 100) / p.taxablePaise;
-  const known = [0, 0.1, 0.25, 1.5, 3, 5, 6, 7.5, 12, 18, 28, 40];
-  const nearest = known.reduce((a, b) => (Math.abs(b - pct) < Math.abs(a - pct) ? b : a), 0);
-  return Math.round(nearest * 100);
 }

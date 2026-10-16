@@ -146,14 +146,25 @@ type IssueBillData = z.infer<typeof issueBillInput>;
 async function issueFrom(
   scope: TenantScope,
   d: IssueBillData,
+  /** Told the draft's id as soon as it exists (the photo's claim records it). */
+  onDraft?: (draftId: string) => Promise<void>,
 ): Promise<BillResult<{ id: string; number: string; renderMs: number | null }>> {
   const today = todayIst(new Date());
   let draftId = d.id ?? undefined;
   try {
     const profile = await businesses.getProfile(scope);
+    // Lines first: a form the server refuses must not leave a customer behind it.
+    const lines = await linesFrom(scope, d.lines, d.gstOn);
+    if (!Array.isArray(lines)) return lines;
+    // A retry of a refused attempt for a new name: the customer that attempt made is this bill's, not a second one.
+    let customerId = d.customerId ?? null;
+    if (!customerId && draftId) {
+      const draft = await documents.getDocument(scope, draftId);
+      if (draft.customerId && draft.customerName.trim() === d.customerName.trim()) customerId = draft.customerId;
+    }
     let customer;
-    if (d.customerId) {
-      const row = await customers.getCustomer(scope, d.customerId);
+    if (customerId) {
+      const row = await customers.getCustomer(scope, customerId);
       customer = {
         id: row.id,
         name: row.name,
@@ -181,8 +192,6 @@ async function issueFrom(
         phone: row.phone,
       };
     }
-    const lines = await linesFrom(scope, d.lines, d.gstOn);
-    if (!Array.isArray(lines)) return lines;
     // A walk-in with no state on record buys at the counter (the seller's state); a tax invoice asks (CheckStrip).
     const placeOfSupply =
       customer.stateCode ?? (d.gstOn && profile.registrationType === 'regular' ? null : profile.stateCode);
@@ -197,6 +206,7 @@ async function issueFrom(
     const draft = draftId
       ? await documents.updateDraft(scope, draftId, draftInput)
       : await documents.createDraft(scope, draftInput);
+    if (onDraft) await onDraft(draft.id);
     draftId = draft.id;
     const issued = await documents.issueDocument(scope, { id: draft.id, today });
     let renderMs: number | null = null;
@@ -391,7 +401,9 @@ export async function makeBillFromPhoto(
   }
   let made: Awaited<ReturnType<typeof issueFrom>>;
   try {
-    made = await issueFrom(s.scope, bill);
+    made = await issueFrom(s.scope, { ...bill, id: claim.draftId ?? bill.id }, (draftId) =>
+      photos.markClaimDraft(s.scope, extractionId, draftId),
+    );
   } catch (e) {
     await photos.releaseReading(s.scope, extractionId).catch(() => undefined);
     throw e;

@@ -2282,8 +2282,12 @@
     "en": "Choose one of {allowed}%. If unsure, ask your accountant."
   },
   "assess.nil-rated-on-tax-invoice": {
-    "hi-Latn": "Har line 0% hai: aisa bill 'bill of supply' hota hai. \"GST lagega? Nahi\" karo.",
-    "en": "Every line is nil-rated: such a bill is a bill of supply. Switch GST off for this bill."
+    "hi-Latn": "Har line 0% hai: aisa bill tax invoice nahi, 'bill of supply' hota hai.",
+    "en": "Every line is nil-rated: such a bill is a bill of supply, not a tax invoice."
+  },
+  "assess.nil-rated-on-tax-invoice.do": {
+    "hi-Latn": "\"GST lagega? Nahi\" karo; bill of supply ban jaayega.",
+    "en": "Switch GST off for this bill; it goes out as a bill of supply."
   },
   "assess.self-billing": {
     "hi-Latn": "Customer ka GSTIN aapka hi hai.",
@@ -2372,6 +2376,14 @@
   "assess.number-too-long.do": {
     "hi-Latn": "Aap → Bill number mein chhota prefix ya naya series banao.",
     "en": "In Aap → Bill numbers, shorten the prefix or start a new series."
+  },
+  "assess.number-taken": {
+    "hi-Latn": "Number {number} is saal kisi aur bill ko mil chuka hai (doosri series se).",
+    "en": "Number {number} has already gone to another bill this year (from another series)."
+  },
+  "assess.number-taken.do": {
+    "hi-Latn": "Aap mein series ka shuru ka hissa (prefix) badlo, taaki dono series ke number alag rahein.",
+    "en": "In Aap, change one series' prefix so the two series give different numbers."
   },
   "assess.credit-more-than-bill": {
     "hi-Latn": "Is bill pe ab sirf {left} tak kam ho sakta hai.",

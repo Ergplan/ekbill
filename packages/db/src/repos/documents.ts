@@ -527,6 +527,32 @@ export async function issueDocument(scope: TenantScope, input: { id: string; tod
         ],
         prepared.assessment,
       );
+    // Rule 46 and I3: one number, one document in the year, whichever series gave it. Two series whose numbers
+    // meet (INV- padded to 3 and INV-0 padded to 2 both give INV-001) are refused here, in words; the unique index
+    // documents_business_fy_number (migration 0011) holds the line against a race.
+    const taken = await db
+      .select({ id: schema.documents.id })
+      .from(schema.documents)
+      .where(
+        and(
+          eq(schema.documents.businessId, scope.businessId),
+          eq(schema.documents.financialYear, allocated.financialYear),
+          eq(schema.documents.number, allocated.number),
+        ),
+      )
+      .limit(1);
+    if (taken.length)
+      throw new IssueRefusedError(
+        [
+          {
+            code: 'number-taken',
+            message: { key: 'assess.number-taken', params: { number: allocated.number } },
+            whatYouCanDo: { key: 'assess.number-taken.do' },
+            ruleId: null,
+          },
+        ],
+        prepared.assessment,
+      );
     const after = afterAllocation(config, allocated);
     await db
       .update(schema.series)

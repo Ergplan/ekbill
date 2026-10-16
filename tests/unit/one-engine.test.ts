@@ -333,6 +333,8 @@ const FIXTURES: Fixture[] = [
     name: '14 a nil-rated line on a tax invoice',
     input: { ...intra, lines: [L('Fresh vegetables', 100000, 0)] },
     expect: { gstPaise: 0, totalPaise: 100000, documentKind: 'tax-invoice', heads: [] },
+    // Every line 0 %: issued as a bill of supply, never a tax invoice with no tax (Stage 3 review).
+    refused: 'nil-rated-on-tax-invoice',
   },
   {
     name: '15 three paise at 18% round to nothing on each head',

@@ -190,6 +190,8 @@ export interface Gstr1Tables {
        * threshold on the invoice's date), reported in CDNUR; null otherwise, netted into B2CS.
        */
       unregisteredType: 'B2CL' | null;
+      /** The rate of this part of the note, as issued (never worked back from the heads: a few paise round to 0). */
+      gstBp: number;
       sourceIds: string[];
       sourceDocumentId: string;
     }
@@ -272,7 +274,7 @@ export function buildGstr1(args: {
   for (const doc of taxedInvoices.filter((d) => d.customerGstin)) {
     const gstin = doc.customerGstin!;
     const bucket = b2bByGstin.get(gstin) ?? { customerGstin: gstin, customerName: doc.customerName, documents: [] };
-    let entry = bucket.documents.find((d) => d.documentNumber === doc.documentNumber);
+    let entry = bucket.documents.find((d) => d.sourceDocumentId === doc.sourceDocumentId);
     if (!entry) {
       entry = {
         documentNumber: doc.documentNumber,
@@ -297,7 +299,7 @@ export function buildGstr1(args: {
     if (t) ruleIds.add(t.ruleId);
     const large = doc.isInterState && t !== null && doc.invoiceValuePaise > t.thresholdPaise;
     if (large) {
-      let entry = b2cLarge.find((d) => d.documentNumber === doc.documentNumber);
+      let entry = b2cLarge.find((d) => d.sourceDocumentId === doc.sourceDocumentId);
       if (!entry) {
         entry = {
           documentNumber: doc.documentNumber,
@@ -429,6 +431,7 @@ export function buildGstr1(args: {
         isInterState: n.isInterState,
         linkedNumber: linked?.number ?? null,
         unregisteredType: large ? ('B2CL' as const) : null,
+        gstBp: n.gstBp,
         sourceIds: [n.id],
         sourceDocumentId: n.sourceDocumentId,
       };

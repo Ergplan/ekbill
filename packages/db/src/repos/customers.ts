@@ -105,11 +105,32 @@ export async function createCustomer(scope: TenantScope, input: CustomerInput): 
   }
 }
 
+/**
+ * A field the input leaves out (undefined) keeps its stored value; null clears it. The customer screen edits the
+ * name, phone, GSTIN and language: an address, State or PAN brought in by an import stays.
+ */
 export async function updateCustomer(scope: TenantScope, id: string, input: CustomerInput): Promise<Customer> {
   allow(scope, allowedRoles.updateCustomer, 'change a customer');
-  const c = checked(input);
   try {
     return await withTenant(scope, async ({ db }) => {
+      const stored = (await db.select().from(schema.customers).where(eq(schema.customers.id, id)).for('update'))[0];
+      if (!stored) throw new NotFoundError('customer');
+      const base: CustomerInput = {
+        name: stored.name,
+        contactPerson: stored.contactPerson,
+        phone: stored.phone,
+        email: stored.email,
+        gstin: stored.gstin,
+        pan: stored.pan,
+        address: stored.address,
+        city: stored.city,
+        pincode: stored.pincode,
+        stateCode: stored.stateCode,
+        language: stored.language,
+        languageSource: stored.languageSource as CustomerInput['languageSource'],
+        notes: stored.notes,
+      };
+      const c = checked({ ...base, ...definedOnly(input) });
       const [row] = await db
         .update(schema.customers)
         .set({ ...c, updatedAt: sql`now()` })
@@ -189,3 +210,8 @@ export const tenancyProbes: TenancyProbe[] = [
     },
   },
 ];
+
+/** The keys a caller gave (undefined dropped): what a patch overlays on the stored row. */
+function definedOnly<T extends object>(input: T): Partial<T> {
+  return Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)) as Partial<T>;
+}

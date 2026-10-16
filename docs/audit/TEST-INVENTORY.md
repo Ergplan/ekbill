@@ -6,9 +6,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 39    | 368    |
-| integration | 23    | 263    |
-| e2e         | 16    | 63     |
+| unit        | 40    | 377    |
+| integration | 24    | 268    |
+| e2e         | 16    | 64     |
 
 ## unit
 
@@ -40,6 +40,12 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the form, the paper and the GST workings agree on a fixture bill
 - every fixture bill was computed by the engine (no second tax calculation in the generator)
 
+### `tests/unit/bill-gst-lines.test.ts`
+
+- lines at different rates come back per line
+- lines at one rate come back as one rate
+- a line with no rate takes the businessâ€™s default, and none at all gives the default
+
 ### `tests/unit/bill-links.test.ts`
 
 - put the whole number in one path segment, and the route reads it back
@@ -59,6 +65,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - gives one line per HSN code and rate, tax-inclusive, adding up to the amount
 - a note for the whole bill gives back each groupâ€™s value
 - nothing to credit on a bill with no value
+- four equal groups and 2 paise: 2 paise, no negative part
+- any split adds up to the amount (a sweep of groups and amounts)
+- a â‚¹10 crore note on a â‚¹10 crore bill stays exact (BigInt)
 
 ### `tests/unit/engine-assess.test.ts`
 
@@ -72,7 +81,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - blocks a regular registrant with no GSTIN, no state or no confirmed place of supply
 - refuses a rate the law does not have on the billâ€™s date (selectable-rates-gst2), and keeps the old ones for old dates
 - refuses to print a tax invoice with a rate nobody chose, and counts them
-- allows a bill where every rate was answered, including a deliberate 0%, and says it should be a bill of supply
+- a tax invoice where every line is 0 % is refused: it is a bill of supply (s. 31(3)(c); Stage 3 review)
 - does not ask a business that charges no GST for a rate
 - e-invoicing: unscreened blocks, self-declared passes, above the threshold blocks, exempt passes (e-invoice-threshold-2023)
 - e-invoicing is for B2B only (scope b2b): a walk-inâ€™s bill neither blocks nor is noted
@@ -166,6 +175,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - nets a credit noteâ€™s value, and leaves the quantity sold as it was
 - marks the note against the large invoice B2CL, and names the invoice
 - reports it in cdnur, and nets only the small one in B2CS
+- CDNR carries 18, not a rate guessed from a paisa of tax
+- an unregistered note nets into the 18 % B2CS row
+- B2B lists both, each with its own value
 
 ### `tests/unit/engine-ids.test.ts`
 
@@ -550,6 +562,12 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - audits the issue: one row for the document and one for the series, under the request id
 - a model may not issue (I6), and another business sees nothing of it (I1)
 
+### `tests/integration/edits-keep.test.ts`
+
+- the profile: a save without a look or bank details keeps them (Stage 4 review)
+- the customer: address, State, email, PAN and notes survive a name change
+- the item: its description and "price includes GST" survive a rename
+
 ### `tests/integration/gst-nil.test.ts`
 
 - is a bill of supply: its own title, no tax, no composition legend
@@ -587,6 +605,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 ### `tests/integration/numbering.test.ts`
 
+- two series whose numbers meet cannot give one number twice in a year (Stage 3 review)
 - 50 concurrent issues on one fresh series produce exactly 1â€¦50
 - restarts at 1 when the financial year rolls over, and keeps the year in the number when asked
 - the next number only goes up, never below what was issued
@@ -617,6 +636,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the accountant reads but does not upload or review
 - corrections are kept as rows; the commit needs an issued bill and is final
 - only one claim wins; a refused bill lets go; after the commit a claim answers the bill already made
+- is finished with that bill, not taken again; one whose draft was never issued makes the bill from it
 - refuses a model actor on documents and customers, and on every step but its own
 
 ### `tests/integration/poocho.test.ts`
@@ -839,6 +859,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - (b) on real data: money came in, in full: 3 taps, and the dues move
 - staff make a bill for a new customer, record part of the money; the file downloads
 - a line naming a saved item carries its unit onto the bill
+- a customer added earlier lends their GSTIN to nobody elseâ€™s bill (Stage 6 review)
 - the owner writes off, reverses, credits, then cancels and redoes a bill
 - a composition business (harmony) issues a bill of supply; the reminder is opened and kept
 - the accountant reads bills and downloads files, and records nothing

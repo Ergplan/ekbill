@@ -71,6 +71,20 @@
       "when": 1792142583090,
       "tag": "0010_review_stage2",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792173777831,
+      "tag": "0011_review_stages_3_to_10",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792173886098,
+      "tag": "0012_extraction_claim_document",
+      "breakpoints": true
     }
   ]
 }

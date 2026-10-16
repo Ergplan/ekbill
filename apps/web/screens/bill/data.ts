@@ -7,6 +7,7 @@ import { ledgerOf, linesOf, scopeOf, todayOf } from '../live';
 import { avatarIndex, customerIdOf } from '../people';
 import type { Viewer } from '../viewer';
 import type { BillDraft } from './compute';
+import { gstOfLines } from './gst-lines';
 
 export interface BillFormData {
   business: {
@@ -32,6 +33,8 @@ export interface BillFormData {
     lines: Array<{ what: string; qty: string; rate: string }>;
     totalPaise: number;
     gstRate: number | null;
+    /** Each line's rate, when the lines' rates differ (else empty): the form fills them per line. */
+    gstRates: number[];
   } | null;
   /** The draft the form opens with (number from the series, today's date). */
   initial: BillDraft;
@@ -99,6 +102,10 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
         lines: previousLines.map(toLine),
         totalPaise: previousDoc.totals?.totalPaise ?? 0,
         gstRate: previousLines[0]?.gstRate ?? null,
+        gstRates: gstOfLines(
+          previousLines.map((l) => l.gstRate),
+          defaultRate,
+        ).perLine,
       }
     : null;
   const customerState = opts.state === 'check-fail' ? null : (row?.stateCode ?? null);
@@ -155,9 +162,12 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
       lines: redoLines?.length ? redoLines.map(toLine) : [{ what: '', qty: '1', rate: '' }],
       gst: {
         on: registration === 'regular' && (redoDoc ? redoDoc.gstOn : true),
-        mode: 'one',
-        rate: redoLines?.[0]?.gstRate ?? previous?.gstRate ?? defaultRate,
-        perLine: [],
+        ...(redoLines?.length
+          ? gstOfLines(
+              redoLines.map((l) => l.gstRate),
+              defaultRate,
+            )
+          : { mode: 'one' as const, rate: previous?.gstRate ?? defaultRate, perLine: [] }),
       },
       series: series?.prefix.replace(/[-/]+$/, '') ?? '',
       number,
@@ -217,6 +227,10 @@ function loadFixtureForm(
         lines: previousBill.lines.map((l) => ({ what: l.what, qty: String(l.qty), rate: String(l.ratePaise / 100) })),
         totalPaise: previousBill.totalPaise,
         gstRate: previousBill.lines[0]?.gstRate ?? null,
+        gstRates: gstOfLines(
+          previousBill.lines.map((l) => l.gstRate),
+          defaultRate,
+        ).perLine,
       }
     : null;
   // The fixture's failing check: a customer without a state on a regular business.
@@ -258,9 +272,12 @@ function loadFixtureForm(
         : [{ what: '', qty: '1', rate: '' }],
       gst: {
         on: registration === 'regular',
-        mode: 'one',
-        rate: redoBill?.lines[0]?.gstRate ?? previous?.gstRate ?? defaultRate,
-        perLine: [],
+        ...(redoBill?.lines.length
+          ? gstOfLines(
+              redoBill.lines.map((l) => l.gstRate),
+              defaultRate,
+            )
+          : { mode: 'one' as const, rate: previous?.gstRate ?? defaultRate, perLine: [] }),
       },
       series: series.prefix,
       number,

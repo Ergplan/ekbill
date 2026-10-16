@@ -14,7 +14,7 @@
 | [`document_files`](#document_files)                 | 11      | forced | yes   |
 | [`documents`](#documents)                           | 33      | forced | yes   |
 | [`extraction_corrections`](#extraction_corrections) | 8       | forced | yes   |
-| [`extractions`](#extractions)                       | 20      | forced | yes   |
+| [`extractions`](#extractions)                       | 21      | forced | yes   |
 | [`import_files`](#import_files)                     | 9       | forced | yes   |
 | [`import_rows`](#import_rows)                       | 9       | forced | yes   |
 | [`imports`](#imports)                               | 10      | forced | yes   |
@@ -276,11 +276,12 @@ Indexes: `extraction_corrections_extraction`.
 | `cost_micros`           | bigint                   | yes  |                   |
 | `latency_ms`            | integer                  | yes  |                   |
 | `committed_document_id` | uuid                     | yes  |                   |
+| `claim_document_id`     | uuid                     | yes  |                   |
 | `created_by`            | uuid                     | no   |                   |
 | `created_at`            | timestamp with time zone | no   | now()             |
 | `updated_at`            | timestamp with time zone | no   | now()             |
 
-References: `business_id` → `businesses`; `upload_id` → `uploads`; `matched_customer_id` → `customers`; `ai_call_id` → `ai_calls`; `committed_document_id` → `documents`; `created_by` → `users`.
+References: `business_id` → `businesses`; `upload_id` → `uploads`; `matched_customer_id` → `customers`; `ai_call_id` → `ai_calls`; `committed_document_id` → `documents`; `claim_document_id` → `documents`; `created_by` → `users`.
 
 Indexes: `extractions_business_created`, `extractions_upload`.
 

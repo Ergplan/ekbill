@@ -17,5 +17,5 @@ export {
 } from './template';
 export { RenderError, browserPath, closeRenderer, renderJpeg, renderPdf, upiQrDataUrl } from './render';
 export { printAndKeep, printTheRest, type FileKind } from './print';
-export { buildCaPack, type CaPack } from './ca-pack';
+export { CaPackError, buildCaPack, type CaPack } from './ca-pack';
 export { writeXlsx, type Cell, type Sheet } from './xlsx';
