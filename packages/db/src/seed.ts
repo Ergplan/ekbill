@@ -421,20 +421,7 @@ export async function seedBuild(
           });
       }
     }
-    // The brand-new owner stays brand new: a business the setup made in an earlier run is archived and left
-    // behind (nothing is deleted), so /dev/switch/new lands on the welcome flow again.
-    const naya = seedUser('new')!;
-    const left = await client.query<{ business_id: string }>(
-      "update memberships set status = 'removed' where user_id = $1 and status = 'active' returning business_id",
-      [naya.id],
-    );
-    for (const row of left.rows) {
-      await client.query("select set_config('app.business_id', $1, true)", [row.business_id]);
-      await client.query("update businesses set status = 'archived', updated_at = now() where id = $1", [
-        row.business_id,
-      ]);
-      await client.query('update sessions set business_id = null, role = null where user_id = $1', [naya.id]);
-    }
+    await keepNewOwnerNew(client);
     await client.query('commit');
     log(`seed: ${SEED.users.length} people, ${SEED.businesses.length} businesses (upserted)`);
   } catch (error) {
@@ -545,4 +532,24 @@ export async function seedBills(url: string): Promise<number> {
     }
   }
   return issued;
+}
+
+/**
+ * The brand-new owner stays brand new: a business the setup made in an earlier run (or a journey earlier in this
+ * one) is archived and left behind, nothing deleted, so /dev/switch/new lands on the welcome flow again. Runs
+ * inside the caller's transaction.
+ */
+export async function keepNewOwnerNew(client: pg.ClientBase): Promise<void> {
+  const naya = seedUser('new')!;
+  const left = await client.query<{ business_id: string }>(
+    "update memberships set status = 'removed' where user_id = $1 and status = 'active' returning business_id",
+    [naya.id],
+  );
+  for (const row of left.rows) {
+    await client.query("select set_config('app.business_id', $1, true)", [row.business_id]);
+    await client.query("update businesses set status = 'archived', updated_at = now() where id = $1", [
+      row.business_id,
+    ]);
+    await client.query('update sessions set business_id = null, role = null where user_id = $1', [naya.id]);
+  }
 }

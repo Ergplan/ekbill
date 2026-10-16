@@ -1,6 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import pg from 'pg';
+
 import { goldenPaths } from '../../apps/web/screens/golden-paths';
+import { keepNewOwnerNew } from '../../packages/db/src/seed';
 
 /**
  * Stage 6, on real data: a session's bills are documents. The MVP's bills
@@ -245,6 +248,25 @@ test('another business cannot fetch a bill file', async ({ page }) => {
 test('a new business numbers with the year, and its bill opens from the list, the reminder and back', async ({
   page,
 }) => {
+  try {
+    await newBusinessBill(page);
+  } finally {
+    // Naya owner is brand new again for the journeys after this one (golden path (d), the setup).
+    const client = new pg.Client({
+      connectionString: process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5440/ekbill2_dev',
+    });
+    await client.connect();
+    try {
+      await client.query('begin');
+      await keepNewOwnerNew(client);
+      await client.query('commit');
+    } finally {
+      await client.end();
+    }
+  }
+});
+
+async function newBusinessBill(page: Page) {
   await page.goto(`/dev/switch/new?to=${encodeURIComponent('/setup/name')}`);
   await hydrated(page);
   await page.getByLabel(/dukaan ka naam/i).fill(`Saal Traders ${String(Date.now()).slice(-6)}`);
@@ -287,4 +309,4 @@ test('a new business numbers with the year, and its bill opens from the list, th
   await expect(page.locator('main')).toContainText(customer);
   await page.goBack();
   await expect(page.locator('main')).toContainText(number);
-});
+}
