@@ -8,6 +8,8 @@ node_modules
 test-results
 tests/e2e/__screenshots__
 docs
-design/screens
+# The approved Stage 1 screens: only the v2 references, which /flow shows as thumbnails (scripts/copy-thumbs.mjs).
+design/screens/*/*
+!design/screens/*/v2-*.png
 apps/web/public/fonts
 *.tsbuildinfo

@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
 
-import { acceptInvites, createSession, membershipsOf, resolveScope, seedUser, userByPhone } from '@ekbill/db';
+import {
+  acceptInvites,
+  createSession,
+  membershipsOf,
+  resolveScope,
+  seedUser,
+  userByPhone,
+  userForPhone,
+} from '@ekbill/db';
 import { toE164 } from '@ekbill/engine';
 
 import { authMode } from '../../../../server/auth-mode';
@@ -34,9 +42,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ pers
   if (authMode() !== 'switcher') return new NextResponse(null, { status: 404, headers: { 'x-request-id': id } });
   const { person } = await params;
   const seeded = seedUser(person);
+  // Signing in from the login screen (?signin=1): a phone EkBill has not seen is a new person, as the OTP
+  // sign-in makes one (userForPhone); typed on /dev/switch it is not, and goes back to the list.
+  const signingIn = new URL(request.url).searchParams.get('signin') === '1';
   // A phone number: whoever has it, with the invites waiting for it accepted (Stage 9).
   const phone = seeded ? null : toE164(decodeURIComponent(person));
-  const byPhone = phone ? await userByPhone(phone) : null;
+  const byPhone = phone ? await (signingIn ? userForPhone(phone) : userByPhone(phone)) : null;
   const found = seeded
     ? seeded
     : byPhone
@@ -62,7 +73,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ pers
   });
   // The person's settings as they are now (the users row), not as the seed first wrote them.
   const me = await resolveScope(session.id, id);
-  const to = internalPath(new URL(request.url).searchParams.get('to')) ?? (business ? '/' : '/welcome');
+  // No business yet: the login screen goes on to setup; the switcher list shows the welcome first.
+  const to =
+    internalPath(new URL(request.url).searchParams.get('to')) ??
+    (business ? '/' : signingIn ? '/setup/name' : '/welcome');
   const res = new NextResponse(null, { status: 303, headers: { Location: to, 'x-request-id': id } });
   res.cookies.set(sessionCookie(session.id, session.expiresAt));
   res.cookies.set('eb-theme', me?.user.theme ?? found.theme, { path: '/', maxAge: 31_536_000, sameSite: 'lax' });

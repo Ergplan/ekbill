@@ -4,47 +4,47 @@
 
 Every direct dependency of every workspace, the version installed and the licence its package declares. The Urbanist typeface (design/fonts) is under the SIL Open Font License 1.1 (`design/fonts/OFL-LICENSE.txt`). `npm audit` is in `npm-audit.json` (`npm run audit:deps`).
 
-| Package                     | Kind    | Wanted   | Installed     | Licence    | Used by                                |
-| --------------------------- | ------- | -------- | ------------- | ---------- | -------------------------------------- |
-| `@eslint/js`                | dev     | ^10.0.1  | 10.0.1        | MIT        | root                                   |
-| `@playwright/test`          | dev     | ^1.64.0  | 1.64.0        | Apache-2.0 | root                                   |
-| `@types/node`               | dev     | ^24.10.0 | 24.19.2       | MIT        | root                                   |
-| `@types/pg`                 | dev     | ^8.15.5  | 8.23.1        | MIT        | root                                   |
-| `@types/pixelmatch`         | dev     | ^5.2.6   | 5.2.6         | MIT        | root                                   |
-| `@types/pngjs`              | dev     | ^6.0.5   | 6.0.5         | MIT        | root                                   |
-| `@types/react`              | dev     | ^19.2.0  | 19.3.0        | MIT        | root                                   |
-| `@types/react-dom`          | dev     | ^19.2.0  | 19.3.0        | MIT        | root                                   |
-| `@vitest/coverage-v8`       | dev     | ^5.0.4   | not installed | —          | root                                   |
-| `drizzle-kit`               | dev     | ^0.31.11 | 0.31.11       | MIT        | root                                   |
-| `eslint`                    | dev     | ^10.0.0  | 10.12.0       | MIT        | root                                   |
-| `eslint-plugin-react-hooks` | dev     | ^7.1.0   | 7.1.1         | MIT        | root                                   |
-| `fflate`                    | dev     | ^0.8.3   | not installed | —          | root                                   |
-| `pixelmatch`                | dev     | ^8.0.0   | 8.0.0         | ISC        | root                                   |
-| `pngjs`                     | dev     | ^7.0.0   | 7.0.0         | MIT        | root                                   |
-| `prettier`                  | dev     | ^3.6.2   | 3.9.10        | MIT        | root                                   |
-| `typescript`                | dev     | ^5.9.3   | 5.9.3         | Apache-2.0 | root                                   |
-| `typescript-eslint`         | dev     | ^8.71.0  | 8.71.2        | MIT        | root                                   |
-| `vitest`                    | dev     | ^5.0.4   | 5.0.4         | MIT        | root                                   |
-| `@types/qrcode`             | runtime | ^1.5.5   | not installed | —          | packages/render                        |
-| `drizzle-orm`               | runtime | ^0.45.0  | 0.45.4        | Apache-2.0 | packages/db                            |
-| `fflate`                    | runtime | ^0.8.3   | not installed | —          | apps/web, packages/render              |
-| `firebase`                  | runtime | ^12.4.0  | not installed | —          | apps/web                               |
-| `firebase-admin`            | runtime | ^14.5.0  | not installed | —          | apps/web                               |
-| `next`                      | runtime | ^16.4.0  | 16.4.0        | MIT        | apps/web                               |
-| `pdfjs-dist`                | runtime | ^4.10.38 | not installed | —          | apps/worker                            |
-| `pg`                        | runtime | ^8.16.0  | 8.23.1        | MIT        | packages/db                            |
-| `pg-boss`                   | runtime | ^12.0.0  | 12.37.1       | MIT        | apps/worker                            |
-| `pino`                      | runtime | ^10.0.0  | 10.4.0        | MIT        | apps/web, apps/worker                  |
-| `playwright-core`           | runtime | ^1.64.0  | 1.64.0        | Apache-2.0 | packages/render                        |
-| `qrcode`                    | runtime | ^1.5.4   | not installed | —          | packages/render                        |
-| `react`                     | runtime | ^19.3.0  | 19.3.0        | MIT        | apps/web                               |
-| `react-dom`                 | runtime | ^19.3.0  | 19.3.0        | MIT        | apps/web                               |
-| `server-only`               | runtime | ^0.0.1   | 0.0.1         | MIT        | apps/web                               |
-| `sharp`                     | runtime | ^0.35.5  | 0.35.5        | Apache-2.0 | apps/worker                            |
-| `tsx`                       | runtime | ^4.20.0  | 4.23.15       | MIT        | apps/worker                            |
-| `zod`                       | runtime | ^4.1.0   | 4.6.7         | MIT        | apps/web, packages/engine, packages/ai |
+| Package                     | Kind    | Wanted   | Installed | Licence    | Used by                                |
+| --------------------------- | ------- | -------- | --------- | ---------- | -------------------------------------- |
+| `@eslint/js`                | dev     | ^10.0.1  | 10.0.1    | MIT        | root                                   |
+| `@playwright/test`          | dev     | ^1.64.0  | 1.64.0    | Apache-2.0 | root                                   |
+| `@types/node`               | dev     | ^24.10.0 | 24.19.2   | MIT        | root                                   |
+| `@types/pg`                 | dev     | ^8.15.5  | 8.23.1    | MIT        | root                                   |
+| `@types/pixelmatch`         | dev     | ^5.2.6   | 5.2.6     | MIT        | root                                   |
+| `@types/pngjs`              | dev     | ^6.0.5   | 6.0.5     | MIT        | root                                   |
+| `@types/react`              | dev     | ^19.2.0  | 19.3.0    | MIT        | root                                   |
+| `@types/react-dom`          | dev     | ^19.2.0  | 19.3.0    | MIT        | root                                   |
+| `@vitest/coverage-v8`       | dev     | ^5.0.4   | 5.0.4     | MIT        | root                                   |
+| `drizzle-kit`               | dev     | ^0.31.11 | 0.31.11   | MIT        | root                                   |
+| `eslint`                    | dev     | ^10.0.0  | 10.12.0   | MIT        | root                                   |
+| `eslint-plugin-react-hooks` | dev     | ^7.1.0   | 7.1.1     | MIT        | root                                   |
+| `fflate`                    | dev     | ^0.8.3   | 0.8.3     | MIT        | root                                   |
+| `pixelmatch`                | dev     | ^8.0.0   | 8.0.0     | ISC        | root                                   |
+| `pngjs`                     | dev     | ^7.0.0   | 7.0.0     | MIT        | root                                   |
+| `prettier`                  | dev     | ^3.6.2   | 3.9.10    | MIT        | root                                   |
+| `typescript`                | dev     | ^5.9.3   | 5.9.3     | Apache-2.0 | root                                   |
+| `typescript-eslint`         | dev     | ^8.71.0  | 8.71.2    | MIT        | root                                   |
+| `vitest`                    | dev     | ^5.0.4   | 5.0.4     | MIT        | root                                   |
+| `@types/qrcode`             | runtime | ^1.5.5   | 1.5.5     | MIT        | packages/render                        |
+| `drizzle-orm`               | runtime | ^0.45.0  | 0.45.4    | Apache-2.0 | packages/db                            |
+| `fflate`                    | runtime | ^0.8.3   | 0.8.3     | MIT        | apps/web, packages/render              |
+| `firebase`                  | runtime | ^12.4.0  | 12.4.0    | Apache-2.0 | apps/web                               |
+| `firebase-admin`            | runtime | ^14.5.0  | 14.5.0    | Apache-2.0 | apps/web                               |
+| `next`                      | runtime | ^16.4.0  | 16.4.0    | MIT        | apps/web                               |
+| `pdfjs-dist`                | runtime | ^4.10.38 | 4.10.38   | Apache-2.0 | apps/worker                            |
+| `pg`                        | runtime | ^8.16.0  | 8.23.1    | MIT        | packages/db                            |
+| `pg-boss`                   | runtime | ^12.0.0  | 12.37.1   | MIT        | apps/worker                            |
+| `pino`                      | runtime | ^10.0.0  | 10.4.0    | MIT        | apps/web, apps/worker                  |
+| `playwright-core`           | runtime | ^1.64.0  | 1.64.0    | Apache-2.0 | packages/render                        |
+| `qrcode`                    | runtime | ^1.5.4   | 1.5.4     | MIT        | packages/render                        |
+| `react`                     | runtime | ^19.3.0  | 19.3.0    | MIT        | apps/web                               |
+| `react-dom`                 | runtime | ^19.3.0  | 19.3.0    | MIT        | apps/web                               |
+| `server-only`               | runtime | ^0.0.1   | 0.0.1     | MIT        | apps/web                               |
+| `sharp`                     | runtime | ^0.35.5  | 0.35.5    | Apache-2.0 | apps/worker                            |
+| `tsx`                       | runtime | ^4.20.0  | 4.23.15   | MIT        | apps/worker                            |
+| `zod`                       | runtime | ^4.1.0   | 4.6.7     | MIT        | apps/web, packages/engine, packages/ai |
 
-Licences in use: Apache-2.0, ISC, MIT, —.
+Licences in use: Apache-2.0, ISC, MIT.
 
 ## npm audit
 

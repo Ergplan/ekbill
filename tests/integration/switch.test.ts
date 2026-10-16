@@ -62,6 +62,22 @@ describe('GET /dev/switch/[person] (the build’s door while sign-in is off)', (
     expect(res.headers.get('set-cookie')).toBeNull();
   });
 
+  it('from the login screen (?signin=1) a new phone is a new owner, sent to setup; typed on the list it is not', async () => {
+    const phone = encodeURIComponent('+919800011122');
+    const typed = await call(phone);
+    expect(typed.headers.get('location')).toBe('/dev/switch');
+    expect(typed.headers.get('set-cookie')).toBeNull();
+    const res = await call(phone, '?signin=1');
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe('/setup/name');
+    const me = await resolveScope(sessionOf(res)!, 'r');
+    expect(me?.user.phoneE164 ?? null).toBe('+919800011122');
+    expect(me?.scope ?? null).toBeNull();
+    // A phone that is already someone (Sharma ji's) signs that person in, on Home.
+    const sharma = await call(encodeURIComponent('+919822012345'), '?signin=1');
+    expect(sharma.headers.get('location')).toBe('/');
+  });
+
   it('echoes a caller’s request id', async () => {
     const res = await GET(
       new Request('http://127.0.0.1:3000/dev/switch/ravi', { headers: { 'x-request-id': 'abc-123' } }),

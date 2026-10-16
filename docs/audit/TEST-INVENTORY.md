@@ -7,8 +7,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
 | unit        | 39    | 368    |
-| integration | 23    | 262    |
-| e2e         | 16    | 62     |
+| integration | 23    | 263    |
+| e2e         | 16    | 63     |
 
 ## unit
 
@@ -788,6 +788,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - gives staff and accountants their business and role; the brand-new owner has none and lands on welcome
 - lands on ?to= only when it is a plain internal path
 - sends an unknown person back to the list without a session
+- from the login screen (?signin=1) a new phone is a new owner, sent to setup; typed on the list it is not
 - echoes a callerâ€™s request id
 - is gone behind AUTH_MODE=otp
 
@@ -889,6 +890,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the brand-new owner lands on welcome; an unknown person goes back to the list
 - the theme persists per user: Sharma ji picks Harmony, Ravi stays Narangi, Sharma ji is still Harmony
 - the language is saved for the person: Ravi picks English, it is there after a reload, then Hinglish again
+- with sign-in off, a new phone at login is a new owner: the code fills itself in, then setup
 - in the build the OTP door is closed (404) and the switcher is the door
 
 ### `tests/e2e/kit.spec.ts` Ã—

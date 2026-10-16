@@ -46,9 +46,14 @@ export function LoginScreen({ state: asked, otp }: { state: 'phone' | 'code'; ot
   // The SMS code fills in by itself (autocomplete=one-time-code); six digits move on without a tap.
   useEffect(() => {
     if (state !== 'code' || code.length !== 6) return;
-    // Six digits: this phone is the brand-new owner for the rest of the prototype (the switch sets the persona cookie).
+    // Sign-in is off (the build): the phone typed is who signs in, a number EkBill has not seen a new owner, as the
+    // OTP sign-in does it. Reached without a phone (the screen opened on its own), the brand-new owner of the seed.
     if (!otp) {
-      router.push('/dev/switch/new?to=/setup/name');
+      router.push(
+        PHONE_RE.test(phone)
+          ? `/dev/switch/${encodeURIComponent(`+91${phone}`)}?signin=1`
+          : '/dev/switch/new?to=/setup/name',
+      );
       return;
     }
     if (!confirmation || busy) return;
@@ -65,7 +70,14 @@ export function LoginScreen({ state: asked, otp }: { state: 'phone' | 'code'; ot
         .finally(() => setBusy(false));
     }, 0);
     return () => window.clearTimeout(id);
-  }, [code, state, router, otp, confirmation, busy]);
+  }, [code, state, router, otp, confirmation, busy, phone]);
+
+  // With sign-in off no SMS comes: the code fills itself in, as the screen says it will, after a phone was typed here.
+  useEffect(() => {
+    if (otp || state !== 'code' || !PHONE_RE.test(phone) || code) return;
+    const id = window.setTimeout(() => setCode('123456'), 1500);
+    return () => window.clearTimeout(id);
+  }, [otp, state, phone, code]);
 
   const sendCode = () => {
     // +91 98xxx: drop the country code only when it is one (12 digits); a 10-digit number may itself start with 91.

@@ -87,6 +87,23 @@ test('the language is saved for the person: Ravi picks English, it is there afte
   await expect(page.locator('html')).toHaveAttribute('lang', 'hi-Latn');
 });
 
+test('with sign-in off, a new phone at login is a new owner: the code fills itself in, then setup', async ({
+  page,
+}) => {
+  const phone = `98${String(Date.now()).slice(-8)}`;
+  await page.context().clearCookies();
+  await page.goto('/welcome');
+  await hydrated(page);
+  await page.getByRole('button', { name: 'Shuru karein' }).click();
+  await page.getByLabel('Phone number').fill(phone);
+  await page.getByRole('button', { name: 'Aage' }).click();
+  await expect(page).toHaveURL(/state=code/);
+  // No tap: the code arrives by itself, as the screen promises, and moves on.
+  await expect(page).toHaveURL(/\/setup\/name/, { timeout: 15_000 });
+  await hydrated(page);
+  await expect(page.getByLabel(/dukaan ka naam/)).toBeVisible();
+});
+
 test('in the build the OTP door is closed (404) and the switcher is the door', async ({ request }) => {
   const res = await request.post('/api/auth/otp', { data: { idToken: 'x'.repeat(40) } });
   expect(res.status()).toBe(404);
