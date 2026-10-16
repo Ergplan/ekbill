@@ -1,7 +1,7 @@
 import { strToU8, zipSync } from 'fflate';
 
 import { businesses, gst, type TenantScope } from '@ekbill/db';
-import { formatPeriodLong, toGstr1Json, type MonthPeriod, type Gstr1Json } from '@ekbill/engine';
+import { financialYearOf, formatPeriodLong, toGstr1Json, type MonthPeriod, type Gstr1Json } from '@ekbill/engine';
 
 import { printAndKeep } from './print';
 import { writeXlsx, type Cell, type Sheet } from './xlsx';
@@ -195,7 +195,13 @@ export async function buildCaPack(scope: TenantScope, months: MonthPeriod[]): Pr
   };
   for (const d of w.documents) {
     const pdf = await printAndKeep(scope, { documentId: d.id, kind: 'pdf', paper: 'a4' });
-    files[`bills/${d.number.replace(/[^A-Za-z0-9._-]+/g, '-')}.pdf`] = new Uint8Array(pdf.bytes);
+    // One file per document: a pack across 1 April can hold last year's INV-001 and this year's, and INV/001 and
+    // INV-001 make the same file name; the second takes its year (and, if that is not enough, its id) on the end.
+    const base = `bills/${d.number.replace(/[^A-Za-z0-9._-]+/g, '-')}`;
+    const name = [`${base}.pdf`, `${base}_${financialYearOf(d.issueDate)}.pdf`, `${base}_${d.id.slice(0, 8)}.pdf`].find(
+      (n) => !(n in files),
+    )!;
+    files[name] = new Uint8Array(pdf.bytes);
   }
   const name = `GST-${(profile.gstin ?? 'business').slice(0, 15)}-${sorted[0]}${sorted.length > 1 ? `-to-${sorted.at(-1)}` : ''}.zip`;
   return { zip: zipSync(files, { level: 6 }), name, documents: w.documents.length, gstr1, sheets };

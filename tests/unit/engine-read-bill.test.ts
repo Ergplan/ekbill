@@ -52,6 +52,10 @@ describe('loose readers', () => {
     expect(looseDate('23-08-2026', '2026-10-15')).toBe('2026-08-23');
     expect(looseDate('5.9.2026', '2026-10-15')).toBe('2026-09-05');
     expect(looseDate('12 Oct', '2026-10-15')).toBe('2026-10-12');
+    // Stage 11 review: with no year, the latest such day not after today (read on 5 January, "28 Dec" is last year's).
+    expect(looseDate('28 Dec', '2027-01-05')).toBe('2026-12-28');
+    expect(looseDate('5 Jan', '2027-01-05')).toBe('2027-01-05');
+    expect(looseDate('6 Jan', '2027-01-05')).toBe('2026-01-06');
     expect(looseDate('2nd Sept 2026', '2026-10-15')).toBe('2026-09-02');
     expect(looseDate('31/2/26', '2026-10-15')).toBeNull();
     expect(looseDate('soon', '2026-10-15')).toBeNull();

@@ -80,7 +80,7 @@ test('the voice opens screens and the reminder; a link out to WhatsApp stays the
   await expect(page).toHaveURL(/\/dues$/);
   const r = await run(page, 'remind', { customer_name: 'Mehta Traders' });
   expect(r).toMatchObject({ ok: true });
-  await expect(page).toHaveURL(/\/bills\/[^/]+\/remind$/);
+  await expect(page).toHaveURL(/\/bills\/[^/]+\/remind\?fy=\d{4}-\d{2}$/);
   await hydrated(page);
   await expect.poll(() => screenText(page)).toContain('[screen] remind');
   // Every item that leaves the app (WhatsApp) or sends is OWNER-ONLY on this screen.

@@ -167,6 +167,9 @@ export interface Gstr1Tables {
       documentDate: CivilDate;
       customerGstin: string | null;
       registered: boolean;
+      /** The note's own place of supply (the invoice's): an inter-State note is reported where the supply went. */
+      placeOfSupplyStateCode: string | null;
+      isInterState: boolean;
       linkedNumber: string | null;
       sourceIds: string[];
       sourceDocumentId: string;
@@ -185,7 +188,17 @@ export interface Gstr1Tables {
     }
   >;
   /** Table 13: document number ranges. */
-  documentSummary: Array<{ from: string; to: string; total: number; cancelled: number }>;
+  /**
+   * Table 13: one row per series and document type (GSTN doc types 1, invoices, and 5, credit notes): the first and
+   * last number given in the period (cancelled ones included), how many stand, how many were cancelled.
+   */
+  documentSummary: Array<{
+    docType: 'invoice' | 'credit-note';
+    from: string;
+    to: string;
+    total: number;
+    cancelled: number;
+  }>;
   totals: Heads;
   /** The B2CL threshold rule read, for the report. */
   ruleIds: string[];
@@ -310,19 +323,38 @@ export function buildGstr1(args: {
     }
   }
 
-  const numbers = [...new Set(invoices.map((d) => d.documentNumber))].sort((a, b) =>
-    a.localeCompare(b, 'en', { numeric: true }),
-  );
-  const documentSummary = numbers.length
-    ? [
-        {
-          from: numbers[0]!,
-          to: numbers[numbers.length - 1]!,
-          total: numbers.length,
-          cancelled: args.cancelledNumbers?.length ?? 0,
-        },
-      ]
-    : [];
+  // A number's series is what comes before its running digits ("INV-2026-27/041" -> "INV-2026-27/"): AMC bills
+  // and INV bills are two ranges, never one from AMC-…006 to INV-…041.
+  const seriesOf = (n: string) => n.replace(/\d+$/, '');
+  const byNumber = (a: string, b: string) => a.localeCompare(b, 'en', { numeric: true });
+  const summarise = (docType: 'invoice' | 'credit-note', issued: string[], cancelled: readonly string[]) => {
+    const groups = new Map<string, { issued: Set<string>; cancelled: Set<string> }>();
+    const group = (n: string) => {
+      const g = groups.get(seriesOf(n)) ?? { issued: new Set<string>(), cancelled: new Set<string>() };
+      groups.set(seriesOf(n), g);
+      return g;
+    };
+    for (const n of issued) group(n).issued.add(n);
+    for (const n of cancelled) group(n).cancelled.add(n);
+    return [...groups.entries()]
+      .sort(([a], [b]) => byNumber(a, b))
+      .map(([, g]) => {
+        const all = [...g.issued, ...g.cancelled].sort(byNumber);
+        return { docType, from: all[0]!, to: all.at(-1)!, total: g.issued.size, cancelled: g.cancelled.size };
+      });
+  };
+  const documentSummary = [
+    ...summarise(
+      'invoice',
+      invoices.map((d) => d.documentNumber),
+      args.cancelledNumbers ?? [],
+    ),
+    ...summarise(
+      'credit-note',
+      documents.filter((d) => d.documentType === 'credit-note').map((d) => d.documentNumber),
+      [],
+    ),
+  ];
   const totals = zero();
   for (const d of documents) add(totals, heads(d), d.documentType === 'credit-note' ? -1 : 1);
 
@@ -338,6 +370,8 @@ export function buildGstr1(args: {
       documentDate: n.documentDate,
       customerGstin: n.customerGstin,
       registered: Boolean(n.customerGstin),
+      placeOfSupplyStateCode: n.placeOfSupplyStateCode,
+      isInterState: n.isInterState,
       linkedNumber: null,
       sourceIds: [n.id],
       sourceDocumentId: n.sourceDocumentId,

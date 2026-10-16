@@ -2349,6 +2349,14 @@
     "hi-Latn": "1 July 2017 ke baad ki date chuno.",
     "en": "Pick a date from 1 July 2017 on."
   },
+  "assess.number-too-long": {
+    "hi-Latn": "Agla number {number} 16 akshar se lamba hai, GST mein nahi chalega.",
+    "en": "The next number, {number}, is longer than the 16 characters GST allows."
+  },
+  "assess.number-too-long.do": {
+    "hi-Latn": "Aap → Bill number mein chhota prefix ya naya series banao.",
+    "en": "In Aap → Bill numbers, shorten the prefix or start a new series."
+  },
   "assess.no-lines": {
     "hi-Latn": "Bill mein kuch likha nahi.",
     "en": "Nothing is on the bill."

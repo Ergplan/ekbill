@@ -297,7 +297,7 @@ async function newBusinessBill(page: Page) {
   await page.goto('/bills');
   await hydrated(page);
   await page.getByText(customer).first().click();
-  await expect(page).toHaveURL(new RegExp(`/bills/${encodeURIComponent(number)}$`));
+  await expect(page).toHaveURL(new RegExp(`/bills/${encodeURIComponent(number)}\\?fy=\\d{4}-\\d{2}$`));
   await hydrated(page);
   await expect(page.locator('main')).toContainText(number);
   await expect(page.locator('main')).toContainText('2,400');

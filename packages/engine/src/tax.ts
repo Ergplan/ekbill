@@ -168,13 +168,17 @@ export function computeTax(input: TaxInput): TaxResult {
       );
     }
     const taxPaise = cgstPaise + statePaise + igstPaise + cessPaise;
+    // A tax-inclusive figure is the line's total, to the paisa: the taxable value takes the rounding of the heads
+    // (a paisa either way), so ₹1,422.76 entered is ₹1,422.76 billed, and a credit note for a whole bill gives back
+    // exactly its taxable value and tax.
+    const lineTaxablePaise = l.priceIncludesTax && taxed ? net - taxPaise : taxablePaise;
     return {
       description: l.description,
       quantityMilli,
       unitPricePaise,
       grossPaise,
       discountPaise,
-      taxablePaise,
+      taxablePaise: lineTaxablePaise,
       gstBp,
       cessBp,
       cgstPaise,
@@ -182,7 +186,7 @@ export function computeTax(input: TaxInput): TaxResult {
       igstPaise,
       cessPaise,
       taxPaise,
-      totalPaise: taxablePaise + taxPaise,
+      totalPaise: lineTaxablePaise + taxPaise,
       hsnCode: l.hsnCode ?? null,
       unit: l.unit ?? null,
       blank,

@@ -13,6 +13,7 @@ import {
   emptyTax,
   financialYearOf,
   isEarlierYear,
+  MAX_NUMBER_LENGTH,
   nextNumberFor,
   prepareIssue,
   sequenceOf,
@@ -462,6 +463,20 @@ export async function issueDocument(scope: TenantScope, input: { id: string; tod
       );
     }
     const allocated = nextNumberFor(config, draft.issueDate, highestInEarlierYear);
+    // Rule 46: a number of at most 16 characters. A series that fits today can outgrow it (INV-2026-27/9999 is 16,
+    // the 10,000th bill of the year 17): refuse in words rather than print a number the law does not allow.
+    if (allocated.number.length > MAX_NUMBER_LENGTH)
+      throw new IssueRefusedError(
+        [
+          {
+            code: 'number-too-long',
+            message: { key: 'assess.number-too-long', params: { number: allocated.number } },
+            whatYouCanDo: { key: 'assess.number-too-long.do' },
+            ruleId: null,
+          },
+        ],
+        prepared.assessment,
+      );
     const after = afterAllocation(config, allocated);
     await db
       .update(schema.series)

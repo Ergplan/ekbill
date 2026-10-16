@@ -1,5 +1,6 @@
 import { addDays, compareDates, type CivilDate } from './dates';
 import { parseMoney, parseQuantity } from './money';
+import { nameKey } from './names';
 import { toE164 } from './phone';
 import { computeTax } from './tax';
 import type { Registration } from './rules';
@@ -114,7 +115,7 @@ function validDate(y: number, m: number, d: number): CivilDate | null {
 }
 /**
  * The date as Indian bills write it: 12/10/26, 12-10-2026, 12.10.2026,
- * 12 Oct 2026, 12 Oct (this year), 2026-10-12. Day first, always.
+ * 12 Oct 2026, 12 Oct (the latest one not after today), 2026-10-12. Day first, always.
  */
 export function looseDate(raw: string | null, today: CivilDate): CivilDate | null {
   if (!raw) return null;
@@ -130,19 +131,18 @@ export function looseDate(raw: string | null, today: CivilDate): CivilDate | nul
   if (m) {
     const month = MONTHS.indexOf(m[2]!) + 1;
     if (!month) return null;
-    const y = m[3] ? (m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3])) : Number(today.slice(0, 4));
-    return validDate(y, month, Number(m[1]));
+    if (m[3]) return validDate(m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]), month, Number(m[1]));
+    // No year: the latest such day not after today (a bill read on 5 January that says "28 Dec" is last December's).
+    const thisYear = validDate(Number(today.slice(0, 4)), month, Number(m[1]));
+    if (thisYear && compareDates(thisYear, today) <= 0) return thisYear;
+    return validDate(Number(today.slice(0, 4)) - 1, month, Number(m[1])) ?? thisYear;
   }
   return null;
 }
 
 /** Name likeness, 0–1: the Dice coefficient over letter pairs, after dropping case, punctuation and "ji"/"m/s". */
 export function nameLikeness(a: string, b: string): number {
-  const norm = (s: string) =>
-    s
-      .toLowerCase()
-      .replace(/\bm\/s\.?|\bji\b|\bshri\b|\bsmt\.?/g, ' ')
-      .replace(/[^a-z0-9]+/g, '');
+  const norm = (s: string) => nameKey(s.toLowerCase().replace(/\bm\/s\.?|\bji\b|\bshri\b|\bsmt\.?/g, ' '));
   const x = norm(a);
   const y = norm(b);
   if (!x || !y) return 0;

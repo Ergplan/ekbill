@@ -120,3 +120,34 @@ describe('calculation fixtures', () => {
     expect(computeTax(regular(null, [L('A', '1', '100', '18')])).supply).toBe('intra');
   });
 });
+
+// Found by the Stage 11 review: a tax-inclusive figure was backed out to a taxable value and the heads rounded
+// forward again, so the line came to a paisa more or less than what was entered: a credit note for a whole bill
+// (₹1,355 at 5 %: invoice ₹1,422.76, note ₹1,422.77) gave back more than was charged, or left ₹0.01 due for ever.
+describe('a tax-inclusive figure is the line total, to the paisa', () => {
+  it('₹1,422.76 including 5 % is ₹1,422.76, and backs out to the invoice it came from', () => {
+    const inv = computeTax(regular('27', [L('Work', '1', '1355', '5')]));
+    const note = computeTax(regular('27', [L('Credit', '1', '1422.76', '5', { priceIncludesTax: true })]));
+    expect(inv.totalPaise).toBe(142276);
+    expect(note).toMatchObject({ totalPaise: 142276, subtotalPaise: 135500, gstPaise: inv.gstPaise });
+  });
+
+  it('a full credit note gives back exactly what every invoice charged (every rate, intra and inter-State)', () => {
+    const misses: string[] = [];
+    for (const rate of ['0.25', '3', '5', '12', '18', '28'])
+      for (const state of ['27', '29'])
+        for (let rupees = 1; rupees <= 1500; rupees += 1) {
+          const price = `${rupees}.${String(rupees % 100).padStart(2, '0')}`;
+          const inv = computeTax(regular(state, [L('Work', '1', price, rate)]));
+          const back = (inv.totalPaise / 100).toFixed(2);
+          const note = computeTax(regular(state, [L('Credit', '1', back, rate, { priceIncludesTax: true })]));
+          if (
+            note.totalPaise !== inv.totalPaise ||
+            note.subtotalPaise !== inv.subtotalPaise ||
+            note.gstPaise !== inv.gstPaise
+          )
+            misses.push(`${price} at ${rate}% (${state})`);
+        }
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+});

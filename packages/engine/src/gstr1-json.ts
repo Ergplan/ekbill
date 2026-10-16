@@ -200,7 +200,7 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
         nt_num: number,
         nt_dt: gstnDate(first.documentDate),
         val: rupees(value),
-        pos: args.sellerStateCode,
+        pos: first.placeOfSupplyStateCode ?? args.sellerStateCode,
         rchrg: 'N',
         inv_typ: 'R',
         itms: parts.map((p, i) => ({
@@ -210,7 +210,7 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
       });
       cdnr.set(first.customerGstin, bucket);
     } else {
-      for (const p of parts) addB2cs(args.sellerStateCode, rateOf(p), -1, p);
+      for (const p of parts) addB2cs(p.placeOfSupplyStateCode ?? args.sellerStateCode, rateOf(p), -1, p);
     }
   }
 
@@ -227,14 +227,27 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
     samt: rupees(h.statePaise),
     csamt: rupees(h.cessPaise),
   }));
-  const docs = t.documentSummary.map((d, i) => ({
-    num: i + 1,
-    from: d.from,
-    to: d.to,
-    totnum: d.total + d.cancelled,
-    cancel: d.cancelled,
-    net_issue: d.total,
-  }));
+  // Table 13 by GSTN document type: 1, invoices for outward supply; 5, credit notes. One row per series in each.
+  const docDet = (
+    [
+      ['invoice', 1],
+      ['credit-note', 5],
+    ] as const
+  )
+    .map(([type, docNum]) => ({
+      doc_num: docNum,
+      docs: t.documentSummary
+        .filter((d) => d.docType === type)
+        .map((d, i) => ({
+          num: i + 1,
+          from: d.from,
+          to: d.to,
+          totnum: d.total + d.cancelled,
+          cancel: d.cancelled,
+          net_issue: d.total,
+        })),
+    }))
+    .filter((d) => d.docs.length);
   return {
     gstin: args.gstin,
     fp: gstnPeriod(t.period),
@@ -243,7 +256,7 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
     b2cs: [...b2cs.values()],
     cdnr: [...cdnr.values()],
     hsn: { data: hsn },
-    doc_issue: { doc_det: docs.length ? [{ doc_num: 1, docs }] : [] },
+    doc_issue: { doc_det: docDet },
   };
 }
 

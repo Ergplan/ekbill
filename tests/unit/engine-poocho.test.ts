@@ -8,6 +8,7 @@ import {
   itemRecord,
   recordsMessage,
   renumberCitations,
+  questionWords,
   tsQueryFor,
   type BillForSearch,
 } from '../../packages/engine/src/index';
@@ -129,5 +130,14 @@ describe('fusion and citations', () => {
     expect(m.endsWith('Question: Mehta ka rate?')).toBe(true);
     expect(citationsIn('Rate ₹3,500 tha [2], bill [2] [9] [1].', 2)).toEqual([2, 1]);
     expect(renumberCitations('Rate ₹3,500 tha [2], bill [7] mein.', [2])).toBe('Rate ₹3,500 tha [1], bill mein.');
+  });
+});
+
+// Stage 11 review: the vowel signs were stripped from the question, so "शर्मा किराना का बिल" asked for "शर" alone
+// (and the other words fell under two letters). The index keeps whole words; the question does now too.
+describe('a question in Hindi or Tamil', () => {
+  it('keeps its words whole', () => {
+    expect(questionWords('शर्मा किराना का बिल')).toEqual(['शर्मा', 'किराना', 'का', 'बिल']);
+    expect(tsQueryFor('கடை பில்')).toBe('கடை:* | பில்:*');
   });
 });

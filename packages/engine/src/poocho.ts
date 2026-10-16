@@ -172,7 +172,8 @@ export function questionWords(question: string): string[] {
   const words = question
     .toLowerCase()
     .normalize('NFKC')
-    .replace(/[^\p{L}\p{N}\s/-]/gu, ' ')
+    // Letters, their vowel signs (Devanagari and Tamil words are letters and marks), digits.
+    .replace(/[^\p{L}\p{M}\p{N}\s/-]/gu, ' ')
     .split(/[\s/-]+/)
     .filter((w) => w.length >= 2 && !STOP.has(w))
     .slice(0, 12);

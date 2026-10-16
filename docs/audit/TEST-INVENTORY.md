@@ -6,8 +6,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 35    | 334    |
-| integration | 21    | 248    |
+| unit        | 37    | 347    |
+| integration | 21    | 249    |
 | e2e         | 16    | 58     |
 
 ## unit
@@ -146,6 +146,13 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - holds the limits: 300 KB for a logo, 60 KB for a signature, images only
 - accepts a small PNG for either kind and refuses an oversized one before decoding it
 
+### `tests/unit/engine-gstr1-json.test.ts`
+
+- a registered customer's note carries the invoice's place of supply
+- an unregistered buyer's note nets against the same state's B2CS row, inter-State
+- one range per series, the cancelled number inside its range, credit notes apart
+- in gstr1.json as document types 1 and 5
+
 ### `tests/unit/engine-ids.test.ts`
 
 - accepts a well-formed GSTIN and derives its state
@@ -178,6 +185,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - says nothing when it has nothing to go on
 - takes the ten digits however they are typed and stores +91
 - refuses what is not a phone number, and an Indian mobile that cannot exist
+- drops the trunk 0 after +91, reads 0091 as +91, and refuses an Indian number of the wrong length
 - keeps another country code when it is written with the plus
 - opens the customer chat with the message typed in
 - falls back to the chat picker without a usable number
@@ -207,6 +215,14 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - rounds a total to the nearest rupee
 - groups digits the Indian way
 - writes amounts in words for the invoice footer
+
+### `tests/unit/engine-names.test.ts`
+
+- keep their letters and vowel signs, and lose case, spaces and punctuation
+- an import keeps every distinct customer, and still folds a true repeat
+- two walk-ins with different Hindi names are not a duplicate bill; the same name is
+- a rate is compared with the same item, not with another Hindi-named one
+- a photographed name matches the customer it is
 
 ### `tests/unit/engine-numbering.test.ts`
 
@@ -242,6 +258,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - cannot be broken by tsquery syntax in the question
 - a record both searches rank high comes first
 - numbers the records for the model, and the answer cites only ones that exist
+- keeps its words whole
 
 ### `tests/unit/engine-profile.test.ts`
 
@@ -301,6 +318,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - keeps the halves exact on an odd rate (each head from the taxable value at half the rate, rounded once)
 - refuses invalid input instead of producing a wrong number
 - an unknown customer state counts as the pack says (intra), never as an error on the form
+- â‚¹1,422.76 including 5 % is â‚¹1,422.76, and backs out to the invoice it came from
+- a full credit note gives back exactly what every invoice charged (every rate, intra and inter-State)
 
 ### `tests/unit/engine-workings.test.ts`
 
@@ -533,6 +552,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - lists series in the same order whatever is updated, when they were made at the same moment
 - a bill dated in an earlier year continues that year's numbers and the series carries on
 - a number that repeats across years is found by its year; a prefix belongs to one series
+- refuses, in words, a number past 16 characters, and spends nothing
 
 ### `tests/integration/otp-route.test.ts`
 

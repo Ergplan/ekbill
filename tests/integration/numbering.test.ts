@@ -236,4 +236,25 @@ describe('numbering (I3)', () => {
     // Renaming a series keeps its own prefix.
     expect((await series.updateSeries(scope, s.id, { name: 'Yr renamed' })).prefix).toBe('YR-');
   });
+
+  // Stage 11 review: nothing checked rule 46's 16 characters when a number was given, only when a series was set up.
+  it('refuses, in words, a number past 16 characters, and spends nothing', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    const s = await series.createSeries(scope, {
+      name: `Long ${Date.now()}`,
+      kind: 'bill',
+      prefix: 'LP-',
+      padding: 3,
+      includeFy: true,
+      nextNumber: 99_999,
+    });
+    const issue = async () =>
+      documents.issueDocument(scope, { id: (await documents.createDraft(scope, draftIn(s.id))).id, today: TODAY });
+    expect((await issue()).number).toBe('LP-2026-27/99999');
+    await expect(issue()).rejects.toMatchObject({
+      name: 'IssueRefusedError',
+      blockers: [expect.objectContaining({ code: 'number-too-long' })],
+    });
+    expect((await series.getSeries(scope, s.id)).nextNumber).toBe(100_000);
+  });
 });

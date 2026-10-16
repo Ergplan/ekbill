@@ -51,6 +51,16 @@ describe('phone numbers the way people write them', () => {
     expect(toE164(null)).toBeNull();
     expect(toE164('+91 12345 67890')).toBeNull();
   });
+  // Stage 11 review: the trunk 0 after +91 was kept, and +9109876543210 (13 digits, no such number) was stored and
+  // put in wa.me links and the phone sign-in.
+  it('drops the trunk 0 after +91, reads 0091 as +91, and refuses an Indian number of the wrong length', () => {
+    expect(toE164('+91 098765 43210')).toBe('+919876543210');
+    expect(toE164('+91-0-9876543210')).toBe('+919876543210');
+    expect(toE164('0091 98765 43210')).toBe('+919876543210');
+    expect(toE164('+91 98765 4321')).toBeNull();
+    expect(toE164('+91 98765 432100')).toBeNull();
+    expect(toE164('0044 7700 900123')).toBe('+447700900123');
+  });
   it('keeps another country code when it is written with the plus', () => {
     // v2 accepts a foreign customer's number; the MVP refused it.
     expect(toE164('+44 7700 900123')).toBe('+447700900123');

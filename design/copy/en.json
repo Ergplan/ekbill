@@ -588,6 +588,8 @@
   "assess.credit-note-late.do": "Talk to your accountant about a credit note without a tax effect.",
   "assess.no-rules-for-date": "We have no GST rules for this date.",
   "assess.no-rules-for-date.do": "Pick a date from 1 July 2017 on.",
+  "assess.number-too-long": "The next number, {number}, is longer than the 16 characters GST allows.",
+  "assess.number-too-long.do": "In Aap → Bill numbers, shorten the prefix or start a new series.",
   "assess.no-lines": "Nothing is on the bill.",
   "assess.no-lines.do": "Write at least one thing you did.",
   "error.tooLong": "Too long (up to {n})",

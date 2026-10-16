@@ -1,3 +1,4 @@
+import { nameKey } from '../names';
 import type { ImportedCustomer } from './types';
 
 /**
@@ -13,11 +14,7 @@ export interface ExistingCustomer {
   phone: string | null;
 }
 
-export const normaliseName = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/\(sample\)/g, '')
-    .replace(/[^a-z0-9]/g, '');
+export const normaliseName = nameKey;
 const lastTen = (p: string | null | undefined) => (p ?? '').replace(/\D/g, '').slice(-10);
 
 export function matchExisting(
@@ -38,6 +35,7 @@ export function dedupeWithin<T extends Pick<ImportedCustomer, 'name' | 'gstin'>>
   const seen = new Set<string>();
   return customers.filter((c) => {
     const key = c.gstin ?? normaliseName(c.name);
+    if (!key) return true; // a name with nothing comparable in it is never "the same" as another
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

@@ -103,7 +103,11 @@ describe('the workings of a quarter (hand-computed above)', () => {
     expect(w.gstr1.creditNotes.map((n) => [n.documentNumber, n.registered, n.taxablePaise, n.cgstPaise])).toEqual([
       [numbers.CN, true, 100000, 9000],
     ]);
-    expect(w.gstr1.documentSummary).toEqual([{ from: numbers.A, to: numbers.C, total: 3, cancelled: 1 }]);
+    // Table 13: the invoice series' range runs to the cancelled D; the credit note is its own row (doc type 5).
+    expect(w.gstr1.documentSummary).toEqual([
+      { docType: 'invoice', from: numbers.A, to: numbers.D, total: 3, cancelled: 1 },
+      { docType: 'credit-note', from: numbers.CN, to: numbers.CN, total: 1, cancelled: 0 },
+    ]);
     // GSTR-3B 3.1(a) and 3.2.
     expect(w.gstr3b.taxable.taxablePaise).toBe(1250000);
     expect(w.gstr3b.interStateUnregistered).toEqual([

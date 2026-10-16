@@ -581,6 +581,8 @@
   "assess.credit-note-late.do": "Bina tax wali credit note ke liye CA se baat karo.",
   "assess.no-rules-for-date": "Is date ke GST niyam hamare paas nahi hain.",
   "assess.no-rules-for-date.do": "1 July 2017 ke baad ki date chuno.",
+  "assess.number-too-long": "Agla number {number} 16 akshar se lamba hai, GST mein nahi chalega.",
+  "assess.number-too-long.do": "Aap → Bill number mein chhota prefix ya naya series banao.",
   "assess.no-lines": "Bill mein kuch likha nahi.",
   "assess.no-lines.do": "Kam se kam ek kaam likho.",
   "error.tooLong": "Bahut lamba hai ({n} tak)",

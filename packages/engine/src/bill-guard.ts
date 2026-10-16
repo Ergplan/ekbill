@@ -1,5 +1,6 @@
 import type { LineDraft } from './bill-form';
 import { compareDates, daysBetween, type CivilDate } from './dates';
+import { nameKey } from './names';
 
 /**
  * The checks around a bill that an owner with paper would do by memory:
@@ -24,12 +25,7 @@ export interface DuplicateHit {
   totalPaise: number;
 }
 
-function normName(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/\(sample\)/g, '')
-    .replace(/[^a-z0-9]/g, '');
-}
+const normName = nameKey;
 
 /**
  * A bill that looks like this one, already issued to the same customer for
@@ -46,7 +42,7 @@ export function findDuplicate(
     .filter((b) =>
       candidate.customerId
         ? b.customerId === candidate.customerId
-        : normName(b.customerName) === normName(candidate.customerName),
+        : normName(candidate.customerName) !== '' && normName(b.customerName) === normName(candidate.customerName),
     )
     .filter((b) => b.totalPaise === candidate.totalPaise)
     .filter((b) => {
@@ -68,7 +64,7 @@ export function rateOddities(
   lines: readonly LineDraft[],
   last: readonly { description: string; unitPricePaise: number }[],
 ): RateOddity[] {
-  const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const key = nameKey;
   const out: RateOddity[] = [];
   for (const line of lines) {
     const rupees = Number(line.rate.replace(/,/g, ''));
