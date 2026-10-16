@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 
 import type { IssuedSnapshot } from '../../packages/engine/src/index';
+import * as businesses from '../../packages/db/src/repos/businesses';
 import * as documentFiles from '../../packages/db/src/repos/document-files';
 import * as documents from '../../packages/db/src/repos/documents';
 import { withTenant } from '../../packages/db/src/scope';
@@ -137,6 +138,65 @@ describe('the bill on paper', () => {
       const read = await printAndKeep(accountant, { documentId: doc.id, kind: 'jpg', paper: '58mm' });
       expect(read.bytes.length).toBeGreaterThan(1000);
       expect((await documentFiles.renderingsOf(owner, doc.id)).length).toBe(before);
+    },
+  );
+
+  // Found by CI, where a role probe had left Sharma on the modern design: the kept file was looked for under
+  // 'classic', so every share and download of a business on another design printed afresh.
+  it.skipIf(!hasBrowser)(
+    'keeps and reuses the file of a business on a design other than classic',
+    { timeout: 60_000 },
+    async () => {
+      const owner = await scopeFor('sharma', 'owner');
+      const before = (await businesses.getProfile(owner)).look.design;
+      await businesses.setLook(owner, { design: 'modern' });
+      try {
+        const draft = await documents.createDraft(owner, {
+          customer: { name: 'Modern Look', stateCode: '27' },
+          dateIso: '2026-10-15',
+          lines: [
+            { description: 'Fan', quantityMilli: 1000, unitPricePaise: 150000, gstBp: 1800, taxRateChosen: true },
+          ],
+        });
+        const issued = await documents.issueDocument(owner, { id: draft.id, today: '2026-10-15' });
+        const first = await printAndKeep(owner, { documentId: issued.id, kind: 'pdf', paper: 'a4' });
+        const second = await printAndKeep(owner, { documentId: issued.id, kind: 'pdf', paper: 'a4' });
+        expect(first.design).toBe('modern');
+        expect(second.id).toBe(first.id);
+        expect(Buffer.compare(second.bytes, first.bytes)).toBe(0);
+      } finally {
+        await businesses.setLook(owner, { design: before });
+      }
+    },
+  );
+
+  it.skipIf(!hasBrowser)(
+    'two prints at once of a file not kept yet give the one kept file, bytes and all',
+    { timeout: 60_000 },
+    async () => {
+      const owner = await scopeFor('sharma', 'owner');
+      const draft = await documents.createDraft(owner, {
+        customer: { name: 'Two Taps', stateCode: '27' },
+        dateIso: '2026-10-15',
+        lines: [
+          { description: 'Socket', quantityMilli: 1000, unitPricePaise: 30000, gstBp: 1800, taxRateChosen: true },
+        ],
+      });
+      const issued = await documents.issueDocument(owner, { id: draft.id, today: '2026-10-15' });
+      const [a, b] = await Promise.all([
+        printAndKeep(owner, { documentId: issued.id, kind: 'pdf', paper: 'a5' }),
+        printAndKeep(owner, { documentId: issued.id, kind: 'pdf', paper: 'a5' }),
+      ]);
+      const kept = (await documentFiles.findRendering(owner, {
+        documentId: issued.id,
+        kind: 'pdf',
+        paper: 'a5',
+        design: a.design,
+      }))!;
+      for (const got of [a, b]) {
+        expect(got.id).toBe(kept.id);
+        expect(Buffer.compare(got.bytes, kept.bytes)).toBe(0);
+      }
     },
   );
 });

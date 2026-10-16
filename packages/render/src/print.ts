@@ -29,19 +29,17 @@ export async function printAndKeep(
   scope: TenantScope,
   input: { documentId: string; kind: FileKind; paper: Paper; design?: Design },
 ): Promise<DocumentFile & { bytes: Buffer }> {
-  const existing = await documentFiles.findRendering(scope, {
-    documentId: input.documentId,
-    kind: input.kind,
-    paper: input.paper,
-    design: input.design ?? 'classic',
-  });
+  // The design is settled before the kept file is looked for: the business's own look when none is asked (it was
+  // looked up as 'classic', so a business on any other design re-rendered on every share and download).
+  const profile = await businesses.getProfile(scope);
+  const design = input.design ?? profile.look.design;
+  const key = { documentId: input.documentId, kind: input.kind, paper: input.paper, design };
+  const existing = await documentFiles.findRendering(scope, key);
   if (existing) return existing;
   const doc = await documents.getDocument(scope, input.documentId);
   if (doc.status === 'draft' || !doc.issuedSnapshot || !doc.number)
     throw new Error('only an issued document is printed');
   const snapshot = doc.issuedSnapshot as IssuedSnapshot;
-  const profile = await businesses.getProfile(scope);
-  const design = input.design ?? profile.look.design;
   const [logo, signature] = await Promise.all([
     dataUrlOf(scope, snapshot.seller.logoRef),
     dataUrlOf(scope, snapshot.seller.signatureRef),
@@ -89,7 +87,13 @@ export async function printAndKeep(
     bytes,
     renderMs,
   });
-  return { ...stored, bytes: Buffer.from(bytes) };
+  if (stored.sha256 === createHash('sha256').update(bytes).digest('hex'))
+    return { ...stored, bytes: Buffer.from(bytes) };
+  // Another print of the same combination was kept first (the worker's, or a second tap): that file is the bill,
+  // never this render.
+  const kept = await documentFiles.findRendering(scope, key);
+  if (!kept) throw new Error('a kept bill file went missing');
+  return kept;
 }
 
 /** Every format, paper and design combination of the business's look not kept yet: the worker's render-other-sizes. */
