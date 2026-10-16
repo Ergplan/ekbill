@@ -8,7 +8,7 @@ Rule 12: every stage is reviewed by an independent OpenAI model on the VM (`npm 
 | ----- | -------------------------------------- | ------------- | ---------------- |
 | 0     | [report](../stages/stage-0-report.md)  | 3             | defects          |
 | 1     | [report](../stages/stage-1-report.md)  | 3             | defects          |
-| 2     | [report](../stages/stage-2-report.md)  | 0             | not reviewed yet |
+| 2     | [report](../stages/stage-2-report.md)  | 2             | defects          |
 | 3     | [report](../stages/stage-3-report.md)  | 0             | not reviewed yet |
 | 4     | [report](../stages/stage-4-report.md)  | 0             | not reviewed yet |
 | 5     | [report](../stages/stage-5-report.md)  | 0             | not reviewed yet |
@@ -31,3 +31,8 @@ Rule 12: every stage is reviewed by an independent OpenAI model on the VM (`npm 
 - [stage-1-review-2.md](../stages/stage-1-review-2.md): commit 11f3bcb, 2026-10-15, verdict **defects**
 - [stage-1-review-3.md](../stages/stage-1-review-3.md): commit fe0e170, 2026-10-15, verdict **defects**
 - [stage-1-answers.md](../stages/stage-1-answers.md): the answers to the review
+
+## Stage 2
+
+- [stage-2-review-1.md](../stages/stage-2-review-1.md): commit 100ae55, 2026-10-16, verdict **defects**
+- [stage-2-review-2.md](../stages/stage-2-review-2.md): commit 100ae55, 2026-10-16, verdict **defects**
