@@ -6,7 +6,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./migrate": "./migrate.mjs"
+    "./migrate": "./migrate.mjs",
+    "./load": "./src/load.ts"
   },
   "dependencies": {
     "@ekbill/engine": "2.0.0-dev",

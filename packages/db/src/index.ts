@@ -66,7 +66,7 @@ export {
   seedUserById,
 } from './seed';
 export * as schema from './schema';
-export { businessesWithBills } from './system';
+export { businessesWithBills, installationCounts, queueStatus } from './system';
 
 export interface SchemaStatus {
   ok: boolean;

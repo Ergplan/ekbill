@@ -2065,6 +2065,14 @@
     "hi-Latn": "Yeh mila nahi",
     "en": "Can't find that"
   },
+  "rate.writes": {
+    "hi-Latn": "Bahut jaldi jaldi ho raha hai. Ek minute ruk ke phir karo.",
+    "en": "That is a lot in a minute. Wait a minute and try again."
+  },
+  "rate.signin": {
+    "hi-Latn": "Bahut baar koshish hui. Thodi der baad phir aao.",
+    "en": "Too many tries. Come back in a little while."
+  },
   "help.error.total": {
     "hi-Latn": "Contract ki rakam likho, jaise 5 lakh",
     "en": "Write the contract amount, e.g. 5 lakh"

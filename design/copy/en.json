@@ -517,6 +517,8 @@
   "error.qty": "How many? A number, more than zero",
   "error.amount": "Write the amount properly",
   "error.notFound": "Can't find that",
+  "rate.writes": "That is a lot in a minute. Wait a minute and try again.",
+  "rate.signin": "Too many tries. Come back in a little while.",
   "help.error.total": "Write the contract amount, e.g. 5 lakh",
   "help.ask.gst": "Is GST on top of that, or inside it?",
   "help.ask.rate": "Which GST rate?",

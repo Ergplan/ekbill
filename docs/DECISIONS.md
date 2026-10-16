@@ -699,3 +699,27 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `screens/bill/prefill.ts` (sessionStorage, one hop, read once and removed) carries lines and a GST rate from the voice's start_bill and from the contract helper to `/bills/new?customer=`.
 - Why: the form's draft is per person, bill number and customer (Stage 4); a URL with the lines would put the owner's figures in the address bar and the history.
 - Asked by: the Stage 9 voice and contract helper.
+
+### The load seed is real bills, tagged, and the only thing ever deleted
+
+- Decision: load-test businesses carry `businesses.load_test`; their bills go through `issueDocument` (real snapshots, numbering and audit trail); `removeLoad` deletes only them and the rows that name them, in one transaction with `session_replication_role = replica` (the no-delete and audit triggers off for that transaction only), as the database owner.
+- Why: the Stage 10 prompt asks for the seed and its removal by tag; a seed that skipped the issue path would load-test something that is not the product.
+- Asked by: the Stage 10 prompt (load, delete the seed afterwards).
+
+### The disk estimate is measured, not guessed
+
+- Decision: 10 KB per issued document (2.6 KB row, 5.3 KB of audit rows, a payment and indexes, measured on the build's database); the seed refuses a run that would leave less than 8 GB free on the disk the worker sees.
+- Why: rule 18; the full run is 600,000 documents, about 6 GB.
+- Asked by: the Stage 10 prompt (estimate disk before seeding).
+
+### Rate limits live in the proxy, in memory
+
+- Decision: `proxy.ts` counts writes (every POST, server actions included) per session cookie and sign-in requests (`/dev/switch`, `/api/auth/*`) per forwarded address, in a one-minute sliding window in the web process; over the limit it answers 429 with the dictionary's Hinglish words and Retry-After. `RATE_WRITES_PER_MIN` and `RATE_SIGNIN_PER_MIN` set them (0 turns one off; the journeys run with both off and the limits have their own tests). The gate user's exemption is moot while the gate is off.
+- Why: master prompt 4.3 (60 writes a minute per session; sign-in 30 a minute per IP); one web process on one VM, so an in-memory window is exact; a restart forgets, which errs towards letting the owner work.
+- Asked by: the Stage 10 prompt (rate limits with Hinglish messages).
+
+### The restore drill checks the copy, then runs the suite beside it
+
+- Decision: `deploy/vm/restore-drill.sh` restores the newest dump into a scratch database in the same Postgres, checks it with `scripts/restore-check.mjs` (every migration recorded, forced RLS and the no-delete and audit triggers on every business table, rows back, every issued snapshot's total adding up), runs the integration suite in a second scratch database there, records the times in `deploy/vm/state/last-restore-drill.json`, and drops both.
+- Why: the integration suite empties its database first, so it proves the server and extensions, not the copy; the check proves the copy.
+- Asked by: the Stage 10 prompt (restore drill, time recorded).

@@ -510,6 +510,8 @@
   "error.qty": "Kitna? Number likho, zero se zyada",
   "error.amount": "Rakam theek se likho",
   "error.notFound": "Yeh mila nahi",
+  "rate.writes": "Bahut jaldi jaldi ho raha hai. Ek minute ruk ke phir karo.",
+  "rate.signin": "Bahut baar koshish hui. Thodi der baad phir aao.",
   "help.error.total": "Contract ki rakam likho, jaise 5 lakh",
   "help.ask.gst": "GST iske upar lagega, ya isi mein shaamil hai?",
   "help.ask.rate": "GST kitna?",

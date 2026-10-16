@@ -12,6 +12,7 @@ import {
 } from './bills/jobs';
 import { READ_IMPORT, runReadImport, type ReadImportJob } from './import/job';
 import { READ_BILL, runReadBill, type ReadBillJob } from './read-bill/job';
+import { LOAD_REMOVE, LOAD_SEED, runLoadRemove, runLoadSeed, type LoadSeedJob } from './load/job';
 import { INDEX_SEARCH, runIndexSearch, type IndexSearchJob } from './search/job';
 
 /**
@@ -81,6 +82,15 @@ async function main() {
   });
   // 02:30 in India (21:00 UTC), when nobody is billing.
   await boss.schedule(INDEX_SEARCH, '0 21 * * *');
+  // Stage 10: the load seed and its removal, sent by hand (apps/worker/src/load/cli.ts); one at a time, never retried.
+  await boss.createQueue(LOAD_SEED, { retryLimit: 0, expireInSeconds: 6 * 3600 });
+  await boss.work<LoadSeedJob>(LOAD_SEED, async (jobs) => {
+    for (const job of jobs) log.info(await runLoadSeed(job.data, (s) => log.info(s)), 'load seed finished');
+  });
+  await boss.createQueue(LOAD_REMOVE, { retryLimit: 0, expireInSeconds: 3600 });
+  await boss.work(LOAD_REMOVE, async () => {
+    log.info({ removed: await runLoadRemove((s) => log.info(s)) }, 'load removed');
+  });
   log.info('worker started');
   const stop = async () => {
     log.info('worker stopping');

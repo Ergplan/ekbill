@@ -22,6 +22,9 @@ const serverEnv = {
   DATABASE_URL: process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5440/ekbill2_dev',
   // Poocho and the voice session answer from the stand-in model: no model is called from the build.
   AI_TRANSPORT: 'fake',
+  // One tester signs in and writes far faster than a person: the limits are tested on their own (tests/unit/rate-limit.test.ts).
+  RATE_WRITES_PER_MIN: '0',
+  RATE_SIGNIN_PER_MIN: '0',
 };
 
 export default defineConfig({

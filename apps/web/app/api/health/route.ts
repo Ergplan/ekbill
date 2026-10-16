@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 
 import { NextResponse } from 'next/server';
 
-import { schemaStatus } from '@ekbill/db';
+import { queueStatus, schemaStatus } from '@ekbill/db';
 
 import { logRequest, requestId } from '../../../server/log';
 
@@ -13,7 +13,8 @@ export const runtime = 'nodejs';
  * What this installation can do. State, never secrets: whether Postgres
  * answered and which migration it is on, which auth mode is on, when this
  * build was made, how old the last backup is (deploy/vm/backup.sh writes a
- * small state file the container mounts read-only). Stage 10 adds queue age.
+ * small state file the container mounts read-only), and (Stage 10) the queue: per job kind,
+ * how many wait and how old the oldest is.
  * Every call is logged with its request id (I7) and answers with it.
  */
 interface BackupState {
@@ -36,7 +37,7 @@ function lastBackup(): (BackupState & { ageHours: number }) | 'none' {
 
 export async function GET(request: Request) {
   const id = requestId(request);
-  const db = await schemaStatus();
+  const [db, queue] = await Promise.all([schemaStatus(), queueStatus()]);
   const authMode = process.env.AUTH_MODE ?? 'switcher';
   const body = {
     ok: db.ok,
@@ -46,6 +47,11 @@ export async function GET(request: Request) {
     database: db.ok ? 'ok' : 'FAILED',
     schema: db.version ?? 'none',
     lastBackup: lastBackup(),
+    queue: {
+      waiting: queue.reduce((s, q) => s + q.waiting, 0),
+      oldestSeconds: Math.max(0, ...queue.map((q) => q.oldestSeconds)),
+      byKind: queue,
+    },
     ...(db.error ? { databaseError: db.error } : {}),
   };
   logRequest('GET /api/health', id, { ok: db.ok, schema: body.schema });

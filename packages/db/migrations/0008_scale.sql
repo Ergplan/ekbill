@@ -1,0 +1,2 @@
+ALTER TABLE "businesses" ADD COLUMN "load_test" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+CREATE INDEX "businesses_load_test" ON "businesses" USING btree ("load_test") WHERE "businesses"."load_test";

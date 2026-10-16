@@ -108,6 +108,8 @@ export const businesses = pgTable(
     defaultSeriesId: uuid('default_series_id').references((): AnyPgColumn => series.id),
     voiceOnArrival: boolean('voice_on_arrival').notNull().default(true),
     setupDoneAt: timestamp('setup_done_at', { withTimezone: true }),
+    /** Stage 10: a business the load seed made; only these are ever removed (the load seed's own clean-up). */
+    loadTest: boolean('load_test').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid('created_by')
@@ -115,6 +117,9 @@ export const businesses = pgTable(
       .references(() => users.id),
   },
   (t) => [
+    index('businesses_load_test')
+      .on(t.loadTest)
+      .where(sql`${t.loadTest}`),
     check('businesses_status', sql`${t.status} in ('active', 'archived')`),
     check(
       'businesses_turnover_band',

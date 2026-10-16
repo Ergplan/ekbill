@@ -31,6 +31,8 @@ jobs:
       DATABASE_URL: postgres://postgres@127.0.0.1:5440/ekbill2_test
       DATABASE_URL_TEST: postgres://postgres@127.0.0.1:5440/ekbill2_test
       AUTH_MODE: switcher
+      RATE_WRITES_PER_MIN: '0'
+      RATE_SIGNIN_PER_MIN: '0'
       SLOW: '1'
     steps:
       - uses: actions/checkout@v4

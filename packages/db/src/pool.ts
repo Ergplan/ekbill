@@ -10,7 +10,9 @@ export function getPool(): pg.Pool {
   if (!pool) {
     const url = process.env.DATABASE_URL;
     if (!url) throw new Error('DATABASE_URL is not set');
-    pool = new pg.Pool({ connectionString: url, max: 10, idleTimeoutMillis: 30_000 });
+    // Stage 10: sized by DB_POOL_MAX (web 10, worker 5 in docker-compose.yml; Postgres allows 100 in all).
+    const max = Math.min(50, Math.max(2, Number(process.env.DB_POOL_MAX) || 10));
+    pool = new pg.Pool({ connectionString: url, max, idleTimeoutMillis: 30_000 });
   }
   return pool;
 }
