@@ -928,8 +928,9 @@ export async function documentsByIds(scope: TenantScope, ids: string[]): Promise
 export async function probeIssuedBill(scope: TenantScope, name = 'Probe Customer'): Promise<string> {
   const owner = { ...scope, role: 'owner' as const };
   const d = await createDraft(owner, {
-    customer: { name, stateCode: '27' },
-    placeOfSupplyStateCode: '27',
+    // No state: bought at the counter, in the seller's own State (a composition dealer supplies no other).
+    customer: { name, stateCode: null },
+    placeOfSupplyStateCode: null,
     dateIso: '2026-10-15',
     gstOn: false,
     lines: [{ description: 'Probe work', quantityMilli: 1000, unitPricePaise: 100000, gstBp: 0, taxRateChosen: true }],

@@ -6,9 +6,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 37    | 353    |
-| integration | 22    | 257    |
-| e2e         | 16    | 60     |
+| unit        | 39    | 368    |
+| integration | 23    | 260    |
+| e2e         | 16    | 61     |
 
 ## unit
 
@@ -54,19 +54,28 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - says every key in both registers, with the same placeholders
 - builds the run-time keys the screens compose
 
+### `tests/unit/credit-note-lines.test.ts`
+
+- gives one line per HSN code and rate, tax-inclusive, adding up to the amount
+- a note for the whole bill gives back each groupâ€™s value
+- nothing to credit on a bill with no value
+
 ### `tests/unit/engine-assess.test.ts`
 
 - allows an ordinary domestic supply by a regular registrant, and names the rules it read
 - allows an unregistered business to bill without GST
-- a registered business can make one bill without GST: a plain invoice, no tax lines
+- a registered business can make one bill without GST: a bill of supply (s. 31(3)(c)), no tax lines, no legend
 - a composition business issues a bill of supply with the legend, and may not charge tax (adapted: the MVP refused composition)
+- a composition business may not supply to another State (s. 10(2)(c)); its own State is fine
 - blocks until the GST status is known
 - blocks an unsupported supply type: %s
 - blocks a regular registrant with no GSTIN, no state or no confirmed place of supply
+- refuses a rate the law does not have on the billâ€™s date (selectable-rates-gst2), and keeps the old ones for old dates
 - refuses to print a tax invoice with a rate nobody chose, and counts them
 - allows a bill where every rate was answered, including a deliberate 0%, and says it should be a bill of supply
 - does not ask a business that charges no GST for a rate
 - e-invoicing: unscreened blocks, self-declared passes, above the threshold blocks, exempt passes (e-invoice-threshold-2023)
+- e-invoicing is for B2B only (scope b2b): a walk-inâ€™s bill neither blocks nor is noted
 - the 30-day IRN window (irn-30-day-2025): a â‚¹10 crore business cannot report a bill older than 30 days
 - HSN digits by turnover band (hsn-digits-2021): short codes block, absent codes are said
 - B2C of â‚¹50,000 or more needs the name, address and state (b2c-recipient-details-r46)
@@ -74,7 +83,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - refuses a customer GSTIN that is the businessâ€™s own
 - reads a custom pack when one is passed
 - reverse charge is not issued in this release; an ordinary supply is
-- a regular business switching GST off is told it makes a plain invoice
+- a regular business switching GST off is told it makes a bill of supply
 - a self-declared e-invoicing exemption is noted, not blocked
 - the customer's GSTIN state against the place of supply is asked about, never refused
 - a bill dated within a month of a rate change says its own date decides the rates
@@ -153,6 +162,10 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - an unregistered buyer's note nets against the same state's B2CS row, inter-State
 - one range per series, the cancelled number inside its range, credit notes apart
 - in gstr1.json as document types 1 and 5
+- reports a service (SAC 99â€¦) with the unit NA and no quantity
+- nets a credit noteâ€™s value, and leaves the quantity sold as it was
+- marks the note against the large invoice B2CL, and names the invoice
+- reports it in cdnur, and nets only the small one in B2CS
 
 ### `tests/unit/engine-ids.test.ts`
 
@@ -341,6 +354,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - orders the tables by document, not by whatever order it was handed
 - reports cancelled documents without counting them as sales, and keeps a period to its months
 - totals taxable supplies, keeps nil-rated apart, and lists inter-State B2C by state; credit notes net off
+- nets an inter-State credit note to an unregistered customer off its Stateâ€™s 3.2 row, and drops a row netted to nothing
 - turns a snapshot into one outward document per rate
 - groups months into financial-year quarters
 - offers IFF only in the first two months, and only when used
@@ -394,6 +408,13 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - $name
 - $name: the issued snapshot and the GSTR-1 built from it carry the same figures
 - $name: the form preview shows what the bill will say
+
+### `tests/unit/print-fields.test.ts`
+
+- a tax invoice on %s: place of supply with its code, and reverse charge
+- a credit note on %s names the invoice and its date
+- the %s receipt carries the buyerâ€™s address and State
+- a bill without GST says nothing about reverse charge
 
 ### `tests/unit/rate-limit.test.ts`
 
@@ -528,6 +549,12 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - refuses status = issued from anything but issueDocument (the issue gate)
 - audits the issue: one row for the document and one for the series, under the request id
 - a model may not issue (I6), and another business sees nothing of it (I1)
+
+### `tests/integration/gst-nil.test.ts`
+
+- is a bill of supply: its own title, no tax, no composition legend
+- is reported in Table 8 by supply type, in Table 13â€™s range, and in 3Bâ€™s 3.1(c)
+- a composition dealerâ€™s bills of supply stay out of GSTR-1
 
 ### `tests/integration/gst.test.ts`
 
@@ -808,6 +835,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - (a) on real data: repeat bill to Mehta Traders, the PDF handed to WhatsApp: 4 taps
 - (b) on real data: money came in, in full: 3 taps, and the dues move
 - staff make a bill for a new customer, record part of the money; the file downloads
+- a line naming a saved item carries its unit onto the bill
 - the owner writes off, reverses, credits, then cancels and redoes a bill
 - a composition business (harmony) issues a bill of supply; the reminder is opened and kept
 - the accountant reads bills and downloads files, and records nothing

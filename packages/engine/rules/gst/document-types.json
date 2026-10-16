@@ -1,6 +1,6 @@
 {
   "_note": "GST rule pack (I5): which document a business issues and what it must carry (CGST Rules 46, 49, 53; s. 31, s. 34).",
-  "version": "2026.10.15-stage3",
+  "version": "2026.10.16-stage11-bill-of-supply",
   "effectiveFrom": "2017-07-01",
   "entries": [
     {
@@ -10,7 +10,7 @@
       "effectiveTo": null,
       "kinds": {
         "regular": "tax-invoice",
-        "regular-gst-off": "invoice",
+        "regular-gst-off": "bill-of-supply",
         "composition": "bill-of-supply",
         "unregistered": "invoice",
         "unknown": "invoice"
@@ -20,8 +20,8 @@
         "mustContain": ["Rule 46", "Rule 49", "bill of supply"]
       },
       "explain": {
-        "en": "A regular registered business issues a tax invoice (a plain invoice when it charges no GST on that bill); a composition business a bill of supply; an unregistered business an invoice.",
-        "hi-Latn": "Regular registered dukaan tax invoice banati hai (us bill par GST na ho to invoice); composition wali bill of supply; bina registration wali invoice."
+        "en": "A regular registered business issues a tax invoice, and a bill of supply for a bill that charges no GST (a nil-rated or exempt supply, s. 31(3)(c)); a composition business a bill of supply with its legend; an unregistered business an invoice.",
+        "hi-Latn": "Regular registered dukaan tax invoice banati hai, aur jis bill par GST nahi (nil ya exempt) uska bill of supply; composition wali bill of supply apni line ke saath; bina registration wali invoice."
       },
       "verified": false,
       "verifiedOn": "2026-10-15",

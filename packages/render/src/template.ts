@@ -70,6 +70,10 @@ function tint(hex: string, alpha: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 const stateName = (code: string | null | undefined) => (code ? (findState(code)?.name ?? code) : '');
+/** Rule 46(n): the place of supply by the State's name, with its code. */
+const placeLabel = (code: string) => `${stateName(code)} (${code})`;
+/** Rule 46(p) and 53: whether tax is payable on reverse charge. This release issues no reverse-charge supply (assess blocks it). */
+const REVERSE_CHARGE = 'Tax payable on reverse charge: No';
 
 function prepare(input: PrintInput) {
   const s = input.snapshot;
@@ -259,8 +263,10 @@ ${p.watermark ? `<div class="watermark">${escapeHtml(p.watermark)}</div>` : ''}
     </div>
     ${
       p.showGst && s.placeOfSupplyStateCode
-        ? `<div class="party"><h3>Place of supply</h3><div>${escapeHtml(stateName(s.placeOfSupplyStateCode))}</div><div class="muted">${s.supply === 'intra' ? 'Within state' : 'Interstate'}</div></div>`
-        : ''
+        ? `<div class="party"><h3>Place of supply</h3><div>${escapeHtml(placeLabel(s.placeOfSupplyStateCode))}</div><div class="muted">${s.supply === 'intra' ? 'Within state' : 'Interstate'}</div><div class="muted">${REVERSE_CHARGE}</div></div>`
+        : p.showGst
+          ? `<div class="party"><div class="muted">${REVERSE_CHARGE}</div></div>`
+          : ''
     }
   </div>
   <table class="items">
@@ -323,6 +329,7 @@ function receiptHtml(p: Prepared): string {
       (l) => `
       <div class="item">
         <div class="item__what">${escapeHtml(l.description)}</div>
+        ${l.hsnCode ? `<div class="small">HSN/SAC ${escapeHtml(l.hsnCode)}</div>` : ''}
         <div class="row"><span>${escapeHtml(formatQuantityPlain(l.quantityMilli))}${l.unit ? ` ${escapeHtml(l.unit)}` : ''} x ${formatMoneyIndian(l.unitPricePaise)}${
           p.showGst && mixedRates ? ` · GST ${escapeHtml(formatPercentPlain(l.gstBp))}%` : ''
         }</span><span>${formatMoneyIndian(l.taxablePaise)}</span></div>
@@ -384,8 +391,12 @@ function receiptHtml(p: Prepared): string {
   </div>
   <div class="row"><span>No. ${escapeHtml(p.number)}</span><span>${escapeHtml(formatDateShort(s.dateIso))}</span></div>
   <div>To: <strong>${escapeHtml(s.customer.name)}</strong></div>
+  ${s.customer.address ? `<div class="small">${escapeHtml(s.customer.address)}</div>` : ''}
+  ${s.customer.stateCode ? `<div class="small">${escapeHtml(placeLabel(s.customer.stateCode))}</div>` : ''}
   ${s.customer.gstin ? `<div class="small">GSTIN: ${escapeHtml(s.customer.gstin)}</div>` : ''}
-  ${s.linkedInvoice ? `<div class="small">Against ${escapeHtml(s.linkedInvoice.number)}</div>` : ''}
+  ${p.showGst && s.placeOfSupplyStateCode ? `<div class="small">Place of supply: ${escapeHtml(placeLabel(s.placeOfSupplyStateCode))}</div>` : ''}
+  ${p.showGst ? `<div class="small">${REVERSE_CHARGE}</div>` : ''}
+  ${s.linkedInvoice ? `<div class="small">Against invoice ${escapeHtml(s.linkedInvoice.number)} dated ${escapeHtml(formatDateShort(s.linkedInvoice.dateIso))}</div>` : ''}
   <hr>
   ${items}
   <hr>

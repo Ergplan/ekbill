@@ -1,6 +1,6 @@
 {
   "_note": "GST rule pack (I5): the composition scheme's limits and what its bills must say (s. 10; Rule 7).",
-  "version": "2026.10.15-stage3",
+  "version": "2026.10.16-stage11-inter-state",
   "effectiveFrom": "2019-04-01",
   "entries": [
     {
@@ -19,8 +19,8 @@
         "mustContain": ["section 10", "one crore and fifty lakh", "seventy-five lakh"]
       },
       "explain": {
-        "en": "A business may be under composition up to ₹1.5 crore turnover (₹75 lakh in the special-category States), or ₹50 lakh for services; it cannot collect tax from customers and issues bills of supply with the composition legend.",
-        "hi-Latn": "Composition scheme ₹1.5 crore turnover tak (khaas States mein ₹75 lakh), service ke liye ₹50 lakh; customer se tax nahi le sakte; bill of supply par composition wali line likhi hoti hai."
+        "en": "A business may be under composition up to ₹1.5 crore turnover (₹75 lakh in the special-category States), or ₹50 lakh for services; it cannot collect tax from customers and issues bills of supply with the composition legend; and it may not supply to another State (s. 10(2)(c), 10(2A)).",
+        "hi-Latn": "Composition scheme ₹1.5 crore turnover tak (khaas States mein ₹75 lakh), service ke liye ₹50 lakh; customer se tax nahi le sakte; bill of supply par composition wali line likhi hoti hai; doosre State mein supply nahi kar sakte."
       },
       "verified": false,
       "verifiedOn": "2026-10-15",

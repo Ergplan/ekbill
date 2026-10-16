@@ -88,6 +88,7 @@ const C = (id, business, name, contact, extra = {}) => ({
   notes: null,
   ...extra,
 });
+const UP = { stateCode: '09', stateName: 'Uttar Pradesh' };
 const customers = [
   C('mehta', 'sharma', 'Mehta Traders', 'Mehta', {
     phone: '+919822100001',
@@ -127,9 +128,10 @@ const customers = [
   }),
   C('verma', 'sharma', 'Verma Textiles', 'Verma', { phone: '+919822100011' }),
   C('shinde', 'sharma', 'Shinde Garage', 'Shinde', { phone: '+919822100012' }),
-  C('mishra', 'gupta', 'Mishra ji', 'Mishra', { phone: '+919822200001' }),
-  C('hostel', 'gupta', 'Nehru Hostel Mess', 'Warden', { phone: '+919822200002' }),
-  C('tiffin', 'gupta', 'Anna Tiffin', 'Anna', { phone: '+919822200003' }),
+  // Gupta Kirana is seeded in Kanpur (packages/db/src/seed.ts): a composition dealer's customers are in its own State.
+  C('mishra', 'gupta', 'Mishra ji', 'Mishra', { phone: '+919822200001', ...UP }),
+  C('hostel', 'gupta', 'Nehru Hostel Mess', 'Warden', { phone: '+919822200002', ...UP }),
+  C('tiffin', 'gupta', 'Anna Tiffin', 'Anna', { phone: '+919822200003', ...UP }),
 ];
 const items = [
   { id: 'amc', business: 'sharma', name: 'AMC visit', hsn: '998719', unit: 'visit', ratePaise: 350000, gstRate: 18 },

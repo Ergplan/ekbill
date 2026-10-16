@@ -119,7 +119,7 @@ describe('the rule pack (I5)', () => {
   });
   it('decides the document kind from the pack, not from code', () => {
     expect(documentKind('regular', true, DATE)).toBe('tax-invoice');
-    expect(documentKind('regular', false, DATE)).toBe('invoice');
+    expect(documentKind('regular', false, DATE)).toBe('bill-of-supply');
     expect(documentKind('composition', true, DATE)).toBe('bill-of-supply');
     expect(documentKind('unregistered', true, DATE)).toBe('invoice');
     expect(documentKind('unknown', true, DATE)).toBe('invoice');
@@ -261,7 +261,8 @@ const FIXTURES: Fixture[] = [
   },
   {
     name: '6 cess on top of 28%',
-    input: { ...intra, lines: [L('Aerated drink', 100000, 2800, { cessBp: 1200 })] },
+    // Dated before GST 2.0 (22 September 2025): 28 % is no rate after it, and issuing then is refused.
+    input: { ...intra, dateIso: '2025-06-15', lines: [L('Aerated drink', 100000, 2800, { cessBp: 1200 })] },
     expect: {
       cgstPaise: 14000,
       statePaise: 14000,
@@ -326,7 +327,7 @@ const FIXTURES: Fixture[] = [
   {
     name: '13 a registered business with GST off for this bill',
     input: { ...intra, gstOn: false, lines: [L('Scrap', 100000, 1800)] },
-    expect: { gstPaise: 0, totalPaise: 100000, documentKind: 'invoice', heads: [] },
+    expect: { gstPaise: 0, totalPaise: 100000, documentKind: 'bill-of-supply', heads: [] },
   },
   {
     name: '14 a nil-rated line on a tax invoice',
@@ -342,6 +343,8 @@ const FIXTURES: Fixture[] = [
     name: '16 an odd basis-point rate keeps every paisa',
     input: { ...intra, lines: [L('Odd', 100000, 101)] },
     expect: { cgstPaise: 505, statePaise: 505, gstPaise: 1010, totalPaise: 101010 },
+    // The arithmetic holds for any rate; issuing one the law does not have is refused (fourth review).
+    refused: 'rate-not-in-slabs',
   },
   {
     name: '17 a customer whose state is unknown is treated as local',
@@ -438,7 +441,10 @@ describe('twenty fixtures through the one engine (I4)', () => {
       { id: 'doc', number: 'INV-1', status: 'issued', snapshot: result.snapshot },
     ]);
     const gstr1 = buildGstr1({ period, documents: outward });
-    expect(gstr1.totals.taxablePaise).toBe(direct.subtotalPaise);
+    // GSTR-1's taxable value is the taxed parts; a 0 % line is Table 8's (nil-rated), and the two add up to the bill.
+    const nil = direct.lines.filter((l) => l.gstBp === 0).reduce((n, l) => n + l.taxablePaise, 0);
+    expect(gstr1.totals.taxablePaise).toBe(direct.subtotalPaise - nil);
+    expect(gstr1.nilExempt.reduce((n, r) => n + r.nilPaise, 0)).toBe(nil);
     expect(gstr1.totals.cgstPaise + gstr1.totals.statePaise + gstr1.totals.igstPaise + gstr1.totals.cessPaise).toBe(
       direct.gstPaise,
     );

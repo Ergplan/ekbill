@@ -206,3 +206,44 @@ export function prepareIssue(
   };
   return { ok: true, kind: assessment.kind, title: assessment.title, totals, snapshot, assessment };
 }
+
+/**
+ * The lines of a credit note for `amountPaise` against a bill: one tax-inclusive line for each HSN code,
+ * rate, cess and unit the bill carried, its share in proportion to that group's value on the bill (the
+ * last group takes the paisa left over). So the GST a note reverses is the GST the bill charged, and
+ * GSTR-1's HSN table nets the note against the bill's own codes rather than a row with no code.
+ */
+export function creditNoteLines(billLines: readonly TaxLine[], amountPaise: number, description: string): IssueLine[] {
+  const groups = new Map<
+    string,
+    { hsnCode: string | null; unit: string | null; gstBp: number; cessBp: number; gross: number }
+  >();
+  for (const l of billLines) {
+    if (l.blank || l.totalPaise <= 0) continue;
+    const key = `${l.hsnCode ?? ''}|${l.gstBp}|${l.cessBp}|${l.unit ?? ''}`;
+    const g = groups.get(key) ?? { hsnCode: l.hsnCode, unit: l.unit, gstBp: l.gstBp, cessBp: l.cessBp, gross: 0 };
+    g.gross += l.totalPaise;
+    groups.set(key, g);
+  }
+  const all = [...groups.values()];
+  const whole = all.reduce((sum, g) => sum + g.gross, 0);
+  if (whole <= 0) return [];
+  let left = amountPaise;
+  return all
+    .map((g, i) => {
+      const part = i === all.length - 1 ? left : Math.round((amountPaise * g.gross) / whole);
+      left -= part;
+      return {
+        description,
+        quantityMilli: 1000,
+        unitPricePaise: part,
+        gstBp: g.gstBp,
+        ...(g.cessBp ? { cessBp: g.cessBp } : {}),
+        taxRateChosen: true,
+        priceIncludesTax: true,
+        hsnCode: g.hsnCode,
+        unit: g.unit,
+      };
+    })
+    .filter((l) => l.unitPricePaise > 0);
+}

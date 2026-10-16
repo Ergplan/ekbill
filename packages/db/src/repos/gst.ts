@@ -97,13 +97,39 @@ export async function periodDocuments(scope: TenantScope, months: MonthPeriod[])
   });
 }
 
+/** The value of each invoice the period's credit notes correct, by id: a B2C Large invoice's note goes to CDNUR. */
+async function linkedInvoiceValues(scope: TenantScope, docs: readonly PeriodDocument[]): Promise<Map<string, number>> {
+  const values = new Map<string, number>();
+  for (const d of docs) if (d.kind !== 'credit_note') values.set(d.id, d.totalPaise);
+  const missing = [
+    ...new Set(
+      docs.flatMap((d) =>
+        d.kind === 'credit_note' && d.snapshot.linkedInvoice && !values.has(d.snapshot.linkedInvoice.id)
+          ? [d.snapshot.linkedInvoice.id]
+          : [],
+      ),
+    ),
+  ];
+  if (!missing.length) return values;
+  return withTenant(scope, async ({ db }) => {
+    const rows = await db
+      .select({ id: schema.documents.id, totals: schema.documents.totals })
+      .from(schema.documents)
+      .where(and(eq(schema.documents.businessId, scope.businessId), inArray(schema.documents.id, missing)));
+    for (const r of rows) values.set(r.id, (r.totals as { totalPaise?: number } | null)?.totalPaise ?? 0);
+    return values;
+  });
+}
+
 /** The months' workings: GSTR-1 tables, GSTR-3B outward, the rate split; every figure traceable to its documents. */
 export async function workingsFor(scope: TenantScope, months: MonthPeriod[]): Promise<Workings> {
   const documents = await periodDocuments(scope, months);
-  // Bills of supply carry no tax and are not GSTR-1 supplies of a regular business; tax invoices and credit notes are.
-  const taxed = documents.filter((d) => d.kind !== 'bill_of_supply');
+  // A composition dealer files no GSTR-1: its bills of supply stay out. A regular business's bill of supply (GST
+  // off on that bill) is a nil-rated or exempt supply: Table 8, Table 13 and 3B's 3.1(c).
+  const taxed = documents.filter((d) => d.kind !== 'bill_of_supply' || d.snapshot.seller.registration === 'regular');
   const outward = outwardDocumentsFromSnapshots(
     taxed.map((d) => ({ id: d.id, number: d.number, status: d.status, snapshot: d.snapshot })),
+    await linkedInvoiceValues(scope, taxed),
   );
   const period = [...months].sort().at(-1)!;
   const gstr1 = buildGstr1({

@@ -19,12 +19,12 @@ import { scopeFor, seeded } from './helpers';
  *
  * The quarter Apr–Jun 2026 of Sharma Electricals (no seeded bill falls in it):
  *   A  Mehta Traders (B2B, 27): ₹10,000 at 18 % + ₹2,000 at 5 %   → CGST 900+50, SGST 900+50, total ₹13,900
- *   B  walk-in in Madhya Pradesh (B2C, inter-State): ₹1,000 at 12 % → IGST 120, total ₹1,120
+ *   B  walk-in in Madhya Pradesh (B2C, inter-State): ₹1,000 at 5 %  → IGST 50, total ₹1,050
  *   C  walk-in in Maharashtra (B2C, intra): ₹500 at 18 %          → CGST 45, SGST 45, total ₹590
  *   D  Mehta Traders ₹3,000 at 18 %, cancelled                    → reported, never counted
  *   CN against A: ₹1,180 including 18 %                          → taxable 1,000, CGST 90, SGST 90
- * Net: taxable 10,000+2,000+1,000+500−1,000 = ₹12,500; CGST 950+45−90 = ₹905; SGST ₹905; IGST ₹120.
- * By rate: 18 % taxable 9,500 (CGST 855, SGST 855); 12 % taxable 1,000 (IGST 120); 5 % taxable 2,000 (CGST 50, SGST 50).
+ * Net: taxable 10,000+2,000+1,000+500−1,000 = ₹12,500; CGST 950+45−90 = ₹905; SGST ₹905; IGST ₹50.
+ * By rate: 18 % taxable 9,500 (CGST 855, SGST 855); 5 % taxable 3,000 (CGST 50, SGST 50, IGST 50).
  */
 const MEHTA = { name: 'Mehta Traders', gstin: '27AABCG1234H1ZZ', stateCode: '27' };
 const line = (description: string, pricePaise: number, gstBp: number, extra: Partial<IssueLine> = {}): IssueLine => ({
@@ -57,7 +57,7 @@ beforeAll(async () => {
   // Fresh each run: the test database is dropped and migrated per run (global setup).
   const A = await issue('2026-04-10', MEHTA, [line('Panel wiring', 1000000, 1800), line('Fuse set', 200000, 500)]);
   const B = await issue('2026-05-05', { name: 'Bhopal walk-in', stateCode: '23' }, [
-    line('Inverter service', 100000, 1200),
+    line('Inverter service', 100000, 500),
   ]);
   const C = await issue('2026-05-20', { name: 'Counter sale', stateCode: '27' }, [line('Switch', 50000, 1800)]);
   const D = await issue('2026-06-02', MEHTA, [line('Wrong bill', 300000, 1800)]);
@@ -81,12 +81,11 @@ describe('the workings of a quarter (hand-computed above)', () => {
       taxablePaise: 1250000,
       cgstPaise: 90500,
       statePaise: 90500,
-      igstPaise: 12000,
+      igstPaise: 5000,
       cessPaise: 0,
     });
     expect(w.byRate.map((r) => [r.gstBp, r.taxablePaise, r.cgstPaise, r.statePaise, r.igstPaise])).toEqual([
-      [500, 200000, 5000, 5000, 0],
-      [1200, 100000, 0, 0, 12000],
+      [500, 300000, 5000, 5000, 5000],
       [1800, 950000, 85500, 85500, 0],
     ]);
     // B2B: Mehta's bill A with both rates; the cancelled D is not there.
@@ -96,7 +95,7 @@ describe('the workings of a quarter (hand-computed above)', () => {
     ]);
     // B2C small: the inter-State and the intra-State walk-ins, by place of supply and rate.
     expect(w.gstr1.b2cSmall.map((r) => [r.placeOfSupplyStateCode, r.gstBp, r.taxablePaise]).sort()).toEqual([
-      ['23', 1200, 100000],
+      ['23', 500, 100000],
       ['27', 1800, 50000],
     ]);
     // The credit note to a registered customer, and the documents summary counting the cancelled bill.
@@ -111,7 +110,7 @@ describe('the workings of a quarter (hand-computed above)', () => {
     // GSTR-3B 3.1(a) and 3.2.
     expect(w.gstr3b.taxable.taxablePaise).toBe(1250000);
     expect(w.gstr3b.interStateUnregistered).toEqual([
-      { placeOfSupplyStateCode: '23', taxablePaise: 100000, igstPaise: 12000 },
+      { placeOfSupplyStateCode: '23', taxablePaise: 100000, igstPaise: 5000 },
     ]);
   });
 
@@ -180,7 +179,7 @@ describe('gstr1.json and workings.xlsx (the CA pack)', () => {
       expect(json.cdnr[0].nt[0]).toMatchObject({ ntty: 'C', nt_num: numbers.CN, nt_dt: '15-06-2026', val: 1180 });
       expect(json.b2cs).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ sply_ty: 'INTER', pos: '23', rt: 12, txval: 1000, iamt: 120 }),
+          expect.objectContaining({ sply_ty: 'INTER', pos: '23', rt: 5, txval: 1000, iamt: 50 }),
           expect.objectContaining({ sply_ty: 'INTRA', pos: '27', rt: 18, txval: 500, camt: 45, samt: 45 }),
         ]),
       );
@@ -201,7 +200,7 @@ describe('gstr1.json and workings.xlsx (the CA pack)', () => {
       expect(value('GSTIN')).toBe('27AAAAA0000A1Z2');
       expect(Number(value('Taxable value (net of credit notes)'))).toBe(12500);
       expect(Number(value('CGST'))).toBe(905);
-      expect(Number(value('IGST'))).toBe(120);
+      expect(Number(value('IGST'))).toBe(50);
       expect(Number(value('Documents cancelled'))).toBe(1);
       const b2b = readXlsx(xlsx, 2);
       expect(b2b[0]).toEqual(expect.arrayContaining(['Customer GSTIN', 'Invoice', 'Rate %', 'Taxable']));
@@ -209,7 +208,9 @@ describe('gstr1.json and workings.xlsx (the CA pack)', () => {
         [numbers.A, 5, 2000],
         [numbers.A, 18, 10000],
       ]);
-      const docs = readXlsx(xlsx, 8);
+      // Table 8 has a sheet of its own (empty this quarter: every bill is taxed), then HSN, 3B, the documents.
+      expect(readXlsx(xlsx, 6)[0]).toEqual(['Supply', 'Nil rated', 'Exempted', 'Non-GST', 'Documents']);
+      const docs = readXlsx(xlsx, 9);
       expect(
         docs
           .slice(1)

@@ -54,6 +54,25 @@ export interface Gstr1Json {
       itms: Array<{ num: number; itm_det: ItemDetail }>;
     }>;
   }>;
+  /** Table 9B, unregistered: credit notes against B2C Large invoices (the rest are netted into B2CS); absent when none. */
+  cdnur?: Array<{
+    typ: 'B2CL';
+    ntty: 'C';
+    nt_num: string;
+    nt_dt: string;
+    val: number;
+    pos: string;
+    itms: Array<{ num: number; itm_det: ItemDetail }>;
+  }>;
+  /** Table 8: nil-rated, exempt and non-GST supplies; absent when there are none. */
+  nil?: {
+    inv: Array<{
+      sply_ty: 'INTRB2B' | 'INTRAB2B' | 'INTRB2C' | 'INTRAB2C';
+      nil_amt: number;
+      expt_amt: number;
+      ngsup_amt: number;
+    }>;
+  };
   hsn: {
     data: Array<{
       num: number;
@@ -108,6 +127,8 @@ const detail = (l: {
 });
 /** The offline tool numbers an item by its rate (18 % → 1801). */
 const itemNumber = (gstBp: number, i: number) => Math.round(gstBp / 100) * 100 + i + 1;
+
+const isService = (code: string | null) => Boolean(code && code.replace(/\D/g, '').startsWith('99'));
 
 /** Unit quantity codes the portal takes; a unit it does not know is OTH. */
 const UQC: Record<string, string> = {
@@ -185,6 +206,7 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
 
   // Credit notes: to a registered customer in CDNR (one note, its rates as items); to the rest, netted in B2CS.
   const cdnr = new Map<string, Gstr1Json['cdnr'][number]>();
+  const cdnur: NonNullable<Gstr1Json['cdnur']> = [];
   const byNote = new Map<string, Gstr1Tables['creditNotes']>();
   for (const n of t.creditNotes) byNote.set(n.documentNumber, [...(byNote.get(n.documentNumber) ?? []), n]);
   for (const [number, parts] of byNote) {
@@ -209,6 +231,18 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
         })),
       });
       cdnr.set(first.customerGstin, bucket);
+    } else if (first.unregisteredType === 'B2CL') {
+      cdnur.push({
+        typ: 'B2CL',
+        ntty: 'C',
+        nt_num: number,
+        nt_dt: gstnDate(first.documentDate),
+        val: rupees(
+          parts.reduce((s, p) => s + p.taxablePaise + p.cgstPaise + p.statePaise + p.igstPaise + p.cessPaise, 0),
+        ),
+        pos: first.placeOfSupplyStateCode ?? args.sellerStateCode,
+        itms: parts.map((p, i) => ({ num: i + 1, itm_det: detail({ ...p, gstBp: rateOf(p) }) })),
+      });
     } else {
       for (const p of parts) addB2cs(p.placeOfSupplyStateCode ?? args.sellerStateCode, rateOf(p), -1, p);
     }
@@ -218,8 +252,9 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
     num: i + 1,
     hsn_sc: h.hsnCode ?? '',
     desc: h.description.slice(0, 30),
-    uqc: UQC[(h.unit ?? 'nos').toLowerCase()] ?? 'OTH',
-    qty: h.quantityMilli / 1000,
+    // A service (SAC, chapter 99) has no unit quantity: the portal takes NA and 0.
+    uqc: isService(h.hsnCode) ? 'NA' : (UQC[(h.unit ?? 'nos').toLowerCase()] ?? 'OTH'),
+    qty: isService(h.hsnCode) ? 0 : h.quantityMilli / 1000,
     rt: h.gstBp / 100,
     txval: rupees(h.taxablePaise),
     iamt: rupees(h.igstPaise),
@@ -255,6 +290,19 @@ export function toGstr1Json(args: { gstin: string; sellerStateCode: string; tabl
     b2cl: [...b2clByPos.values()],
     b2cs: [...b2cs.values()],
     cdnr: [...cdnr.values()],
+    ...(cdnur.length ? { cdnur } : {}),
+    ...(t.nilExempt.length
+      ? {
+          nil: {
+            inv: t.nilExempt.map((r) => ({
+              sply_ty: r.supplyType,
+              nil_amt: rupees(r.nilPaise),
+              expt_amt: 0,
+              ngsup_amt: 0,
+            })),
+          },
+        }
+      : {}),
     hsn: { data: hsn },
     doc_issue: { doc_det: docDet },
   };

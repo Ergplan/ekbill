@@ -4,11 +4,11 @@
 
 The rules EkBill applies, as the rule pack holds them (I5): every entry with the window it applies in, the official source, whether that source was checked, and the explanation the app shows when the owner taps "Kyun?". The engine reads only the pack; a rule that changes is a new entry with a new date, never an edit.
 
-## composition (version 2026.10.15-stage3)
+## composition (version 2026.10.16-stage11-inter-state)
 
 | Entry | Applies | Checked | Explanation | Source |
 | --- | --- | --- | --- | --- |
-| `composition-limits-2019` | 2019-04-01 to now | not yet (2026-10-15) | A business may be under composition up to ₹1.5 crore turnover (₹75 lakh in the special-category States), or ₹50 lakh for services; it cannot collect tax from customers and issues bills of supply with the composition legend. | https://cbic-gst.gov.in/CGST-Act.html |
+| `composition-limits-2019` | 2019-04-01 to now | not yet (2026-10-15) | A business may be under composition up to ₹1.5 crore turnover (₹75 lakh in the special-category States), or ₹50 lakh for services; it cannot collect tax from customers and issues bills of supply with the composition legend; and it may not supply to another State (s. 10(2)(c), 10(2A)). | https://cbic-gst.gov.in/CGST-Act.html |
 
 ## credit-note-limits (version 2026.10.15-stage3)
 
@@ -16,11 +16,11 @@ The rules EkBill applies, as the rule pack holds them (I5): every entry with the
 | --- | --- | --- | --- | --- |
 | `credit-note-declare-limit` | 2017-07-01 to now | not yet (2026-10-15) | A credit note that reduces tax must be declared by 30 November after the end of the financial year of the invoice, or the date of the annual return, whichever is earlier. | https://cbic-gst.gov.in/CGST-Act.html |
 
-## document-types (version 2026.10.15-stage3)
+## document-types (version 2026.10.16-stage11-bill-of-supply)
 
 | Entry | Applies | Checked | Explanation | Source |
 | --- | --- | --- | --- | --- |
-| `document-kinds-2017` | 2017-07-01 to now | not yet (2026-10-15) | A regular registered business issues a tax invoice (a plain invoice when it charges no GST on that bill); a composition business a bill of supply; an unregistered business an invoice. | https://cbic-gst.gov.in/CGST-rules.html |
+| `document-kinds-2017` | 2017-07-01 to now | not yet (2026-10-15) | A regular registered business issues a tax invoice, and a bill of supply for a bill that charges no GST (a nil-rated or exempt supply, s. 31(3)(c)); a composition business a bill of supply with its legend; an unregistered business an invoice. | https://cbic-gst.gov.in/CGST-rules.html |
 | `tax-invoice-fields-r46` | 2017-07-01 to now | not yet (2026-10-15) | A tax invoice carries the supplier's name, address and GSTIN; a unique serial number of up to 16 characters per financial year; the date; the recipient's name, address and GSTIN when registered; HSN or SAC; description; quantity and unit; total and taxable value; the tax split by head; the place of supply with the State for an inter-State supply; the delivery address when it differs; whether tax is payable on reverse charge; and a signature (not on an e-invoice). | https://cbic-gst.gov.in/CGST-rules.html |
 | `b2c-recipient-details-r46` | 2017-07-01 to now | not yet (2026-10-15) | On a bill of ₹50,000 or more to an unregistered customer the invoice must carry the customer's name and address and the State of the place of supply. | https://cbic-gst.gov.in/CGST-rules.html |
 | `bill-of-supply-r49` | 2017-07-01 to now | not yet (2026-10-15) | A bill of supply carries no tax lines; a composition business prints the legend 'composition taxable person, not eligible to collect tax on supplies'. | https://cbic-gst.gov.in/CGST-rules.html |
@@ -56,14 +56,14 @@ The rules EkBill applies, as the rule pack holds them (I5): every entry with the
 | `selectable-rates-gst2` | 2025-09-22 to now | not yet (2026-10-15) | From 22 September 2025 (the 56th Council's rationalisation) the slabs are 0, 5, 18 and 40 per cent, with 0.25 and 3 per cent special rates. | https://pib.gov.in/PressReleasePage.aspx?PRID=2162945 |
 | `council-57-no-change` | 2026-10-08 to now | not yet (2026-10-15) | The 57th Council (8 October 2026) recommended compliance changes and no rate change; nothing applies until notified. | https://pib.gov.in/PressReleaseIframePage.aspx?PRID=2200001 |
 
-## returns-calendar (version 2026.10.15-stage3)
+## returns-calendar (version 2026.10.16-stage11-group-a)
 
 | Entry | Applies | Checked | Explanation | Source |
 | --- | --- | --- | --- | --- |
 | `gstr1-monthly-due` | 2017-07-01 to now | not yet (2026-10-15) | A monthly GSTR-1 is due on the 11th of the next month. | https://tutorial.gst.gov.in/userguide/returns/ |
 | `gstr1-quarterly-due` | 2021-01-01 to now | not yet (2026-10-15) | A quarterly GSTR-1 under QRMP is due on the 13th of the month after the quarter; IFF for months 1 and 2 by the 13th of the next month. | https://tutorial.gst.gov.in/userguide/returns/ |
 | `gstr3b-monthly-due` | 2017-07-01 to now | not yet (2026-10-15) | A monthly GSTR-3B is due on the 20th of the next month. | https://tutorial.gst.gov.in/userguide/returns/ |
-| `gstr3b-quarterly-due` | 2021-01-01 to now | not yet (2026-10-15) | A quarterly GSTR-3B is due on the 22nd of the month after the quarter in the southern and western States and the 24th elsewhere. | https://tutorial.gst.gov.in/userguide/returns/ |
+| `gstr3b-quarterly-due` | 2021-01-01 to now | not yet (2026-10-15) | A quarterly GSTR-3B is due on the 22nd of the month after the quarter in Group I (Chhattisgarh, Madhya Pradesh, Gujarat, Maharashtra, Karnataka, Goa, Kerala, Tamil Nadu, Telangana, Andhra Pradesh, Daman and Diu, Dadra and Nagar Haveli, Puducherry, Andaman and Nicobar Islands, Lakshadweep; Notification 76/2020) and the 24th elsewhere. | https://tutorial.gst.gov.in/userguide/returns/ |
 | `gstr3b-outward-locked-2025` | 2025-07-01 to now | not yet (2026-10-15) | From the July 2025 period the outward figures in GSTR-3B are filled from GSTR-1 and cannot be edited; corrections go through GSTR-1A before filing. | https://www.gst.gov.in/newsandupdates/read/592 |
 | `filing-limit-3-years` | 2025-07-01 to now | not yet (2026-10-15) | A return cannot be filed more than three years after its due date. | https://tutorial.gst.gov.in/userguide/returns/ |
 

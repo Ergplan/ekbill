@@ -2221,6 +2221,14 @@
     "hi-Latn": "Har line ka GST hata do; bill of supply banega.",
     "en": "Remove GST from every line; a bill of supply goes out."
   },
+  "assess.composition-inter-state": {
+    "hi-Latn": "Composition mein ho, isliye doosre State mein maal ya service nahi bech sakte.",
+    "en": "Under composition you cannot supply to another State."
+  },
+  "assess.composition-inter-state.do": {
+    "hi-Latn": "Customer ka State dekh lo. Agar sach mein bahar ka hai to CA se baat karo; draft rakha hai.",
+    "en": "Check the customer's State. If they really are outside your State, talk to your accountant; the draft is kept."
+  },
   "assess.composition-legend": {
     "hi-Latn": "Bill par likha jayega: \"composition taxable person, not eligible to collect tax on supplies\".",
     "en": "The bill will carry: \"composition taxable person, not eligible to collect tax on supplies\"."
@@ -2229,9 +2237,9 @@
     "hi-Latn": "Aap GST mein registered nahi ho, isliye is bill par GST nahi lagta.",
     "en": "You are not registered for GST, so no GST is added to this bill."
   },
-  "assess.gst-off-plain-invoice": {
-    "hi-Latn": "Aapne is bill par GST nahi lagaya: yeh saada invoice banega.",
-    "en": "You switched GST off on this bill: it goes out as a plain invoice."
+  "assess.gst-off-bill-of-supply": {
+    "hi-Latn": "Aapne is bill par GST nahi lagaya: yeh Bill of Supply banega (nil ya exempt maal ka bill).",
+    "en": "You switched GST off on this bill: it goes out as a bill of supply (for a nil-rated or exempt supply)."
   },
   "assess.missing-gstin": {
     "hi-Latn": "GST bill ke liye aapka GSTIN chahiye.",
@@ -2264,6 +2272,14 @@
   "assess.rate-not-chosen.do": {
     "hi-Latn": "Har item ka rate chuno. Sach mein 0% ho to 0% chuno, taaki bill kahe aapne socha hai.",
     "en": "Choose the rate for each item. If one really is nil-rated, choose 0% so the bill says you meant it."
+  },
+  "assess.rate-not-in-slabs": {
+    "hi-Latn": "{n} line par GST {rates}% hai; bill ki taarikh par yeh rate hai hi nahi.",
+    "en": "{n} line(s) carry GST at {rates}%, which is not a rate on the bill's date."
+  },
+  "assess.rate-not-in-slabs.do": {
+    "hi-Latn": "In mein se rate chuno: {allowed}%. Pakka na ho to CA se poochh lo.",
+    "en": "Choose one of {allowed}%. If unsure, ask your accountant."
   },
   "assess.nil-rated-on-tax-invoice": {
     "hi-Latn": "Har line 0% hai: aisa bill 'bill of supply' hota hai. \"GST lagega? Nahi\" karo.",

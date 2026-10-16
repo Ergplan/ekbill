@@ -130,10 +130,12 @@ export function assessDocument(
         legend = c.legend ?? null;
         note('composition-legend', c.id);
         if (document.lines.some((l) => l.gstBp > 0)) block('composition-tax', c.id);
+        // Section 10(2)(c) and 10(2A): a composition business may not supply out of its State.
+        if (document.kind === 'bill' && document.totals.supply === 'inter') block('composition-inter-state', c.id);
       }
     }
     if (business.registration === 'unregistered') note('unregistered-no-gst', k.ruleId);
-    if (business.registration === 'regular' && !document.gstOn) note('gst-off-plain-invoice', k.ruleId);
+    if (business.registration === 'regular' && !document.gstOn) note('gst-off-bill-of-supply', k.ruleId);
   }
   const chargesGst =
     kind === 'tax-invoice' || (kind === 'credit-note' && document.gstOn && business.registration === 'regular');
@@ -145,6 +147,21 @@ export function assessDocument(
     if (!document.placeOfSupplyStateCode) block('missing-place-of-supply');
     const missing = document.lines.filter((l) => !l.taxRateChosen).length;
     if (missing > 0) block('rate-not-chosen', null, { n: missing });
+    // A rate the law does not have on the bill's date (12 % after GST 2.0, say) is refused, not printed.
+    const slab = ruleOn('selectable-rates', document.dateIso, rules);
+    if (slab?.ratesPercent) {
+      ruleIds.add(slab.id);
+      const allowed = new Set(
+        [...slab.ratesPercent, ...(slab.specialRatesPercent ?? [])].map((r) => Math.round(r * 100)),
+      );
+      const odd = document.lines.filter((l) => l.taxRateChosen && !allowed.has(l.gstBp));
+      if (odd.length)
+        block('rate-not-in-slabs', slab.id, {
+          n: odd.length,
+          rates: [...new Set(odd.map((l) => l.gstBp / 100))].join(', '),
+          allowed: slab.ratesPercent.join(', '),
+        });
+    }
     // Every line nil-rated on a tax invoice: the document should be a bill of supply (s. 31(3)(c)); the owner switches GST off.
     if (document.lines.length && document.lines.every((l) => l.taxRateChosen && l.gstBp === 0))
       note('nil-rated-on-tax-invoice');
@@ -204,7 +221,8 @@ export function assessDocument(
   }
 
   // --- e-invoicing: applicability and the reporting window ---------------
-  if (chargesGst && business.registration === 'regular') {
+  // The pack's scope is B2B: a bill or note to a registered customer. A walk-in's bill needs no IRN.
+  if (chargesGst && business.registration === 'regular' && customer.gstin) {
     const e = thresholdOn('e-invoice-threshold', document.dateIso, rules);
     if (e) {
       ruleIds.add(e.ruleId);

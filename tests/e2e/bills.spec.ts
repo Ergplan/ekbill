@@ -136,6 +136,19 @@ test('staff make a bill for a new customer, record part of the money; the file d
   await expect(page.locator('details[data-guide="mistake"]')).toHaveCount(0);
 });
 
+test('a line naming a saved item carries its unit onto the bill', async ({ page }) => {
+  await page.goto(`/dev/switch/ravi?to=/bills/new?new=1`);
+  await hydrated(page);
+  await page.getByLabel('Customer ka naam').fill(`Unit check ${String(Date.now()).slice(-6)}`);
+  await page.getByLabel('Kya kiya?').first().fill('Ceiling fan install');
+  await page.getByLabel('Qty').first().fill('2');
+  await page.getByLabel('Rate (₹)').first().fill('1350');
+  await sameState(page);
+  await page.getByRole('button', { name: /Bill banao/ }).click();
+  await expect(page).toHaveURL(/\/bills\/new\/done\?id=/, { timeout: 20_000 });
+  await expect(page.locator('.eb-paper')).toContainText('2 nos');
+});
+
 test('the owner writes off, reverses, credits, then cancels and redoes a bill', async ({ page }) => {
   const name = `Kale Hardware ${String(Date.now()).slice(-6)}`;
   await page.goto('/dev/switch/sharma?to=/bills/new?new=1');

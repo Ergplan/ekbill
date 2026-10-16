@@ -16,6 +16,7 @@ import {
 } from '@ekbill/db';
 import {
   correctionsFrom,
+  creditNoteLines,
   fromGstin,
   parseMoney,
   parseQuantity,
@@ -96,8 +97,8 @@ async function linesFrom(
   gstOn: boolean,
 ): Promise<IssueLine[] | Refusal> {
   const known = await items.listItems(scope);
-  const hsnOf = (what: string) =>
-    known.find((i) => i.name.trim().toLowerCase() === what.trim().toLowerCase())?.hsnSac ?? null;
+  // The item's HSN and unit go on the line (the printed quantity column and GSTR-1's UQC read the unit).
+  const itemOf = (what: string) => known.find((i) => i.name.trim().toLowerCase() === what.trim().toLowerCase());
   const out: IssueLine[] = [];
   for (const [i, l] of typed.entries()) {
     if (!l.what.trim() && !l.rate.trim()) continue;
@@ -115,7 +116,8 @@ async function linesFrom(
       unitPricePaise,
       gstBp: gstOn && l.gstRate !== null ? Math.round(l.gstRate * 100) : 0,
       taxRateChosen: !gstOn || l.gstRate !== null,
-      hsnCode: hsnOf(l.what),
+      hsnCode: itemOf(l.what)?.hsnSac ?? null,
+      unit: itemOf(l.what)?.unit ?? null,
     });
   }
   if (!out.length) return { ok: false, error: 'bill.check.empty' };
@@ -267,29 +269,13 @@ export async function makeCreditNote(input: unknown): Promise<BillResult<{ id: s
     const creditable = view.balance.totalPaise - view.balance.creditedPaise;
     if (!snapshot || amountPaise <= 0 || amountPaise > creditable)
       return { ok: false, error: 'credit.error.amount', field: 'amount' };
-    const groups = snapshot.totals.rateSummary
-      .map((r) => ({ gstBp: r.gstBp, gross: r.taxablePaise + r.cgstPaise + r.statePaise + r.igstPaise + r.cessPaise }))
-      .filter((g) => g.gross > 0);
-    const whole = groups.reduce((sum, g) => sum + g.gross, 0);
-    let left = amountPaise;
-    const lines: IssueLine[] = groups.map((g, i) => {
-      const part = i === groups.length - 1 ? left : Math.round((amountPaise * g.gross) / whole);
-      left -= part;
-      return {
-        description: parsed.data.notes,
-        quantityMilli: 1000,
-        unitPricePaise: part,
-        gstBp: g.gstBp,
-        taxRateChosen: true,
-        priceIncludesTax: true,
-      };
-    });
+    const lines = creditNoteLines(snapshot.lines, amountPaise, parsed.data.notes);
     const today = todayIst(new Date());
     const note = await documents.createCreditNote(scope, {
       invoiceId: bill.id,
       dateIso: today,
       reason: parsed.data.notes,
-      lines: lines.filter((l) => l.unitPricePaise > 0),
+      lines,
     });
     try {
       const issued = await documents.issueDocument(scope, { id: note.id, today });

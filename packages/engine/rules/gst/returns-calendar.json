@@ -1,6 +1,6 @@
 {
   "_note": "GST rule pack (I5): when returns fall due and what the portal locks (GSTN advisories; CGST Rules 59, 61).",
-  "version": "2026.10.15-stage3",
+  "version": "2026.10.16-stage11-group-a",
   "effectiveFrom": "2017-07-01",
   "entries": [
     {
@@ -73,13 +73,13 @@
       "frequency": "quarterly",
       "dayAfterQuarterEnd": 24,
       "dayAfterQuarterEndGroupA": 22,
-      "groupAStates": ["24", "27", "29", "30", "32", "33", "34", "36", "37", "26", "25", "31"],
+      "groupAStates": ["22", "23", "24", "27", "29", "30", "32", "33", "34", "35", "36", "37", "26", "25", "31"],
       "source": "https://tutorial.gst.gov.in/userguide/returns/",
       "verify": {
         "mustContain": ["GSTR-3B", "22nd", "24th"]
       },
       "explain": {
-        "en": "A quarterly GSTR-3B is due on the 22nd of the month after the quarter in the southern and western States and the 24th elsewhere.",
+        "en": "A quarterly GSTR-3B is due on the 22nd of the month after the quarter in Group I (Chhattisgarh, Madhya Pradesh, Gujarat, Maharashtra, Karnataka, Goa, Kerala, Tamil Nadu, Telangana, Andhra Pradesh, Daman and Diu, Dadra and Nagar Haveli, Puducherry, Andaman and Nicobar Islands, Lakshadweep; Notification 76/2020) and the 24th elsewhere.",
         "hi-Latn": "QRMP mein GSTR-3B quarter ke agle mahine ki 22 (dakshin-paschim States) ya 24 tak."
       },
       "verified": false,

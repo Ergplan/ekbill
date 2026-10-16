@@ -105,7 +105,19 @@ export async function buildCaPack(scope: TenantScope, months: MonthPeriod[]): Pr
       r(row.cessPaise),
     ]);
   const cdn: Cell[][] = [
-    ['Credit note', 'Date', 'Customer GSTIN', 'Registered', 'Taxable', 'IGST', 'CGST', 'SGST', 'Cess'],
+    [
+      'Credit note',
+      'Date',
+      'Customer GSTIN',
+      'Registered',
+      'Against invoice',
+      'Reported in',
+      'Taxable',
+      'IGST',
+      'CGST',
+      'SGST',
+      'Cess',
+    ],
   ];
   for (const n of t.creditNotes)
     cdn.push([
@@ -113,12 +125,23 @@ export async function buildCaPack(scope: TenantScope, months: MonthPeriod[]): Pr
       n.documentDate,
       n.customerGstin ?? '',
       n.registered ? 'yes' : 'no',
+      n.linkedNumber ?? '',
+      n.registered ? 'CDNR' : n.unregisteredType === 'B2CL' ? 'CDNUR (B2CL)' : 'B2CS (netted)',
       r(n.taxablePaise),
       r(n.igstPaise),
       r(n.cgstPaise),
       r(n.statePaise),
       r(n.cessPaise),
     ]);
+  const nilNames: Record<string, string> = {
+    INTRB2B: 'Inter-State, to registered persons',
+    INTRAB2B: 'Intra-State, to registered persons',
+    INTRB2C: 'Inter-State, to unregistered persons',
+    INTRAB2C: 'Intra-State, to unregistered persons',
+  };
+  const nil: Cell[][] = [['Supply', 'Nil rated', 'Exempted', 'Non-GST', 'Documents']];
+  for (const row of t.nilExempt)
+    nil.push([nilNames[row.supplyType] ?? row.supplyType, r(row.nilPaise), 0, 0, row.sourceDocumentIds.length]);
   const hsn: Cell[][] = [
     ['HSN/SAC', 'Description', 'Unit', 'Quantity', 'Rate %', 'Taxable', 'IGST', 'CGST', 'SGST', 'Cess'],
   ];
@@ -173,6 +196,7 @@ export async function buildCaPack(scope: TenantScope, months: MonthPeriod[]): Pr
     { name: 'B2C Large (5)', rows: b2cl },
     { name: 'B2C Small (7)', rows: b2cs },
     { name: 'Credit notes (9B)', rows: cdn },
+    { name: 'Nil and exempt (8)', rows: nil },
     { name: 'HSN (12)', rows: hsn },
     { name: 'GSTR-3B', rows: gstr3b },
     { name: 'Documents', rows: docs },
@@ -183,7 +207,7 @@ export async function buildCaPack(scope: TenantScope, months: MonthPeriod[]): Pr
       [
         `${profile.legalName} (${profile.gstin ?? 'no GSTIN'}) — GST workings for ${label}.`,
         '',
-        'workings.xlsx  GSTR-1 tables (4A, 5, 7, 9B, 12, 13), GSTR-3B 3.1 and 3.2, and every document.',
+        'workings.xlsx  GSTR-1 tables (4A, 5, 7, 8, 9B, 12, 13), GSTR-3B 3.1 and 3.2, and every document.',
         'gstr1.json     GSTR-1 in the GSTN offline tool format: import it into the offline tool, check, upload.',
         'bills/         every bill and credit note of the period as issued (PDF).',
         '',

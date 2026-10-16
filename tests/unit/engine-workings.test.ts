@@ -246,6 +246,43 @@ describe('GSTR-3B outward (3.1 and 3.2)', () => {
       { placeOfSupplyStateCode: '23', taxablePaise: 100000, igstPaise: 18000 },
     ]);
   });
+  it('nets an inter-State credit note to an unregistered customer off its State’s 3.2 row, and drops a row netted to nothing', () => {
+    const inter = { isInterState: true, cgstPaise: 0, statePaise: 0 };
+    const w = buildGstr3bOutward({
+      period: '2026-09',
+      documents: [
+        outward({ ...inter, id: 'i', placeOfSupplyStateCode: '23', taxablePaise: 100000, igstPaise: 18000 }),
+        outward({
+          ...inter,
+          id: 'c',
+          documentType: 'credit-note',
+          placeOfSupplyStateCode: '23',
+          taxablePaise: 30000,
+          igstPaise: 5400,
+        }),
+        outward({ ...inter, id: 'j', placeOfSupplyStateCode: '09', taxablePaise: 40000, igstPaise: 7200 }),
+        outward({
+          ...inter,
+          id: 'k',
+          documentType: 'credit-note',
+          placeOfSupplyStateCode: '09',
+          taxablePaise: 40000,
+          igstPaise: 7200,
+        }),
+        // A registered customer's credit note stays out of 3.2.
+        outward({
+          ...inter,
+          id: 'r',
+          documentType: 'credit-note',
+          customerGstin: '23AAGCB7383J1Z4',
+          placeOfSupplyStateCode: '23',
+          taxablePaise: 10000,
+          igstPaise: 1800,
+        }),
+      ],
+    });
+    expect(w.interStateUnregistered).toEqual([{ placeOfSupplyStateCode: '23', taxablePaise: 70000, igstPaise: 12600 }]);
+  });
 });
 
 describe('from issued snapshots (I2: workings read the snapshot, never the live record)', () => {

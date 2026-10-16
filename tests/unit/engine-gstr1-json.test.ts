@@ -117,3 +117,103 @@ describe('Table 13, the documents issued', () => {
     });
   });
 });
+
+describe('the HSN summary (Table 12): services, and credit notes that correct a value', () => {
+  const hsnLine = (hsnCode: string, unit: string | null, quantityMilli: number, taxablePaise: number) => ({
+    hsnCode,
+    description: hsnCode === '998719' ? 'AMC visit' : 'Ceiling fan',
+    quantityMilli,
+    unit,
+    taxablePaise,
+    gstBp: 1800,
+    cgstPaise: taxablePaise * 0.09,
+    statePaise: taxablePaise * 0.09,
+    igstPaise: 0,
+    cessPaise: 0,
+  });
+  const tables = buildGstr1({
+    period: '2026-10',
+    documents: [
+      row({
+        documentNumber: 'INV-010',
+        documentType: 'invoice',
+        hsnLines: [hsnLine('998719', 'visit', 3000, 300000), hsnLine('8414', 'nos', 2000, 200000)],
+      }),
+      row({
+        documentNumber: 'CN-010',
+        documentType: 'credit-note',
+        hsnLines: [hsnLine('998719', 'visit', 1000, 100000), hsnLine('8414', 'nos', 1000, 50000)],
+      }),
+    ],
+  });
+  const json = toGstr1Json({ gstin: '27AAAAA0000A1Z2', sellerStateCode: '27', tables });
+  const byCode = (code: string) => json.hsn.data.find((h) => h.hsn_sc === code)!;
+
+  it('reports a service (SAC 99…) with the unit NA and no quantity', () => {
+    expect(byCode('998719')).toMatchObject({ uqc: 'NA', qty: 0, txval: 2000 });
+  });
+  it('nets a credit note’s value, and leaves the quantity sold as it was', () => {
+    expect(byCode('8414')).toMatchObject({ uqc: 'NOS', qty: 2, txval: 1500 });
+    expect(tables.hsnSummary.find((h) => h.hsnCode === '8414')!.quantityMilli).toBe(2000);
+  });
+});
+
+describe('CDNUR: a credit note against a B2C Large invoice (fourth review)', () => {
+  const inter = { placeOfSupplyStateCode: '23', isInterState: true };
+  const docs: OutwardDocument[] = [
+    // ₹1,50,000 to an unregistered buyer in Madhya Pradesh: B2C Large; its note goes to CDNUR as B2CL.
+    row({
+      ...inter,
+      documentNumber: 'INV-020',
+      documentType: 'invoice',
+      invoiceValuePaise: 15000000,
+      taxablePaise: 12711864,
+      igstPaise: 2288136,
+    }),
+    row({
+      ...inter,
+      documentNumber: 'CN-020',
+      documentType: 'credit-note',
+      invoiceValuePaise: 1180000,
+      taxablePaise: 1000000,
+      igstPaise: 180000,
+      linkedInvoice: { number: 'INV-020', dateIso: '2026-10-10', valuePaise: 15000000 },
+    }),
+    // ₹11,800 inter-State: B2C small; its note is netted in B2CS.
+    row({ ...inter, documentNumber: 'INV-021', documentType: 'invoice', invoiceValuePaise: 11800, igstPaise: 1800 }),
+    row({
+      ...inter,
+      documentNumber: 'CN-021',
+      documentType: 'credit-note',
+      invoiceValuePaise: 1180,
+      taxablePaise: 1000,
+      igstPaise: 180,
+      linkedInvoice: { number: 'INV-021', dateIso: '2026-10-10', valuePaise: 11800 },
+    }),
+  ];
+  const tables = buildGstr1({ period: '2026-10', documents: docs });
+  const json = toGstr1Json({ gstin: '27AAAAA0000A1Z2', sellerStateCode: '27', tables });
+
+  it('marks the note against the large invoice B2CL, and names the invoice', () => {
+    const note = tables.creditNotes.find((n) => n.documentNumber === 'CN-020')!;
+    expect(note.unregisteredType).toBe('B2CL');
+    expect(note.linkedNumber).toBe('INV-020');
+    expect(tables.creditNotes.find((n) => n.documentNumber === 'CN-021')!.unregisteredType).toBeNull();
+  });
+  it('reports it in cdnur, and nets only the small one in B2CS', () => {
+    expect(json.cdnur).toEqual([
+      {
+        typ: 'B2CL',
+        ntty: 'C',
+        nt_num: 'CN-020',
+        nt_dt: '10-10-2026',
+        val: 11800,
+        pos: '23',
+        itms: [{ num: 1, itm_det: { rt: 18, txval: 10000, iamt: 1800, camt: 0, samt: 0, csamt: 0 } }],
+      },
+    ]);
+    expect(json.b2cs).toEqual([
+      { sply_ty: 'INTER', pos: '23', typ: 'OE', rt: 18, txval: 90, iamt: 16.2, camt: 0, samt: 0, csamt: 0 },
+    ]);
+  });
+});

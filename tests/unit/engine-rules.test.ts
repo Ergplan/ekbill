@@ -77,7 +77,8 @@ const FIXTURES: Fixture[] = [
     outside: '2017-06-30',
     decides: () => {
       expect(documentKind('regular', true, '2017-07-01')).toBe('tax-invoice');
-      expect(documentKind('regular', false, '2017-07-01')).toBe('invoice');
+      // GST off on one bill: a bill of supply (s. 31(3)(c)), not a plain invoice (fourth review).
+      expect(documentKind('regular', false, '2017-07-01')).toBe('bill-of-supply');
       expect(documentKind('composition', true, '2017-07-01')).toBe('bill-of-supply');
       expect(() => documentKind('regular', true, '2017-06-30')).toThrow(RuleError);
     },
@@ -299,6 +300,12 @@ const FIXTURES: Fixture[] = [
       // Maharashtra is in group A (22nd); Uttar Pradesh is not (24th).
       expect(returnDueDate('GSTR-3B', 'quarterly', '2026-09', '27')?.dateIso).toBe('2026-10-22');
       expect(returnDueDate('GSTR-3B', 'quarterly', '2026-09', '09')?.dateIso).toBe('2026-10-24');
+      // Chhattisgarh, Madhya Pradesh and Andaman & Nicobar are in group A too (Notification 76/2020).
+      for (const s of ['22', '23', '35'])
+        expect(returnDueDate('GSTR-3B', 'quarterly', '2026-09', s)?.dateIso).toBe('2026-10-22');
+      // Delhi, Punjab and West Bengal are in group B.
+      for (const s of ['07', '03', '19'])
+        expect(returnDueDate('GSTR-3B', 'quarterly', '2026-09', s)?.dateIso).toBe('2026-10-24');
       expect(returnDueDate('GSTR-3B', 'quarterly', '2026-09', null)?.dateIso).toBe('2026-10-24');
       expect(returnDueDate('GSTR-3B', 'quarterly', '2020-12', '27')).toBeNull();
     },

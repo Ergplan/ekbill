@@ -57,6 +57,7 @@ export {
   type SupplyFlag,
 } from './assess';
 export {
+  creditNoteLines,
   prepareIssue,
   type IssueBusiness,
   type IssueCustomer,

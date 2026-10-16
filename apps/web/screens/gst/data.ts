@@ -199,8 +199,9 @@ export async function loadGstDrill(
   for (const o of w.outward) byDoc.set(o.sourceDocumentId, [...(byDoc.get(o.sourceDocumentId) ?? []), o]);
   const keep = (o: OutwardDocument) => {
     if (table === 'rate') return o.gstBp === rate;
-    if (table === 'b2b') return o.documentType === 'invoice' && Boolean(o.customerGstin);
-    if (table === 'b2c') return o.documentType === 'invoice' && !o.customerGstin;
+    // B2B and B2C are the taxed parts (Tables 4 to 7); a 0 % part is Table 8's.
+    if (table === 'b2b') return o.documentType === 'invoice' && o.gstBp > 0 && Boolean(o.customerGstin);
+    if (table === 'b2c') return o.documentType === 'invoice' && o.gstBp > 0 && !o.customerGstin;
     if (table === 'cdn') return o.documentType === 'credit-note';
     return true;
   };

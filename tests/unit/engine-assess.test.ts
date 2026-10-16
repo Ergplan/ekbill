@@ -60,14 +60,16 @@ describe('issuance assessment', () => {
     expect(a.chargesGst).toBe(false);
     expect(a.notices.map((n) => n.code)).toContain('unregistered-no-gst');
   });
-  it('a registered business can make one bill without GST: a plain invoice, no tax lines', () => {
+  it('a registered business can make one bill without GST: a bill of supply (s. 31(3)(c)), no tax lines, no legend', () => {
     const a = assess({}, walkIn, {
       gstOn: false,
       placeOfSupplyStateCode: null,
       lines: [{ description: 'A', gstBp: 0, taxRateChosen: true, hsnCode: null }],
     });
     expect(a.canIssue).toBe(true);
-    expect(a.kind).toBe('invoice');
+    expect(a.kind).toBe('bill-of-supply');
+    expect(a.title).toBe('BILL OF SUPPLY');
+    expect(a.legend).toBeNull();
     expect(a.chargesGst).toBe(false);
   });
   it('a composition business issues a bill of supply with the legend, and may not charge tax (adapted: the MVP refused composition)', () => {
@@ -84,6 +86,23 @@ describe('issuance assessment', () => {
     });
     expect(codes(taxed)).toContain('composition-tax');
     expect(taxed.blockers[0]!.ruleId).toBe('composition-limits-2019');
+  });
+  it('a composition business may not supply to another State (s. 10(2)(c)); its own State is fine', () => {
+    const plain = { gstOn: false, lines: [{ description: 'Rice', gstBp: 0, taxRateChosen: true, hsnCode: null }] };
+    const out = assess({ registration: 'composition' }, walkIn, {
+      ...plain,
+      placeOfSupplyStateCode: '23',
+      totals: { totalPaise: 10000, supply: 'inter' },
+    });
+    expect(out.canIssue).toBe(false);
+    expect(codes(out)).toEqual(['composition-inter-state']);
+    expect(out.blockers[0]!.ruleId).toBe('composition-limits-2019');
+    expect(out.blockers[0]!.whatYouCanDo.key).toBe('assess.composition-inter-state.do');
+    expect(assess({ registration: 'composition' }, walkIn, plain).canIssue).toBe(true);
+    // A regular business may.
+    expect(codes(assess({}, walkIn, { totals: { totalPaise: 10000, supply: 'inter' } }))).not.toContain(
+      'composition-inter-state',
+    );
   });
   it('blocks until the GST status is known', () => {
     const a = assess({ registration: 'unknown' });
@@ -103,6 +122,27 @@ describe('issuance assessment', () => {
     expect(codes(assess({ gstin: null }))).toContain('missing-gstin');
     expect(codes(assess({ stateCode: null }))).toContain('missing-seller-state');
     expect(codes(assess({}, customer, { placeOfSupplyStateCode: null }))).toContain('missing-place-of-supply');
+  });
+  it('refuses a rate the law does not have on the bill’s date (selectable-rates-gst2), and keeps the old ones for old dates', () => {
+    const at = (gstBp: number, dateIso: string) =>
+      assess({}, customer, { dateIso, lines: [{ description: 'A', gstBp, taxRateChosen: true, hsnCode: '9987' }] });
+    const twelve = at(1200, '2026-09-24');
+    expect(codes(twelve)).toEqual(['rate-not-in-slabs']);
+    expect(twelve.blockers[0]!.ruleId).toBe('selectable-rates-gst2');
+    expect(twelve.blockers[0]!.message.params).toMatchObject({ n: 1, rates: '12', allowed: '0, 5, 18, 40' });
+    expect(codes(at(1200, '2025-06-15'))).not.toContain('rate-not-in-slabs');
+    expect(codes(at(4000, '2025-06-15'))).toContain('rate-not-in-slabs');
+    for (const bp of [0, 25, 300, 500, 1800, 4000])
+      expect(codes(at(bp, '2026-09-24'))).not.toContain('rate-not-in-slabs');
+    // A bill without GST carries no rate to check.
+    expect(
+      codes(
+        assess({}, walkIn, {
+          gstOn: false,
+          lines: [{ description: 'A', gstBp: 1200, taxRateChosen: true, hsnCode: null }],
+        }),
+      ),
+    ).not.toContain('rate-not-in-slabs');
   });
   it('refuses to print a tax invoice with a rate nobody chose, and counts them', () => {
     const a = assess({}, customer, {
@@ -144,6 +184,22 @@ describe('issuance assessment', () => {
     });
     expect(codes(bank)).not.toContain('e-invoicing-applicable');
     expect(bank.canIssue).toBe(true);
+  });
+  it('e-invoicing is for B2B only (scope b2b): a walk-in’s bill neither blocks nor is noted', () => {
+    for (const b of [
+      { turnoverPaise: null, eInvoiceSelfDeclaredNotApplicable: false },
+      { turnoverPaise: 6000000000, eInvoiceSelfDeclaredNotApplicable: false },
+      { turnoverPaise: 6000000000, eInvoiceSelfDeclaredNotApplicable: true },
+    ]) {
+      const a = assess(b, walkIn, { totals: { totalPaise: 413000, supply: 'intra' } });
+      expect(a.blockers.map((x) => x.code).filter((c) => c.startsWith('e-invoicing') || c.startsWith('irn'))).toEqual(
+        [],
+      );
+      expect(a.notices.map((n) => n.code)).not.toContain('e-invoicing-self-declared');
+    }
+    expect(codes(assess({ turnoverPaise: 6000000000, eInvoiceSelfDeclaredNotApplicable: false }))).toContain(
+      'e-invoicing-applicable',
+    );
   });
   it('the 30-day IRN window (irn-30-day-2025): a ₹10 crore business cannot report a bill older than 30 days', () => {
     const a = assess({ turnoverPaise: 12000000000, eInvoiceSelfDeclaredNotApplicable: false }, customer, {
@@ -234,9 +290,9 @@ describe('the bill form checks, pass and fail', () => {
     expect(codes(assess())).not.toContain('unsupported-reverse-charge');
   });
 
-  it('a regular business switching GST off is told it makes a plain invoice', () => {
-    expect(notes(assess({}, customer, { gstOn: false }))).toContain('gst-off-plain-invoice');
-    expect(notes(assess())).not.toContain('gst-off-plain-invoice');
+  it('a regular business switching GST off is told it makes a bill of supply', () => {
+    expect(notes(assess({}, customer, { gstOn: false }))).toContain('gst-off-bill-of-supply');
+    expect(notes(assess())).not.toContain('gst-off-bill-of-supply');
   });
 
   it('a self-declared e-invoicing exemption is noted, not blocked', () => {

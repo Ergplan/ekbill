@@ -36,6 +36,8 @@ export interface OutwardDocument {
   statePaise: number;
   igstPaise: number;
   cessPaise: number;
+  /** For a credit note: the invoice it corrects, with that invoice's value when known (B2CL notes go to CDNUR). */
+  linkedInvoice?: { number: string; dateIso: CivilDate; valuePaise: number | null } | null;
   hsnLines: Array<{
     hsnCode: string | null;
     description: string;
@@ -51,7 +53,11 @@ export interface OutwardDocument {
 }
 
 /** Turn issued documents into outward documents, one per rate. Drafts never reach here; cancelled ones are reported, never counted. */
-export function outwardDocumentsFromSnapshots(documents: readonly SnapshotDocument[]): OutwardDocument[] {
+export function outwardDocumentsFromSnapshots(
+  documents: readonly SnapshotDocument[],
+  /** The value of each invoice a credit note links to, by document id (the invoice may lie outside the period). */
+  invoiceValues: ReadonlyMap<string, number> = new Map(),
+): OutwardDocument[] {
   const out: OutwardDocument[] = [];
   for (const d of documents) {
     if (d.status !== 'issued') continue;
@@ -91,6 +97,14 @@ export function outwardDocumentsFromSnapshots(documents: readonly SnapshotDocume
         statePaise: lines.reduce((n, l) => n + l.statePaise, 0),
         igstPaise: lines.reduce((n, l) => n + l.igstPaise, 0),
         cessPaise: lines.reduce((n, l) => n + l.cessPaise, 0),
+        linkedInvoice:
+          s.kind === 'credit-note' && s.linkedInvoice
+            ? {
+                number: s.linkedInvoice.number,
+                dateIso: s.linkedInvoice.dateIso,
+                valuePaise: invoiceValues.get(s.linkedInvoice.id) ?? null,
+              }
+            : null,
         hsnLines: lines,
       });
     }
@@ -171,10 +185,26 @@ export interface Gstr1Tables {
       placeOfSupplyStateCode: string | null;
       isInterState: boolean;
       linkedNumber: string | null;
+      /**
+       * For an unregistered customer: 'B2CL' when the note corrects a B2C Large invoice (inter-State, above the pack's
+       * threshold on the invoice's date), reported in CDNUR; null otherwise, netted into B2CS.
+       */
+      unregisteredType: 'B2CL' | null;
       sourceIds: string[];
       sourceDocumentId: string;
     }
   >;
+  /**
+   * Table 8: nil-rated, exempt and non-GST supplies (the 0 % parts of invoices and bills of supply), by whether the
+   * supply crossed a State and whether the customer is registered. This release cannot tell nil-rated from exempt,
+   * so it reports the value as nil-rated (KNOWN-GAPS).
+   */
+  nilExempt: Array<{
+    supplyType: NilSupplyType;
+    nilPaise: number;
+    sourceIds: string[];
+    sourceDocumentIds: string[];
+  }>;
   /** Table 12: HSN summary. */
   hsnSummary: Array<
     Heads & {
@@ -204,6 +234,9 @@ export interface Gstr1Tables {
   ruleIds: string[];
 }
 
+/** GSTN's Table 8 rows: inter- or intra-State, to a registered (B2B) or unregistered (B2C) customer. */
+export type NilSupplyType = 'INTRB2B' | 'INTRAB2B' | 'INTRB2C' | 'INTRAB2C';
+
 export function buildGstr1(args: {
   period: MonthPeriod;
   periods?: MonthPeriod[];
@@ -223,6 +256,9 @@ export function buildGstr1(args: {
       a.id.localeCompare(b.id),
   );
   const invoices = documents.filter((d) => d.documentType === 'invoice');
+  // The 0 % part of an invoice is a nil-rated, exempt or non-GST supply: Table 8, not B2B or B2C (Tables 4 to 7).
+  const taxedInvoices = invoices.filter((d) => d.gstBp > 0);
+  const nilInvoices = invoices.filter((d) => d.gstBp === 0);
   const notes = documents.filter((d) => d.documentType === 'credit-note');
   const heads = (d: OutwardDocument): Heads => ({
     taxablePaise: d.taxablePaise,
@@ -233,7 +269,7 @@ export function buildGstr1(args: {
   });
 
   const b2bByGstin = new Map<string, Gstr1Tables['b2b'][number]>();
-  for (const doc of invoices.filter((d) => d.customerGstin)) {
+  for (const doc of taxedInvoices.filter((d) => d.customerGstin)) {
     const gstin = doc.customerGstin!;
     const bucket = b2bByGstin.get(gstin) ?? { customerGstin: gstin, customerName: doc.customerName, documents: [] };
     let entry = bucket.documents.find((d) => d.documentNumber === doc.documentNumber);
@@ -256,7 +292,7 @@ export function buildGstr1(args: {
 
   const b2cLarge: Gstr1Tables['b2cLarge'] = [];
   const b2cByKey = new Map<string, Gstr1Tables['b2cSmall'][number]>();
-  for (const doc of invoices.filter((d) => !d.customerGstin)) {
+  for (const doc of taxedInvoices.filter((d) => !d.customerGstin)) {
     const t = thresholdOn('gstr1-b2c-large', doc.documentDate, rules);
     if (t) ruleIds.add(t.ruleId);
     const large = doc.isInterState && t !== null && doc.invoiceValuePaise > t.thresholdPaise;
@@ -294,6 +330,17 @@ export function buildGstr1(args: {
     b2cByKey.set(key, row);
   }
 
+  const nilByType = new Map<NilSupplyType, Gstr1Tables['nilExempt'][number]>();
+  for (const doc of nilInvoices) {
+    const supplyType: NilSupplyType = `${doc.isInterState ? 'INTR' : 'INTRA'}${doc.customerGstin ? 'B2B' : 'B2C'}`;
+    const row = nilByType.get(supplyType) ?? { supplyType, nilPaise: 0, sourceIds: [], sourceDocumentIds: [] };
+    row.nilPaise += doc.taxablePaise;
+    row.sourceIds.push(doc.id);
+    if (!row.sourceDocumentIds.includes(doc.sourceDocumentId)) row.sourceDocumentIds.push(doc.sourceDocumentId);
+    nilByType.set(supplyType, row);
+  }
+  const nilOrder: NilSupplyType[] = ['INTRB2B', 'INTRAB2B', 'INTRB2C', 'INTRAB2C'];
+
   const hsnByKey = new Map<string, Gstr1Tables['hsnSummary'][number]>();
   const seen = new Map<string, Set<string>>();
   for (const doc of documents) {
@@ -317,7 +364,8 @@ export function buildGstr1(args: {
         if (row.descriptions.length < 20) row.descriptions.push(l.description);
       }
       row.descriptionCount = names.size;
-      row.quantityMilli += sign * l.quantityMilli;
+      // A credit note here corrects a value, never a quantity: it nets the value and leaves the quantity.
+      if (doc.documentType === 'invoice') row.quantityMilli += l.quantityMilli;
       add(row, l, sign);
       hsnByKey.set(key, row);
     }
@@ -344,11 +392,7 @@ export function buildGstr1(args: {
       });
   };
   const documentSummary = [
-    ...summarise(
-      'invoice',
-      invoices.map((d) => d.documentNumber),
-      args.cancelledNumbers ?? [],
-    ),
+    ...summarise('invoice', [...new Set(invoices.map((d) => d.documentNumber))], args.cancelledNumbers ?? []),
     ...summarise(
       'credit-note',
       documents.filter((d) => d.documentType === 'credit-note').map((d) => d.documentNumber),
@@ -356,7 +400,8 @@ export function buildGstr1(args: {
     ),
   ];
   const totals = zero();
-  for (const d of documents) add(totals, heads(d), d.documentType === 'credit-note' ? -1 : 1);
+  // The taxable value: nil-rated and exempt parts are Table 8's, not taxable supplies.
+  for (const d of documents) if (d.gstBp > 0) add(totals, heads(d), d.documentType === 'credit-note' ? -1 : 1);
 
   return {
     period: args.period,
@@ -364,18 +409,31 @@ export function buildGstr1(args: {
     b2b: [...b2bByGstin.values()],
     b2cLarge,
     b2cSmall: [...b2cByKey.values()],
-    creditNotes: notes.map((n) => ({
-      ...heads(n),
-      documentNumber: n.documentNumber,
-      documentDate: n.documentDate,
-      customerGstin: n.customerGstin,
-      registered: Boolean(n.customerGstin),
-      placeOfSupplyStateCode: n.placeOfSupplyStateCode,
-      isInterState: n.isInterState,
-      linkedNumber: null,
-      sourceIds: [n.id],
-      sourceDocumentId: n.sourceDocumentId,
-    })),
+    creditNotes: notes.map((n) => {
+      const linked = n.linkedInvoice ?? null;
+      const large =
+        !n.customerGstin && n.isInterState && linked?.valuePaise != null
+          ? (() => {
+              const t = thresholdOn('gstr1-b2c-large', linked.dateIso, rules);
+              if (t) ruleIds.add(t.ruleId);
+              return t !== null && linked.valuePaise > t.thresholdPaise;
+            })()
+          : false;
+      return {
+        ...heads(n),
+        documentNumber: n.documentNumber,
+        documentDate: n.documentDate,
+        customerGstin: n.customerGstin,
+        registered: Boolean(n.customerGstin),
+        placeOfSupplyStateCode: n.placeOfSupplyStateCode,
+        isInterState: n.isInterState,
+        linkedNumber: linked?.number ?? null,
+        unregisteredType: large ? ('B2CL' as const) : null,
+        sourceIds: [n.id],
+        sourceDocumentId: n.sourceDocumentId,
+      };
+    }),
+    nilExempt: nilOrder.flatMap((k) => (nilByType.has(k) ? [nilByType.get(k)!] : [])),
     hsnSummary: [...hsnByKey.values()],
     documentSummary,
     totals,
@@ -434,15 +492,17 @@ export function buildGstr3bOutward(args: {
       },
       sign,
     );
-    if (d.isInterState && !d.customerGstin && d.documentType === 'invoice') {
+    // A credit note to an unregistered customer out of the State is netted against the State's row,
+    // as it is in 3.1(a).
+    if (d.isInterState && !d.customerGstin) {
       const key = d.placeOfSupplyStateCode ?? 'none';
       const row = byState.get(key) ?? {
         placeOfSupplyStateCode: d.placeOfSupplyStateCode,
         taxablePaise: 0,
         igstPaise: 0,
       };
-      row.taxablePaise += d.taxablePaise;
-      row.igstPaise += d.igstPaise;
+      row.taxablePaise += sign * d.taxablePaise;
+      row.igstPaise += sign * d.igstPaise;
       byState.set(key, row);
     }
   }
@@ -450,7 +510,7 @@ export function buildGstr3bOutward(args: {
     period: args.period,
     taxable,
     nilRatedPaise,
-    interStateUnregistered: [...byState.values()],
+    interStateUnregistered: [...byState.values()].filter((r) => r.taxablePaise !== 0 || r.igstPaise !== 0),
     sourceIds: documents.map((d) => d.id),
   };
 }

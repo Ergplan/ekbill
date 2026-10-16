@@ -3,7 +3,6 @@ import 'server-only';
 import { documents, type BillRow, type Document, type TenantScope } from '@ekbill/db';
 import { ageInDays, todayIst, type IssuedSnapshot } from '@ekbill/engine';
 import type { PaperData } from '@ekbill/ui';
-import { t } from '@ekbill/copy';
 
 import { billsOf, rowOf, type RowData } from './common';
 import { TODAY, longDate, type Bill } from './fixtures';
@@ -129,8 +128,8 @@ export function linesOf(doc: Document): Bill['lines'] {
  */
 export function paperOfDocument(doc: Document): PaperData {
   const s = doc.issuedSnapshot as IssuedSnapshot;
-  const legend =
-    s.kind === 'bill-of-supply' ? (s.legend ?? t('paper.bos.legend', undefined, 'en')) : (s.legend ?? null);
+  // The legend is the snapshot's own: a composition dealer's bill of supply carries it, a regular business's does not.
+  const legend = s.legend ?? null;
   return {
     title: s.title,
     seller: {
@@ -145,7 +144,7 @@ export function paperOfDocument(doc: Document): PaperData {
       .filter((l) => !l.blank)
       .map((l) => ({
         description: l.description,
-        qty: String(l.quantityMilli / 1000),
+        qty: l.unit ? `${l.quantityMilli / 1000} ${l.unit}` : String(l.quantityMilli / 1000),
         rate: l.unitPricePaise,
         amount: l.taxablePaise,
       })),
