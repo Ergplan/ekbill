@@ -1,0 +1,25 @@
+{
+  "name": "kaccha-16",
+  "customer": "Dr. Kulkarni",
+  "date": "2026-09-21",
+  "lines": [
+    {
+      "what": "MCB 32A",
+      "qty": 1,
+      "rate": 650,
+      "amount": 650
+    },
+    {
+      "what": "Fan repair",
+      "qty": 5,
+      "rate": 340,
+      "amount": 1700
+    }
+  ],
+  "total": 2350,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "21 Sep"
+  }
+}

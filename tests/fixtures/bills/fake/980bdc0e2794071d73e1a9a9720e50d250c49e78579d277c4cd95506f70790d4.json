@@ -1,0 +1,103 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Sunrise School",
+    "confidence": 0.93,
+    "unreadable": false
+  },
+  "date": {
+    "value": "27-8-2026",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "MCB 32A",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "5",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "450",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "2250/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "MCB 32A",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "560",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "560/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "MCB 32A",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "490",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "490/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 3300/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

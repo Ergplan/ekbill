@@ -36,6 +36,13 @@
       "when": 1792108338656,
       "tag": "0005_money",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792112403261,
+      "tag": "0006_photo",
+      "breakpoints": true
     }
   ]
 }

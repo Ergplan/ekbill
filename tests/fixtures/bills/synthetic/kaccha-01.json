@@ -1,0 +1,25 @@
+{
+  "name": "kaccha-01",
+  "customer": "Green Park Society",
+  "date": "2026-07-03",
+  "lines": [
+    {
+      "what": "Doorbell",
+      "qty": 1,
+      "rate": 280,
+      "amount": 280
+    },
+    {
+      "what": "Inverter service",
+      "qty": 1,
+      "rate": 740,
+      "amount": 740
+    }
+  ],
+  "total": 1020,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "3 Jul"
+  }
+}

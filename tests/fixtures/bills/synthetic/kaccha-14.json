@@ -1,0 +1,19 @@
+{
+  "name": "kaccha-14",
+  "customer": "Green Park Society",
+  "date": "2026-07-21",
+  "lines": [
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 2,
+      "rate": 1520,
+      "amount": 3040
+    }
+  ],
+  "total": 3040,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "21 Jul"
+  }
+}

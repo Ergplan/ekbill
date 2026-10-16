@@ -1,0 +1,37 @@
+{
+  "name": "kaccha-11",
+  "customer": "Ramesh Patil",
+  "date": "2026-09-22",
+  "lines": [
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 1,
+      "rate": 1910,
+      "amount": 1910
+    },
+    {
+      "what": "Doorbell",
+      "qty": 1,
+      "rate": 310,
+      "amount": 310
+    },
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 2,
+      "rate": 1550,
+      "amount": 3100
+    },
+    {
+      "what": "Inverter service",
+      "qty": 1,
+      "rate": 880,
+      "amount": 880
+    }
+  ],
+  "total": 6200,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "22.9.2026"
+  }
+}

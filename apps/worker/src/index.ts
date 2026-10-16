@@ -11,13 +11,14 @@ import {
   type RenderOtherSizesJob,
 } from './bills/jobs';
 import { READ_IMPORT, runReadImport, type ReadImportJob } from './import/job';
+import { READ_BILL, runReadBill, type ReadBillJob } from './read-bill/job';
 
 /**
  * The worker: pg-boss on the same Postgres, one queue per job kind. Stage 0
  * started it with a heartbeat; Stage 5 adds read-import (old bills and
  * party lists into staging rows); Stage 6 render-other-sizes and the daily
- * dues-today listing (search is a generated column, no job); later stages
- * add read-bill and backup-check.
+ * dues-today listing (search is a generated column, no job); Stage 7
+ * read-bill (a photographed bill into an extraction); later, backup-check.
  */
 const ALIVE_FILE = process.env.WORKER_ALIVE_FILE ?? '/tmp/ekbill-worker-alive';
 const log = pino({ name: 'ekbill-worker', level: process.env.LOG_LEVEL ?? 'info' });
@@ -48,6 +49,13 @@ async function main() {
     for (const job of jobs) {
       const { found } = await runReadImport(job.data);
       log.info({ requestId: job.data.requestId, importId: job.data.importId, found }, 'import read');
+    }
+  });
+  await boss.createQueue(READ_BILL, { retryLimit: 1, retryDelay: 10, expireInSeconds: 300 });
+  await boss.work<ReadBillJob>(READ_BILL, async (jobs) => {
+    for (const job of jobs) {
+      const outcome = await runReadBill(job.data);
+      log.info({ requestId: job.data.requestId, extractionId: job.data.extractionId, outcome }, 'bill read');
     }
   });
   await boss.createQueue(RENDER_OTHER_SIZES, { retryLimit: 2, retryDelay: 10, expireInSeconds: 600 });

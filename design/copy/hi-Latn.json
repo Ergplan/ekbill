@@ -679,5 +679,15 @@
   "view.reminded": "{n} baar yaad dilaya",
   "view.credited": "{amount} credit note se kam hua",
   "done.file": "File",
-  "done.file.error": "File abhi nahi bani; Download se dobara try karo"
+  "done.file.error": "File abhi nahi bani; Download se dobara try karo",
+  "photo.error.empty": "Photo khali hai, dobara chuno",
+  "photo.error.too-big": "Photo 8 MB se badi hai",
+  "photo.error.not-a-photo": "Yeh photo nahi lagti (JPG, PNG ya HEIC chuno)",
+  "photo.error.not-ready": "Photo abhi padhi ja rahi hai",
+  "photo.error.final": "Is photo se bill pehle hi ban chuka hai",
+  "photo.unavailable": "Photo abhi nahi padh sakte",
+  "photo.unavailable.sub": "Bill khud likh lo; photo baad mein phir try karna",
+  "photo.customer.match": "{name} se mila ({score}%)",
+  "photo.customer.new": "Naya customer: {name}",
+  "photo.total.differs": "Photo pe {read} likha hai; kaam jodke {lines} aata hai. Bill kaam ke hisaab se banega."
 }

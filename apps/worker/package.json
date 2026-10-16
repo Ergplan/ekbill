@@ -9,12 +9,14 @@
     "start": "tsx --conditions=react-server src/index.ts"
   },
   "dependencies": {
+    "@ekbill/ai": "*",
     "@ekbill/db": "*",
     "@ekbill/engine": "*",
     "@ekbill/render": "*",
     "pdfjs-dist": "^4.10.38",
     "pg-boss": "^12.0.0",
     "pino": "^10.0.0",
+    "sharp": "^0.34.5",
     "tsx": "^4.20.0"
   }
 }

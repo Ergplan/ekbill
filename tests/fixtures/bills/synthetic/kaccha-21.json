@@ -1,0 +1,31 @@
+{
+  "name": "kaccha-21",
+  "customer": "Hotel Annapurna",
+  "date": "2026-08-12",
+  "lines": [
+    {
+      "what": "Inverter service",
+      "qty": 1,
+      "rate": 1000,
+      "amount": 1000
+    },
+    {
+      "what": "Socket 6A",
+      "qty": 3,
+      "rate": 90,
+      "amount": 270
+    },
+    {
+      "what": "Switch board",
+      "qty": 1,
+      "rate": 570,
+      "amount": 570
+    }
+  ],
+  "total": 1840,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "12.8.2026"
+  }
+}

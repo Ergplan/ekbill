@@ -686,5 +686,15 @@
   "view.reminded": "Reminded {n} times",
   "view.credited": "{amount} reduced by credit note",
   "done.file": "File",
-  "done.file.error": "The file is not ready; try Download again"
+  "done.file.error": "The file is not ready; try Download again",
+  "photo.error.empty": "The photo is empty; pick it again",
+  "photo.error.too-big": "The photo is larger than 8 MB",
+  "photo.error.not-a-photo": "This does not look like a photo (pick a JPG, PNG or HEIC)",
+  "photo.error.not-ready": "The photo is still being read",
+  "photo.error.final": "A bill was already made from this photo",
+  "photo.unavailable": "The photo cannot be read just now",
+  "photo.unavailable.sub": "Write the bill yourself; try the photo again later",
+  "photo.customer.match": "Matched {name} ({score}%)",
+  "photo.customer.new": "New customer: {name}",
+  "photo.total.differs": "The photo says {read}; the lines add up to {lines}. The bill follows the lines."
 }

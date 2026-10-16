@@ -1,0 +1,76 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Deshmukh ji",
+    "confidence": 0.62,
+    "unreadable": false
+  },
+  "date": {
+    "value": "22-8-2026",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "LED tube 20W",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "240",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "240/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Doorbell",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "2",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "400",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "800/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 1040/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

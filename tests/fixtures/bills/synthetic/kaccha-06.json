@@ -1,0 +1,31 @@
+{
+  "name": "kaccha-06",
+  "customer": "Sunrise School",
+  "date": "2026-09-19",
+  "lines": [
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 1,
+      "rate": 1450,
+      "amount": 1450
+    },
+    {
+      "what": "AMC visit",
+      "qty": 1,
+      "rate": 3710,
+      "amount": 3710
+    },
+    {
+      "what": "MCB 32A",
+      "qty": 4,
+      "rate": 500,
+      "amount": 2000
+    }
+  ],
+  "total": 7160,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "19/9/26"
+  }
+}

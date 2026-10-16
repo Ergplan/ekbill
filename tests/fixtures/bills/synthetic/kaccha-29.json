@@ -1,0 +1,25 @@
+{
+  "name": "kaccha-29",
+  "customer": "Deshmukh ji",
+  "date": "2026-08-22",
+  "lines": [
+    {
+      "what": "LED tube 20W",
+      "qty": 1,
+      "rate": 240,
+      "amount": 240
+    },
+    {
+      "what": "Doorbell",
+      "qty": 2,
+      "rate": 400,
+      "amount": 800
+    }
+  ],
+  "total": 1040,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "22-8-2026"
+  }
+}

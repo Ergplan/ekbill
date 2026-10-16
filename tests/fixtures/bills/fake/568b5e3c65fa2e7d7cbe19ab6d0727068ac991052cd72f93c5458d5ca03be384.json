@@ -1,0 +1,76 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Sai Medical",
+    "confidence": 0.62,
+    "unreadable": false
+  },
+  "date": {
+    "value": "9-9-2026",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "Socket 6A",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "70",
+        "confidence": 0.55,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "70/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Inverter service",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "640",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "640/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 710/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

@@ -1,0 +1,25 @@
+{
+  "name": "kaccha-10",
+  "customer": "Anand Kirana",
+  "date": "2026-09-28",
+  "lines": [
+    {
+      "what": "Ceiling fan install",
+      "qty": 2,
+      "rate": 1160,
+      "amount": 2320
+    },
+    {
+      "what": "Ceiling fan install",
+      "qty": 2,
+      "rate": 1620,
+      "amount": 3240
+    }
+  ],
+  "total": 5560,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "28.9.2026"
+  }
+}

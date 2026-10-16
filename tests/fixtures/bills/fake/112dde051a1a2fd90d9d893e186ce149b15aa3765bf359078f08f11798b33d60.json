@@ -1,0 +1,130 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Lakshmi Tailors",
+    "confidence": 0.93,
+    "unreadable": false
+  },
+  "date": {
+    "value": null,
+    "confidence": 0,
+    "unreadable": true
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "MCB 32A",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "2",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "570",
+        "confidence": 0.55,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "1140/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Doorbell",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "390",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "390/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "MCB 32A",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "600",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "600/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Inverter service",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "5",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "810",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "4050/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 6180/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { defineConfig, devices } from '@playwright/test';
 
@@ -58,16 +59,22 @@ export default defineConfig({
     ? undefined
     : [
         {
-          command: 'npm run dev',
+          // A dev server killed mid-compile leaves Turbopack's cache unusable (pages never hydrate): start clean.
+          command: "node -e \"require('fs').rmSync('apps/web/.next/dev',{recursive:true,force:true})\" && npm run dev",
           url: `${baseURL}/api/health`,
           reuseExistingServer: true,
           timeout: 120_000,
           env: serverEnv,
         },
-        // The worker reads uploaded old bills (Stage 5, read-import); ready once it logs that it started.
+        // The worker reads uploaded old bills (Stage 5, read-import) and photographed bills (Stage 7, read-bill, with
+        // the fake model that answers the synthetic set: no model is called from a test); ready once it has started.
         {
           command: 'npm run start -w apps/worker',
-          env: serverEnv,
+          env: {
+            ...serverEnv,
+            AI_TRANSPORT: 'fake',
+            AI_FAKE_DIR: join(__dirname, 'tests', 'fixtures', 'bills', 'fake'),
+          },
           wait: { stdout: /worker started/ },
           stdout: 'pipe',
           timeout: 120_000,

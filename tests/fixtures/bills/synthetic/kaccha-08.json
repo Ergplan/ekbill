@@ -1,0 +1,19 @@
+{
+  "name": "kaccha-08",
+  "customer": "Hotel Annapurna",
+  "date": "2026-07-06",
+  "lines": [
+    {
+      "what": "Wiring work",
+      "qty": 1,
+      "rate": 980,
+      "amount": 980
+    }
+  ],
+  "total": 980,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "6 Jul"
+  }
+}

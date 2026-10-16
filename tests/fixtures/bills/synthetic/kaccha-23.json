@@ -1,0 +1,37 @@
+{
+  "name": "kaccha-23",
+  "customer": "Dr. Kulkarni",
+  "date": "2026-09-05",
+  "lines": [
+    {
+      "what": "Wiring work",
+      "qty": 1,
+      "rate": 1250,
+      "amount": 1250
+    },
+    {
+      "what": "Switch board",
+      "qty": 1,
+      "rate": 370,
+      "amount": 370
+    },
+    {
+      "what": "Socket 6A",
+      "qty": 2,
+      "rate": 80,
+      "amount": 160
+    },
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 1,
+      "rate": 1990,
+      "amount": 1990
+    }
+  ],
+  "total": 3770,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "5 Sep"
+  }
+}

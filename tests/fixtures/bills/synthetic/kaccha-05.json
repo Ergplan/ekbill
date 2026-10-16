@@ -1,0 +1,37 @@
+{
+  "name": "kaccha-05",
+  "customer": "Joshi Builders",
+  "date": "2026-08-08",
+  "lines": [
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 1,
+      "rate": 1500,
+      "amount": 1500
+    },
+    {
+      "what": "Doorbell",
+      "qty": 1,
+      "rate": 260,
+      "amount": 260
+    },
+    {
+      "what": "Labour charges",
+      "qty": 1,
+      "rate": 510,
+      "amount": 510
+    },
+    {
+      "what": "Wiring work",
+      "qty": 1,
+      "rate": 1400,
+      "amount": 1400
+    }
+  ],
+  "total": 3670,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "8.8.2026"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "kaccha-25",
+  "customer": "Anand Kirana",
+  "date": "2026-09-25",
+  "lines": [
+    {
+      "what": "Wiring work",
+      "qty": 5,
+      "rate": 980,
+      "amount": 4900
+    },
+    {
+      "what": "Switch board",
+      "qty": 3,
+      "rate": 390,
+      "amount": 1170
+    },
+    {
+      "what": "LED tube 20W",
+      "qty": 1,
+      "rate": 220,
+      "amount": 220
+    },
+    {
+      "what": "Wiring work",
+      "qty": 2,
+      "rate": 1350,
+      "amount": 2700
+    }
+  ],
+  "total": 8990,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "25/9/26"
+  }
+}

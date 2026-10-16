@@ -1,0 +1,25 @@
+{
+  "name": "kaccha-18",
+  "customer": "Gupta Hardware",
+  "date": "2026-07-19",
+  "lines": [
+    {
+      "what": "Wiring work",
+      "qty": 1,
+      "rate": 1340,
+      "amount": 1340
+    },
+    {
+      "what": "Labour charges",
+      "qty": 4,
+      "rate": 670,
+      "amount": 2680
+    }
+  ],
+  "total": 4020,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "19-7-2026"
+  }
+}

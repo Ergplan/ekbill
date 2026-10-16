@@ -1,0 +1,103 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Sunrise School",
+    "confidence": 0.93,
+    "unreadable": false
+  },
+  "date": {
+    "value": null,
+    "confidence": 0,
+    "unreadable": true
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "Copper wire 1.5mm",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1450",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "1450/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "AMC visit",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "3710",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "3710/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "MCB 32A",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "4",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "500",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "2000/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 7160/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

@@ -1,0 +1,25 @@
+{
+  "name": "kaccha-30",
+  "customer": "Ramesh Patil",
+  "date": "2026-09-19",
+  "lines": [
+    {
+      "what": "Inverter service",
+      "qty": 2,
+      "rate": 860,
+      "amount": 1720
+    },
+    {
+      "what": "Inverter service",
+      "qty": 1,
+      "rate": 720,
+      "amount": 720
+    }
+  ],
+  "total": 2440,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "19-9-2026"
+  }
+}

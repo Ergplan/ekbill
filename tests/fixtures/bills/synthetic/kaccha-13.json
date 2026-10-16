@@ -1,0 +1,19 @@
+{
+  "name": "kaccha-13",
+  "customer": "Deshmukh ji",
+  "date": "2026-09-25",
+  "lines": [
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 3,
+      "rate": 1980,
+      "amount": 5940
+    }
+  ],
+  "total": 5940,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "25-9-2026"
+  }
+}

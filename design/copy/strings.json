@@ -2744,5 +2744,45 @@
   "done.file.error": {
     "hi-Latn": "File abhi nahi bani; Download se dobara try karo",
     "en": "The file is not ready; try Download again"
+  },
+  "photo.error.empty": {
+    "hi-Latn": "Photo khali hai, dobara chuno",
+    "en": "The photo is empty; pick it again"
+  },
+  "photo.error.too-big": {
+    "hi-Latn": "Photo 8 MB se badi hai",
+    "en": "The photo is larger than 8 MB"
+  },
+  "photo.error.not-a-photo": {
+    "hi-Latn": "Yeh photo nahi lagti (JPG, PNG ya HEIC chuno)",
+    "en": "This does not look like a photo (pick a JPG, PNG or HEIC)"
+  },
+  "photo.error.not-ready": {
+    "hi-Latn": "Photo abhi padhi ja rahi hai",
+    "en": "The photo is still being read"
+  },
+  "photo.error.final": {
+    "hi-Latn": "Is photo se bill pehle hi ban chuka hai",
+    "en": "A bill was already made from this photo"
+  },
+  "photo.unavailable": {
+    "hi-Latn": "Photo abhi nahi padh sakte",
+    "en": "The photo cannot be read just now"
+  },
+  "photo.unavailable.sub": {
+    "hi-Latn": "Bill khud likh lo; photo baad mein phir try karna",
+    "en": "Write the bill yourself; try the photo again later"
+  },
+  "photo.customer.match": {
+    "hi-Latn": "{name} se mila ({score}%)",
+    "en": "Matched {name} ({score}%)"
+  },
+  "photo.customer.new": {
+    "hi-Latn": "Naya customer: {name}",
+    "en": "New customer: {name}"
+  },
+  "photo.total.differs": {
+    "hi-Latn": "Photo pe {read} likha hai; kaam jodke {lines} aata hai. Bill kaam ke hisaab se banega.",
+    "en": "The photo says {read}; the lines add up to {lines}. The bill follows the lines."
   }
 }

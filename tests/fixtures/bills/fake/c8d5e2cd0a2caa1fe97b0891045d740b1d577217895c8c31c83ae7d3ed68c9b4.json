@@ -1,0 +1,130 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Hotel Annapurna",
+    "confidence": 0.93,
+    "unreadable": false
+  },
+  "date": {
+    "value": null,
+    "confidence": 0,
+    "unreadable": true
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "Extension board",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "2",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "490",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "980/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Copper wire 1.5mm",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1760",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "1760/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Wiring work",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "3",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1290",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "3870/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Labour charges",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "2",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "490",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "980/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 7590/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

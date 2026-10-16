@@ -1,0 +1,37 @@
+{
+  "name": "kaccha-27",
+  "customer": "Lakshmi Tailors",
+  "date": "2026-09-02",
+  "lines": [
+    {
+      "what": "MCB 32A",
+      "qty": 2,
+      "rate": 570,
+      "amount": 1140
+    },
+    {
+      "what": "Doorbell",
+      "qty": 1,
+      "rate": 390,
+      "amount": 390
+    },
+    {
+      "what": "MCB 32A",
+      "qty": 1,
+      "rate": 600,
+      "amount": 600
+    },
+    {
+      "what": "Inverter service",
+      "qty": 5,
+      "rate": 810,
+      "amount": 4050
+    }
+  ],
+  "total": 6180,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "2 Sep"
+  }
+}

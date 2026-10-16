@@ -1,0 +1,37 @@
+{
+  "name": "kaccha-20",
+  "customer": "Hotel Annapurna",
+  "date": "2026-08-21",
+  "lines": [
+    {
+      "what": "Extension board",
+      "qty": 2,
+      "rate": 490,
+      "amount": 980
+    },
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 1,
+      "rate": 1760,
+      "amount": 1760
+    },
+    {
+      "what": "Wiring work",
+      "qty": 3,
+      "rate": 1290,
+      "amount": 3870
+    },
+    {
+      "what": "Labour charges",
+      "qty": 2,
+      "rate": 490,
+      "amount": 980
+    }
+  ],
+  "total": 7590,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "21 Aug"
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Mehta Traders",
+    "confidence": 0.93,
+    "unreadable": false
+  },
+  "date": {
+    "value": "9/7/26",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "Extension board",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "4",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "520",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "2080/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "AMC visit",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "2810",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "2810/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Geyser repair",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "4",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1150",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "4600/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 9490/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

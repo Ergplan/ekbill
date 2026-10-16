@@ -1,0 +1,25 @@
+{
+  "name": "kaccha-19",
+  "customer": "Sai Medical",
+  "date": "2026-09-09",
+  "lines": [
+    {
+      "what": "Socket 6A",
+      "qty": 1,
+      "rate": 70,
+      "amount": 70
+    },
+    {
+      "what": "Inverter service",
+      "qty": 1,
+      "rate": 640,
+      "amount": 640
+    }
+  ],
+  "total": 710,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "9-9-2026"
+  }
+}

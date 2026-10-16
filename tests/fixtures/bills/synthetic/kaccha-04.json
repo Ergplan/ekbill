@@ -1,0 +1,37 @@
+{
+  "name": "kaccha-04",
+  "customer": "Hotel Annapurna",
+  "date": "2026-08-17",
+  "lines": [
+    {
+      "what": "AMC visit",
+      "qty": 1,
+      "rate": 4440,
+      "amount": 4440
+    },
+    {
+      "what": "LED tube 20W",
+      "qty": 1,
+      "rate": 230,
+      "amount": 230
+    },
+    {
+      "what": "Labour charges",
+      "qty": 1,
+      "rate": 680,
+      "amount": 680
+    },
+    {
+      "what": "Fan repair",
+      "qty": 1,
+      "rate": 440,
+      "amount": 440
+    }
+  ],
+  "total": 5790,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "17-8-2026"
+  }
+}

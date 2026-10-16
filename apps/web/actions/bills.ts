@@ -6,6 +6,7 @@ import {
   ForbiddenError,
   NotFoundError,
   businesses,
+  photos,
   customers,
   documents,
   items,
@@ -27,8 +28,11 @@ import { printAndKeep } from '@ekbill/render';
 import { log } from '../server/log';
 import { enqueue } from '../server/queue';
 import { current } from '../server/session';
+import type { z } from 'zod';
+
 import {
   cancelBillInput,
+  photoBillInput,
   creditNoteBillInput,
   issueBillInput,
   paymentInput,
@@ -73,6 +77,7 @@ function refused(e: unknown, draftId?: string): Refusal {
   if (e instanceof documents.DocumentStateError) return { ok: false, error: `bill.state.${e.code}`, draftId };
   if (e instanceof payments.PaymentError) return { ok: false, error: e.say.key, say: e.say };
   if (e instanceof customers.CustomerError) return { ok: false, error: e.say.key, field: e.field, say: e.say };
+  if (e instanceof photos.PhotoError) return { ok: false, error: `photo.error.${e.code}` };
   if (e instanceof ForbiddenError) return { ok: false, error: 'auth.forbidden' };
   if (e instanceof NotFoundError) return { ok: false, error: 'error.notFound' };
   throw e;
@@ -128,8 +133,16 @@ export async function issueBill(
   if (!parsed.success) return { ok: false, error: 'form.invalid' };
   const s = await scoped();
   if ('error' in s) return { ok: false, error: s.error };
-  const { scope } = s;
-  const d = parsed.data;
+  return issueFrom(s.scope, parsed.data);
+}
+
+type IssueBillData = z.infer<typeof issueBillInput>;
+
+/** The one issue path of the screens (the form and the photo review): customer, draft, issueDocument, the file. */
+async function issueFrom(
+  scope: TenantScope,
+  d: IssueBillData,
+): Promise<BillResult<{ id: string; number: string; renderMs: number | null }>> {
   const today = todayIst(new Date());
   let draftId = d.id ?? undefined;
   try {
@@ -353,4 +366,37 @@ export async function reminderOpened(input: unknown): Promise<BillResult<undefin
   } catch (e) {
     return refused(e);
   }
+}
+
+/**
+ * "Bill banao" on the photo review (Stage 7): the reviewed fields go down
+ * Stage 6's issue path; once the bill is issued, the owner's changes are
+ * kept as corrections (model value, human value) and the reading points at
+ * the bill. A refused issue keeps nothing but the draft, as on the form.
+ */
+export async function makeBillFromPhoto(
+  input: unknown,
+): Promise<BillResult<{ id: string; number: string; renderMs: number | null }>> {
+  const parsed = photoBillInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'form.invalid' };
+  const s = await scoped();
+  if ('error' in s) return { ok: false, error: s.error };
+  const { extractionId, corrections, ...bill } = parsed.data;
+  try {
+    const reading = await photos.getExtraction(s.scope, extractionId);
+    if (reading.status !== 'ready' && reading.status !== 'reviewed') return { ok: false, error: 'photo.error.final' };
+  } catch (e) {
+    return refused(e);
+  }
+  const made = await issueFrom(s.scope, bill);
+  if (!made.ok) return made;
+  try {
+    await photos.recordCorrections(s.scope, extractionId, corrections);
+    await photos.commitReading(s.scope, extractionId, made.value.id);
+  } catch (e) {
+    // The bill is issued; a reading that cannot be committed (set aside meanwhile) does not undo it.
+    log.warn({ requestId: s.scope.requestId, extractionId, err: e }, 'reading not committed');
+  }
+  log.info({ requestId: s.scope.requestId, extractionId, documentId: made.value.id }, 'bill made from a photo');
+  return made;
 }

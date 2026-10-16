@@ -1,0 +1,76 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Gupta Hardware",
+    "confidence": 0.93,
+    "unreadable": false
+  },
+  "date": {
+    "value": "19-7-2026",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "Wiring work",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1340",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "1340/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Labour charges",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "4",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "670",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "2680/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 4020/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

@@ -1,0 +1,130 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Sai Medical",
+    "confidence": 0.62,
+    "unreadable": false
+  },
+  "date": {
+    "value": "20/9/26",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "Fan repair",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "350",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "350/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "MCB 32A",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "4",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "570",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "2280/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "LED tube 20W",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "210",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "210/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Extension board",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "3",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "360",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "1080/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 3920/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

@@ -1,0 +1,31 @@
+{
+  "name": "kaccha-12",
+  "customer": "Sunrise School",
+  "date": "2026-08-27",
+  "lines": [
+    {
+      "what": "MCB 32A",
+      "qty": 5,
+      "rate": 450,
+      "amount": 2250
+    },
+    {
+      "what": "MCB 32A",
+      "qty": 1,
+      "rate": 560,
+      "amount": 560
+    },
+    {
+      "what": "MCB 32A",
+      "qty": 1,
+      "rate": 490,
+      "amount": 490
+    }
+  ],
+  "total": 3300,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "27-8-2026"
+  }
+}

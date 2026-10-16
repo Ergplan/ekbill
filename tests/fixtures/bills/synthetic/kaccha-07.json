@@ -1,0 +1,25 @@
+{
+  "name": "kaccha-07",
+  "customer": "Sunrise School",
+  "date": "2026-08-11",
+  "lines": [
+    {
+      "what": "Inverter service",
+      "qty": 4,
+      "rate": 670,
+      "amount": 2680
+    },
+    {
+      "what": "Geyser repair",
+      "qty": 1,
+      "rate": 890,
+      "amount": 890
+    }
+  ],
+  "total": 3570,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "11/8/26"
+  }
+}

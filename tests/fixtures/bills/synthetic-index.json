@@ -1,0 +1,130 @@
+[
+  {
+    "name": "kaccha-01",
+    "sha256": "725f2bfe59aa470e540e5a4335c333c0f6c3087de5ae52b32dd420e3f8e4635f"
+  },
+  {
+    "name": "kaccha-02",
+    "sha256": "f3e09bd997cbc08cf7decfb62db015b8b7038c751d836ae7380fb4371acb6013"
+  },
+  {
+    "name": "kaccha-03",
+    "sha256": "3193423b01c23b10ed9b0addb3afa81dff011dc1e9f4233e87fbde92e370661d"
+  },
+  {
+    "name": "kaccha-04",
+    "sha256": "a0592c069693db5adbccb534d613f9217dbe586d67d6dcc78b30e916c025f0a8"
+  },
+  {
+    "name": "kaccha-05",
+    "sha256": "dec5c2d368c99cbe9cdbfb4be9705a2ec3b5118a4794add9c2d72760d8e3711a"
+  },
+  {
+    "name": "kaccha-06",
+    "sha256": "41c375584a43691d5570c1718d9ad49f3bc53b0bdaec29eed1daf7f910618e69"
+  },
+  {
+    "name": "kaccha-07",
+    "sha256": "91acbd28b3edcadb484366518b4a97c47959f8dca3e81878956d1c5ae2c85623"
+  },
+  {
+    "name": "kaccha-08",
+    "sha256": "f4dbb347b81a5fa7d5dc8f9c7662dd74abb3d640ff0333a0a8449807a884f58e"
+  },
+  {
+    "name": "kaccha-09",
+    "sha256": "c51aeeb39d42f0044a77474a2729c9a46e2aaf1740d9e8d70661057e629a9d69"
+  },
+  {
+    "name": "kaccha-10",
+    "sha256": "039b36870c175af1f9fffe4aa5ecc2880aeebd0de11f339be13736ba4e9c37e9"
+  },
+  {
+    "name": "kaccha-11",
+    "sha256": "234ddea6053a461c2d4397627ec680df32f663cbd9418e4e02ffa703c45d5a9c"
+  },
+  {
+    "name": "kaccha-12",
+    "sha256": "980bdc0e2794071d73e1a9a9720e50d250c49e78579d277c4cd95506f70790d4"
+  },
+  {
+    "name": "kaccha-13",
+    "sha256": "673c201adde8f68d3d3a31e2c7405a7de07b0be8b1196d51c6988ecf2b71f41a"
+  },
+  {
+    "name": "kaccha-14",
+    "sha256": "54279d2b6fc56a8072d8f455b664696383ac42636811bab88bfafd12716a898a"
+  },
+  {
+    "name": "kaccha-15",
+    "sha256": "0dd11ee76f10c2d80f6697aaedc5f57a9155a6d4c766957c0f96fce2539fa51f"
+  },
+  {
+    "name": "kaccha-16",
+    "sha256": "b491c90cb0a19c50e8632715984a0c52dfea97a55a5e32978fd72eed94bedd77"
+  },
+  {
+    "name": "kaccha-17",
+    "sha256": "8de798f59db0c1864bbfd03bca54a2d1f0ea17ba0635efaa516361230a9e5b44"
+  },
+  {
+    "name": "kaccha-18",
+    "sha256": "f97d440574aa91791ed185b2c43c27fd9b9bbd2e96074d8eaceb6fb7e379d98f"
+  },
+  {
+    "name": "kaccha-19",
+    "sha256": "568b5e3c65fa2e7d7cbe19ab6d0727068ac991052cd72f93c5458d5ca03be384"
+  },
+  {
+    "name": "kaccha-20",
+    "sha256": "c8d5e2cd0a2caa1fe97b0891045d740b1d577217895c8c31c83ae7d3ed68c9b4"
+  },
+  {
+    "name": "kaccha-21",
+    "sha256": "ae7725325abd2720564de85f71c0674d89f0975803ecbb62d3fd00b60c24d884"
+  },
+  {
+    "name": "kaccha-22",
+    "sha256": "626ba31214d769a185a7fd4ba156330fbb9a9b7183a410a8768966aed98f5c3b"
+  },
+  {
+    "name": "kaccha-23",
+    "sha256": "5dca2666f16b7633f801319b6fc4aceabb8c6952795e9d1b58e6fecc79270683"
+  },
+  {
+    "name": "kaccha-24",
+    "sha256": "9237b29b6ee66a1ec78835622f74c0b7ca9e23e234d67d0f6023f5ecbf1da6ad"
+  },
+  {
+    "name": "kaccha-25",
+    "sha256": "5a75cb68049d119d00cb8f58a924c1c10708af72ed897047a4d07aa34283397d"
+  },
+  {
+    "name": "kaccha-26",
+    "sha256": "1860d7f55f9944fa58a2c13c8e016837d2decbb433bddab441ee5d77daae5f34"
+  },
+  {
+    "name": "kaccha-27",
+    "sha256": "112dde051a1a2fd90d9d893e186ce149b15aa3765bf359078f08f11798b33d60"
+  },
+  {
+    "name": "kaccha-28",
+    "sha256": "428a19c7a8579248f3ec8d1758b5ec6819a210e6b154085725e43427efa3feca"
+  },
+  {
+    "name": "kaccha-29",
+    "sha256": "dd18ee8d4bcd60697a699768f1a6458c1ba6cb7c7a9015d9935adf48cac68bfa"
+  },
+  {
+    "name": "kaccha-30",
+    "sha256": "0256c90a5c9aa6a2011e8df943db2783e520309388dacbf7f07cd730c0b67f07"
+  },
+  {
+    "name": "blurred",
+    "sha256": "cf549705931cfe2951c1e50eb823767632af52aed91d7d361c5a7e6599759074"
+  },
+  {
+    "name": "not-a-bill",
+    "sha256": "20627df5c61daefe49e6a478eed5c8b6ee2926a79f499f5b113b49552a9566a9"
+  }
+]

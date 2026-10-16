@@ -216,6 +216,17 @@ function previewTotals(
 }
 
 async function seriesFor(tx: Tx, id: string | null | undefined, kind: SeriesKind) {
+  // No series named: the business's default bill series (Aap), else its oldest active one of the kind.
+  if (!id && kind === 'bill') {
+    const chosen = (
+      await tx.db
+        .select({ id: schema.businesses.defaultSeriesId })
+        .from(schema.businesses)
+        .where(eq(schema.businesses.id, tx.scope.businessId))
+    )[0]?.id;
+    const row = chosen ? (await tx.db.select().from(schema.series).where(eq(schema.series.id, chosen)))[0] : undefined;
+    if (row && row.active && row.kind === 'bill') return row;
+  }
   const row = id
     ? (await tx.db.select().from(schema.series).where(eq(schema.series.id, id)))[0]
     : (

@@ -1,0 +1,31 @@
+{
+  "name": "kaccha-26",
+  "customer": "Verma Sweets",
+  "date": "2026-08-18",
+  "lines": [
+    {
+      "what": "MCB 32A",
+      "qty": 1,
+      "rate": 470,
+      "amount": 470
+    },
+    {
+      "what": "Ceiling fan install",
+      "qty": 1,
+      "rate": 1380,
+      "amount": 1380
+    },
+    {
+      "what": "Inverter service",
+      "qty": 1,
+      "rate": 940,
+      "amount": 940
+    }
+  ],
+  "total": 2790,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "18-8-2026"
+  }
+}

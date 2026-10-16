@@ -1,0 +1,130 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Anand Kirana",
+    "confidence": 0.93,
+    "unreadable": false
+  },
+  "date": {
+    "value": "25/9/26",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "Wiring work",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "5",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "980",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "4900/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Switch board",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "3",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "390",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "1170/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "LED tube 20W",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "220",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "220/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Wiring work",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "2",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1350",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "2700/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 8990/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

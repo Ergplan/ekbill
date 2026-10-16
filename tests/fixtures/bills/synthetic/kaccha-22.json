@@ -1,0 +1,31 @@
+{
+  "name": "kaccha-22",
+  "customer": "Verma Sweets",
+  "date": "2026-07-22",
+  "lines": [
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 1,
+      "rate": 1510,
+      "amount": 1510
+    },
+    {
+      "what": "MCB 32A",
+      "qty": 1,
+      "rate": 520,
+      "amount": 520
+    },
+    {
+      "what": "Socket 6A",
+      "qty": 5,
+      "rate": 90,
+      "amount": 450
+    }
+  ],
+  "total": 2480,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "22-7-2026"
+  }
+}

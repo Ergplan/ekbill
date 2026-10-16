@@ -673,3 +673,112 @@ export const remindersSent = pgTable(
     check('reminders_sent_tone', sql`${t.tone} in ('gentle', 'direct', 'second')`),
   ],
 );
+
+/**
+ * A photographed bill (Stage 7), as the owner picked it: kept as it came,
+ * never changed (8 MB at most). The worker reads it into an extraction.
+ */
+export const uploads = pgTable(
+  'uploads',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    /** bill-photo: a kaccha bill or an old printed one, to read into a draft. */
+    kind: text('kind').notNull().default('bill-photo'),
+    name: text('name').notNull(),
+    mime: text('mime').notNull(),
+    bytes: bytea('bytes').notNull(),
+    size: integer('size').notNull(),
+    sha256: text('sha256').notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('uploads_business_created').on(t.businessId, t.createdAt),
+    check('uploads_kind', sql`${t.kind} in ('bill-photo')`),
+    check('uploads_size', sql`${t.size} between 1 and ${sql.raw(String(8 * 1024 * 1024))}`),
+  ],
+);
+
+/**
+ * What the model read from an upload (I6: staging only, never a document).
+ * The worker writes the reading once (actor 'model'); the owner reviews it,
+ * and "Bill banao" makes a bill through Stage 6's path and points here.
+ */
+export const extractions = pgTable(
+  'extractions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    uploadId: uuid('upload_id')
+      .notNull()
+      .references(() => uploads.id),
+    /** pending → ready | failed (the worker); ready → reviewed → committed | discarded (a person). */
+    status: text('status').notNull().default('pending'),
+    /** Why a reading failed: unreadable | no-bill | ai-unavailable | invalid | error. */
+    error: text('error'),
+    model: text('model'),
+    promptVersion: text('prompt_version'),
+    doclingUsed: boolean('docling_used').notNull().default(false),
+    /** The photo the model saw: rotated upright, at most 2000 px, JPEG q85. */
+    image: bytea('image'),
+    /** The reading after the engine's checks: {customer, date, lines[], totals, notes}, each field with its confidence. */
+    result: jsonb('result'),
+    warnings: jsonb('warnings')
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    /** The customer it matched, with the score (0–1). */
+    matchedCustomerId: uuid('matched_customer_id').references(() => customers.id),
+    matchScorePct: integer('match_score_pct'),
+    aiCallId: uuid('ai_call_id').references(() => aiCalls.id),
+    costMicros: bigint('cost_micros', { mode: 'number' }),
+    latencyMs: integer('latency_ms'),
+    committedDocumentId: uuid('committed_document_id').references(() => documents.id),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('extractions_business_created').on(t.businessId, t.createdAt),
+    index('extractions_upload').on(t.uploadId),
+    check(
+      'extractions_status',
+      sql`${t.status} in ('pending', 'ready', 'failed', 'reviewed', 'committed', 'discarded')`,
+    ),
+    check(
+      'extractions_error',
+      sql`${t.error} is null or ${t.error} in ('unreadable', 'no-bill', 'ai-unavailable', 'invalid', 'error')`,
+    ),
+  ],
+);
+
+/** A field the owner changed on the review screen: what the model said, what the person wrote (the eval's raw material). */
+export const extractionCorrections = pgTable(
+  'extraction_corrections',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    extractionId: uuid('extraction_id')
+      .notNull()
+      .references(() => extractions.id),
+    /** customer | date | lines.0.what | lines.0.qty | lines.0.rate | total … */
+    field: text('field').notNull(),
+    modelValue: text('model_value'),
+    humanValue: text('human_value'),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('extraction_corrections_extraction').on(t.extractionId)],
+);

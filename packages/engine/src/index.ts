@@ -288,3 +288,17 @@ export {
   type PaymentMethod,
   type ReminderTone,
 } from './ledger';
+export {
+  checkReading,
+  looseAmount,
+  looseDate,
+  looseQuantity,
+  nameLikeness,
+  type BillReading,
+  type ReadingLine,
+  type CheckedReading,
+  type ReadField,
+  type ReadingContext,
+  type ReadingWarning,
+  type ReadLine,
+} from './read-bill';

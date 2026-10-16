@@ -1,0 +1,37 @@
+{
+  "name": "kaccha-15",
+  "customer": "Joshi Builders",
+  "date": "2026-07-16",
+  "lines": [
+    {
+      "what": "Wiring work",
+      "qty": 1,
+      "rate": 1500,
+      "amount": 1500
+    },
+    {
+      "what": "Wiring work",
+      "qty": 1,
+      "rate": 1000,
+      "amount": 1000
+    },
+    {
+      "what": "Ceiling fan install",
+      "qty": 2,
+      "rate": 1140,
+      "amount": 2280
+    },
+    {
+      "what": "Ceiling fan install",
+      "qty": 3,
+      "rate": 1350,
+      "amount": 4050
+    }
+  ],
+  "total": 8830,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "16.7.2026"
+  }
+}

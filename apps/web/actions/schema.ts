@@ -185,3 +185,17 @@ export const reminderInput = z.object({
   language: z.enum(['hi-Latn', 'en']),
   text: z.string().max(2000),
 });
+// table: extraction_corrections
+/** "Bill banao" on the photo review: the bill as reviewed, and what the owner changed from the reading. */
+export const photoBillInput = issueBillInput.extend({
+  extractionId: z.string().uuid(),
+  corrections: z
+    .array(
+      z.object({
+        field: z.string().max(60),
+        modelValue: z.string().max(500).nullable(),
+        humanValue: z.string().max(500).nullable(),
+      }),
+    )
+    .max(200),
+});

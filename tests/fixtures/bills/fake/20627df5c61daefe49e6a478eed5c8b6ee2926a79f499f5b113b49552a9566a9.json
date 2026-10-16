@@ -1,0 +1,21 @@
+{
+  "found": false,
+  "customer": {
+    "value": null,
+    "confidence": 0,
+    "unreadable": true
+  },
+  "date": {
+    "value": null,
+    "confidence": 0,
+    "unreadable": true
+  },
+  "lines": [],
+  "total": {
+    "value": null,
+    "confidence": 0,
+    "unreadable": true
+  },
+  "notes": null,
+  "legible": true
+}

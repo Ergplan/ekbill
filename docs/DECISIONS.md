@@ -541,3 +541,52 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `tests/e2e/global-setup.ts` runs `tests/e2e/prepare.ts` with `--conditions=react-server`; it seeds, cancels today's test bills and reverses today's test payments on fixture bills, so a rerun meets neither the duplicate guard nor paid-off dues.
 - Why: the seed now issues bills through the repositories, which import `server-only`.
 - Asked by: the first full Playwright run of Stage 6.
+
+### The model writes one row, through one trigger
+
+- Decision: `extractions` drops the general model-actor refusal for `guard_extraction`: a model may only turn a pending reading into ready or failed, once; it never inserts the row, never changes a recorded reading, never commits or points it at a document; a commit needs an issued bill and a person. Every other table keeps `refuse_model_actor`.
+- Why: I6 at the database, not only in code: the worker writes as the model, so a bug in it can stage a wrong reading but cannot make a bill or a customer.
+- Asked by: I6 (model output is staging only).
+
+### Normalisation in the worker, the normalised photo on the reading
+
+- Decision: the worker normalises (sharp: EXIF rotate, ≤ 2000 px, JPEG q85, EXIF dropped) and stores the result on the extraction (`image`); the upload keeps the original bytes unchanged.
+- Options: normalising at upload in the web server.
+- Why: the master prompt's pipeline; the upload stays exactly what the owner picked, and the review shows the photo the model saw.
+- Asked by: the Stage 7 prompt.
+
+### Chat completions with a JSON object, a fake transport for the build
+
+- Decision: `openAiTransport` posts to `/v1/chat/completions` with the image as a data URL and `response_format: json_object`; the model ID is `OPENAI_VISION_MODEL`. `AI_TRANSPORT=fake` answers from `tests/fixtures/bills/fake/<sha256 of the photo>.json` and is what the tests and the journeys use.
+- Why: the build container has no key and must never call a model; the fake answers the synthetic set's ground truth, with doubtful and unreadable fields on purpose.
+- Asked by: rule 9; the Stage 7 tests.
+
+### Cost from configured prices
+
+- Decision: `cost_micros` = tokens in × `OPENAI_VISION_PRICE_IN` + tokens out × `OPENAI_VISION_PRICE_OUT` (USD per million tokens, which is micro-USD per token); unset prices leave the cost null.
+- Why: prices change and differ by model; the operator writes the current ones in `.env` beside the model ID.
+- Asked by: "cost per read from ai_calls".
+
+### A photo bill is a counter sale unless the customer is known
+
+- Decision: the reviewed bill takes the matched customer's state, else the shop's; a date the model could not read leaves the field empty and lit, and the bill is dated today if the owner leaves it empty.
+- Why: golden path (c) is three taps; a kaccha bill is almost always local; the owner sees both before tapping.
+- Asked by: I9 (path (c) within budget).
+
+### Corrections are written with the commit
+
+- Decision: `makeBillFromPhoto` issues first; only an issued bill records the corrections (each changed field, model value and human value) and commits the reading; a refused issue keeps the draft, as on the form.
+- Why: corrections describe the bill that was made; a refused attempt would otherwise leave rows for a bill that does not exist.
+- Asked by: the Stage 7 prompt (corrections recorded).
+
+### The default series is the business's
+
+- Decision: a draft with no series named goes in `businesses.default_series_id` (Aap), and only without one in the oldest active series.
+- Why: a bill from the photo path landed in AMC- because the repository took the oldest series, not the default.
+- Asked by: the Stage 7 journey (golden path (c)).
+
+### Playwright clears the dev cache before its own server
+
+- Decision: the webServer command removes `apps/web/.next/dev` before `npm run dev`; `tests/e2e/prepare.ts` also archives the customers earlier runs added.
+- Why: a dev server killed mid-compile left Turbopack's cache unusable (pages never hydrated); old test customers pushed the fixtures' off Home's eight chips.
+- Asked by: the Stage 7 Playwright runs.

@@ -1,10 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 
 import { t } from '@ekbill/copy';
-import type { Registration } from '@ekbill/engine';
+import { looseDate, nameLikeness, type Registration } from '@ekbill/engine';
 import {
   CameraSheet,
   ChoiceList,
@@ -23,14 +23,18 @@ import {
   type PickedFile,
 } from '@ekbill/ui';
 
+import { makeBillFromPhoto } from '../../actions/bills';
 import { useDraft, writeDraft } from '../draft';
+import { rupees } from '../money';
+import { sayRefusal } from '../refusal';
+import type { LiveReading } from './data';
 import { compute } from '../bill/compute';
 import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { PhotoReview } from '../fixtures';
 import { manifest } from './manifest';
 
-export type PhotoState = 'pick' | 'reading' | 'review' | 'unclear' | 'notfound';
+export type PhotoState = 'pick' | 'reading' | 'review' | 'unclear' | 'notfound' | 'unavailable';
 
 interface Props {
   state: PhotoState;
@@ -46,10 +50,14 @@ interface Props {
     nextNumber: string;
   };
   today: string;
+  /** A real reading (Stage 7): the worker's state, the match, the engine's totals; null for the prototype. */
+  live: LiveReading | null;
+  /** A signed-in person (not a look): a picked photo is sent to be read. */
+  sendsPhotos: boolean;
   viewer: ShellViewer;
 }
 
-export function PhotoScreen({ state, review, business, today, viewer }: Props) {
+export function PhotoScreen({ state, review, business, today, live, sendsPhotos, viewer }: Props) {
   const router = useRouter();
   const as = (href: string) => withAs(href, viewer.as);
   const [fields, setFields] = useState(review.fields);
@@ -59,12 +67,29 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [tooBig, setTooBig] = useState<string | null>(null);
   const [picked] = useDraft<PickedFile | null>(`${viewer.personId}:photo`, null);
-  const photoSrc = picked?.dataUrl ?? review.photo;
+  const photoSrc = live && state !== 'reading' ? review.photo : (picked?.dataUrl ?? review.photo);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const [draftId, setDraftId] = useState<string | null>(null);
   const onPick = async (files: File[]) => {
     const file = files[0];
     if (!file) return;
     writeDraft(`${viewer.personId}:photo`, await readPicked(file));
-    router.push(as('/bills/photo?state=reading'));
+    if (!sendsPhotos) {
+      router.push(as('/bills/photo?state=reading'));
+      return;
+    }
+    // A session: the photo goes to the server, the worker reads it, the screen waits on the reading.
+    setProblem(null);
+    const body = new FormData();
+    body.append('photo', file);
+    const res = await fetch('/api/photos', { method: 'POST', body }).catch(() => null);
+    const answer = (await res?.json().catch(() => null)) as { id?: string; error?: string } | null;
+    if (!res || !res.ok || !answer?.id) {
+      setProblem(t(answer?.error ?? 'error.generic'));
+      return;
+    }
+    router.push(`/bills/photo?id=${answer.id}`);
   };
   const openCamera = () => {
     // A phone: the camera app through the file input. A laptop: the live camera; without one, the files folder.
@@ -73,10 +98,15 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
   };
   useEffect(() => {
     if (state !== 'reading') return;
+    // A real reading: ask the server again until the worker has read it. The prototype: on to the review.
+    if (live) {
+      const id = window.setInterval(() => router.refresh(), 1500);
+      return () => window.clearInterval(id);
+    }
     const id = window.setTimeout(() => router.replace(as('/bills/photo?state=review')), 1600);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
+  }, [state, live?.extractionId]);
 
   const lines = fields.lines.map((l) => ({ what: l.what.value, qty: l.qty.value || '1', rate: l.rate.value }));
   const gst = {
@@ -86,7 +116,53 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
     perLine: [],
   };
   const c = compute({ lines, gst, customerState: business.stateCode, date: fields.date.value || today }, business);
+  const makeLive = (reading: LiveReading) => {
+    const name = fields.customer.value.trim();
+    const matched = reading.match && name && nameLikeness(name, reading.match.name) >= 0.85 ? reading.match : null;
+    const dateIso = fields.date.value ? looseDate(fields.date.value, today) : today;
+    if (!dateIso) {
+      setProblem(t('bill.check.date'));
+      return;
+    }
+    const corrections: Array<{ field: string; modelValue: string | null; humanValue: string | null }> = [
+      { field: 'customer', modelValue: reading.modelValues.customer ?? null, humanValue: name || null },
+      { field: 'date', modelValue: reading.modelValues.date ?? null, humanValue: fields.date.value || null },
+    ];
+    fields.lines.forEach((l, i) => {
+      for (const k of ['what', 'qty', 'rate'] as const)
+        corrections.push({
+          field: `lines.${i}.${k}`,
+          modelValue: reading.modelValues[`lines.${i}.${k}`] ?? null,
+          humanValue: l[k].value || null,
+        });
+    });
+    setProblem(null);
+    startTransition(async () => {
+      const r = await makeBillFromPhoto({
+        extractionId: reading.extractionId,
+        corrections,
+        id: draftId,
+        customerId: matched?.customerId ?? null,
+        customerName: matched?.name ?? name,
+        // A kaccha bill is a counter sale: the customer's state on record, else the shop's.
+        customerState: matched?.stateCode ?? business.stateCode,
+        issueDate: dateIso,
+        gstOn: gst.on,
+        lines: lines.map((l) => ({ ...l, gstRate: gst.on ? gst.rate : null })),
+      });
+      if (r.ok) {
+        router.push(`/bills/new/done?id=${r.value.id}`);
+        return;
+      }
+      if (r.draftId) setDraftId(r.draftId);
+      setProblem(sayRefusal(r));
+    });
+  };
   const make = () => {
+    if (live) {
+      makeLive(live);
+      return;
+    }
     const draft = {
       customer: review.customer,
       customerName: fields.customer.value,
@@ -139,6 +215,11 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
             ]}
           />
           {tooBig ? <Meta>{tooBig}</Meta> : null}
+          {problem ? (
+            <p className="eb-meta" role="alert">
+              {problem}
+            </p>
+          ) : null}
           {/* The real doors: "Photo lo" opens the camera, "Gallery se" the library; a chosen photo starts the reading. */}
           <FileDoor
             source="camera"
@@ -201,6 +282,7 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
               label={t('photo.field.customer')}
               value={fields.customer.value}
               confidence={fields.customer.confidence}
+              unreadable={fields.customer.unreadable}
               onChange={(v) => setFields((f) => ({ ...f, customer: { value: v, confidence: 1 } }))}
             />
             <ConfidenceField
@@ -208,6 +290,7 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
               label={t('photo.field.date')}
               value={fields.date.value}
               confidence={fields.date.confidence}
+              unreadable={fields.date.unreadable}
               onChange={(v) => setFields((f) => ({ ...f, date: { value: v, confidence: 1 } }))}
             />
             {fields.lines.map((l, i) => (
@@ -250,7 +333,30 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
             />
           </div>
           {c.noRules ? <Meta>{t('bill.check.date')}</Meta> : null}
-          <MakeBar guide="make" label={t('bill.make')} paise={c.totalPaise} disabled={!c.totalPaise} onClick={make} />
+          {live?.match ? (
+            <Meta>
+              {t('photo.customer.match', { name: live.match.name, score: Math.round(live.match.score * 100) })}
+            </Meta>
+          ) : live && fields.customer.value ? (
+            <Meta>{t('photo.customer.new', { name: fields.customer.value })}</Meta>
+          ) : null}
+          {live?.totalsDiffer && live.imageTotalPaise !== null ? (
+            <Meta>
+              {t('photo.total.differs', { read: rupees(live.imageTotalPaise), lines: rupees(live.linesTotalPaise) })}
+            </Meta>
+          ) : null}
+          {problem ? (
+            <p className="eb-meta" role="alert" style={{ whiteSpace: 'pre-line' }}>
+              {problem}
+            </p>
+          ) : null}
+          <MakeBar
+            guide="make"
+            label={pending ? t('bill.making') : t('bill.make')}
+            paise={c.totalPaise}
+            disabled={!c.totalPaise || pending}
+            onClick={make}
+          />
           <div className="eb-actions">
             <GhostButton onClick={() => router.push(as('/bills/photo?state=unclear'))}>
               {t('photo.unclear')}
@@ -272,6 +378,21 @@ export function PhotoScreen({ state, review, business, today, viewer }: Props) {
               <GhostButton data-guide="write" onClick={() => router.push(as('/bills/new'))}>
                 {t('photo.write')}
               </GhostButton>
+            </div>
+          }
+        />
+      ) : null}
+
+      {state === 'unavailable' ? (
+        <EmptyState
+          icon="file"
+          title={t('photo.unavailable')}
+          sub={t('photo.unavailable.sub')}
+          action={
+            <div className="eb-actions">
+              <OutlineButton data-guide="write" onClick={() => router.push(as('/bills/new'))}>
+                {t('photo.write')}
+              </OutlineButton>
             </div>
           }
         />

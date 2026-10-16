@@ -4,12 +4,14 @@
  * today's bills from earlier runs cancelled, so a journey that repeats a
  * bill does not meet the duplicate guard ("bana tha 0 din pehle") left by
  * the run before it, and money recorded today on fixture bills reversed so
- * their dues are due again. Test data only: the dev database.
+ * their dues are due again, and customers earlier runs added archived.
+ * Test data only: the dev database.
  */
 import { closePool } from '../../packages/db/src/pool';
+import * as customers from '../../packages/db/src/repos/customers';
 import * as documents from '../../packages/db/src/repos/documents';
 import * as payments from '../../packages/db/src/repos/payments';
-import { SEED, seedBuild, seedUser } from '../../packages/db/src/seed';
+import { SEED, seedBuild, seedCustomerKey, seedUser } from '../../packages/db/src/seed';
 import fixture from '../fixtures/v2.json';
 import { todayIst } from '../../packages/engine/src/index';
 
@@ -29,6 +31,9 @@ async function main() {
       requestId: 'e2e-prepare',
       actorKind: 'system' as const,
     };
+    // Customers earlier runs added (every journey names its own) are archived, so Home's chips show the fixtures'.
+    for (const c of await customers.listCustomers(scope))
+      if (!seedCustomerKey(c.id)) await customers.archiveCustomer(scope, c.id, true);
     for (const row of await documents.listBills(scope)) {
       // (A bill corrected by a credit note stays: it cannot be cancelled on top.)
       if (row.issueDate === today && row.status === 'issued' && !fixtureNumbers.has(row.number))

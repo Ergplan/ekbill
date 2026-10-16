@@ -1,0 +1,31 @@
+{
+  "name": "kaccha-17",
+  "customer": "Priya Boutique",
+  "date": "2026-07-27",
+  "lines": [
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 5,
+      "rate": 1740,
+      "amount": 8700
+    },
+    {
+      "what": "Ceiling fan install",
+      "qty": 1,
+      "rate": 1510,
+      "amount": 1510
+    },
+    {
+      "what": "MCB 32A",
+      "qty": 1,
+      "rate": 550,
+      "amount": 550
+    }
+  ],
+  "total": 10760,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "27-7-2026"
+  }
+}

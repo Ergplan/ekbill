@@ -1,0 +1,25 @@
+{
+  "name": "kaccha-02",
+  "customer": "Anand Kirana",
+  "date": "2026-08-01",
+  "lines": [
+    {
+      "what": "Copper wire 1.5mm",
+      "qty": 1,
+      "rate": 1430,
+      "amount": 1430
+    },
+    {
+      "what": "Socket 6A",
+      "qty": 1,
+      "rate": 90,
+      "amount": 90
+    }
+  ],
+  "total": 1520,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "1/8/26"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Green Park Society",
+    "confidence": 0.62,
+    "unreadable": false
+  },
+  "date": {
+    "value": "21 Jul",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "Copper wire 1.5mm",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "2",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1520",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "3040/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 3040/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

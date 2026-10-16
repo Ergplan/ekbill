@@ -1,0 +1,31 @@
+{
+  "name": "kaccha-24",
+  "customer": "Gupta Hardware",
+  "date": "2026-08-03",
+  "lines": [
+    {
+      "what": "LED tube 20W",
+      "qty": 3,
+      "rate": 310,
+      "amount": 930
+    },
+    {
+      "what": "AMC visit",
+      "qty": 1,
+      "rate": 4000,
+      "amount": 4000
+    },
+    {
+      "what": "LED tube 20W",
+      "qty": 1,
+      "rate": 290,
+      "amount": 290
+    }
+  ],
+  "total": 5220,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "3.8.2026"
+  }
+}

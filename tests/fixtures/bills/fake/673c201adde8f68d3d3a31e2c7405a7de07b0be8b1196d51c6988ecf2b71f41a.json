@@ -1,0 +1,49 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Deshmukh ji",
+    "confidence": 0.93,
+    "unreadable": false
+  },
+  "date": {
+    "value": null,
+    "confidence": 0,
+    "unreadable": true
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "Copper wire 1.5mm",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "3",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1980",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "5940/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 5940/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

@@ -1,0 +1,130 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Joshi Builders",
+    "confidence": 0.93,
+    "unreadable": false
+  },
+  "date": {
+    "value": "16.7.2026",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "Wiring work",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1500",
+        "confidence": 0.55,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "1500/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Wiring work",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1000",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "1000/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Ceiling fan install",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "2",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1140",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "2280/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Ceiling fan install",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "3",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "1350",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "4050/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 8830/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

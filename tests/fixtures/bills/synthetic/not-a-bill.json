@@ -1,0 +1,9 @@
+{
+  "name": "not-a-bill",
+  "legible": true,
+  "found": false,
+  "customer": null,
+  "date": null,
+  "lines": [],
+  "total": null
+}

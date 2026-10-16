@@ -1,0 +1,25 @@
+{
+  "name": "kaccha-03",
+  "customer": "Joshi Builders",
+  "date": "2026-08-23",
+  "lines": [
+    {
+      "what": "Doorbell",
+      "qty": 4,
+      "rate": 340,
+      "amount": 1360
+    },
+    {
+      "what": "Doorbell",
+      "qty": 1,
+      "rate": 310,
+      "amount": 310
+    }
+  ],
+  "total": 1670,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "23/8/26"
+  }
+}

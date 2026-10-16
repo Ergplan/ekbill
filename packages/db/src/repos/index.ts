@@ -5,6 +5,7 @@
  * every role). A module not listed here is not tested, so list it.
  */
 export const REPOSITORIES = [
+  'ai-calls',
   'businesses',
   'customers',
   'document-files',
@@ -14,6 +15,7 @@ export const REPOSITORIES = [
   'items',
   'memberships',
   'payments',
+  'photos',
   'reminders',
   'series',
   'users',

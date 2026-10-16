@@ -1,0 +1,76 @@
+{
+  "legible": true,
+  "found": true,
+  "customer": {
+    "value": "Dr. Kulkarni",
+    "confidence": 0.93,
+    "unreadable": false
+  },
+  "date": {
+    "value": "21 Sep",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "lines": [
+    {
+      "what": {
+        "value": "MCB 32A",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "1",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "650",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "650/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    },
+    {
+      "what": {
+        "value": "Fan repair",
+        "confidence": 0.92,
+        "unreadable": false
+      },
+      "qty": {
+        "value": "5",
+        "confidence": 0.95,
+        "unreadable": false
+      },
+      "unit": {
+        "value": null,
+        "confidence": 1,
+        "unreadable": false
+      },
+      "rate": {
+        "value": "340",
+        "confidence": 0.9,
+        "unreadable": false
+      },
+      "amount": {
+        "value": "1700/-",
+        "confidence": 0.9,
+        "unreadable": false
+      }
+    }
+  ],
+  "total": {
+    "value": "₹ 2350/-",
+    "confidence": 0.9,
+    "unreadable": false
+  },
+  "notes": null
+}

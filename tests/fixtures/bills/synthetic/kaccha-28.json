@@ -1,0 +1,31 @@
+{
+  "name": "kaccha-28",
+  "customer": "Mehta Traders",
+  "date": "2026-07-09",
+  "lines": [
+    {
+      "what": "Extension board",
+      "qty": 4,
+      "rate": 520,
+      "amount": 2080
+    },
+    {
+      "what": "AMC visit",
+      "qty": 1,
+      "rate": 2810,
+      "amount": 2810
+    },
+    {
+      "what": "Geyser repair",
+      "qty": 4,
+      "rate": 1150,
+      "amount": 4600
+    }
+  ],
+  "total": 9490,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "9/7/26"
+  }
+}

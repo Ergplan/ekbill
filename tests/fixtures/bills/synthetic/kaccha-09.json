@@ -1,0 +1,37 @@
+{
+  "name": "kaccha-09",
+  "customer": "Sai Medical",
+  "date": "2026-09-20",
+  "lines": [
+    {
+      "what": "Fan repair",
+      "qty": 1,
+      "rate": 350,
+      "amount": 350
+    },
+    {
+      "what": "MCB 32A",
+      "qty": 4,
+      "rate": 570,
+      "amount": 2280
+    },
+    {
+      "what": "LED tube 20W",
+      "qty": 1,
+      "rate": 210,
+      "amount": 210
+    },
+    {
+      "what": "Extension board",
+      "qty": 3,
+      "rate": 360,
+      "amount": 1080
+    }
+  ],
+  "total": 3920,
+  "legible": true,
+  "found": true,
+  "written": {
+    "date": "20/9/26"
+  }
+}

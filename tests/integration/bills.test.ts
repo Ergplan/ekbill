@@ -270,3 +270,16 @@ describe('the daily dues listing (worker job dues-today)', () => {
 function byNumberId(rows: documents.BillRow[], number: string): string | undefined {
   return rows.find((r) => r.number === number)?.id;
 }
+
+describe('the default series', () => {
+  it("a bill with no series named goes in the business's default series (Aap), not the oldest", async () => {
+    const owner = await scopeFor('sharma', 'owner');
+    const draft = await documents.createDraft(owner, {
+      customer: { name: 'Default Series', stateCode: '27' },
+      dateIso: TODAY,
+      lines: [line('Check', 10000)],
+    });
+    const issued = await documents.issueDocument(owner, { id: draft.id, today: TODAY });
+    expect(issued.number).toMatch(/^INV-\d{3}$/);
+  });
+});
