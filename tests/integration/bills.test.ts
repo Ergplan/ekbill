@@ -283,3 +283,27 @@ describe('the default series', () => {
     expect(issued.number).toMatch(/^INV-\d{3}$/);
   });
 });
+
+describe('dues past the list limit (Stage 10)', () => {
+  it('an old unpaid bill is still a due when newer settled bills fill the limit', async () => {
+    const owner = await scopeFor('sharma', 'owner');
+    const old = await issue(100000, '2026-04-02');
+    for (const d of ['2026-10-01', '2026-10-02', '2026-10-03']) {
+      const b = await issue(100000, d);
+      await payments.recordPayment(owner, {
+        documentId: b.id,
+        amountPaise: 118000,
+        dateIso: d,
+        method: 'cash',
+        today: TODAY,
+      });
+    }
+    const due = await documents.listBills(owner, { status: 'due', limit: 2 });
+    expect(due.every((r) => r.balance.duePaise > 0)).toBe(true);
+    const all = await documents.listBills(owner, { status: 'due', limit: 5000 });
+    expect(all.map((r) => r.id)).toContain(old.id);
+    const paid = await documents.listBills(owner, { status: 'paid', limit: 3 });
+    expect(paid).toHaveLength(3);
+    expect(paid.every((r) => r.balance.status === 'paid')).toBe(true);
+  });
+});

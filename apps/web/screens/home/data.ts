@@ -2,7 +2,7 @@ import { customers as customerRepo } from '@ekbill/db';
 
 import { type Business } from '../fixtures';
 import { customersOf, type RowData } from '../common';
-import { ledgerOf, scopeOf, unpaidRows } from '../live';
+import { ledgerOf, scopeOf, todayOf, unpaidRows } from '../live';
 import { avatarIndex } from '../people';
 import type { Viewer } from '../viewer';
 
@@ -25,12 +25,15 @@ export interface HomeData {
 export async function loadHome(viewer: Viewer): Promise<HomeData> {
   const b = viewer.business;
   const scope = scopeOf(viewer);
-  const ledger = await ledgerOf(viewer);
+  // Home reads eight weeks of bills (the sparkline, this month, the last three), not the whole book (Stage 10).
+  const since = new Date(Date.parse(`${todayOf(viewer)}T00:00:00Z`) - 63 * 86_400_000).toISOString().slice(0, 10);
+  const ledger = await ledgerOf(viewer, scope ? { since } : {});
+  const rows0 = scope ? await customerRepo.listCustomers(scope) : null;
   const customers = !b
     ? []
-    : scope
-      ? (await customerRepo.listCustomers(scope)).map((c) => ({ id: c.id, name: c.name, index: avatarIndex(c.id) }))
-      : customersOf(b).map((c) => ({ id: c.id, name: c.name, index: c.index }));
+    : rows0
+      ? rows0.map((c) => ({ id: c.id, name: c.name, index: avatarIndex(c.id), lastBilledAt: c.lastBilledAt }))
+      : customersOf(b).map((c) => ({ id: c.id, name: c.name, index: c.index, lastBilledAt: null as string | null }));
   // No business yet, or a business set up today with nothing in it: the first-bill welcome.
   if (!b || (ledger.bills.length === 0 && customers.length === 0)) {
     return {
@@ -52,6 +55,8 @@ export async function loadHome(viewer: Viewer): Promise<HomeData> {
   const today = ledger.today;
   const lastBillOf = new Map<string, string>();
   for (const bill of bills) if (!lastBillOf.has(bill.customer)) lastBillOf.set(bill.customer, bill.date);
+  // A customer last billed before the eight weeks keeps their place by the date on their row.
+  for (const c of customers) if (!lastBillOf.has(c.id) && c.lastBilledAt) lastBillOf.set(c.id, c.lastBilledAt);
   const byRecency = [...customers].sort((x, y) =>
     (lastBillOf.get(y.id) ?? '').localeCompare(lastBillOf.get(x.id) ?? ''),
   );
@@ -62,7 +67,8 @@ export async function loadHome(viewer: Viewer): Promise<HomeData> {
     const start = end - 7 * 86_400_000;
     return sent.filter((x) => Date.parse(x.date) > start && Date.parse(x.date) <= end).length;
   });
-  const rows = unpaidRows(ledger);
+  // Dues are asked for as dues (Stage 10): a business with more bills than one list holds still sees its oldest.
+  const rows = unpaidRows(ledger.live ? await ledgerOf(viewer, { status: 'due' }) : ledger);
   const rowOfBill = new Map(ledger.bills.map((x, i) => [x, ledger.rows[i]!]));
   return {
     kind: viewer.role === 'owner' ? 'owner' : viewer.role,

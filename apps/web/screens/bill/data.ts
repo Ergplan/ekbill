@@ -105,10 +105,13 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
   const mode = opts.first ? 'first' : opts.newCustomer || !row ? 'new-customer' : 'existing';
   const redoId = opts.redo ? await documents.findBill(scope, opts.redo) : null;
   const redoDoc = redoId ? await documents.getDocument(scope, redoId) : null;
-  const ledger = await ledgerOf(viewer);
+  // The form needs the last fortnight (the duplicate guard) and who was billed when (Stage 10: not the whole book).
+  const since = new Date(Date.parse(`${todayOf(viewer)}T00:00:00Z`) - 15 * 86_400_000).toISOString().slice(0, 10);
+  const ledger = await ledgerOf(viewer, { since });
   const last = new Map<string, string>();
   for (const x of ledger.bills) if (x.customer && !last.has(x.customer)) last.set(x.customer, x.date);
   const people = await customerRepo.listCustomers(scope);
+  for (const c of people) if (!last.has(c.id) && c.lastBilledAt) last.set(c.id, c.lastBilledAt);
   const pick = [...people].sort((x, y) => (last.get(y.id) ?? '').localeCompare(last.get(x.id) ?? ''));
   const [itemRows, seller] = await Promise.all([itemRepo.listItems(scope), documents.sellerNow(scope)]);
   const fortnight = ledger.bills

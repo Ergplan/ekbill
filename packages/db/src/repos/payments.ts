@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
-import { balanceOf, checkEntry, type Balance, type LedgerKind, type Say } from '@ekbill/engine';
+import { balanceOf, checkEntry, type Balance, type LedgerEntry, type LedgerKind, type Say } from '@ekbill/engine';
 
 import * as schema from '../schema';
 import { withTenant, type Role, type TenantScope, type Tx } from '../scope';
@@ -27,12 +27,15 @@ export const allowedRoles = {
   reversePayment: ['owner'],
 } as const satisfies Record<string, readonly Role[]>;
 
+/** A document's total from its totals, without reading the rest of the JSON. */
+const TOTAL_PAISE = sql<number | null>`(${schema.documents.totals}->>'totalPaise')::bigint`.mapWith(Number);
+
 /** The balance of each issued bill asked for, in one query each for entries and credit notes. */
 export async function balancesIn(tx: Tx, documentIds: string[]): Promise<Map<string, Balance>> {
   const out = new Map<string, Balance>();
   if (!documentIds.length) return out;
   const docs = await tx.db
-    .select({ id: schema.documents.id, status: schema.documents.status, totals: schema.documents.totals })
+    .select({ id: schema.documents.id, status: schema.documents.status, totalPaise: TOTAL_PAISE })
     .from(schema.documents)
     .where(inArray(schema.documents.id, documentIds));
   const entries = await tx.db
@@ -46,7 +49,7 @@ export async function balancesIn(tx: Tx, documentIds: string[]): Promise<Map<str
     .from(schema.payments)
     .where(inArray(schema.payments.documentId, documentIds));
   const notes = await tx.db
-    .select({ linked: schema.documents.linkedDocumentId, totals: schema.documents.totals })
+    .select({ linked: schema.documents.linkedDocumentId, totalPaise: TOTAL_PAISE })
     .from(schema.documents)
     .where(
       and(
@@ -55,23 +58,24 @@ export async function balancesIn(tx: Tx, documentIds: string[]): Promise<Map<str
         eq(schema.documents.status, 'issued'),
       ),
     );
+  // Grouped once (Stage 10: a list of 500 bills must not scan every payment per bill).
+  const entriesOf = new Map<string, LedgerEntry[]>();
+  for (const e of entries) {
+    const list = entriesOf.get(e.documentId) ?? [];
+    list.push({ id: e.id, kind: e.kind as LedgerKind, amountPaise: e.amountPaise, reversed: e.reversedAt !== null });
+    entriesOf.set(e.documentId, list);
+  }
+  const notesOf = new Map<string, number[]>();
+  for (const n of notes)
+    if (n.linked) notesOf.set(n.linked, [...(notesOf.get(n.linked) ?? []), Number(n.totalPaise ?? 0)]);
   for (const d of docs) {
     out.set(
       d.id,
       balanceOf({
-        totalPaise: (d.totals as { totalPaise?: number } | null)?.totalPaise ?? 0,
+        totalPaise: Number(d.totalPaise ?? 0),
         status: d.status as 'issued' | 'cancelled' | 'draft',
-        entries: entries
-          .filter((e) => e.documentId === d.id)
-          .map((e) => ({
-            id: e.id,
-            kind: e.kind as LedgerKind,
-            amountPaise: e.amountPaise,
-            reversed: e.reversedAt !== null,
-          })),
-        creditNotesPaise: notes
-          .filter((n) => n.linked === d.id)
-          .map((n) => (n.totals as { totalPaise?: number } | null)?.totalPaise ?? 0),
+        entries: entriesOf.get(d.id) ?? [],
+        creditNotesPaise: notesOf.get(d.id) ?? [],
       }),
     );
   }

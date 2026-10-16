@@ -21,9 +21,12 @@ export async function loadCustomers(viewer: Viewer): Promise<CustomerRow[]> {
   if (!b) return [];
   const ledger = await ledgerOf(viewer);
   const bills = ledger.bills;
+  // What each owes comes from the dues themselves (Stage 10), not from the newest bills only.
+  const dueBills = ledger.live ? (await ledgerOf(viewer, { status: 'due' })).bills : bills;
   const owed = (key: string | null) => {
     const mine = key ? bills.filter((x) => x.customer === key) : [];
-    return { duePaise: mine.reduce((s, x) => s + x.duePaise, 0), lastDate: mine[0]?.date ?? null };
+    const due = key ? dueBills.filter((x) => x.customer === key) : [];
+    return { duePaise: due.reduce((s, x) => s + x.duePaise, 0), lastDate: mine[0]?.date ?? null };
   };
   const scope = viewer.session?.scope;
   const rows = scope

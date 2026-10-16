@@ -80,13 +80,15 @@ export function rowOfLive(r: BillRow, today: string): RowData {
 
 export async function ledgerOf(
   viewer: Viewer,
-  filter: { customerId?: string; q?: string; status?: 'all' | 'due' | 'paid' | 'cancelled' } = {},
+  filter: { customerId?: string; q?: string; status?: 'all' | 'due' | 'paid' | 'cancelled'; since?: string } = {},
 ): Promise<Ledger> {
   const b = viewer.business;
   const scope = scopeOf(viewer);
   if (!b) return { live: Boolean(scope), today: todayOf(viewer), bills: [], rows: [] };
   if (!scope) {
-    const bills = billsOf(b).filter((x) => !filter.customerId || x.customer === filter.customerId);
+    const bills = billsOf(b).filter(
+      (x) => (!filter.customerId || x.customer === filter.customerId) && (!filter.since || x.date >= filter.since),
+    );
     return { live: false, today: TODAY, bills, rows: bills.map((x) => rowOf(b, x)) };
   }
   const today = todayIst(new Date());

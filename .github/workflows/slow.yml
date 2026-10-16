@@ -51,10 +51,15 @@ jobs:
           (npm run start -w apps/web >/tmp/web.log 2>&1 &)
           for i in $(seq 1 60); do curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1 && break; sleep 2; done
           npx playwright test
-      - name: Load test
+      - uses: grafana/setup-k6-action@v1
         if: ${{ inputs.load }}
-        run: |
-          if [ -f tests/load/run.sh ]; then tests/load/run.sh; else echo "tests/load arrives in Stage 10"; fi
+      - name: Load test (1/10 scale)
+        if: ${{ inputs.load }}
+        env:
+          E2E_BASE_URL: http://127.0.0.1:3000
+          RATE_WRITES_PER_MIN: '0'
+          RATE_SIGNIN_PER_MIN: '0'
+        run: tests/load/run.sh
       - name: Model evaluations
         if: ${{ inputs.evals }}
         env:

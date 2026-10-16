@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNull, ne, sql } from 'drizzle-orm';
 
 import {
   GST_RULES,
@@ -600,9 +600,23 @@ export interface BillRow {
  * gaye / Cancel), searched by number or customer name. Credit notes come
  * with their bill, not as rows of their own.
  */
+/** What a bill still owes, in SQL (the filter only; balanceOf in the engine is the figure shown). */
+const OUTSTANDING = sql`((${schema.documents.totals}->>'totalPaise')::bigint
+  - coalesce((select sum(p.amount_paise) from payments p where p.document_id = ${schema.documents.id} and p.reversed_at is null), 0)
+  - coalesce((select sum((n.totals->>'totalPaise')::bigint) from documents n
+               where n.linked_document_id = ${schema.documents.id} and n.kind = 'credit_note' and n.status = 'issued'), 0))`;
+
 export async function listBills(
   scope: TenantScope,
-  filter: { status?: BillFilter; q?: string; customerId?: string; seriesId?: string; limit?: number } = {},
+  filter: {
+    status?: BillFilter;
+    q?: string;
+    customerId?: string;
+    seriesId?: string;
+    limit?: number;
+    /** Only bills dated on or after this day (Home's eight weeks). */
+    since?: string;
+  } = {},
 ): Promise<BillRow[]> {
   return withTenant(scope, async (tx) => {
     const q = filter.q?.trim();
@@ -616,7 +630,7 @@ export async function listBills(
         customerId: schema.documents.customerId,
         customerName: schema.documents.customerName,
         seriesId: schema.documents.seriesId,
-        totals: schema.documents.totals,
+        totalPaise: sql<number>`coalesce((${schema.documents.totals}->>'totalPaise')::bigint, 0)`.mapWith(Number),
         linkedDocumentId: schema.documents.linkedDocumentId,
       })
       .from(schema.documents)
@@ -626,8 +640,17 @@ export async function listBills(
           ne(schema.documents.status, 'draft'),
           ne(schema.documents.kind, 'credit_note'),
           ...(filter.status === 'cancelled' ? [eq(schema.documents.status, 'cancelled')] : []),
+          // Stage 10: dues and settled bills are chosen before the limit, so a business with more bills than the
+          // limit still sees its oldest dues. The engine's balanceOf (below) still decides each row's status.
+          ...(filter.status === 'due' || filter.status === 'paid'
+            ? [
+                eq(schema.documents.status, 'issued'),
+                filter.status === 'due' ? sql`${OUTSTANDING} > 0` : sql`${OUTSTANDING} <= 0`,
+              ]
+            : []),
           ...(filter.customerId ? [eq(schema.documents.customerId, filter.customerId)] : []),
           ...(filter.seriesId ? [eq(schema.documents.seriesId, filter.seriesId)] : []),
+          ...(filter.since ? [gte(schema.documents.issueDate, filter.since)] : []),
           ...(q
             ? [
                 sql`(${schema.documents.search} @@ plainto_tsquery('simple', ${q}) or ${schema.documents.number} ilike ${`%${q}%`} or ${schema.documents.customerName} ilike ${`%${q}%`})`,
@@ -671,7 +694,7 @@ export async function listBills(
       customerId: r.customerId,
       customerName: r.customerName,
       seriesId: r.seriesId,
-      totalPaise: (r.totals as { totalPaise?: number } | null)?.totalPaise ?? 0,
+      totalPaise: r.totalPaise,
       balance: balances.get(r.id)!,
       linkedDocumentId: r.linkedDocumentId,
       paidOn: lastPaid.get(r.id)?.date ?? null,

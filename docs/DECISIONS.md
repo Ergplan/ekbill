@@ -723,3 +723,15 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `deploy/vm/restore-drill.sh` restores the newest dump into a scratch database in the same Postgres, checks it with `scripts/restore-check.mjs` (every migration recorded, forced RLS and the no-delete and audit triggers on every business table, rows back, every issued snapshot's total adding up), runs the integration suite in a second scratch database there, records the times in `deploy/vm/state/last-restore-drill.json`, and drops both.
 - Why: the integration suite empties its database first, so it proves the server and extensions, not the copy; the check proves the copy.
 - Asked by: the Stage 10 prompt (restore drill, time recorded).
+
+### Dues are chosen in SQL before the list's limit
+
+- Decision: `listBills({ status: 'due' | 'paid' })` filters by what the bill still owes in SQL (total less live payments and adjustments less issued credit notes) before the limit of 500; Home, the dues list and the customer directory ask for dues as dues. The engine's `balanceOf` still computes every figure shown, and the screen's own filter stays.
+- Why: the load seed showed a business with 1,200 bills losing its oldest unpaid bills from Dues (the newest 500 were filtered after the limit).
+- Asked by: the Stage 10 load seed (EXPLAIN on 60,000 documents: 10.7 ms for the dues query).
+
+### Home and the bill form read weeks, not the whole book
+
+- Decision: Home reads the last nine weeks of bills (the sparkline, this month, the last three) and orders its chips by `customers.last_billed_at`; the bill form reads the last fortnight (the duplicate guard). Looks (`?as=`) keep the fixtures as they were.
+- Why: Home took 120 ms for one owner with 1,200 bills, most of it moving 500 bills it did not show; `listBills` and the balances now read only each bill's total, not its whole totals JSON.
+- Asked by: the Stage 10 budgets (Home 400 ms, the bill form 300 ms at p95).

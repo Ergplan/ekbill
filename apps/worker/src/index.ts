@@ -23,6 +23,14 @@ import { INDEX_SEARCH, runIndexSearch, type IndexSearchJob } from './search/job'
  * read-bill (a photographed bill into an extraction); Stage 9 index-search
  * (Poocho's index and embeddings, after an issue and nightly); later, backup-check.
  */
+/**
+ * Stage 10: how many jobs of a kind run at once in this worker. A photo read waits mostly on the
+ * model, a render on Chromium (memory); everything else runs one at a time. WORKER_<KIND>_CONCURRENCY overrides.
+ */
+function concurrency(kind: string, d: number): number {
+  return Math.min(8, Math.max(1, Number(process.env[`WORKER_${kind}_CONCURRENCY`]) || d));
+}
+
 const ALIVE_FILE = process.env.WORKER_ALIVE_FILE ?? '/tmp/ekbill-worker-alive';
 const log = pino({ name: 'ekbill-worker', level: process.env.LOG_LEVEL ?? 'info' });
 
@@ -55,19 +63,23 @@ async function main() {
     }
   });
   await boss.createQueue(READ_BILL, { retryLimit: 1, retryDelay: 10, expireInSeconds: 300 });
-  await boss.work<ReadBillJob>(READ_BILL, async (jobs) => {
+  await boss.work<ReadBillJob>(READ_BILL, { localConcurrency: concurrency('READ_BILL', 2) }, async (jobs) => {
     for (const job of jobs) {
       const outcome = await runReadBill(job.data);
       log.info({ requestId: job.data.requestId, extractionId: job.data.extractionId, outcome }, 'bill read');
     }
   });
   await boss.createQueue(RENDER_OTHER_SIZES, { retryLimit: 2, retryDelay: 10, expireInSeconds: 600 });
-  await boss.work<RenderOtherSizesJob>(RENDER_OTHER_SIZES, async (jobs) => {
-    for (const job of jobs) {
-      const made = await runRenderOtherSizes(job.data);
-      log.info({ requestId: job.data.requestId, documentId: job.data.documentId, made }, 'other sizes printed');
-    }
-  });
+  await boss.work<RenderOtherSizesJob>(
+    RENDER_OTHER_SIZES,
+    { localConcurrency: concurrency('RENDER', 2) },
+    async (jobs) => {
+      for (const job of jobs) {
+        const made = await runRenderOtherSizes(job.data);
+        log.info({ requestId: job.data.requestId, documentId: job.data.documentId, made }, 'other sizes printed');
+      }
+    },
+  );
   await boss.createQueue(DUES_TODAY);
   await boss.work(DUES_TODAY, async () => {
     for (const line of await runDuesToday()) log.info(line, 'dues today');
