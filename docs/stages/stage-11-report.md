@@ -1,6 +1,6 @@
 # Stage 11 — Audit pack and handover
 
-**Status: the pack is complete. A clean clone passes the CI profile from the README alone: every check but one, which is red until the rule pack is verified (below), and 165 of 165 journeys against a production build. Tagged `v2.0.0-rc1` locally; the tag is yours to push.** Sign-in is still switched off; the VM holds test data only.
+**Status: the pack is complete. A clean clone passes the CI profile from the README alone: every check but one, which is red until the rule pack is verified (below), and 166 of 166 journeys against a production build. Tagged `v2.0.0-rc1` locally; the tag is yours to push.** Sign-in is still switched off; the VM holds test data only.
 
 What is done:
 
@@ -144,11 +144,11 @@ A third agent read the worker and its jobs, every path a model's answer takes, a
 | Bill links and file names: encoded, slash-free, and never built raw                        | `tests/unit/bill-links.test.ts`        | 3     |
 | A new business's first bill (`INV-2026-27/001`) opens from the list, its reminder and back | `tests/e2e/bills.spec.ts`              | +1    |
 
-Totals: vitest 775 (unit 512, integration 263), Playwright 165 (Stage 1 baselines unchanged).
+Totals: vitest 780 (unit 516, integration 264), Playwright 166 (Stage 1 baselines unchanged).
 
 ## The clean-clone run
 
-The CI `checks` job, step by step, from `git clone` of `de3ea24` (the last code change), in a temporary directory:
+The CI `checks` job, step by step, from `git clone` of `6ba0ab9` (the last code change), in a temporary directory:
 
 - no `node_modules`, no `.next`, no `.env`
 - Postgres 16 with pgvector on 5440, nothing else
@@ -157,10 +157,10 @@ The CI `checks` job, step by step, from `git clone` of `de3ea24` (the last code 
 | Step                                                                          | Result                                                                                             |
 | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `npm ci`                                                                      | ok                                                                                                 |
-| `npm run watch -- --once`                                                     | 13 of 14 checks green; integration 263 of 263. Red: `rules:check` (the 23 unverified rule entries) |
+| `npm run watch -- --once`                                                     | 13 of 14 checks green; integration 264 of 264. Red: `rules:check` (the 23 unverified rule entries) |
 | `npm run build`                                                               | ok                                                                                                 |
 | Migrate and seed a fresh journeys database, start `next start` and the worker | ok                                                                                                 |
-| `npx playwright test` against the production build                            | 165 of 165                                                                                         |
+| `npx playwright test` against the production build                            | 166 of 166                                                                                         |
 
 The run was repeated after every batch of fixes. Each earlier round found something:
 
@@ -168,7 +168,7 @@ The run was repeated after every batch of fixes. Each earlier round found someth
 2. **Round 2** found that the new journey left Naya owner with a business before golden path (d).
 3. **Round 3** was green, before the two reviews.
 4. **Round 4**, after the first review's link changes, found two journeys still expecting a link without the year.
-5. **Rounds 5 and 6**, after each review's fixes, were green. Round 6 is the table above.
+5. **Rounds 5 to 7**, after each review's fixes, were green. Round 7 is the table above.
 
 The script that ran it mirrors `.github/workflows/ci.yml`. The VM run the master prompt asks for is the same commands, in a temporary directory on the VM: `docs/audit/README.md` steps 1–3.
 
