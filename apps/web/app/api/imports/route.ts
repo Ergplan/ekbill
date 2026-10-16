@@ -17,6 +17,9 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   const me = await current();
   if (!me?.scope) return NextResponse.json({ error: 'auth.signed.out' }, { status: 401 });
+  // Refused before the body is read: more than the proxy keeps would arrive cut short (imports.ts).
+  if (Number(request.headers.get('content-length') ?? 0) > imports.MAX_IMPORT_TOTAL_BYTES + 1024 * 1024)
+    return NextResponse.json({ error: 'import.error.too-big-total' }, { status: 413 });
   let form: FormData;
   try {
     form = await request.formData();

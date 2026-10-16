@@ -132,12 +132,14 @@ describe('the bill on paper', () => {
           client.query("update document_files set bytes = 'x'::bytea where id = $1", [first.id]),
         ),
       ).rejects.toThrow(/never changed/);
-      // The accountant reads a size nobody printed yet: printed for them, not kept.
+      // The accountant reads a size nobody printed yet: kept, so their next download is the same file and no new
+      // render (Stage 11 review: each of their downloads started Chromium again).
       const accountant = await scopeFor('sharma', 'accountant');
       const before = (await documentFiles.renderingsOf(owner, doc.id)).length;
       const read = await printAndKeep(accountant, { documentId: doc.id, kind: 'jpg', paper: '58mm' });
       expect(read.bytes.length).toBeGreaterThan(1000);
-      expect((await documentFiles.renderingsOf(owner, doc.id)).length).toBe(before);
+      expect((await documentFiles.renderingsOf(owner, doc.id)).length).toBe(before + 1);
+      expect((await printAndKeep(accountant, { documentId: doc.id, kind: 'jpg', paper: '58mm' })).id).toBe(read.id);
     },
   );
 
@@ -197,6 +199,27 @@ describe('the bill on paper', () => {
         expect(got.id).toBe(kept.id);
         expect(Buffer.compare(got.bytes, kept.bytes)).toBe(0);
       }
+    },
+  );
+
+  // Stage 11 review: a cancelled bill downloaded (and went into the CA pack) as the clean tax invoice kept at issue.
+  it.skipIf(!hasBrowser)(
+    'prints a cancelled bill afresh, marked, and keeps nothing of it',
+    { timeout: 60_000 },
+    async () => {
+      const owner = await scopeFor('sharma', 'owner');
+      const draft = await documents.createDraft(owner, {
+        customer: { name: 'Cancel Me', stateCode: '27' },
+        dateIso: '2026-10-15',
+        lines: [{ description: 'Gate', quantityMilli: 1000, unitPricePaise: 90000, gstBp: 1800, taxRateChosen: true }],
+      });
+      const issued = await documents.issueDocument(owner, { id: draft.id, today: '2026-10-15' });
+      const kept = await printAndKeep(owner, { documentId: issued.id, kind: 'pdf', paper: 'a4' });
+      await documents.cancelDocument(owner, { id: issued.id, reason: 'Wrong customer' });
+      const after = await printAndKeep(owner, { documentId: issued.id, kind: 'pdf', paper: 'a4' });
+      expect(after.id).toBe(''); // not kept
+      expect(after.sha256).not.toBe(kept.sha256);
+      expect((await documentFiles.renderingsOf(owner, issued.id)).map((f) => f.id)).toEqual([kept.id]);
     },
   );
 });

@@ -18,6 +18,7 @@ export {
   userForPhone,
   adoptBusiness,
   deleteSession,
+  deleteSessionsOf,
   membershipsOf,
   resolveScope,
   type Resolved,

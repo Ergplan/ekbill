@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { queueStatus, schemaStatus } from '@ekbill/db';
 
+import { authMode } from '../../../server/auth-mode';
 import { logRequest, requestId } from '../../../server/log';
 
 export const dynamic = 'force-dynamic';
@@ -38,12 +39,14 @@ function lastBackup(): (BackupState & { ageHours: number }) | 'none' {
 export async function GET(request: Request) {
   const id = requestId(request);
   const [db, queue] = await Promise.all([schemaStatus(), queueStatus()]);
-  const authMode = process.env.AUTH_MODE ?? 'switcher';
+  // What the sign-in doors actually do (authMode(): unset is otp, the safe side), not what an unset variable
+  // might be taken to mean (Stage 11 review: unset read here as switcher while the doors were otp).
+  const mode = authMode();
   const body = {
     ok: db.ok,
     builtAt: process.env.NEXT_PUBLIC_BUILD_STAMP ?? 'unknown',
-    authMode,
-    signIn: authMode === 'otp' ? 'required' : 'switched off - test data only',
+    authMode: mode,
+    signIn: mode === 'otp' ? 'required' : 'switched off - test data only',
     database: db.ok ? 'ok' : 'FAILED',
     schema: db.version ?? 'none',
     lastBackup: lastBackup(),
@@ -52,8 +55,12 @@ export async function GET(request: Request) {
       oldestSeconds: Math.max(0, ...queue.map((q) => q.oldestSeconds)),
       byKind: queue,
     },
-    ...(db.error ? { databaseError: db.error } : {}),
   };
-  logRequest('GET /api/health', id, { ok: db.ok, schema: body.schema });
+  // The database's own words go to the log, not to whoever asks (Stage 11 review).
+  logRequest('GET /api/health', id, {
+    ok: db.ok,
+    schema: body.schema,
+    ...(db.error ? { databaseError: db.error } : {}),
+  });
   return NextResponse.json(body, { status: db.ok ? 200 : 503, headers: { 'x-request-id': id } });
 }

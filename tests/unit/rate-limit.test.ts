@@ -1,6 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { Limiter, MINUTE, clientAddress, isSignIn, isWrite, limitsFromEnv } from '../../apps/web/server/rate-limit';
+import {
+  Limiter,
+  MINUTE,
+  clientAddress,
+  isRender,
+  isSignIn,
+  isWrite,
+  limitsFromEnv,
+} from '../../apps/web/server/rate-limit';
 
 /** Stage 10, master prompt 4.3: 60 writes a minute per session, 30 sign-ins a minute per address. */
 describe('the limiter', () => {
@@ -24,10 +32,11 @@ describe('the limiter', () => {
     expect((l as unknown as { hits: Map<string, number[]> }).hits.size).toBeLessThanOrEqual(100);
   });
 
-  it('reads its limits from the environment, 60 and 30 by default', () => {
+  it('reads its limits from the environment, 60, 30 and 30 by default', () => {
     expect(limitsFromEnv({})).toEqual({
       writes: { max: 60, windowMs: MINUTE },
       signIn: { max: 30, windowMs: MINUTE },
+      renders: { max: 30, windowMs: MINUTE },
     });
     expect(limitsFromEnv({ RATE_WRITES_PER_MIN: '0', RATE_SIGNIN_PER_MIN: '5' }).signIn.max).toBe(5);
   });
@@ -38,6 +47,11 @@ describe('the limiter', () => {
     expect(isSignIn('/dev/switch/sharma')).toBe(true);
     expect(isSignIn('/api/auth/otp')).toBe(true);
     expect(isSignIn('/bills')).toBe(false);
+    // The GETs that start Chromium (Stage 11 review).
+    expect(isRender('GET', '/api/documents/INV-2026-27%2F001/file')).toBe(true);
+    expect(isRender('GET', '/api/gst/pack')).toBe(true);
+    expect(isRender('POST', '/api/gst/pack')).toBe(false);
+    expect(isRender('GET', '/bills')).toBe(false);
     expect(clientAddress(new Headers({ 'x-forwarded-for': '203.0.113.9, 10.0.0.2' }))).toBe('203.0.113.9');
     expect(clientAddress(new Headers())).toBe('unknown');
   });
@@ -49,6 +63,7 @@ describe('the proxy', () => {
   beforeAll(() => {
     vi.stubEnv('RATE_SIGNIN_PER_MIN', '30');
     vi.stubEnv('RATE_WRITES_PER_MIN', '60');
+    vi.stubEnv('RATE_RENDERS_PER_MIN', '30');
   });
   afterAll(() => {
     vi.unstubAllEnvs();
@@ -80,5 +95,20 @@ describe('the proxy', () => {
     const res = proxy(req());
     expect(res.status).toBe(429);
     expect(await res.json()).toMatchObject({ error: 'rate.writes', message: expect.stringContaining('Ek minute ruk') });
+  });
+
+  it('answers the 31st render in a minute from one session with 429 (Stage 11 review)', async () => {
+    const { NextRequest } = await import('next/server');
+    const { proxy } = await import('../../apps/web/proxy');
+    const req = () =>
+      new NextRequest('http://127.0.0.1:3000/api/gst/pack?from=2026-04&to=2026-06', {
+        headers: { cookie: 'eb-session=s-render' },
+      });
+    for (let i = 0; i < 30; i += 1) expect(proxy(req()).status).not.toBe(429);
+    expect(proxy(req()).status).toBe(429);
+    // Pages are not counted.
+    expect(
+      proxy(new NextRequest('http://127.0.0.1:3000/bills', { headers: { cookie: 'eb-session=s-render' } })).status,
+    ).not.toBe(429);
   });
 });

@@ -30,6 +30,7 @@ const serverEnv = {
   // One tester signs in and writes far faster than a person: the limits are tested on their own (tests/unit/rate-limit.test.ts).
   RATE_WRITES_PER_MIN: '0',
   RATE_SIGNIN_PER_MIN: '0',
+  RATE_RENDERS_PER_MIN: '0',
 };
 
 // @slow runs on demand (SLOW=1); @otp only against the Firebase Auth emulator (OTP=1, CI's otp job), and then alone.

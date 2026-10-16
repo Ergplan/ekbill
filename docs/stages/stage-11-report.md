@@ -11,7 +11,10 @@ What is done:
 - coverage of the unit and integration runs
 - dependency upgrades: no high or critical advisory left
 - CI that runs everything and reports everything (it had been stopping early since Stage 3)
-- fifteen real defects, fixed with tests that fail without the fix. The coverage runs, the clean-clone run and CI found four of them, one of which broke every bill link for a new business. A review of what the seed never exercises found the other eleven: money, numbering and GST among them.
+- twenty-four real defects, fixed with tests that fail without the fix:
+  - The coverage runs, the clean-clone run and CI found four, one of which broke every bill link for a new business.
+  - A review of what the seed never exercises found eleven: money, numbering and GST.
+  - A review of the boundaries and the money's states found nine, among them credit notes past the bill and cancelled bills that kept their money.
 - the README: what EkBill is, how to run and deploy it, the design pack
 - `mvp-final` resolves in Ergplan/easybills (`7173c46`)
 
@@ -84,6 +87,23 @@ Two more came out of the same work:
 - the CA pack could give two documents one file name
 
 Not changed: a link with no year (a Poocho answer quoting a bare number) still opens the newest bill with that number.
+
+## A second review: boundaries and the money's states
+
+A second agent read the route handlers, the actions, the uploads, the sessions and the payment and credit-note states (read only; nothing run against the databases). It reported ten findings. Each was verified here, and each fix has a test:
+
+| Finding                             | Before                                                                                                                                                                                                       | Now                                                                                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Credit-note limit                   | Checked before the transaction, on an unlocked bill: two full notes at once both issued (200 % credited, both in GSTR-1); a credit note could be credited; staff could rewrite and issue a credit-note draft | The bill is locked while a note issues and the limit is counted under the lock; a credit note is never the "bill"; owner only, draft or not |
+| Cancelling a bill with money on it  | Allowed: the money vanished with the bill (nothing due, no reversal, the redo at the full amount)                                                                                                            | Refused in words: reverse the entries first                                                                                                 |
+| A cancelled bill's PDF              | Downloaded, and went into the CA pack, as the clean tax invoice with a live UPI QR                                                                                                                           | Printed afresh with CANCELLED across it and no QR, never from or into the kept files                                                        |
+| Sign-in with an accepted invite     | Landed in whichever business the scan returned                                                                                                                                                               | The business the person owns, else the first joined (consent and a switcher are gaps)                                                       |
+| Signing out                         | Impossible; sessions lived 30 days                                                                                                                                                                           | `POST /api/auth/logout`, and `?everywhere=1` for a lost phone (the button is a gap)                                                         |
+| Imports over 10 MB                  | The proxy buffered 10 MB and cut the rest: every big import failed as "form.invalid"                                                                                                                         | Proxy buffer 40 MB; an import is 36 MB at most, refused in words on the screen and unread at the door (413)                                 |
+| Chromium on GET                     | Unlimited; an accountant's prints were never kept, so each started Chromium again                                                                                                                            | 30 renders a minute per session; the accountant's prints are kept                                                                           |
+| `/api/metrics` and `/api/health`    | Metrics open to anyone through Caddy; health returned the database's error text and called an unset `AUTH_MODE` "switcher"                                                                                   | Metrics on the VM itself or with `METRICS_TOKEN`; health logs the error and reports the mode the doors use                                  |
+| 30 February, and "%" in a bill path | 500                                                                                                                                                                                                          | Refused at the schema; taken as written                                                                                                     |
+| Model spend                         | No daily cap                                                                                                                                                                                                 | A gap                                                                                                                                       |
 
 ## Dependencies
 

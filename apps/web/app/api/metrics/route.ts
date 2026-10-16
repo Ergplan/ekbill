@@ -34,8 +34,23 @@ function backupAgeSeconds(): number {
   }
 }
 
+/**
+ * Who may read them (Stage 11 review: anyone could): a scraper with METRICS_TOKEN as its bearer token, or, with no
+ * token set, only a request made on the VM itself to the app's own port. Caddy stamps X-Forwarded-For on every
+ * request it passes in, so a request from outside never arrives without it.
+ */
+function allowed(request: Request): boolean {
+  const token = process.env.METRICS_TOKEN;
+  if (token) return request.headers.get('authorization') === `Bearer ${token}`;
+  return !request.headers.get('x-forwarded-for');
+}
+
 export async function GET(request: Request) {
   const id = requestId(request);
+  if (!allowed(request)) {
+    logRequest('GET /api/metrics', id, { allowed: false });
+    return new NextResponse(null, { status: 404, headers: { 'x-request-id': id } });
+  }
   const pool = getPool();
   const [counts, queue] = await Promise.all([installationCounts().catch(() => ({})), queueStatus()]);
   const mem = process.memoryUsage();

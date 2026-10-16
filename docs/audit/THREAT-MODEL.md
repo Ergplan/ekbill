@@ -56,6 +56,9 @@ What EkBill protects, from whom, across which boundaries, and which security wor
 
 - **Switcher mode signs anyone in.** While `AUTH_MODE=switcher`, `/dev/switch` signs in any seeded person or any phone number. That is why the VM holds test data only.
 - **Rate limits are per process.** They forget on a restart.
+- **Signing out has no button yet.** `POST /api/auth/logout` ends the session (`?everywhere=1` ends all of the person's). The Aap screen has no button for it until the design is approved. Sessions otherwise last 30 days; a removed member loses access on the next request.
+- **Invites are accepted without asking.** The invitee's next sign-in joins them. Their own business stays first, and there is no switcher yet.
+- **Metrics are local.** `/api/metrics` answers on the VM itself, or a scraper holding `METRICS_TOKEN`.
 - **The voice relies on the model.** It reads the screen and is told which items are OWNER-ONLY. The refusal to press them is enforced in the browser (`dom.ts`), not by the model.
 - **Poocho sends record text to the text model.** That is the business's own bills, customers and items, and only when a model is configured.
 - **One dependency has open advisories, dev only.** drizzle-kit (migrations, run by the operator) pulls an esbuild with a moderate advisory against its development server, which nothing here starts. Everything else `npm audit` reported was upgraded in Stage 11: sharp (reads uploaded photos), fflate (reads uploaded zips), firebase-admin (drops node-forge), and @grpc/grpc-js pinned up under the Firebase client's Firestore, which the app does not load. `DEPENDENCIES.md` has the record.

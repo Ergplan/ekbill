@@ -150,9 +150,9 @@ describe('roles (I8): every repository write, every role', () => {
     const scope = await scopeFor('sharma', 'staff');
     await expect(document_files.roleProbes.storeRendering(scope)).resolves.toBeDefined();
   });
-  it('document-files.storeRendering: accountant may not', async () => {
+  it('document-files.storeRendering: accountant may', async () => {
     const scope = await scopeFor('sharma', 'accountant');
-    await expect(document_files.roleProbes.storeRendering(scope)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(document_files.roleProbes.storeRendering(scope)).resolves.toBeDefined();
   });
   it('documents.createDraft: owner may', async () => {
     const scope = await scopeFor('sharma', 'owner');

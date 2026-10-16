@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { acceptInvites, createSession, membershipsOf, resolveScope, userByPhone } from '../../packages/db/src/auth';
+import {
+  acceptInvites,
+  createSession,
+  membershipsOf,
+  resolveScope,
+  userByPhone,
+  userForPhone,
+} from '../../packages/db/src/auth';
+import * as businesses from '../../packages/db/src/repos/businesses';
 import { ForbiddenError, NotFoundError } from '../../packages/db/src/repos/allow';
 import * as memberships from '../../packages/db/src/repos/memberships';
 import { businessOf, scopeFor, seeded } from './helpers';
@@ -78,5 +86,21 @@ describe('invites (owner only)', () => {
     expect(inSharma.status).toBe('invited');
     expect((await memberships.listMembers(gupta)).find((x) => x.userId === theirOwner.userId)?.role).toBe('owner');
     void sharma;
+  });
+
+  // Stage 11 review: the memberships came back in scan order, and a sign-in lands in the first, so an owner who
+  // accepted someone's invite could find themselves in that business as staff, not in their own.
+  it('an owner invited elsewhere still lands in their own business first', async () => {
+    const number = phone();
+    const person = await userForPhone(number);
+    const own = await businesses.createBusiness(
+      { userId: person.id, requestId: 'team-test' },
+      { legalName: 'Apni Dukaan', tradeName: 'Apni Dukaan' },
+    );
+    await memberships.invite(await scopeFor('sharma', 'owner'), { phoneE164: number, name: 'X', role: 'staff' });
+    expect(await acceptInvites(person.id)).toBe(1);
+    const ms = await membershipsOf(person.id);
+    expect(ms.map((m) => m.role)).toEqual(['owner', 'staff']);
+    expect(ms[0]!.businessId).toBe(own.id);
   });
 });

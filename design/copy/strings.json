@@ -2357,6 +2357,14 @@
     "hi-Latn": "Aap → Bill number mein chhota prefix ya naya series banao.",
     "en": "In Aap → Bill numbers, shorten the prefix or start a new series."
   },
+  "assess.credit-more-than-bill": {
+    "hi-Latn": "Is bill pe ab sirf {left} tak kam ho sakta hai.",
+    "en": "Only {left} can still be credited on this bill."
+  },
+  "assess.credit-more-than-bill.do": {
+    "hi-Latn": "Rakam {left} ya usse kam rakho.",
+    "en": "Keep the amount at {left} or less."
+  },
   "assess.no-lines": {
     "hi-Latn": "Bill mein kuch likha nahi.",
     "en": "Nothing is on the bill."
@@ -2789,6 +2797,10 @@
     "hi-Latn": "Har file 8 MB tak",
     "en": "Each file up to 8 MB"
   },
+  "import.error.too-big-total": {
+    "hi-Latn": "Ek baar mein 36 MB tak hi. Files do baar mein bhejo.",
+    "en": "Up to 36 MB at a time. Send the files in two goes."
+  },
   "import.error.not-ready": {
     "hi-Latn": "Abhi padh rahe hain, thoda ruko",
     "en": "Still reading, wait a moment"
@@ -2864,6 +2876,14 @@
   "bill.state.credit-note-exists": {
     "hi-Latn": "Is bill ka credit note pehle se hai",
     "en": "This bill already has a credit note"
+  },
+  "bill.state.not-a-bill": {
+    "hi-Latn": "Yeh credit note hai, bill nahi",
+    "en": "This is a credit note, not a bill"
+  },
+  "bill.state.has-money": {
+    "hi-Latn": "Is bill pe paise likhe hain. Pehle unhe wapas karo, phir cancel karo.",
+    "en": "Money is recorded on this bill. Reverse it first, then cancel."
   },
   "bill.state.bad-lines": {
     "hi-Latn": "Kaam ki lines sahi nahi hain",

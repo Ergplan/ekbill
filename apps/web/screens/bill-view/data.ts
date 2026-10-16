@@ -4,6 +4,7 @@ import type { PaperData } from '@ekbill/ui';
 
 import { FIXTURE, daysBetween, type Bill } from '../fixtures';
 import { billOf, customerOf } from '../common';
+import { safeDecode } from '../links';
 import { billOfRow, linesOf, paperOfDocument, scopeOf, todayOf } from '../live';
 import { paperOfBill } from '../paper';
 import type { Viewer } from '../viewer';
@@ -46,7 +47,7 @@ export async function loadBillView(viewer: Viewer, number: string, fy?: string |
   if (!b) return null;
   const scope = scopeOf(viewer);
   if (scope) {
-    const id = await documents.findBill(scope, decodeURIComponent(number), fy);
+    const id = await documents.findBill(scope, safeDecode(number), fy);
     if (!id) return null;
     let view;
     try {

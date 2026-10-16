@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { t } from '@ekbill/copy';
 
-import { Limiter, clientAddress, isSignIn, isWrite, limitsFromEnv } from './server/rate-limit';
+import { Limiter, clientAddress, isRender, isSignIn, isWrite, limitsFromEnv } from './server/rate-limit';
 
 /**
  * Every request gets a request id (I7): the caller's x-request-id when it
@@ -34,6 +34,13 @@ export function proxy(request: NextRequest) {
   if (isSignIn(path)) {
     const v = limiter.hit(`signin:${clientAddress(request.headers)}`, limits.signIn);
     if (!v.ok) return tooMany(id, 'rate.signin', v.retryAfterSeconds, path.startsWith('/api/'));
+  } else if (isRender(request.method, path)) {
+    const session = request.cookies.get('eb-session')?.value;
+    const v = limiter.hit(
+      session ? `render:${session}` : `render-ip:${clientAddress(request.headers)}`,
+      limits.renders,
+    );
+    if (!v.ok) return tooMany(id, 'rate.writes', v.retryAfterSeconds, true);
   } else if (isWrite(request.method)) {
     const session = request.cookies.get('eb-session')?.value;
     const v = limiter.hit(session ? `write:${session}` : `write-ip:${clientAddress(request.headers)}`, limits.writes);

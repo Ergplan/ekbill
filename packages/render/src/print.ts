@@ -34,18 +34,23 @@ export async function printAndKeep(
   const profile = await businesses.getProfile(scope);
   const design = input.design ?? profile.look.design;
   const key = { documentId: input.documentId, kind: input.kind, paper: input.paper, design };
-  const existing = await documentFiles.findRendering(scope, key);
-  if (existing) return existing;
   const doc = await documents.getDocument(scope, input.documentId);
   if (doc.status === 'draft' || !doc.issuedSnapshot || !doc.number)
     throw new Error('only an issued document is printed');
+  // A cancelled bill prints as what it is, CANCELLED across it and no QR to pay it by, never from the file kept
+  // while it stood (Stage 11 review: it downloaded, and went into the CA pack, as a clean tax invoice).
+  const cancelled = doc.status === 'cancelled';
+  if (!cancelled) {
+    const existing = await documentFiles.findRendering(scope, key);
+    if (existing) return existing;
+  }
   const snapshot = doc.issuedSnapshot as IssuedSnapshot;
   const [logo, signature] = await Promise.all([
     dataUrlOf(scope, snapshot.seller.logoRef),
     dataUrlOf(scope, snapshot.seller.signatureRef),
   ]);
   const qr =
-    snapshot.kind === 'credit-note'
+    snapshot.kind === 'credit-note' || cancelled
       ? null
       : await upiQrDataUrl({
           vpa: snapshot.seller.upi,
@@ -61,12 +66,13 @@ export async function printAndKeep(
     logoDataUrl: logo,
     signatureDataUrl: signature,
     upiQrDataUrl: qr,
+    watermark: cancelled ? 'CANCELLED' : null,
   };
   const t0 = Date.now();
   const bytes = input.kind === 'pdf' ? await renderPdf(printInput) : await renderJpeg(printInput);
   const renderMs = Date.now() - t0;
-  if (!(documentFiles.allowedRoles.storeRendering as readonly string[]).includes(scope.role)) {
-    // The accountant reads: the file is printed for them and not kept (keeping is a write).
+  if (cancelled || !(documentFiles.allowedRoles.storeRendering as readonly string[]).includes(scope.role)) {
+    // A cancelled bill's print is not kept (nor one for a role that may not keep files).
     return {
       id: '',
       documentId: doc.id,

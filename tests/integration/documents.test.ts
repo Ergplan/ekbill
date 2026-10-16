@@ -206,6 +206,48 @@ describe('issueDocument: the one writer (I2)', () => {
     ).rejects.toBeInstanceOf(ForbiddenError);
   });
 
+  // Stage 11 review: the limit was checked before the transaction, on a bill nothing locked.
+  it('credits no more than the bill, even two notes at once; never a credit note; staff cannot rewrite one', async () => {
+    const owner = await scopeFor('sharma', 'owner');
+    const invoice = await documents.issueDocument(owner, {
+      id: (await documents.createDraft(owner, draftInput({ lines: [line('Panel', 100000)] }))).id,
+      today: TODAY,
+    });
+    expect(invoice.totals!.totalPaise).toBe(118000);
+    const full = () =>
+      documents.createCreditNote(owner, {
+        invoiceId: invoice.id,
+        dateIso: TODAY,
+        lines: [line('All of it', 118000, 1800, { priceIncludesTax: true })],
+      });
+    const [a, b] = await Promise.all([full(), full()]);
+    const outcomes = await Promise.allSettled([
+      documents.issueDocument(owner, { id: a.id, today: TODAY }),
+      documents.issueDocument(owner, { id: b.id, today: TODAY }),
+    ]);
+    expect(outcomes.filter((o) => o.status === 'fulfilled')).toHaveLength(1);
+    const refused = outcomes.find((o) => o.status === 'rejected') as PromiseRejectedResult;
+    expect(refused.reason).toMatchObject({
+      name: 'IssueRefusedError',
+      blockers: [expect.objectContaining({ code: 'credit-more-than-bill' })],
+    });
+    // A credit note is not a bill to credit.
+    const issuedNote = (outcomes.find((o) => o.status === 'fulfilled') as PromiseFulfilledResult<documents.Document>)
+      .value;
+    await expect(
+      documents.createCreditNote(owner, { invoiceId: issuedNote.id, dateIso: TODAY, lines: [line('x', 100)] }),
+    ).rejects.toMatchObject({ code: 'not-a-bill' });
+    // The refused note is still a draft: staff can neither rewrite nor issue it.
+    const staff = await scopeFor('sharma', 'staff');
+    const leftover = outcomes[0]!.status === 'rejected' ? a : b;
+    await expect(documents.updateDraft(staff, leftover.id, { lines: [line('x', 1)] })).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
+    await expect(documents.issueDocument(staff, { id: leftover.id, today: TODAY })).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
+  });
+
   it('is immutable once issued: the trigger refuses every change to what the customer saw', async () => {
     const scope = await scopeFor('sharma', 'owner');
     const issued = await documents.issueDocument(scope, {

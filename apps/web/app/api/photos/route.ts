@@ -17,6 +17,9 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   const me = await current();
   if (!me?.scope) return NextResponse.json({ error: 'auth.signed.out' }, { status: 401 });
+  // Refused before the body is read (one photo, with the multipart framing).
+  if (Number(request.headers.get('content-length') ?? 0) > photos.PHOTO_MAX_BYTES + 1024 * 1024)
+    return NextResponse.json({ error: 'photo.error.too-big' }, { status: 413 });
   let form: FormData;
   try {
     form = await request.formData();

@@ -20,6 +20,8 @@ export type ImportRow = typeof schema.importRows.$inferSelect;
 
 export const MAX_IMPORT_FILE_BYTES = 8 * 1024 * 1024;
 export const MAX_IMPORT_FILES = 20;
+/** All the files of one import together: the engine's (the screen checks it too). */
+export const MAX_IMPORT_TOTAL_BYTES = importing.MAX_TOTAL_BYTES;
 
 export interface FileSummary {
   name: string;

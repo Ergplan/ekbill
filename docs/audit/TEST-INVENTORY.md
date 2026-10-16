@@ -6,9 +6,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 37    | 347    |
-| integration | 21    | 249    |
-| e2e         | 16    | 58     |
+| unit        | 37    | 349    |
+| integration | 22    | 256    |
+| e2e         | 16    | 59     |
 
 ## unit
 
@@ -46,6 +46,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - carry the year the number belongs to, with any other query after it
 - name files without a slash
 - are never built raw: no `/bills/â€¦` in the product source but through billPath or encodeURIComponent
+- a broken escape is taken as written, and a day that does not exist is refused at the door
 
 ### `tests/unit/copy-dictionary.test.ts`
 
@@ -395,10 +396,11 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 - lets 60 writes through in a minute, refuses the 61st with when to come back, and forgets after the minute
 - a limit of 0 is off; the map stays bounded under a flood of new keys
-- reads its limits from the environment, 60 and 30 by default
+- reads its limits from the environment, 60, 30 and 30 by default
 - knows a write, a sign-in door and the address Caddy forwarded
 - answers the 31st sign-in from one address with 429, the Hinglish words and Retry-After
 - answers the 61st write in a minute from one session with 429 JSON
+- answers the 31st render in a minute from one session with 429 (Stage 11 review)
 
 ### `tests/unit/review-stage.test.ts`
 
@@ -517,6 +519,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - cannot issue twice, and cannot issue what is not a draft
 - cancels an issued bill (owner only), never a draft, and never twice
 - credits an issued invoice with a note in its own series that links back
+- credits no more than the bill, even two notes at once; never a credit note; staff cannot rewrite one
 - is immutable once issued: the trigger refuses every change to what the customer saw
 - refuses status = issued from anything but issueDocument (the issue gate)
 - audits the issue: one row for the document and one for the series, under the request id
@@ -531,6 +534,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 - reports ok, the schema version and sign-in off
 - reports the last backup age once a backup exists
+- says what the doors do: unset is otp
 
 ### `tests/integration/load.test.ts`
 
@@ -538,10 +542,17 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - seeds real bills once, carries on idempotently, and refuses on a full disk
 - the removal takes only the load-test businesses and what hangs off them
 
+### `tests/integration/logout.test.ts`
+
+- ends this session and clears its cookie; the personâ€™s other sessions stay
+- everywhere: every session of the person ends, and no one elseâ€™s
+- without a session it is a quiet no-op
+
 ### `tests/integration/metrics.test.ts`
 
 - answers Prometheus gauges for the process, the pool, the installation and the backup
 - reports a waiting job and its age, here and in /api/health
+- answers only on the VM itself, or to the scraper holding METRICS_TOKEN
 
 ### `tests/integration/numbering.test.ts`
 
@@ -634,7 +645,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - customers.archiveCustomer: accountant may not
 - document-files.storeRendering: owner may
 - document-files.storeRendering: staff may
-- document-files.storeRendering: accountant may not
+- document-files.storeRendering: accountant may
 - documents.createDraft: owner may
 - documents.createDraft: staff may
 - documents.createDraft: accountant may not
@@ -751,6 +762,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - invite â†’ sign in â†’ act â†’ change role â†’ remove â†’ no access
 - an invite can be withdrawn before it is accepted, and re-sent
 - never touches the owner, never invites yourself; staff and the accountant cannot shape the team
+- an owner invited elsewhere still lands in their own business first
 
 ### `tests/integration/tenancy.test.ts`
 
@@ -810,6 +822,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - import: the chosen files (PDF, Excel, photo) are the ones the reading names
 - aap: the logo comes from the files folder and shows on the row
 - @desktop photo bill: a laptop uses the live camera, with the browserâ€™s own permission
+- import: more than 36 MB at once is refused in words, before and at the door
 
 ### `tests/e2e/flow-audit.spec.ts` Ã—
 

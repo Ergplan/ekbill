@@ -24,3 +24,12 @@ export function billPath(
 export function billFileName(number: string, ext: string): string {
   return `${number.replace(/[^A-Za-z0-9._-]+/g, '-')}.${ext}`;
 }
+
+/** A path segment as it was meant: "%" alone (or any broken escape) is taken as written, never a crash. */
+export function safeDecode(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return segment;
+  }
+}

@@ -77,6 +77,8 @@ services:
       DB_POOL_MAX: ${DB_POOL_MAX:-10}
       RATE_WRITES_PER_MIN: ${RATE_WRITES_PER_MIN:-60}
       RATE_SIGNIN_PER_MIN: ${RATE_SIGNIN_PER_MIN:-30}
+      RATE_RENDERS_PER_MIN: ${RATE_RENDERS_PER_MIN:-30}
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
       BACKUP_STATE_FILE: /app/state/last-backup.json
     volumes:
       - ./vm/state:/app/state:ro

@@ -12,6 +12,7 @@ import {
   documentKind,
   emptyTax,
   financialYearOf,
+  formatMoneyIndian,
   isEarlierYear,
   MAX_NUMBER_LENGTH,
   nextNumberFor,
@@ -122,7 +123,14 @@ export class IssueRefusedError extends Error {
 export class DocumentStateError extends Error {
   constructor(
     public readonly code:
-      'not-a-draft' | 'not-issued' | 'series-inactive' | 'series-kind' | 'credit-note-exists' | 'bad-lines',
+      | 'not-a-draft'
+      | 'not-issued'
+      | 'not-a-bill'
+      | 'has-money'
+      | 'series-inactive'
+      | 'series-kind'
+      | 'credit-note-exists'
+      | 'bad-lines',
     message: string,
   ) {
     super(message);
@@ -309,6 +317,8 @@ export async function updateDraft(scope: TenantScope, id: string, patch: DraftPa
     if (!current) throw new NotFoundError('document');
     if (current.status !== 'draft')
       throw new DocumentStateError('not-a-draft', `document ${current.number} is ${current.status}`);
+    // A credit note is the owner's, draft or not (Stage 11 review: staff could rewrite one through the bill form).
+    if (current.kind === 'credit_note') allow(scope, allowedRoles.createCreditNote, 'change a credit note');
     const business = await businessRow(tx);
     const seller = sellerOf(business);
     const kindOfSeries: SeriesKind = current.kind === 'credit_note' ? 'credit_note' : 'bill';
@@ -418,14 +428,39 @@ export async function issueDocument(scope: TenantScope, input: { id: string; tod
 
     const business = await businessRow(tx);
     let linked: { id: string; number: string; dateIso: string } | null = null;
+    let creditablePaise: number | null = null;
     if (draft.kind === 'credit_note') {
+      // Owner only; and the bill is locked for the rest of this transaction, so two notes at once (a double tap,
+      // two tabs), a note and a cancel, or a note and a payment, are taken one after the other (Stage 11 review).
+      allow(scope, allowedRoles.createCreditNote, 'issue a credit note');
       const invoice = draft.linkedDocumentId
-        ? (await db.select().from(schema.documents).where(eq(schema.documents.id, draft.linkedDocumentId)))[0]
+        ? (
+            await db
+              .select()
+              .from(schema.documents)
+              .where(eq(schema.documents.id, draft.linkedDocumentId))
+              .for('update')
+          )[0]
         : undefined;
       if (!invoice) throw new NotFoundError('linked invoice');
+      if (invoice.kind === 'credit_note')
+        throw new DocumentStateError('not-a-bill', `${invoice.number} is a credit note, not a bill`);
       if (invoice.status !== 'issued' || !invoice.number)
         throw new DocumentStateError('not-issued', `invoice ${invoice.number ?? invoice.id} is ${invoice.status}`);
       linked = { id: invoice.id, number: invoice.number, dateIso: invoice.issueDate };
+      const [credited] = await db
+        .select({
+          paise: sql<number>`coalesce(sum((${schema.documents.totals}->>'totalPaise')::bigint), 0)`.mapWith(Number),
+        })
+        .from(schema.documents)
+        .where(
+          and(
+            eq(schema.documents.linkedDocumentId, invoice.id),
+            eq(schema.documents.kind, 'credit_note'),
+            eq(schema.documents.status, 'issued'),
+          ),
+        );
+      creditablePaise = ((invoice.totals as TaxResult | null)?.totalPaise ?? 0) - (credited?.paise ?? 0);
     }
 
     const prepared = prepareIssue(
@@ -446,6 +481,21 @@ export async function issueDocument(scope: TenantScope, input: { id: string; tod
       today,
     );
     if (!prepared.ok) throw new IssueRefusedError(prepared.blockers, prepared.assessment);
+    if (creditablePaise !== null && prepared.totals.totalPaise > creditablePaise)
+      throw new IssueRefusedError(
+        [
+          {
+            code: 'credit-more-than-bill',
+            message: {
+              key: 'assess.credit-more-than-bill',
+              params: { left: formatMoneyIndian(Math.max(0, creditablePaise), { withSymbol: true }) },
+            },
+            whatYouCanDo: { key: 'assess.credit-more-than-bill.do' },
+            ruleId: null,
+          },
+        ],
+        prepared.assessment,
+      );
 
     const config = configOf(series);
     // A date in a year before the one the series has reached continues that year's numbers (read under the series
@@ -532,6 +582,15 @@ export async function cancelDocument(scope: TenantScope, input: { id: string; re
       .limit(1);
     if (notes.length)
       throw new DocumentStateError('credit-note-exists', `document ${current.number} already has a credit note`);
+    // Money recorded on a bill would vanish with it: a cancelled bill shows nothing due, takes no reversal, and the
+    // redo starts at the full amount (Stage 11 review). The entries are reversed first, in words, then the bill goes.
+    const money = await db
+      .select({ id: schema.payments.id })
+      .from(schema.payments)
+      .where(and(eq(schema.payments.documentId, current.id), isNull(schema.payments.reversedAt)))
+      .limit(1);
+    if (money.length)
+      throw new DocumentStateError('has-money', `document ${current.number} has money recorded; reverse it first`);
     const [row] = await db
       .update(schema.documents)
       .set({
@@ -566,6 +625,8 @@ export async function createCreditNote(scope: TenantScope, input: CreditNoteInpu
   return withTenant(scope, async (tx) => {
     const invoice = (await tx.db.select().from(schema.documents).where(eq(schema.documents.id, input.invoiceId)))[0];
     if (!invoice) throw new NotFoundError('invoice');
+    if (invoice.kind === 'credit_note')
+      throw new DocumentStateError('not-a-bill', `${invoice.number} is a credit note, not a bill`);
     if (invoice.status !== 'issued' || !invoice.issuedSnapshot)
       throw new DocumentStateError('not-issued', `document ${invoice.number ?? invoice.id} is ${invoice.status}`);
     const snapshot = invoice.issuedSnapshot as IssuedSnapshot;

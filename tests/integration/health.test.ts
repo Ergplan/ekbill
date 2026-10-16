@@ -9,11 +9,14 @@ import { afterEach, describe, expect, it } from 'vitest';
  * The route must never leak secrets: it reports state words and the schema tag.
  */
 describe('GET /api/health', () => {
+  const mode = process.env.AUTH_MODE;
   afterEach(() => {
     delete process.env.BACKUP_STATE_FILE;
+    process.env.AUTH_MODE = mode;
   });
 
   it('reports ok, the schema version and sign-in off', async () => {
+    process.env.AUTH_MODE = 'switcher';
     const { GET } = await import('../../apps/web/app/api/health/route');
     const res = await GET(new Request('http://127.0.0.1:3000/api/health'));
     expect(res.status).toBe(200);
@@ -38,5 +41,14 @@ describe('GET /api/health', () => {
     expect(body.lastBackup.at).toBe(at);
     expect(body.lastBackup.ageHours).toBe(3);
     expect(body.lastBackup.bytes).toBe(12345);
+  });
+
+  // Stage 11 review: an unset AUTH_MODE read here as "switcher" while the sign-in doors treat it as otp.
+  it('says what the doors do: unset is otp', async () => {
+    delete process.env.AUTH_MODE;
+    const { GET } = await import('../../apps/web/app/api/health/route');
+    const body = await (await GET(new Request('http://127.0.0.1:3000/api/health'))).json();
+    expect(body).toMatchObject({ authMode: 'otp', signIn: 'required' });
+    expect(body).not.toHaveProperty('databaseError');
   });
 });

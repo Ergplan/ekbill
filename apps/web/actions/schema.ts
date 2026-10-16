@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+import { isCivilDate } from '@ekbill/engine';
+
+/** A real calendar day (Stage 11 review: 2026-02-30 passed the pattern and crashed the action). */
+const civilDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine(isCivilDate);
+
 /**
  * Inputs of the server actions, validated at the boundary (CLAUDE.md:
  * actions validate input, call a repository, return ActionResult). The
@@ -144,7 +152,7 @@ export const issueBillInput = z.object({
   customerState: z.string().trim().max(2).nullable().optional(),
   /** The new customer's language, when the form adds one. */
   customerLanguage: z.enum(['hi-Latn', 'en']).nullable().optional(),
-  issueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  issueDate: civilDate,
   gstOn: z.boolean(),
   lines: z.array(billLine).min(1).max(100),
 });
@@ -167,7 +175,7 @@ export const paymentInput = z.object({
   documentId: z.string().uuid(),
   kind: z.enum(['payment', 'adjustment']),
   amount: z.string().trim().min(1).max(20),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  date: civilDate,
   method: z.enum(['upi', 'cash', 'bank', 'cheque', 'other']).nullable().optional(),
   note: z.string().trim().max(200).nullable().optional(),
 });

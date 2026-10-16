@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import { t } from '@ekbill/copy';
+import { importing } from '@ekbill/engine';
 import {
   Display,
   FileDoor,
@@ -48,6 +49,11 @@ export function ImportScreen({ data, viewer }: { data: ImportData; viewer: Shell
   }, [state, live]);
   const n = ticked.filter(Boolean).length;
   const upload = async (files: File[]) => {
+    // Checked before sending: a bigger upload is refused by the server unread (imports.ts MAX_IMPORT_TOTAL_BYTES).
+    if (files.reduce((s, f) => s + f.size, 0) > importing.MAX_TOTAL_BYTES) {
+      setProblem(t('import.error.too-big-total'));
+      return;
+    }
     const form = new FormData();
     for (const f of files) form.append('files', f, f.name);
     setBusy(true);

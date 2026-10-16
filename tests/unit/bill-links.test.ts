@@ -3,7 +3,8 @@ import { join, relative } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { billFileName, billPath } from '../../apps/web/screens/links';
+import { paymentInput } from '../../apps/web/actions/schema';
+import { billFileName, billPath, safeDecode } from '../../apps/web/screens/links';
 
 /**
  * Stage 11, found by the clean-clone run: a number with the financial year in it carries a slash
@@ -51,5 +52,14 @@ describe('bill links', () => {
         .filter(({ line }) => /\/bills\/\$\{(?!encodeURIComponent\()/.test(line)),
     );
     expect(raw.map((r) => r.at)).toEqual([]);
+  });
+
+  // Stage 11 review: "%" in a bill path (and 30 February in a payment) crashed the request with a 500.
+  it('a broken escape is taken as written, and a day that does not exist is refused at the door', () => {
+    expect(safeDecode('%')).toBe('%');
+    expect(safeDecode('INV-2026-27%2F001')).toBe('INV-2026-27/001');
+    const base = { documentId: '00000000-0000-4000-8000-000000000001', kind: 'payment', amount: '10', method: 'upi' };
+    expect(paymentInput.safeParse({ ...base, date: '2026-02-30' }).success).toBe(false);
+    expect(paymentInput.safeParse({ ...base, date: '2026-02-28' }).success).toBe(true);
   });
 });

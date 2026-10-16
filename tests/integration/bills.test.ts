@@ -144,6 +144,11 @@ describe('the payment lifecycle (the MVP test, on v2)', () => {
       /never changed/,
     );
     await expect(raw('delete from payments where id = $1', [payment.id])).rejects.toThrow();
+    // A bill with money on it is not cancelled (the money would vanish with it): reversed first, then cancelled.
+    await expect(documents.cancelDocument(owner, { id: bill.id, reason: 'Wrong customer' })).rejects.toMatchObject({
+      code: 'has-money',
+    });
+    await payments.reversePayment(owner, { paymentId: payment.id, reason: 'Wrong customer' });
     // A cancelled bill owes nothing and takes no money.
     await documents.cancelDocument(owner, { id: bill.id, reason: 'Wrong customer' });
     expect(await payments.balanceOfDocument(owner, bill.id)).toMatchObject({ duePaise: 0, status: 'cancelled' });

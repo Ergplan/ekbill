@@ -38,6 +38,8 @@ export function limitsFromEnv(env: Record<string, string | undefined> = process.
   return {
     writes: { max: n(env.RATE_WRITES_PER_MIN, 60), windowMs: MINUTE },
     signIn: { max: n(env.RATE_SIGNIN_PER_MIN, 30), windowMs: MINUTE },
+    // Stage 11 review: a bill's file and the CA pack start Chromium on a GET; a loop of them was unlimited.
+    renders: { max: n(env.RATE_RENDERS_PER_MIN, 30), windowMs: MINUTE },
   };
 }
 
@@ -45,6 +47,9 @@ const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 /** The sign-in doors: the switcher during the build, the OTP routes from Stage 10. */
 export const isSignIn = (path: string) => path.startsWith('/dev/switch') || path.startsWith('/api/auth/');
 export const isWrite = (method: string) => WRITE_METHODS.has(method.toUpperCase());
+/** The GETs that may start Chromium: a bill's file, and the CA pack (every PDF of the period). */
+export const isRender = (method: string, path: string) =>
+  method.toUpperCase() === 'GET' && (/^\/api\/documents\/[^/]+\/file$/.test(path) || path === '/api/gst/pack');
 
 /** The address a request came from: the first hop Caddy records, else what the connection says. */
 export function clientAddress(headers: Headers): string {

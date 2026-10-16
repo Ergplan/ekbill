@@ -57,4 +57,21 @@ describe('GET /api/metrics', () => {
       await closePool();
     }
   });
+
+  // Stage 11 review: anyone could read them through Caddy.
+  it('answers only on the VM itself, or to the scraper holding METRICS_TOKEN', async () => {
+    const { GET } = await import('../../apps/web/app/api/metrics/route');
+    const viaCaddy = { 'x-forwarded-for': '203.0.113.9' };
+    expect((await GET(new Request('http://127.0.0.1:3000/api/metrics', { headers: viaCaddy }))).status).toBe(404);
+    process.env.METRICS_TOKEN = 'm-token';
+    try {
+      expect((await GET(new Request('http://127.0.0.1:3000/api/metrics'))).status).toBe(404);
+      const ok = await GET(
+        new Request('http://127.0.0.1:3000/api/metrics', { headers: { ...viaCaddy, authorization: 'Bearer m-token' } }),
+      );
+      expect(ok.status).toBe(200);
+    } finally {
+      delete process.env.METRICS_TOKEN;
+    }
+  });
 });

@@ -27,7 +27,9 @@ export interface DocumentFile {
 }
 
 export const allowedRoles = {
-  storeRendering: ['owner', 'staff'],
+  // The accountant's prints are kept too (Stage 11 review): a kept file is the issued snapshot printed, not a
+  // change to the books, and without it every download of theirs started Chromium again.
+  storeRendering: ['owner', 'staff', 'accountant'],
 } as const satisfies Record<string, readonly Role[]>;
 
 const meta = {

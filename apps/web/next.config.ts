@@ -29,6 +29,9 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
   experimental: {
     serverActions: { bodySizeLimit: '4mb' },
+    // Every request passes the proxy (request id, rate limits), which buffers its body up to this and cuts the
+    // rest: an import (36 MB at most, imports.ts) and a photo (8 MB) must fit, with the multipart framing.
+    proxyClientMaxBodySize: '40mb',
   },
 };
 

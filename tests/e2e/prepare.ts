@@ -36,10 +36,14 @@ async function main() {
       if (!seedCustomerKey(c.id)) await customers.archiveCustomer(scope, c.id, true);
     for (const row of await documents.listBills(scope)) {
       // (A bill corrected by a credit note stays: it cannot be cancelled on top.)
-      if (row.issueDate === today && row.status === 'issued' && !fixtureNumbers.has(row.number))
+      if (row.issueDate === today && row.status === 'issued' && !fixtureNumbers.has(row.number)) {
+        // Money on it is reversed first: a bill with money recorded is not cancelled (Stage 11).
+        for (const p of await payments.listPayments(scope, row.id))
+          if (!p.reversedAt) await payments.reversePayment(scope, { paymentId: p.id, reason: 'Test run reset' });
         await documents.cancelDocument(scope, { id: row.id, reason: 'Test run reset' }).catch((e: unknown) => {
           if (!(e instanceof documents.DocumentStateError)) throw e;
         });
+      }
       // Money a journey recorded today on a fixture bill is reversed, so the fixture's dues are due again.
       if (fixtureNumbers.has(row.number) && row.status === 'issued')
         for (const p of await payments.listPayments(scope, row.id))

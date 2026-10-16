@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { NotFoundError, documents } from '@ekbill/db';
 import { PAPERS, printAndKeep, type Paper } from '@ekbill/render';
 
-import { billFileName } from '../../../../../screens/links';
+import { billFileName, safeDecode } from '../../../../../screens/links';
 import { log } from '../../../../../server/log';
 import { current } from '../../../../../server/session';
 
@@ -26,7 +26,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const paperParam = (url.searchParams.get('paper') ?? 'a4').toLowerCase();
   if (!(PAPERS as readonly string[]).includes(paperParam)) return new NextResponse(null, { status: 400 });
   const paper = paperParam as Paper;
-  const id = await documents.findBill(me.scope, decodeURIComponent(raw));
+  const id = await documents.findBill(me.scope, safeDecode(raw));
   if (!id) return new NextResponse(null, { status: 404 });
   try {
     const doc = await documents.getDocument(me.scope, id);

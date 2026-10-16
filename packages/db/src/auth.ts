@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 
 import { getPool } from './pool';
@@ -147,6 +147,15 @@ export async function deleteSession(sessionId: string): Promise<void> {
   await db().delete(schema.sessions).where(eq(schema.sessions.id, sessionId));
 }
 
+/** Sign a person out everywhere (a lost or shared phone): every session of theirs ends. Answers how many. */
+export async function deleteSessionsOf(userId: string): Promise<number> {
+  const gone = await db()
+    .delete(schema.sessions)
+    .where(eq(schema.sessions.userId, userId))
+    .returning({ id: schema.sessions.id });
+  return gone.length;
+}
+
 /**
  * The invites waiting for a phone become memberships when that phone signs in
  * (the switcher during the build; OTP in Stage 10). Answers how many.
@@ -198,6 +207,13 @@ export async function membershipsOf(
     })
     .from(schema.memberships)
     .innerJoin(schema.businesses, eq(schema.businesses.id, schema.memberships.businessId))
-    .where(and(eq(schema.memberships.userId, userId), eq(schema.memberships.status, 'active')));
+    .where(and(eq(schema.memberships.userId, userId), eq(schema.memberships.status, 'active')))
+    // The first is where a sign-in lands: the business the person owns, else the one they joined first, never
+    // whichever row the scan returned (Stage 11 review: an accepted invite could take an owner out of their own).
+    .orderBy(
+      sql`case when ${schema.memberships.role} = 'owner' then 0 else 1 end`,
+      asc(schema.memberships.acceptedAt),
+      asc(schema.memberships.businessId),
+    );
   return rows.map((r) => ({ ...r, role: r.role as Role }));
 }

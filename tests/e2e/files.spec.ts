@@ -90,3 +90,23 @@ test('@desktop photo bill: a laptop uses the live camera, with the browser’s o
   const src = await page.locator('img[data-guide="photo"]').getAttribute('src');
   expect(src).toMatch(/^data:image\/jpeg;base64,/);
 });
+
+// Stage 11 review: the proxy buffers at most 40 MB of a body and cut the rest, so a big import always failed as
+// "form.invalid". The screen refuses more than 36 MB before sending; the route refuses it unread.
+test('import: more than 36 MB at once is refused in words, before and at the door', async ({ page }) => {
+  await page.goto('/dev/switch/sharma?to=/customers/import');
+  await hydrated(page);
+  const eight = (i: number) => ({
+    name: `scan-${i}.pdf`,
+    mimeType: 'application/pdf',
+    buffer: Buffer.alloc(8 * 1024 * 1024, 0x20),
+  });
+  await page.locator('input[data-guide="files"]').setInputFiles([1, 2, 3, 4, 5].map(eight));
+  await expect(page.locator('main')).toContainText('36 MB tak');
+  await expect(page).not.toHaveURL(/state=reading/);
+  const res = await page.request.post('/api/imports', {
+    multipart: { files: { name: 'big.pdf', mimeType: 'application/pdf', buffer: Buffer.alloc(38 * 1024 * 1024) } },
+  });
+  expect(res.status()).toBe(413);
+  expect(await res.json()).toEqual({ error: 'import.error.too-big-total' });
+});
