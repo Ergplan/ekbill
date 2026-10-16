@@ -46,6 +46,7 @@ export function billOfRow(viewer: Viewer, r: BillRow): Bill {
     business: viewer.business?.id ?? '',
     series: prefix.replace(/[-/]+$/, ''),
     number: r.number,
+    fy: r.financialYear,
     customer: r.customerId ?? '',
     date: r.issueDate,
     lines: [],
@@ -67,6 +68,7 @@ export function billOfRow(viewer: Viewer, r: BillRow): Bill {
 export function rowOfLive(r: BillRow, today: string): RowData {
   return {
     number: r.number,
+    fy: r.financialYear,
     customer: r.customerId ?? '',
     name: r.customerName,
     index: avatarIndex(r.customerId ?? r.id),

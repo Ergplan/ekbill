@@ -160,4 +160,80 @@ describe('numbering (I3)', () => {
       expect(await ids()).toEqual(first);
     }
   });
+
+  // Found by the Stage 11 review (a paper bill photographed late carries its own date).
+  it("a bill dated in an earlier year continues that year's numbers and the series carries on", async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    const s = await series.createSeries(scope, {
+      name: `Back ${Date.now()}`,
+      kind: 'bill',
+      prefix: 'BK/',
+      padding: 3,
+      includeFy: true,
+    });
+    const at = async (date: string) =>
+      (
+        await documents.issueDocument(scope, {
+          id: (await documents.createDraft(scope, draftIn(s.id, date))).id,
+          today: TODAY,
+        })
+      ).number;
+    expect(await at('2026-03-30')).toBe('BK/2025-26/001');
+    expect(await at('2026-10-14')).toBe('BK/2026-27/001');
+    expect(await at('2026-10-15')).toBe('BK/2026-27/002');
+    // Back into the earlier year: it continues there, and this year carries on from where it was.
+    expect(await at('2026-03-31')).toBe('BK/2025-26/002');
+    expect(await at('2026-10-15')).toBe('BK/2026-27/003');
+    expect(await at('2025-11-01')).toBe('BK/2025-26/003');
+    expect(await at('2026-10-15')).toBe('BK/2026-27/004');
+  });
+
+  // Found by the Stage 11 review: a series without the year starts again each April, and links named a bill by its
+  // number alone, so last year's YR-001 opened this year's (money and reminders went to the wrong bill).
+  it('a number that repeats across years is found by its year; a prefix belongs to one series', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    const s = await series.createSeries(scope, {
+      name: `Yr ${Date.now()}`,
+      kind: 'bill',
+      prefix: 'YR-',
+      padding: 3,
+      includeFy: false,
+    });
+    const at = async (date: string) =>
+      documents.issueDocument(scope, {
+        id: (await documents.createDraft(scope, draftIn(s.id, date))).id,
+        today: TODAY,
+      });
+    const old = await at('2026-03-30');
+    const now = await at('2026-10-15');
+    expect([old.number, now.number]).toEqual(['YR-001', 'YR-001']);
+    expect(await documents.findBill(scope, 'YR-001', '2025-26')).toBe(old.id);
+    expect(await documents.findBill(scope, 'YR-001', '2026-27')).toBe(now.id);
+    expect(await documents.findBill(scope, 'YR-001')).toBe(now.id); // no year: the newest, as before
+    expect(await documents.findBill(scope, 'YR-001', '2024-25')).toBeNull();
+
+    // Another series may not number with YR- too (it would give YR-001 again this year); with the year it may.
+    await expect(
+      series.createSeries(scope, {
+        name: `Yr2 ${Date.now()}`,
+        kind: 'bill',
+        prefix: 'YR-',
+        padding: 3,
+        includeFy: false,
+      }),
+    ).rejects.toMatchObject({ problem: 'prefix-taken' });
+    const other = await series.createSeries(scope, {
+      name: `Yr3 ${Date.now()}`,
+      kind: 'bill',
+      prefix: 'YQ-',
+      padding: 3,
+      includeFy: false,
+    });
+    await expect(series.updateSeries(scope, other.id, { prefix: 'YR-' })).rejects.toMatchObject({
+      problem: 'prefix-taken',
+    });
+    expect((await series.updateSeries(scope, other.id, { prefix: 'YR-', includeFy: true })).prefix).toBe('YR-');
+    // Renaming a series keeps its own prefix.
+    expect((await series.updateSeries(scope, s.id, { name: 'Yr renamed' })).prefix).toBe('YR-');
+  });
 });

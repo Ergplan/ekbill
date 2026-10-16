@@ -9,6 +9,7 @@ import type { Viewer } from '../viewer';
 
 export interface CreditNoteData {
   number: string;
+  fy?: string | null;
   customerName: string;
   totalPaise: number;
   nextNumber: string;
@@ -19,15 +20,20 @@ export interface CreditNoteData {
 }
 
 /** The credit note form for a bill: the owner only; the next CN number from the business's series. */
-export async function loadCreditNote(viewer: Viewer, number: string): Promise<CreditNoteData | null | 'forbidden'> {
+export async function loadCreditNote(
+  viewer: Viewer,
+  number: string,
+  fy?: string | null,
+): Promise<CreditNoteData | null | 'forbidden'> {
   const b = viewer.business;
   if (!b || viewer.role !== 'owner') return 'forbidden';
   if (scopeOf(viewer)) {
-    const v = await loadBillView(viewer, number);
+    const v = await loadBillView(viewer, number, fy);
     if (!v || !v.live || v.bill.status === 'cancelled') return null;
     const cn = viewer.loaded?.series.find((s) => s.kind === 'credit_note' && s.active);
     return {
       number: v.bill.number,
+      fy: v.bill.fy ?? null,
       customerName: v.customerName,
       totalPaise: v.bill.totalPaise,
       nextNumber: cn ? previewNumber(series.configOf(cn), v.live.today) : '',

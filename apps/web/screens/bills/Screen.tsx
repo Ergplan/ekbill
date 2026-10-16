@@ -82,7 +82,7 @@ export function BillsScreen({ data, viewer }: { data: BillsData; viewer: ShellVi
               amountPaise={r.totalPaise}
               status={r.status}
               statusLabel={t(statusKey(r.status))}
-              href={as(billPath(r.number))}
+              href={as(billPath(r.number, '', r.fy))}
             />
           ))
         ) : (

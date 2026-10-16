@@ -55,22 +55,50 @@ export function formatNumber(
   return `${series.prefix}${series.includeFinancialYear ? `${fy}/` : ''}${padded}`;
 }
 
-/** The number the next document will get on `issueDate`: the series' next, or 1 when the year has rolled over. */
+/**
+ * The number the next document will get on `issueDate`: the series' next; 1 when the year has rolled over to a
+ * later one; and for a date in an earlier year than the series has reached (a paper bill photographed late),
+ * one more than the highest number that year already has (`highestInEarlierYear`, read under the series lock):
+ * that year's sequence continues, and the series stays where it is (`earlierYear`).
+ */
 export function nextNumberFor(
   series: SeriesConfig,
   issueDate: CivilDate,
-): { financialYear: FinancialYear; sequence: number; number: string; rolledOver: boolean } {
+  highestInEarlierYear: number | null = null,
+): { financialYear: FinancialYear; sequence: number; number: string; rolledOver: boolean; earlierYear: boolean } {
   const fy = financialYearOf(issueDate);
-  const rolledOver = series.financialYear !== null && series.financialYear !== fy;
-  const sequence = rolledOver ? 1 : series.nextNumber;
-  return { financialYear: fy, sequence, number: formatNumber(series, fy, sequence), rolledOver };
+  const earlierYear = series.financialYear !== null && fy < series.financialYear;
+  const rolledOver = series.financialYear !== null && fy > series.financialYear;
+  const sequence = earlierYear ? (highestInEarlierYear ?? 0) + 1 : rolledOver ? 1 : series.nextNumber;
+  return { financialYear: fy, sequence, number: formatNumber(series, fy, sequence), rolledOver, earlierYear };
 }
 
-/** What the series looks like after allocating `allocated` on `issueDate`: the next number only goes up. */
+/** Whether a document dated `issueDate` falls in a year before the one the series has reached. */
+export function isEarlierYear(series: SeriesConfig, issueDate: CivilDate): boolean {
+  return series.financialYear !== null && financialYearOf(issueDate) < series.financialYear;
+}
+
+/** The sequence inside a number this series formatted for `fy` ("INV-2025-26/007" -> 7), or null if not its own. */
+export function sequenceOf(
+  series: Pick<SeriesConfig, 'prefix' | 'includeFinancialYear'>,
+  fy: FinancialYear,
+  number: string,
+): number | null {
+  const head = `${series.prefix}${series.includeFinancialYear ? `${fy}/` : ''}`;
+  if (!number.startsWith(head)) return null;
+  const rest = number.slice(head.length);
+  return /^\d+$/.test(rest) ? Number(rest) : null;
+}
+
+/**
+ * What the series looks like after allocating `allocated`: the next number only goes up, and a number given in an
+ * earlier year leaves the series as it was.
+ */
 export function afterAllocation(
   series: SeriesConfig,
-  allocated: { financialYear: FinancialYear; sequence: number },
+  allocated: { financialYear: FinancialYear; sequence: number; earlierYear?: boolean },
 ): SeriesConfig {
+  if (allocated.earlierYear) return series;
   return { ...series, financialYear: allocated.financialYear, nextNumber: allocated.sequence + 1 };
 }
 

@@ -654,6 +654,7 @@
   "aap.series.error.next-number": "Agla number 1 se shuru",
   "aap.series.error.next-number-down": "Agla number peeche nahi ja sakta",
   "aap.series.error.too-long": "Number 16 akshar se lamba ho jaayega",
+  "aap.series.error.prefix-taken": "Yeh shuruaat doosri series ki hai",
   "aap.series.error.name": "Series ka naam likho",
   "aap.save.nothing": "Kuch badla nahi",
   "aap.save.error": "Save nahi hua: {field}",

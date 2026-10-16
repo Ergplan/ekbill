@@ -20,7 +20,7 @@ export function GstDrillScreen({ data, viewer }: { data: DrillData; viewer: Shel
       </section>
       <div className="eb-card eb-rows" data-guide="docs">
         {data.rows.map((r) => (
-          <a key={r.number} href={as(billPath(r.number))} className="eb-billrow" data-testid="drill-row">
+          <a key={r.number} href={as(billPath(r.number, '', r.fy))} className="eb-billrow" data-testid="drill-row">
             <span className="eb-billrow__text">
               <span className="eb-billrow__name">{r.name}</span>
               <span className="eb-billrow__meta">

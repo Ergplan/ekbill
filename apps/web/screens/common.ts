@@ -22,6 +22,7 @@ export function unpaidOf(business: Business): Bill[] {
 }
 export interface RowData {
   number: string;
+  fy?: string | null;
   customer: string;
   name: string;
   index: number;
@@ -35,6 +36,7 @@ export function rowOf(business: Business, b: Bill): RowData {
   const c = customerOf(business, b.customer);
   return {
     number: b.number,
+    fy: b.fy ?? null,
     customer: b.customer,
     name: c?.name ?? b.customer,
     index: c?.index ?? 0,

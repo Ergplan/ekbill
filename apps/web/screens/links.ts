@@ -8,8 +8,16 @@ export function withAs(href: string, as: string | null | undefined): string {
  * A bill's own page (and its sub-pages), by number. Numbers that carry the financial year have a slash in them
  * (INV-2026-27/001, every new business's default), so the number is one encoded path segment; the route decodes it.
  */
-export function billPath(number: string, rest: '' | '/remind' | '/credit-note' = ''): string {
-  return `/bills/${encodeURIComponent(number)}${rest}`;
+export function billPath(
+  number: string,
+  rest: '' | '/remind' | '/credit-note' = '',
+  fy?: string | null,
+  query?: string,
+): string {
+  // The year too, when known: a series without the year in its numbers starts again each April, and last year's
+  // INV-001 is not this year's.
+  const q = [fy ? `fy=${encodeURIComponent(fy)}` : '', query ?? ''].filter(Boolean).join('&');
+  return `/bills/${encodeURIComponent(number)}${rest}${q ? `?${q}` : ''}`;
 }
 
 /** The name a bill's file is saved or shared under: the number with anything a file name cannot carry made a dash. */

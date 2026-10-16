@@ -18,6 +18,15 @@ describe('bill links', () => {
     expect(decodeURIComponent(billPath('A B/7#?').split('/')[2]!)).toBe('A B/7#?');
   });
 
+  // Found by the Stage 11 review: a series without the year in its numbers starts again each April, so the number
+  // alone named this year's INV-001 from every link to last year's (and money went to the wrong bill).
+  it('carry the year the number belongs to, with any other query after it', () => {
+    expect(billPath('INV-001', '', '2025-26')).toBe('/bills/INV-001?fy=2025-26');
+    expect(billPath('INV-001', '/remind', '2025-26')).toBe('/bills/INV-001/remind?fy=2025-26');
+    expect(billPath('INV-001', '', '2025-26', 'paid=1')).toBe('/bills/INV-001?fy=2025-26&paid=1');
+    expect(billPath('INV-001', '', null, 'paid=1')).toBe('/bills/INV-001?paid=1');
+  });
+
   it('name files without a slash', () => {
     expect(billFileName('INV-2026-27/001', 'pdf')).toBe('INV-2026-27-001.pdf');
     expect(billFileName('INV-042', 'jpg')).toBe('INV-042.jpg');

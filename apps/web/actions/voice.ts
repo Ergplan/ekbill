@@ -26,6 +26,7 @@ async function dues(s: NonNullable<Awaited<ReturnType<typeof scope>>>) {
     .filter((r) => r.kind !== 'credit_note' && r.balance.duePaise > 0)
     .map((r) => ({
       number: r.number,
+      financialYear: r.financialYear,
       customerId: r.customerId,
       customerName: r.customerName,
       amountPaise: r.balance.duePaise,
@@ -73,7 +74,7 @@ export async function voiceRemind(input: unknown): Promise<VoiceReply> {
   if (!row) return { ok: false, reply: `${customer?.name ?? said} ke koi paise baaki nahi.` };
   return {
     ok: true,
-    href: `/bills/${encodeURIComponent(row.number)}/remind`,
+    href: `/bills/${encodeURIComponent(row.number)}/remind${row.financialYear ? `?fy=${row.financialYear}` : ''}`,
     reply: `${row.customerName} ka reminder khul raha hai. WhatsApp pe bhejna owner dabayenge.`,
   };
 }

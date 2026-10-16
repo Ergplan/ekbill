@@ -6,6 +6,7 @@ import {
   formatNumber,
   nextNumberFor,
   previewNumber,
+  sequenceOf,
   suggestNumbering,
   validateSeries,
   type SeriesConfig,
@@ -27,7 +28,13 @@ describe('bill numbers', () => {
   });
   it('restarts at 1 when the financial year rolls over, and only goes up within a year', () => {
     const april = nextNumberFor(inv, '2027-04-01');
-    expect(april).toEqual({ financialYear: '2027-28', sequence: 1, number: 'INV-001', rolledOver: true });
+    expect(april).toEqual({
+      financialYear: '2027-28',
+      sequence: 1,
+      number: 'INV-001',
+      rolledOver: true,
+      earlierYear: false,
+    });
     const after = afterAllocation(inv, april);
     expect(after).toMatchObject({ financialYear: '2027-28', nextNumber: 2 });
     expect(nextNumberFor(after, '2027-04-02').number).toBe('INV-002');
@@ -71,5 +78,43 @@ describe('bill numbers', () => {
     });
     expect(suggestNumbering([])).toBeNull();
     expect(suggestNumbering(['Bill number 4'])).toBeNull();
+  });
+});
+
+// Found by the Stage 11 review: a date in an earlier year counted as a rollover, restarted at 1 and moved the
+// series back a year, after which every new bill collided with a number already given.
+describe('a document dated in an earlier year than the series has reached', () => {
+  const fy: SeriesConfig = { ...inv, includeFinancialYear: true, nextNumber: 3, financialYear: '2026-27' };
+
+  it("continues that year's sequence and leaves the series where it is", () => {
+    const back = nextNumberFor(fy, '2026-03-20', 41);
+    expect(back).toMatchObject({
+      financialYear: '2025-26',
+      sequence: 42,
+      number: 'INV-2025-26/042',
+      earlierYear: true,
+    });
+    expect(afterAllocation(fy, back)).toEqual(fy);
+    // The next bill of this year is the one it would have been.
+    expect(nextNumberFor(afterAllocation(fy, back), '2026-10-16').number).toBe('INV-2026-27/003');
+  });
+
+  it('starts that year at 1 when it has no number yet', () => {
+    expect(nextNumberFor(fy, '2025-12-01', 0).number).toBe('INV-2025-26/001');
+  });
+
+  it('still restarts at 1 when the year moves forward', () => {
+    expect(nextNumberFor(fy, '2027-04-01')).toMatchObject({
+      number: 'INV-2027-28/001',
+      rolledOver: true,
+      earlierYear: false,
+    });
+  });
+
+  it('reads the sequence back out of a number of its own, and only its own', () => {
+    expect(sequenceOf(fy, '2025-26', 'INV-2025-26/042')).toBe(42);
+    expect(sequenceOf(fy, '2025-26', 'INV-2026-27/042')).toBeNull();
+    expect(sequenceOf(fy, '2025-26', 'AMC-2025-26/042')).toBeNull();
+    expect(sequenceOf(inv, '2025-26', 'INV-1043')).toBe(1043);
   });
 });

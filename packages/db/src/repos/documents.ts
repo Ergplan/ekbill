@@ -11,8 +11,11 @@ import {
   computeTax,
   documentKind,
   emptyTax,
+  financialYearOf,
+  isEarlierYear,
   nextNumberFor,
   prepareIssue,
+  sequenceOf,
   type Assessment,
   type Blocker,
   type IssueBusiness,
@@ -444,7 +447,21 @@ export async function issueDocument(scope: TenantScope, input: { id: string; tod
     if (!prepared.ok) throw new IssueRefusedError(prepared.blockers, prepared.assessment);
 
     const config = configOf(series);
-    const allocated = nextNumberFor(config, draft.issueDate);
+    // A date in a year before the one the series has reached continues that year's numbers (read under the series
+    // lock taken above); the series itself does not move back.
+    let highestInEarlierYear: number | null = null;
+    if (isEarlierYear(config, draft.issueDate)) {
+      const fy = financialYearOf(draft.issueDate);
+      const numbers = await db
+        .select({ number: schema.documents.number })
+        .from(schema.documents)
+        .where(and(eq(schema.documents.seriesId, series.id), eq(schema.documents.financialYear, fy)));
+      highestInEarlierYear = numbers.reduce(
+        (top, r) => Math.max(top, (r.number && sequenceOf(config, fy, r.number)) || 0),
+        0,
+      );
+    }
+    const allocated = nextNumberFor(config, draft.issueDate, highestInEarlierYear);
     const after = afterAllocation(config, allocated);
     await db
       .update(schema.series)
@@ -580,6 +597,8 @@ export type BillFilter = 'all' | 'due' | 'paid' | 'cancelled';
 export interface BillRow {
   id: string;
   number: string;
+  /** The year the number belongs to: a series without the year in its numbers starts again each April. */
+  financialYear: string | null;
   kind: DocumentKindColumn;
   status: DocumentStatus;
   issueDate: string;
@@ -600,6 +619,11 @@ export interface BillRow {
  * gaye / Cancel), searched by number or customer name. Credit notes come
  * with their bill, not as rows of their own.
  */
+/** A search word inside ilike: %, _ and \\ are matched as themselves. */
+function like(q: string): string {
+  return `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+}
+
 /** What a bill still owes, in SQL (the filter only; balanceOf in the engine is the figure shown). */
 const OUTSTANDING = sql`((${schema.documents.totals}->>'totalPaise')::bigint
   - coalesce((select sum(p.amount_paise) from payments p where p.document_id = ${schema.documents.id} and p.reversed_at is null), 0)
@@ -624,6 +648,7 @@ export async function listBills(
       .select({
         id: schema.documents.id,
         number: schema.documents.number,
+        financialYear: schema.documents.financialYear,
         kind: schema.documents.kind,
         status: schema.documents.status,
         issueDate: schema.documents.issueDate,
@@ -653,7 +678,7 @@ export async function listBills(
           ...(filter.since ? [gte(schema.documents.issueDate, filter.since)] : []),
           ...(q
             ? [
-                sql`(${schema.documents.search} @@ plainto_tsquery('simple', ${q}) or ${schema.documents.number} ilike ${`%${q}%`} or ${schema.documents.customerName} ilike ${`%${q}%`})`,
+                sql`(${schema.documents.search} @@ plainto_tsquery('simple', ${q}) or ${schema.documents.number} ilike ${like(q)} or ${schema.documents.customerName} ilike ${like(q)})`,
               ]
             : []),
         ),
@@ -688,6 +713,7 @@ export async function listBills(
     const out = rows.map((r) => ({
       id: r.id,
       number: r.number ?? '',
+      financialYear: r.financialYear,
       kind: r.kind as DocumentKindColumn,
       status: r.status as DocumentStatus,
       issueDate: r.issueDate,
@@ -753,10 +779,15 @@ export async function billView(scope: TenantScope, id: string) {
 }
 
 /**
- * The bill a URL names: its id, or its number (the newest with that number:
- * a series without the year in its numbers starts again each April).
+ * The bill a URL names: its id, or its number and the year it belongs to (a
+ * series without the year in its numbers starts again each April); a number
+ * with no year finds the newest.
  */
-export async function findBill(scope: TenantScope, idOrNumber: string): Promise<string | null> {
+export async function findBill(
+  scope: TenantScope,
+  idOrNumber: string,
+  financialYear?: string | null,
+): Promise<string | null> {
   return withTenant(scope, async ({ db }) => {
     const byId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrNumber);
     const row = (
@@ -767,6 +798,8 @@ export async function findBill(scope: TenantScope, idOrNumber: string): Promise<
           and(
             byId ? eq(schema.documents.id, idOrNumber) : eq(schema.documents.number, idOrNumber),
             ne(schema.documents.status, 'draft'),
+            // The link names the year when it has one: last year's INV-001 is not this year's.
+            ...(!byId && financialYear ? [eq(schema.documents.financialYear, financialYear)] : []),
           ),
         )
         .orderBy(desc(schema.documents.issueDate))

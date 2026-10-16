@@ -1,9 +1,9 @@
-import { and, asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, ne, sql } from 'drizzle-orm';
 
 import { canSetNextNumber, validateSeries, type SeriesConfig, type SeriesProblem } from '@ekbill/engine';
 
 import * as schema from '../schema';
-import { withTenant, type Role, type TenantScope } from '../scope';
+import { withTenant, type Role, type TenantScope, type Tx } from '../scope';
 import { allow, NotFoundError, type RoleProbe, type TenancyProbe } from './allow';
 
 /**
@@ -31,7 +31,7 @@ export interface Series {
 
 export class SeriesError extends Error {
   constructor(
-    public readonly problem: SeriesProblem | 'next-number-down' | 'name',
+    public readonly problem: SeriesProblem | 'next-number-down' | 'name' | 'prefix-taken',
     message: string,
   ) {
     super(message);
@@ -115,12 +115,32 @@ function check(input: Pick<SeriesInput, 'prefix' | 'padding' | 'includeFy'> & { 
   if (problem) throw new SeriesError(problem, `series ${problem}`);
 }
 
+/**
+ * Two series with the same prefix (and the year, or not, alike) would give the same number in the same year, and a
+ * link by number could open either: one business, one owner of each prefix, retired series included.
+ */
+async function refuseTakenPrefix(db: Tx['db'], input: { prefix: string; includeFy: boolean }, self?: string) {
+  const clash = await db
+    .select({ id: schema.series.id })
+    .from(schema.series)
+    .where(
+      and(
+        eq(schema.series.prefix, input.prefix),
+        eq(schema.series.includeFy, input.includeFy),
+        ...(self ? [ne(schema.series.id, self)] : []),
+      ),
+    )
+    .limit(1);
+  if (clash.length) throw new SeriesError('prefix-taken', `another series already numbers with ${input.prefix}`);
+}
+
 export async function createSeries(scope: TenantScope, input: SeriesInput): Promise<Series> {
   allow(scope, allowedRoles.create, 'add a series');
   const name = input.name.trim();
   if (!name) throw new SeriesError('name', 'a series needs a name');
   check({ ...input, nextNumber: input.nextNumber ?? 1 });
   return withTenant(scope, async ({ db }) => {
+    await refuseTakenPrefix(db, input);
     const [row] = await db
       .insert(schema.series)
       .values({
@@ -156,6 +176,7 @@ export async function updateSeries(
     };
     if (!next.name) throw new SeriesError('name', 'a series needs a name');
     check(next);
+    if (next.prefix !== current.prefix || next.includeFy !== current.includeFy) await refuseTakenPrefix(db, next, id);
     if (patch.nextNumber !== undefined) {
       // Gapless: everything below next_number in the current year has been issued (I3).
       const highestIssued = current.fy ? current.nextNumber - 1 : 0;
@@ -172,10 +193,12 @@ export async function updateSeries(
 }
 
 // --- probes for the generated tests (not part of the product API)
+let probes = 0;
 const probeInput = (suffix: string): SeriesInput => ({
   name: `Probe ${suffix}`,
   kind: 'bill',
-  prefix: 'PR-',
+  // Each probe its own prefix: a prefix belongs to one series.
+  prefix: `P${(probes++).toString(36)}${Date.now().toString(36).slice(-4)}-`,
   padding: 3,
   includeFy: false,
 });

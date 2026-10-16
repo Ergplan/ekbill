@@ -1,5 +1,6 @@
 import { gst } from '@ekbill/db';
 import {
+  financialYearOf,
   addMonthsToPeriod,
   computeTax,
   formatPeriodLong,
@@ -21,7 +22,7 @@ export interface GstData {
   taxablePaise: number;
   gstPaise: number;
   byRate: Array<{ rate: number; taxablePaise: number; cgstPaise: number; sgstPaise: number; igstPaise: number }>;
-  b2b: Array<{ number: string; name: string; gstin: string; totalPaise: number; gstPaise: number }>;
+  b2b: Array<{ number: string; fy?: string; name: string; gstin: string; totalPaise: number; gstPaise: number }>;
   b2cBills: number;
   /** The real period (Stage 8): its months, the chips to other periods, the drill-down links. */
   live: {
@@ -149,6 +150,7 @@ async function loadLiveGst(viewer: Viewer, opts: { period?: string | null; q?: s
     b2b: t.b2b.flatMap((c) =>
       c.documents.map((d) => ({
         number: d.documentNumber,
+        fy: financialYearOf(d.documentDate),
         name: c.customerName,
         gstin: c.customerGstin,
         totalPaise: d.invoiceValuePaise,
@@ -165,7 +167,15 @@ export interface DrillData {
   title: string;
   from: MonthPeriod;
   to: MonthPeriod;
-  rows: Array<{ number: string; date: string; name: string; taxablePaise: number; taxPaise: number; credit: boolean }>;
+  rows: Array<{
+    number: string;
+    fy?: string;
+    date: string;
+    name: string;
+    taxablePaise: number;
+    taxPaise: number;
+    credit: boolean;
+  }>;
   taxablePaise: number;
   taxPaise: number;
 }
@@ -201,6 +211,7 @@ export async function loadGstDrill(
     const sign = mine[0]!.documentType === 'credit-note' ? -1 : 1;
     rows.push({
       number: mine[0]!.documentNumber,
+      fy: financialYearOf(mine[0]!.documentDate),
       date: mine[0]!.documentDate,
       name: mine[0]!.customerName,
       taxablePaise: sign * mine.reduce((s, o) => s + o.taxablePaise, 0),

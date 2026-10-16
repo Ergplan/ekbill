@@ -1,5 +1,5 @@
 import { moneyForMessage, pctText } from './contract';
-import { formatDateShort, type CivilDate } from './dates';
+import { financialYearOf, formatDateShort, type CivilDate } from './dates';
 
 /**
  * "Poocho" (Stage 9; salvaged from the MVP's src/lib/search/documents.ts):
@@ -92,8 +92,9 @@ export function billRecord(b: BillForSearch): SearchRecord {
     sourceId: b.id,
     title: `${note ? 'Credit note' : 'Bill'} ${b.number} · ${b.customerName}`,
     text: parts.filter(Boolean).join(' '),
-    // One path segment: a number with the financial year in it carries a slash (INV-2026-27/001).
-    href: `/bills/${encodeURIComponent(b.number)}`,
+    // One path segment (a number with the year in it carries a slash), and the year it belongs to (a series without
+    // the year in its numbers starts again each April).
+    href: `/bills/${encodeURIComponent(b.number)}?fy=${financialYearOf(b.dateIso)}`,
   };
 }
 

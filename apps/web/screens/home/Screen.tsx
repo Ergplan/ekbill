@@ -133,7 +133,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
                   amountPaise={r.totalPaise}
                   status={r.status}
                   statusLabel={t(statusKey(r.status))}
-                  href={as(billPath(r.number))}
+                  href={as(billPath(r.number, '', r.fy))}
                 />
               ))}
             </div>
@@ -171,7 +171,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
               <OwedRow
                 key={r.number}
                 name={r.name}
-                href={as(billPath(r.number))}
+                href={as(billPath(r.number, '', r.fy))}
                 age={t('home.owed.age', { days: r.days })}
                 overdue={r.days > 14}
                 amountPaise={r.duePaise}
@@ -182,17 +182,17 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
                       <AccentButton
                         small
                         data-guide="remind"
-                        onClick={() => router.push(as(billPath(r.number, '/remind')))}
+                        onClick={() => router.push(as(billPath(r.number, '/remind', r.fy)))}
                       >
                         {t('action.remind')}
                       </AccentButton>
                     ) : (
-                      <OutlineButton small onClick={() => router.push(as(billPath(r.number, '/remind')))}>
+                      <OutlineButton small onClick={() => router.push(as(billPath(r.number, '/remind', r.fy)))}>
                         {t('action.remind')}
                       </OutlineButton>
                     )
                   ) : (
-                    <OutlineButton small onClick={() => router.push(as(billPath(r.number)))}>
+                    <OutlineButton small onClick={() => router.push(as(billPath(r.number, '', r.fy)))}>
                       {t('action.more')}
                     </OutlineButton>
                   )

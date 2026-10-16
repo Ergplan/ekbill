@@ -80,7 +80,11 @@ describe('the index follows the records', () => {
     expect(row.text).toContain('Still to come: ₹9,160.');
 
     const hits = await search.search(owner, { question: `${RUN} battery ka kitna baaki hai` });
-    expect(hits[0]).toMatchObject({ kind: 'bill', sourceId: bill.id, href: `/bills/${bill.number}` });
+    expect(hits[0]).toMatchObject({
+      kind: 'bill',
+      sourceId: bill.id,
+      href: `/bills/${encodeURIComponent(bill.number!)}?fy=${bill.financialYear}`,
+    });
   });
 
   it('an archived customer is kept but never found', async () => {

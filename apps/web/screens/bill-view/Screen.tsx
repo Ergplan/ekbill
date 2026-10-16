@@ -200,7 +200,10 @@ export function BillViewScreen({
             {t('dues.paid')}
           </PrimaryCTA>
           <div className="eb-actions">
-            <OutlineButton data-guide="remind" onClick={() => router.push(as(billPath(bill.number, '/remind')))}>
+            <OutlineButton
+              data-guide="remind"
+              onClick={() => router.push(as(billPath(bill.number, '/remind', bill.fy)))}
+            >
               {t('action.remind')}
             </OutlineButton>
             <OutlineButton data-guide="wa" onClick={shareAgain}>
@@ -277,7 +280,7 @@ export function BillViewScreen({
               // A bill with a credit note is corrected already; it is not cancelled on top (the engine refuses).
               <OutlineButton onClick={() => setCancelOpen(true)}>{t('view.cancel')}</OutlineButton>
             )}
-            <OutlineButton onClick={() => router.push(as(billPath(bill.number, '/credit-note')))}>
+            <OutlineButton onClick={() => router.push(as(billPath(bill.number, '/credit-note', bill.fy)))}>
               {t('view.credit')}
             </OutlineButton>
           </div>

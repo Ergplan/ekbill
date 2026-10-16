@@ -31,7 +31,7 @@ export function RemindScreen({ data, viewer }: { data: RemindData; viewer: Shell
     <AppShell
       viewer={viewer}
       tab="home"
-      back={billPath(data.bill.number)}
+      back={billPath(data.bill.number, '', data.bill.fy)}
       title={t('remind.title', { customer: data.customerName })}
       sub={t('remind.meta', { date: shortDate(data.bill.date), days: data.days })}
       tour={manifest.tour}

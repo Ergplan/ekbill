@@ -6,8 +6,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 35    | 329    |
-| integration | 21    | 245    |
+| unit        | 35    | 334    |
+| integration | 21    | 248    |
 | e2e         | 16    | 58     |
 
 ## unit
@@ -43,6 +43,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 ### `tests/unit/bill-links.test.ts`
 
 - put the whole number in one path segment, and the route reads it back
+- carry the year the number belongs to, with any other query after it
 - name files without a slash
 - are never built raw: no `/bills/â€¦` in the product source but through billPath or encodeURIComponent
 
@@ -214,6 +215,10 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - lets the owner move the next number up, never below an issued one
 - validates the series against Rule 46 (16 characters, letters, digits, hyphen, slash)
 - continues from the old bills that were uploaded
+- continues that year's sequence and leaves the series where it is
+- starts that year at 1 when it has no number yet
+- still restarts at 1 when the year moves forward
+- reads the sequence back out of a number of its own, and only its own
 
 ### `tests/unit/engine-people.test.ts`
 
@@ -469,6 +474,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - records a reminder against a bill (owner and staff), and the bill view counts it
 - lists the businesses with bills, and per business what falls due today and what is past due
 - a bill with no series named goes in the business's default series (Aap), not the oldest
+- a trailing backslash, % and _ search for themselves
 - an old unpaid bill is still a due when newer settled bills fill the limit
 
 ### `tests/integration/customers.test.ts`
@@ -525,6 +531,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the next number only goes up, never below what was issued
 - a retired series takes no more bills, and a credit note never takes a bill number
 - lists series in the same order whatever is updated, when they were made at the same moment
+- a bill dated in an earlier year continues that year's numbers and the series carries on
+- a number that repeats across years is found by its year; a prefix belongs to one series
 
 ### `tests/integration/otp-route.test.ts`
 

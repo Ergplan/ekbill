@@ -284,6 +284,16 @@ describe('the default series', () => {
   });
 });
 
+describe('the bills search takes what is typed literally (Stage 11 review)', () => {
+  it('a trailing backslash, % and _ search for themselves', async () => {
+    const owner = await scopeFor('sharma', 'owner');
+    expect(Array.isArray(await documents.listBills(owner, { q: 'INV\\' }))).toBe(true); // no error from a dangling escape
+    expect(await documents.listBills(owner, { q: '%' })).toEqual([]);
+    expect(await documents.listBills(owner, { q: 'INV_0' })).toEqual([]);
+    expect((await documents.listBills(owner, { q: 'INV-0' })).length).toBeGreaterThan(0);
+  });
+});
+
 describe('dues past the list limit (Stage 10)', () => {
   it('an old unpaid bill is still a due when newer settled bills fill the limit', async () => {
     const owner = await scopeFor('sharma', 'owner');

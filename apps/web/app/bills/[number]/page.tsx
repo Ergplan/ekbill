@@ -17,7 +17,7 @@ export default async function Page({
   const viewer = await getViewer(sp);
   if (!viewer.business) redirect('/');
   const { number } = await params;
-  const data = await loadBillView(viewer, number);
+  const data = await loadBillView(viewer, number, one(sp.fy));
   if (!data) notFound();
   return (
     <BillViewScreen

@@ -65,7 +65,7 @@ export function CustomerScreen({ data, viewer }: { data: CustomerData; viewer: S
               latest={i === 0}
               paid={r.status === 'paid'}
               title={
-                <a href={as(billPath(r.number))}>
+                <a href={as(billPath(r.number, '', r.fy))}>
                   {r.number} · {rupees(r.totalPaise)}
                 </a>
               }
@@ -87,7 +87,7 @@ export function CustomerScreen({ data, viewer }: { data: CustomerData; viewer: S
                     <AccentButton
                       small
                       data-guide="remind"
-                      onClick={() => router.push(as(billPath(r.number, '/remind')))}
+                      onClick={() => router.push(as(billPath(r.number, '/remind', r.fy)))}
                     >
                       {t('action.remind')}
                     </AccentButton>

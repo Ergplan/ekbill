@@ -84,6 +84,8 @@ export interface Bill {
   business: string;
   series: string;
   number: string;
+  /** The year the number belongs to (live bills only: the links name it). */
+  fy?: string | null;
   customer: string;
   date: string;
   lines: BillLine[];

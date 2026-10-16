@@ -661,6 +661,7 @@
   "aap.series.error.next-number": "The next number starts at 1",
   "aap.series.error.next-number-down": "The next number cannot go back",
   "aap.series.error.too-long": "The number would pass 16 characters",
+  "aap.series.error.prefix-taken": "Another series already starts with this",
   "aap.series.error.name": "Name the series",
   "aap.save.nothing": "Nothing changed",
   "aap.save.error": "Not saved: {field}",

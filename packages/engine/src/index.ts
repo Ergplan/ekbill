@@ -72,6 +72,8 @@ export {
   canSetNextNumber,
   formatNumber,
   nextNumberFor,
+  isEarlierYear,
+  sequenceOf,
   previewNumber,
   suggestNumbering,
   validateSeries,

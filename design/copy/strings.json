@@ -2641,6 +2641,10 @@
     "hi-Latn": "Number 16 akshar se lamba ho jaayega",
     "en": "The number would pass 16 characters"
   },
+  "aap.series.error.prefix-taken": {
+    "hi-Latn": "Yeh shuruaat doosri series ki hai",
+    "en": "Another series already starts with this"
+  },
   "aap.series.error.name": {
     "hi-Latn": "Series ka naam likho",
     "en": "Name the series"

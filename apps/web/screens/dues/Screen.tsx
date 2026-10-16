@@ -30,7 +30,7 @@ export function DuesScreen({ data, viewer }: { data: DuesData; viewer: ShellView
         {data.rows.length ? (
           data.rows.map((r) => (
             <div key={r.number} className="eb-duerow">
-              <a href={as(billPath(r.number))} className="eb-billrow">
+              <a href={as(billPath(r.number, '', r.fy))} className="eb-billrow">
                 <Avatar name={r.name} index={r.index} />
                 <span className="eb-billrow__text">
                   <span className="eb-billrow__name">{r.name}</span>
@@ -47,11 +47,15 @@ export function DuesScreen({ data, viewer }: { data: DuesData; viewer: ShellView
                   <OutlineButton
                     small
                     data-guide="remind"
-                    onClick={() => router.push(as(billPath(r.number, '/remind')))}
+                    onClick={() => router.push(as(billPath(r.number, '/remind', r.fy)))}
                   >
                     {t('action.remind')}
                   </OutlineButton>
-                  <AccentButton small data-guide="paid" onClick={() => router.push(as(`${billPath(r.number)}?paid=1`))}>
+                  <AccentButton
+                    small
+                    data-guide="paid"
+                    onClick={() => router.push(as(billPath(r.number, '', r.fy, 'paid=1')))}
+                  >
                     {t('dues.paid')}
                   </AccentButton>
                 </div>

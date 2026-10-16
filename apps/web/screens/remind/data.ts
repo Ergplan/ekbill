@@ -9,7 +9,7 @@ import { scopeOf } from '../live';
 import type { Viewer } from '../viewer';
 
 export interface RemindData {
-  bill: Pick<Bill, 'number' | 'date' | 'duePaise'>;
+  bill: Pick<Bill, 'number' | 'fy' | 'date' | 'duePaise'>;
   customerName: string;
   contact: string;
   /** The customer's number, for the WhatsApp chat (null: the share sheet asks). */
@@ -32,7 +32,7 @@ interface Who {
 
 function build(
   viewer: Viewer,
-  bill: Pick<Bill, 'number' | 'date' | 'duePaise'>,
+  bill: Pick<Bill, 'number' | 'fy' | 'date' | 'duePaise'>,
   who: Who,
   days: number,
   live: RemindData['live'],
@@ -54,7 +54,7 @@ function build(
     second: t('remind.msg.second', params, locale),
   });
   return {
-    bill: { number: bill.number, date: bill.date, duePaise: bill.duePaise },
+    bill: { number: bill.number, fy: bill.fy ?? null, date: bill.date, duePaise: bill.duePaise },
     customerName: who.name,
     contact: who.contact,
     phone: who.phone,
@@ -68,11 +68,11 @@ function build(
 }
 
 /** The reminder for one bill: three tones in the customer's language (Hinglish or English; KNOWN-GAPS for the rest). */
-export async function loadRemind(viewer: Viewer, number: string): Promise<RemindData | null> {
+export async function loadRemind(viewer: Viewer, number: string, fy?: string | null): Promise<RemindData | null> {
   const b = viewer.business;
   if (!b) return null;
   if (scopeOf(viewer)) {
-    const v = await loadBillView(viewer, number);
+    const v = await loadBillView(viewer, number, fy);
     if (!v || !v.live) return null;
     return build(
       viewer,

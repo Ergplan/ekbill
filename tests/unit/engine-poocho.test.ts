@@ -45,7 +45,7 @@ describe('the record texts', () => {
       kind: 'bill',
       sourceId: bill.id,
       title: 'Bill INV-042 · Mehta Traders',
-      href: '/bills/INV-042',
+      href: '/bills/INV-042?fy=2026-27',
     });
     expect(r.text).toContain('Bill INV-042 dated 24 Sep 2026 to Mehta Traders (Pune).');
     expect(r.text).toContain('AMC visit: 1 x ₹3,500 = ₹3,500, GST 18%');

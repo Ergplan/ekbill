@@ -41,12 +41,12 @@ export interface BillViewData {
   } | null;
 }
 
-export async function loadBillView(viewer: Viewer, number: string): Promise<BillViewData | null> {
+export async function loadBillView(viewer: Viewer, number: string, fy?: string | null): Promise<BillViewData | null> {
   const b = viewer.business;
   if (!b) return null;
   const scope = scopeOf(viewer);
   if (scope) {
-    const id = await documents.findBill(scope, decodeURIComponent(number));
+    const id = await documents.findBill(scope, decodeURIComponent(number), fy);
     if (!id) return null;
     let view;
     try {
@@ -64,6 +64,7 @@ export async function loadBillView(viewer: Viewer, number: string): Promise<Bill
       ...billOfRow(viewer, {
         id: doc.id,
         number: doc.number ?? '',
+        financialYear: doc.financialYear,
         kind: doc.kind,
         status: doc.status,
         issueDate: doc.issueDate,

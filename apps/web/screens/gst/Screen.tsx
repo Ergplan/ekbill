@@ -129,7 +129,7 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
         <Meta>{t('gst.b2b.sub', { n: data.b2b.length })}</Meta>
         <div className="eb-rows">
           {data.b2b.map((r) => (
-            <a key={r.number} href={as(billPath(r.number))} className="eb-billrow">
+            <a key={r.number} href={as(billPath(r.number, '', r.fy))} className="eb-billrow">
               <span className="eb-billrow__text">
                 <span className="eb-billrow__name">{r.name}</span>
                 <span className="eb-billrow__meta">
