@@ -6,20 +6,20 @@ counted. The browser journeys (`tests/e2e`) exercise the pages and actions throu
 are **not** counted here, so the screens and actions read lower than they are tested. The HTML report is written to
 `coverage/` (not committed).
 
-**Overall:** lines 51.7 %, branches 40.2 %, functions 45.6 %.
+**Overall:** lines 53.0 %, branches 40.9 %, functions 46.3 %.
 
 | Area                  | Files | Lines  | Branches | Functions |
 | --------------------- | ----- | ------ | -------- | --------- |
-| apps/web/actions      | 8     | 0.0 %  | 0.0 %    | 0.0 %     |
-| apps/web/app (routes) | 11    | 41.5 % | 36.2 %   | 50.0 %    |
-| apps/web/screens      | 96    | 7.4 %  | 4.1 %    | 6.1 %     |
-| apps/web/server       | 8     | 73.0 % | 81.5 %   | 64.5 %    |
+| apps/web/actions      | 8     | 6.4 %  | 0.0 %    | 0.0 %     |
+| apps/web/app (routes) | 12    | 46.5 % | 39.5 %   | 53.6 %    |
+| apps/web/screens      | 96    | 7.6 %  | 4.3 %    | 6.5 %     |
+| apps/web/server       | 8     | 73.6 % | 82.1 %   | 65.6 %    |
 | apps/worker           | 11    | 65.2 % | 59.5 %   | 56.9 %    |
 | packages/ai           | 8     | 85.8 % | 69.8 %   | 88.1 %    |
 | packages/copy         | 1     | 87.5 % | 44.4 %   | 80.0 %    |
-| packages/db           | 27    | 84.1 % | 70.1 %   | 79.5 %    |
-| packages/engine       | 33    | 97.0 % | 87.8 %   | 95.2 %    |
-| packages/render       | 6     | 84.5 % | 69.2 %   | 83.0 %    |
+| packages/db           | 27    | 85.7 % | 71.6 %   | 80.4 %    |
+| packages/engine       | 34    | 97.1 % | 87.9 %   | 95.3 %    |
+| packages/render       | 6     | 85.2 % | 69.6 %   | 85.2 %    |
 | packages/ui           | 12    | 6.3 %  | 6.2 %    | 2.2 %     |
 
 ## Least covered (lines, 20 or more lines long, outside the screens)
@@ -31,7 +31,6 @@ The screens are walked by the browser journeys instead.
 | `apps/web/actions/bills.ts`                     | 0.0 % of 158  |
 | `apps/web/actions/business.ts`                  | 0.0 % of 90   |
 | `apps/web/actions/people.ts`                    | 0.0 % of 61   |
-| `apps/web/actions/schema.ts`                    | 0.0 % of 28   |
 | `apps/web/actions/team.ts`                      | 0.0 % of 38   |
 | `apps/web/actions/user.ts`                      | 0.0 % of 29   |
 | `apps/web/actions/voice.ts`                     | 0.0 % of 40   |
@@ -45,11 +44,12 @@ The screens are walked by the browser journeys instead.
 | `packages/ui/src/home.tsx`                      | 0.0 % of 34   |
 | `packages/ui/src/primitives.tsx`                | 0.0 % of 25   |
 | `packages/db/src/schema.ts`                     | 47.0 % of 100 |
-| `packages/db/src/scope.ts`                      | 50.0 % of 22  |
-| `packages/render/src/print.ts`                  | 56.3 % of 32  |
+| `packages/render/src/print.ts`                  | 56.4 % of 39  |
 | `packages/db/src/repos/reminders.ts`            | 80.0 % of 20  |
 | `packages/db/src/repos/files.ts`                | 80.6 % of 31  |
 | `packages/ai/src/embed.ts`                      | 82.2 % of 45  |
 | `packages/db/src/repos/users.ts`                | 82.6 % of 23  |
-| `packages/db/src/repos/businesses.ts`           | 82.9 % of 82  |
 | `packages/render/src/render.ts`                 | 83.3 % of 48  |
+| `packages/ai/src/voice.ts`                      | 83.7 % of 43  |
+| `packages/db/src/seed.ts`                       | 84.0 % of 94  |
+| `packages/ai/src/client.ts`                     | 87.0 % of 85  |
