@@ -172,6 +172,20 @@ export async function userByPhone(phoneE164: string): Promise<{ id: string; them
   return row ?? null;
 }
 
+/**
+ * The person with this phone, made on their first sign-in (Stage 10, OTP): the phone is the
+ * identity, the name a placeholder the welcome screen asks them to change.
+ */
+export async function userForPhone(phoneE164: string): Promise<{ id: string; theme: string; language: string }> {
+  const found = await userByPhone(phoneE164);
+  if (found) return found;
+  await db()
+    .insert(schema.users)
+    .values({ phoneE164, name: 'Naya user' })
+    .onConflictDoNothing({ target: schema.users.phoneE164 });
+  return (await userByPhone(phoneE164))!;
+}
+
 /** The businesses a user may act for, with the role: what /dev/switch lists and a sign-in offers. */
 export async function membershipsOf(
   userId: string,

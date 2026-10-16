@@ -56,6 +56,13 @@ services:
       DATABASE_URL: postgres://ekbill:${EKBILL_DB_PASSWORD}@db:5432/ekbill
       DOCLING_URL: http://docling:5001
       AUTH_MODE: ${AUTH_MODE:-switcher}
+      # Stage 10, phone OTP (AUTH_MODE=otp): the project and its public web config; the Admin side runs as the VM's
+      # service account (no key file).
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID:-}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY:-}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:-}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID:-}
       SESSION_SECRET: ${SESSION_SECRET:-dev-only-not-a-secret-while-sign-in-is-off}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_VISION_MODEL: ${OPENAI_VISION_MODEL:-}

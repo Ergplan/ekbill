@@ -653,6 +653,26 @@
     "hi-Latn": "Build ke dauran: /dev/switch se koi bhi bano",
     "en": "During the build: become anyone at /dev/switch"
   },
+  "otp.send.failed": {
+    "hi-Latn": "SMS nahi gaya. Number dekh ke phir try karo.",
+    "en": "The SMS did not go. Check the number and try again."
+  },
+  "otp.invalid": {
+    "hi-Latn": "Code galat hai. Phir se daalo.",
+    "en": "That code is wrong. Type it again."
+  },
+  "otp.stale": {
+    "hi-Latn": "Der ho gayi. Naya code mangwao.",
+    "en": "That took too long. Ask for a new code."
+  },
+  "otp.noPhone": {
+    "hi-Latn": "Is sign-in mein phone number nahi mila.",
+    "en": "This sign-in carried no phone number."
+  },
+  "otp.off": {
+    "hi-Latn": "Sign-in abhi band hai.",
+    "en": "Sign-in is off here."
+  },
   "switch.title": {
     "hi-Latn": "Kaun ban-na hai?",
     "en": "Who do you want to be?"

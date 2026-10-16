@@ -15,6 +15,7 @@ export {
   acceptInvites,
   createSession,
   userByPhone,
+  userForPhone,
   adoptBusiness,
   deleteSession,
   membershipsOf,

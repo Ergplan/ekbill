@@ -72,3 +72,60 @@ jobs:
             .watch/
             test-results/
           if-no-files-found: ignore
+
+  # Stage 10: phone OTP against the Firebase Auth emulator (firebase-tools + Java), never on the VM.
+  otp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: ekbill2_test
+        ports: ['5440:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://postgres@127.0.0.1:5440/ekbill2_test
+      AUTH_MODE: otp
+      OTP: '1'
+      FIREBASE_PROJECT_ID: demo-ekbill
+      FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-ekbill
+      NEXT_PUBLIC_FIREBASE_API_KEY: demo-key
+      RATE_WRITES_PER_MIN: '0'
+      RATE_SIGNIN_PER_MIN: '0'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: OTP journeys on the Auth emulator
+        env:
+          E2E_BASE_URL: http://127.0.0.1:3000
+          E2E_PROD: '1'
+        run: |
+          (npx --yes firebase-tools@14.20.0 emulators:start --only auth --project demo-ekbill >/tmp/emulator.log 2>&1 &)
+          for i in $(seq 1 90); do curl -fsS http://127.0.0.1:9099/ >/dev/null 2>&1 && break; sleep 2; done
+          npm run db:migrate
+          npm run seed
+          (npm run start -w apps/web >/tmp/web.log 2>&1 &)
+          for i in $(seq 1 60); do curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1 && break; sleep 2; done
+          npx playwright test tests/e2e/otp.spec.ts
+      - name: Logs
+        if: always()
+        run: tail -50 /tmp/emulator.log /tmp/web.log || true

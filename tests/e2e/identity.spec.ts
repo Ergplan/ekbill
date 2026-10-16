@@ -67,8 +67,9 @@ test('the theme persists per user: Sharma ji picks Harmony, Ravi stays Narangi, 
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'narangi');
 });
 
-test('the OTP door says 501 until Stage 10; the switcher is the build’s door', async ({ request }) => {
-  const res = await request.post('/api/auth/otp', { data: { phone: '+919822012345' } });
-  expect(res.status()).toBe(501);
-  expect((await res.json()).authMode).toBe('switcher');
+test('in the build the OTP door is closed (404) and the switcher is the door', async ({ request }) => {
+  const res = await request.post('/api/auth/otp', { data: { idToken: 'x'.repeat(40) } });
+  expect(res.status()).toBe(404);
+  expect(await res.json()).toEqual({ error: 'otp.off' });
+  expect((await request.get('/dev/switch')).status()).toBe(200);
 });

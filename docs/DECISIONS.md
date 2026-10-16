@@ -735,3 +735,21 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: Home reads the last nine weeks of bills (the sparkline, this month, the last three) and orders its chips by `customers.last_billed_at`; the bill form reads the last fortnight (the duplicate guard). Looks (`?as=`) keep the fixtures as they were.
 - Why: Home took 120 ms for one owner with 1,200 bills, most of it moving 500 bills it did not show; `listBills` and the balances now read only each bill's total, not its whole totals JSON.
 - Asked by: the Stage 10 budgets (Home 400 ms, the bill form 300 ms at p95).
+
+### Phone OTP ends in EkBill's own session
+
+- Decision: Firebase proves the phone (SMS code) and the browser posts its ID token once; the server verifies it (signature, audience, issuer, expiry, and no older than five minutes), finds or makes the person by phone, accepts their invitations, and creates the same `sessions` row and cookie the switcher does. Firebase's token and session cookie are not kept; signing out of Firebase follows at once.
+- Why: one identity model for the build and production (I8 and RLS see the same sessions); the MVP's Firebase session cookies would have been a second kind of session.
+- Asked by: the Stage 10 prompt (Firebase phone OTP, salvaged).
+
+### The OTP steps stay on one screen
+
+- Decision: with OTP on, the phone and code steps are state inside the login screen (no navigation to `?state=code`), so the pending confirmation survives; in switcher mode the screen is the approved prototype, unchanged.
+- Why: Firebase's confirmation lives in the browser's memory between the two steps.
+- Asked by: the OTP journey on the emulator.
+
+### Verifying a token needs no key file
+
+- Decision: Firebase Admin runs with application default credentials (the VM's service account through the metadata server) and the project ID; in CI, the emulator. No service-account key is created or stored anywhere.
+- Why: the standing rule (never create or download a service-account key); verifying an ID token needs only Google's public keys and the project. The Firebase Authentication Admin role the operator grants covers what Admin calls may need later (revocation checks).
+- Asked by: the Stage 10 prompt (Admin credentials through the VM's service account).
