@@ -15,7 +15,7 @@ export default async function Page({
 }) {
   const viewer = await getViewer(await searchParams);
   const { number } = await params;
-  const data = loadCreditNote(viewer, number);
+  const data = await loadCreditNote(viewer, number);
   if (data === 'forbidden') redirect('/');
   if (!data) notFound();
   return <CreditNoteScreen bill={data} viewer={shellOf(viewer)} />;

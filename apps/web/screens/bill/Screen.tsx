@@ -1,10 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 
 import { t } from '@ekbill/copy';
-import { checkGstin } from '@ekbill/engine';
+import { GST_STATES, checkGstin, findDuplicate, rateOddities } from '@ekbill/engine';
 import {
   AccentButton,
   AddLineButton,
@@ -25,7 +25,9 @@ import {
   type LineValue,
 } from '@ekbill/ui';
 
-import { useDraft, writeDraft } from '../draft';
+import { issueBill } from '../../actions/bills';
+import { clearDraft, useDraft, writeDraft } from '../draft';
+import { sayRefusal } from '../refusal';
 import { withAs } from '../links';
 import { rupees } from '../money';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
@@ -71,16 +73,19 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
   }, [base, data.mode, newCustomer, newGst]);
   // One draft per person, bill number, customer (an existing one by id, a new one by name) and redo: a half-typed
   // bill survives a reload, never leaks to another business and never bleeds into a different new customer's bill.
-  const [d, setD] = useDraft<BillDraft>(
-    `${viewer.personId}:bill:${data.initial.number}:${data.initial.customer ?? `${data.mode}:${initial.customerName}`}${
-      data.redo ? `:redo-${data.redo}` : ''
-    }`,
-    initial,
-  );
+  const draftKey = `${viewer.personId}:bill:${data.initial.number}:${data.initial.customer ?? `${data.mode}:${initial.customerName}`}${
+    data.redo ? `:redo-${data.redo}` : ''
+  }`;
+  const [d, setD] = useDraft<BillDraft>(draftKey, initial);
   const [filled, setFilled] = useState(false);
   const [gstOpen, setGstOpen] = useState(false);
   const [stateOpen, setStateOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  // The draft a refused attempt left on the server: the next attempt updates it (one bill, one draft).
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [dupOpen, setDupOpen] = useState(false);
+  const [stateOther, setStateOther] = useState(false);
   const patch = (p: Partial<BillDraft>) => setD((cur) => ({ ...cur, ...p }));
   const regular = business.registration === 'regular';
   const rates = useMemo(() => ratesFor(d.date), [d.date]);
@@ -99,9 +104,76 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
     });
   }
   if (c.overflow) checks.push({ id: 'overflow', text: t('bill.check.overflow') });
+  // Stage 6 guards (engine bill-guard): a rate four times off what this customer paid last time is shown, not blocked.
+  const odd = data.live
+    ? rateOddities(
+        d.lines.map((l, i) => ({ id: String(i), what: l.what, qty: l.qty, rate: l.rate })),
+        data.live.lastLines,
+      )
+    : [];
+  const notes: CheckItem[] = odd.map((o) => ({
+    id: `odd-${o.what}`,
+    text: t('bill.rate.odd', { what: o.what, last: rupees(o.lastRatePaise), now: rupees(o.nowRatePaise) }),
+  }));
   if (c.noRules) checks.push({ id: 'date', text: t('bill.check.date') });
   const linesOk = c.lines.some((l) => !l.blank && l.taxablePaise > 0);
   const canMake = linesOk && checks.length === 0 && (data.mode === 'existing' || d.customerName.trim().length > 0);
+
+  const rateOf = (i: number) => (d.gst.mode === 'perline' ? (d.gst.perLine[i] ?? d.gst.rate) : d.gst.rate);
+  const issueLive = (confirmedDuplicate: boolean) => {
+    const live = data.live!;
+    if (!confirmedDuplicate) {
+      const dup = findDuplicate(
+        {
+          customerId: data.customer?.id ?? null,
+          customerName: d.customerName,
+          totalPaise: c.totalPaise,
+          today: live.today,
+        },
+        live.recent,
+      );
+      if (dup) {
+        setDupOpen(true);
+        return;
+      }
+    }
+    setDupOpen(false);
+    setError(null);
+    const gstOn = regular && d.gst.on;
+    startTransition(async () => {
+      const r = await issueBill({
+        id: draftId,
+        seriesId: live.seriesId,
+        customerId: data.customer?.id ?? null,
+        customerName: data.customer?.name ?? d.customerName.trim(),
+        customerGstin: data.customer ? null : newGst?.ok ? newGst.normalised : null,
+        customerPhone: data.customer ? null : newCustomer?.phone.trim() || null,
+        customerState: d.customerState,
+        customerLanguage: data.customer ? null : (newCustomer?.lang ?? null),
+        issueDate: d.date,
+        gstOn,
+        lines: d.lines.map((l, i) => ({ what: l.what, qty: l.qty, rate: l.rate, gstRate: gstOn ? rateOf(i) : null })),
+      });
+      if (r.ok) {
+        clearDraft(draftKey);
+        router.push(as(`/bills/new/done?id=${r.value.id}`));
+        return;
+      }
+      if (r.draftId) setDraftId(r.draftId);
+      setError(sayRefusal(r));
+    });
+  };
+  const duplicate = data.live
+    ? findDuplicate(
+        {
+          customerId: data.customer?.id ?? null,
+          customerName: d.customerName,
+          totalPaise: c.totalPaise,
+          today: data.live.today,
+        },
+        data.live.recent,
+      )
+    : null;
 
   const make = () => {
     if (data.mode !== 'existing' && !d.customerName.trim()) {
@@ -110,6 +182,10 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
     }
     if (!linesOk) {
       setError(t('bill.check.empty'));
+      return;
+    }
+    if (data.live) {
+      issueLive(false);
       return;
     }
     const customer =
@@ -250,8 +326,12 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
         <Meta>{t('bill.bos.note')}</Meta>
       ) : null}
 
-      <CheckStrip items={checks} guide="checks" />
-      {error && linesOk === false ? <Meta>{error}</Meta> : null}
+      <CheckStrip items={[...checks, ...notes]} guide="checks" />
+      {error && (linesOk === false || data.live) ? (
+        <p className="eb-meta" role="alert" style={{ whiteSpace: 'pre-line' }}>
+          {error}
+        </p>
+      ) : null}
 
       <div data-guide="total">
         <TotalCard
@@ -278,7 +358,31 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
           ) : null}
         </TotalCard>
       </div>
-      <MakeBar guide="make" label={t('bill.make')} paise={c.totalPaise} disabled={!canMake} onClick={make} />
+      <MakeBar
+        guide="make"
+        label={pending ? t('bill.making') : t('bill.make')}
+        paise={c.totalPaise}
+        disabled={!canMake || pending}
+        onClick={make}
+      />
+
+      <Sheet open={dupOpen} title={t('bill.dup.go')} onClose={() => setDupOpen(false)} closeLabel={t('bill.dup.back')}>
+        {duplicate ? (
+          <Meta>
+            {t('bill.dup', {
+              customer: d.customerName || data.customer?.name || '',
+              amount: rupees(duplicate.totalPaise),
+              number: duplicate.number,
+              days: Math.max(
+                0,
+                Math.round((Date.parse(data.live!.today) - Date.parse(duplicate.issueDate)) / 86_400_000),
+              ),
+            })}
+          </Meta>
+        ) : null}
+        <AccentButton onClick={() => issueLive(true)}>{t('bill.dup.go')}</AccentButton>
+        <AccentButton onClick={() => setDupOpen(false)}>{t('bill.dup.back')}</AccentButton>
+      </Sheet>
 
       <Sheet open={gstOpen} title={t('bill.gst.q')} onClose={() => setGstOpen(false)} closeLabel={t('action.cancel')}>
         <Segmented<'yes' | 'no'>
@@ -326,6 +430,10 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
           label={t('bill.check.state')}
           value={d.customerState}
           onChoose={(v) => {
+            if (v === 'other') {
+              setStateOther(true);
+              return;
+            }
             patch({ customerState: v });
             setStateOpen(false);
           }}
@@ -337,6 +445,29 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
             { value: 'other', label: t('bill.check.state.other'), sub: t('bill.check.state.other.sub') },
           ]}
         />
+        {stateOther ? (
+          <Field id="bill-state" label={t('bill.check.state.pick')}>
+            <select
+              id="bill-state"
+              className="eb-input"
+              value={d.customerState ?? ''}
+              onChange={(e) => {
+                patch({ customerState: e.target.value || null });
+                if (e.target.value) {
+                  setStateOther(false);
+                  setStateOpen(false);
+                }
+              }}
+            >
+              <option value="">—</option>
+              {GST_STATES.map((st) => (
+                <option key={st.code} value={st.code}>
+                  {st.code} · {st.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+        ) : null}
       </Sheet>
     </AppShell>
   );

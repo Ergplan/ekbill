@@ -1,6 +1,7 @@
 import { customers } from '@ekbill/db';
 
-import { billsOf, customersOf } from '../common';
+import { customersOf } from '../common';
+import { ledgerOf } from '../live';
 import { avatarIndex, fixtureKeyOf } from '../people';
 import type { Viewer } from '../viewer';
 
@@ -14,11 +15,12 @@ export interface CustomerRow {
   lastDate: string | null;
 }
 
-/** The directory: the business's customers (Stage 5: the rows), with what the bills say they owe. */
+/** The directory: the business's customers (Stage 5: the rows), with what their bills owe (Stage 6: balanceOf). */
 export async function loadCustomers(viewer: Viewer): Promise<CustomerRow[]> {
   const b = viewer.business;
   if (!b) return [];
-  const bills = billsOf(b);
+  const ledger = await ledgerOf(viewer);
+  const bills = ledger.bills;
   const owed = (key: string | null) => {
     const mine = key ? bills.filter((x) => x.customer === key) : [];
     return { duePaise: mine.reduce((s, x) => s + x.duePaise, 0), lastDate: mine[0]?.date ?? null };
@@ -31,7 +33,8 @@ export async function loadCustomers(viewer: Viewer): Promise<CustomerRow[]> {
         index: avatarIndex(c.id),
         phone: c.phone,
         gstin: c.gstin,
-        ...owed(fixtureKeyOf(c.id)),
+        // A look (?as=) with a session: the rows are real, the bills the fixtures' (keyed by fixture key).
+        ...owed(ledger.live ? c.id : fixtureKeyOf(c.id)),
       }))
     : customersOf(b).map((c) => ({
         id: c.id,

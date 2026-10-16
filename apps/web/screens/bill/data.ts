@@ -1,5 +1,10 @@
+import { customers as customerRepo, documents, items as itemRepo, series as seriesRepo } from '@ekbill/db';
+import { findState, previewNumber, type RecentBill } from '@ekbill/engine';
+
 import { FIXTURE, TODAY, type Business } from '../fixtures';
 import { billOf, billsOf, customerOf, customersOf } from '../common';
+import { ledgerOf, linesOf, scopeOf, todayOf } from '../live';
+import { avatarIndex, customerIdOf } from '../people';
 import type { Viewer } from '../viewer';
 import type { BillDraft } from './compute';
 
@@ -37,11 +42,143 @@ export interface BillFormData {
   mode: 'existing' | 'new-customer' | 'first';
   /** The bill this one replaces (cancel-and-redo: its lines start the draft), else null. */
   redo: string | null;
+  /** Stage 6: the form issues for real (a session); null for a look at the fixtures. */
+  live: {
+    seriesId: string | null;
+    today: string;
+    /** The business's bills of the last fortnight, for the duplicate guard (engine findDuplicate). */
+    recent: RecentBill[];
+    /** The customer's last bill's lines, for the rate-oddity guard (engine rateOddities). */
+    lastLines: Array<{ description: string; unitPricePaise: number }>;
+    /** The cancelled-and-redone bill's id. */
+    redoId: string | null;
+  } | null;
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function loadBillForm(
+export type BillFormOpts = {
+  customer: string | null;
+  first: boolean;
+  newCustomer: boolean;
+  state: string | null;
+  name?: string | null;
+  redo?: string | null;
+};
+
+export async function loadBillForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFormData> {
+  return scopeOf(viewer) && viewer.business ? loadLiveForm(viewer, opts) : loadFixtureForm(viewer, opts);
+}
+
+const toLine = (l: { what: string; qty: number; ratePaise: number }) => ({
+  what: l.what,
+  qty: String(l.qty),
+  rate: String(l.ratePaise / 100),
+});
+
+/** The form for a session (Stage 6): the customer row, their last bill, the default series, the items. */
+async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFormData> {
+  const scope = scopeOf(viewer)!;
+  const b = viewer.business!;
+  const loaded = viewer.loaded!;
+  const today = todayOf(viewer);
+  const registration = b.registration;
+  const defaultRate = b.gstDefaultRate ?? 18;
+  const bills = loaded.series.filter((x) => x.kind === 'bill' && x.active);
+  const series = bills.find((x) => x.id === loaded.profile.defaultSeriesId) ?? bills[0] ?? null;
+  const number = series ? previewNumber(seriesRepo.configOf(series), today) : '';
+  const id = opts.customer ? customerIdOf(b.id, opts.customer) : null;
+  const row = id ? await customerRepo.getCustomer(scope, id).catch(() => null) : null;
+  const previousDoc = row ? await documents.lastBillFor(scope, row.id) : null;
+  const previousLines = previousDoc ? linesOf(previousDoc) : [];
+  const previous = previousDoc
+    ? {
+        month: MONTHS[Number(previousDoc.issueDate.slice(5, 7)) - 1] ?? '',
+        lines: previousLines.map(toLine),
+        totalPaise: previousDoc.totals?.totalPaise ?? 0,
+        gstRate: previousLines[0]?.gstRate ?? null,
+      }
+    : null;
+  const customerState = opts.state === 'check-fail' ? null : (row?.stateCode ?? null);
+  const mode = opts.first ? 'first' : opts.newCustomer || !row ? 'new-customer' : 'existing';
+  const redoId = opts.redo ? await documents.findBill(scope, opts.redo) : null;
+  const redoDoc = redoId ? await documents.getDocument(scope, redoId) : null;
+  const ledger = await ledgerOf(viewer);
+  const last = new Map<string, string>();
+  for (const x of ledger.bills) if (x.customer && !last.has(x.customer)) last.set(x.customer, x.date);
+  const people = await customerRepo.listCustomers(scope);
+  const pick = [...people].sort((x, y) => (last.get(y.id) ?? '').localeCompare(last.get(x.id) ?? ''));
+  const itemRows = await itemRepo.listItems(scope);
+  const fortnight = ledger.bills
+    .map((x, i) => ({ x, r: ledger.rows[i]! }))
+    .filter(({ r }) => r.days <= 14)
+    .map(({ x, r }) => ({
+      id: x.id,
+      number: x.number,
+      status: x.status === 'cancelled' ? ('cancelled' as const) : ('issued' as const),
+      issueDate: x.date,
+      customerId: x.customer || null,
+      customerName: r.name,
+      totalPaise: x.totalPaise,
+    }));
+  const redoLines = redoDoc ? linesOf(redoDoc) : null;
+  return {
+    business: {
+      name: b.name,
+      registration,
+      stateCode: b.stateCode,
+      stateName: b.stateName,
+      defaultRate,
+      upi: b.upi,
+      gstin: b.gstin,
+      address: [b.address, b.city].filter(Boolean).join(', ') || null,
+    },
+    customer: row
+      ? {
+          id: row.id,
+          name: row.name,
+          stateCode: customerState,
+          stateName: customerState ? (findState(customerState)?.name ?? null) : null,
+          gstin: row.gstin,
+        }
+      : null,
+    previous,
+    initial: {
+      customer: row?.id ?? null,
+      customerName: row?.name ?? opts.name?.trim() ?? '',
+      customerState,
+      lines: redoLines?.length ? redoLines.map(toLine) : [{ what: '', qty: '1', rate: '' }],
+      gst: {
+        on: registration === 'regular' && (redoDoc ? redoDoc.gstOn : true),
+        mode: 'one',
+        rate: redoLines?.[0]?.gstRate ?? previous?.gstRate ?? defaultRate,
+        perLine: [],
+      },
+      series: series?.prefix.replace(/[-/]+$/, '') ?? '',
+      number,
+      date: today,
+    },
+    items: itemRows.map((i) => ({
+      name: i.name,
+      rate: i.defaultRatePaise === null ? '' : String(i.defaultRatePaise / 100),
+      gstRate: i.defaultTaxBp === null ? null : i.defaultTaxBp / 100,
+    })),
+    pick: pick.map((c) => ({ id: c.id, name: c.name, index: avatarIndex(c.id) })),
+    mode,
+    redo: redoDoc?.number ?? null,
+    live: {
+      seriesId: series?.id ?? null,
+      today,
+      recent: fortnight,
+      lastLines: previousDoc
+        ? previousDoc.lines.map((l) => ({ description: l.description, unitPricePaise: l.unitPricePaise }))
+        : [],
+      redoId,
+    },
+  };
+}
+
+function loadFixtureForm(
   viewer: Viewer,
   opts: {
     customer: string | null;
@@ -123,5 +260,6 @@ export function loadBillForm(
     pick: pick.map((c) => ({ id: c.id, name: c.name, index: c.index })),
     mode,
     redo: redoBill?.number ?? null,
+    live: null,
   };
 }

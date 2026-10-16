@@ -16,7 +16,7 @@ export default async function Page({
   const viewer = await getViewer(await searchParams);
   if (!viewer.business || viewer.role === 'accountant') redirect('/');
   const { number } = await params;
-  const data = loadRemind(viewer, number);
+  const data = await loadRemind(viewer, number);
   if (!data) notFound();
   return <RemindScreen data={data} viewer={shellOf(viewer)} />;
 }

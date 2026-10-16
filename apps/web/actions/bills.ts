@@ -1,0 +1,356 @@
+'use server';
+
+import { revalidatePath } from 'next/cache';
+
+import {
+  ForbiddenError,
+  NotFoundError,
+  businesses,
+  customers,
+  documents,
+  items,
+  payments,
+  reminders,
+  type TenantScope,
+} from '@ekbill/db';
+import {
+  fromGstin,
+  parseMoney,
+  parseQuantity,
+  todayIst,
+  type IssueLine,
+  type IssuedSnapshot,
+  type Say,
+} from '@ekbill/engine';
+import { printAndKeep } from '@ekbill/render';
+
+import { log } from '../server/log';
+import { enqueue } from '../server/queue';
+import { current } from '../server/session';
+import {
+  cancelBillInput,
+  creditNoteBillInput,
+  issueBillInput,
+  paymentInput,
+  reminderInput,
+  reversalInput,
+} from './schema';
+
+/**
+ * Stage 6's writes: the bill (drafted and issued in one tap, I2), cancel,
+ * credit note, money against a bill and the reminder opened. Each
+ * validates the shape (zod), calls the repositories (which hold the roles
+ * and run the engine), and answers ok or a refusal the screen can say: a
+ * dictionary key, with the engine's blockers when it said no.
+ */
+export interface Refusal {
+  ok: false;
+  error: string;
+  say?: Say;
+  field?: string;
+  /** The engine's blockers (assess.*), each with what to do. */
+  blockers?: Array<{ code: string; key: string; params?: Record<string, string | number> }>;
+  /** The draft a refused issue left, sent back with the next attempt so one bill is one draft. */
+  draftId?: string;
+}
+export type BillResult<T> = { ok: true; value: T } | Refusal;
+
+async function scoped(): Promise<{ scope: TenantScope } | { error: string }> {
+  const me = await current();
+  if (!me) return { error: 'auth.signed.out' };
+  if (!me.scope) return { error: 'auth.no.business' };
+  return { scope: me.scope };
+}
+
+function refused(e: unknown, draftId?: string): Refusal {
+  if (e instanceof documents.IssueRefusedError)
+    return {
+      ok: false,
+      error: 'bill.refused',
+      blockers: e.blockers.map((b) => ({ code: b.code, key: b.message.key, params: b.message.params })),
+      draftId,
+    };
+  if (e instanceof documents.DocumentStateError) return { ok: false, error: `bill.state.${e.code}`, draftId };
+  if (e instanceof payments.PaymentError) return { ok: false, error: e.say.key, say: e.say };
+  if (e instanceof customers.CustomerError) return { ok: false, error: e.say.key, field: e.field, say: e.say };
+  if (e instanceof ForbiddenError) return { ok: false, error: 'auth.forbidden' };
+  if (e instanceof NotFoundError) return { ok: false, error: 'error.notFound' };
+  throw e;
+}
+
+function touched(...paths: string[]) {
+  for (const p of ['/', '/bills', '/dues', '/customers', ...paths]) revalidatePath(p);
+}
+
+/** The lines as typed, parsed by the engine; blank rows dropped; HSN/SAC from the item of the same name. */
+async function linesFrom(
+  scope: TenantScope,
+  typed: Array<{ what: string; qty: string; rate: string; gstRate: number | null }>,
+  gstOn: boolean,
+): Promise<IssueLine[] | Refusal> {
+  const known = await items.listItems(scope);
+  const hsnOf = (what: string) =>
+    known.find((i) => i.name.trim().toLowerCase() === what.trim().toLowerCase())?.hsnSac ?? null;
+  const out: IssueLine[] = [];
+  for (const [i, l] of typed.entries()) {
+    if (!l.what.trim() && !l.rate.trim()) continue;
+    let quantityMilli: number;
+    let unitPricePaise: number;
+    try {
+      quantityMilli = parseQuantity(l.qty || '1');
+      unitPricePaise = parseMoney(l.rate || '0');
+    } catch {
+      return { ok: false, error: 'bill.check.amount', field: `line-${i}` };
+    }
+    out.push({
+      description: l.what.trim(),
+      quantityMilli,
+      unitPricePaise,
+      gstBp: gstOn && l.gstRate !== null ? Math.round(l.gstRate * 100) : 0,
+      taxRateChosen: !gstOn || l.gstRate !== null,
+      hsnCode: hsnOf(l.what),
+    });
+  }
+  if (!out.length) return { ok: false, error: 'bill.check.empty' };
+  return out;
+}
+
+/**
+ * "Bill banao": the customer (an existing row, or a new one the form named),
+ * a draft (or the draft a refused attempt left), issueDocument(), then the
+ * format the business shares rendered and kept at once (budget 3 s) and
+ * the other sizes queued for the worker.
+ */
+export async function issueBill(
+  input: unknown,
+): Promise<BillResult<{ id: string; number: string; renderMs: number | null }>> {
+  const parsed = issueBillInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'form.invalid' };
+  const s = await scoped();
+  if ('error' in s) return { ok: false, error: s.error };
+  const { scope } = s;
+  const d = parsed.data;
+  const today = todayIst(new Date());
+  let draftId = d.id ?? undefined;
+  try {
+    const profile = await businesses.getProfile(scope);
+    let customer;
+    if (d.customerId) {
+      const row = await customers.getCustomer(scope, d.customerId);
+      customer = {
+        id: row.id,
+        name: row.name,
+        gstin: row.gstin,
+        stateCode: d.customerState ?? row.stateCode,
+        address: [row.address, row.city].filter(Boolean).join(', ') || null,
+        phone: row.phone,
+      };
+    } else {
+      const gst = d.customerGstin ? fromGstin(d.customerGstin) : null;
+      const row = await customers.createCustomer(scope, {
+        name: d.customerName,
+        phone: d.customerPhone ?? null,
+        gstin: d.customerGstin ?? null,
+        stateCode: gst?.stateCode ?? d.customerState ?? null,
+        language: d.customerLanguage ?? null,
+        languageSource: d.customerLanguage ? 'owner' : null,
+      });
+      customer = {
+        id: row.id,
+        name: row.name,
+        gstin: row.gstin,
+        stateCode: d.customerState ?? row.stateCode,
+        address: null,
+        phone: row.phone,
+      };
+    }
+    const lines = await linesFrom(scope, d.lines, d.gstOn);
+    if (!Array.isArray(lines)) return lines;
+    // A walk-in with no state on record buys at the counter (the seller's state); a tax invoice asks (CheckStrip).
+    const placeOfSupply =
+      customer.stateCode ?? (d.gstOn && profile.registrationType === 'regular' ? null : profile.stateCode);
+    const draftInput = {
+      seriesId: d.seriesId ?? null,
+      customer,
+      dateIso: d.issueDate,
+      gstOn: d.gstOn,
+      lines,
+      placeOfSupplyStateCode: placeOfSupply,
+    };
+    const draft = draftId
+      ? await documents.updateDraft(scope, draftId, draftInput)
+      : await documents.createDraft(scope, draftInput);
+    draftId = draft.id;
+    const issued = await documents.issueDocument(scope, { id: draft.id, today });
+    let renderMs: number | null = null;
+    try {
+      const t0 = Date.now();
+      await printAndKeep(scope, { documentId: issued.id, kind: profile.look.shareAs, paper: profile.look.paper });
+      renderMs = Date.now() - t0;
+    } catch (error) {
+      // The bill is issued; the file is printed on the first download instead (the route renders on demand).
+      log.warn({ requestId: scope.requestId, documentId: issued.id, err: error }, 'issue-time render failed');
+    }
+    await enqueue('render-other-sizes', {
+      documentId: issued.id,
+      businessId: scope.businessId,
+      userId: scope.userId,
+      role: scope.role,
+      requestId: scope.requestId,
+    }).catch((error: unknown) => log.warn({ err: error }, 'render-other-sizes not queued'));
+    log.info({ requestId: scope.requestId, documentId: issued.id, number: issued.number, renderMs }, 'bill issued');
+    touched();
+    return { ok: true, value: { id: issued.id, number: issued.number ?? '', renderMs } };
+  } catch (e) {
+    return refused(e, draftId);
+  }
+}
+
+/** Cancel (owner only): the bill stays, marked cancelled with the reason; "dobara banao" starts a new one. */
+export async function cancelBill(input: unknown): Promise<BillResult<{ number: string }>> {
+  const parsed = cancelBillInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'form.invalid' };
+  const s = await scoped();
+  if ('error' in s) return { ok: false, error: s.error };
+  try {
+    const doc = await documents.cancelDocument(s.scope, { id: parsed.data.id, reason: parsed.data.cancelledReason });
+    log.info({ requestId: s.scope.requestId, documentId: doc.id }, 'bill cancelled');
+    touched();
+    return { ok: true, value: { number: doc.number ?? '' } };
+  } catch (e) {
+    return refused(e);
+  }
+}
+
+/**
+ * A credit note (owner only) for an amount against an issued bill. The
+ * amount is split over the bill's rates in the bill's own proportion, each
+ * part tax-inclusive, so the GST it reverses matches the GST the bill charged.
+ */
+export async function makeCreditNote(input: unknown): Promise<BillResult<{ id: string; number: string }>> {
+  const parsed = creditNoteBillInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'form.invalid' };
+  const s = await scoped();
+  if ('error' in s) return { ok: false, error: s.error };
+  const { scope } = s;
+  let amountPaise: number;
+  try {
+    amountPaise = parseMoney(parsed.data.amount);
+  } catch {
+    return { ok: false, error: 'credit.error.amount', field: 'amount' };
+  }
+  try {
+    const view = await documents.billView(scope, parsed.data.linkedDocumentId);
+    const bill = view.document;
+    const snapshot = bill.issuedSnapshot as IssuedSnapshot | null;
+    const creditable = view.balance.totalPaise - view.balance.creditedPaise;
+    if (!snapshot || amountPaise <= 0 || amountPaise > creditable)
+      return { ok: false, error: 'credit.error.amount', field: 'amount' };
+    const groups = snapshot.totals.rateSummary
+      .map((r) => ({ gstBp: r.gstBp, gross: r.taxablePaise + r.cgstPaise + r.statePaise + r.igstPaise + r.cessPaise }))
+      .filter((g) => g.gross > 0);
+    const whole = groups.reduce((sum, g) => sum + g.gross, 0);
+    let left = amountPaise;
+    const lines: IssueLine[] = groups.map((g, i) => {
+      const part = i === groups.length - 1 ? left : Math.round((amountPaise * g.gross) / whole);
+      left -= part;
+      return {
+        description: parsed.data.notes,
+        quantityMilli: 1000,
+        unitPricePaise: part,
+        gstBp: g.gstBp,
+        taxRateChosen: true,
+        priceIncludesTax: true,
+      };
+    });
+    const today = todayIst(new Date());
+    const note = await documents.createCreditNote(scope, {
+      invoiceId: bill.id,
+      dateIso: today,
+      reason: parsed.data.notes,
+      lines: lines.filter((l) => l.unitPricePaise > 0),
+    });
+    try {
+      const issued = await documents.issueDocument(scope, { id: note.id, today });
+      log.info({ requestId: scope.requestId, documentId: issued.id, invoice: bill.id }, 'credit note issued');
+      touched();
+      return { ok: true, value: { id: issued.id, number: issued.number ?? '' } };
+    } catch (e) {
+      return refused(e, note.id);
+    }
+  } catch (e) {
+    return refused(e);
+  }
+}
+
+/** "Paise aa gaye" (owner and staff) or "Kam karo" (owner): the engine checks the amount against what is due. */
+export async function recordMoney(input: unknown): Promise<BillResult<{ duePaise: number; status: string }>> {
+  const parsed = paymentInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'form.invalid' };
+  const s = await scoped();
+  if ('error' in s) return { ok: false, error: s.error };
+  const d = parsed.data;
+  let amountPaise: number;
+  try {
+    amountPaise = parseMoney(d.amount);
+  } catch {
+    return { ok: false, error: 'pay.error.amount', field: 'amount' };
+  }
+  const today = todayIst(new Date());
+  try {
+    const r =
+      d.kind === 'payment'
+        ? await payments.recordPayment(s.scope, {
+            documentId: d.documentId,
+            amountPaise,
+            dateIso: d.date,
+            method: d.method ?? '',
+            note: d.note ?? null,
+            today,
+          })
+        : await payments.recordAdjustment(s.scope, {
+            documentId: d.documentId,
+            amountPaise,
+            dateIso: d.date,
+            note: d.note ?? null,
+            today,
+          });
+    log.info({ requestId: s.scope.requestId, documentId: d.documentId, kind: d.kind }, 'money recorded');
+    touched();
+    return { ok: true, value: { duePaise: r.balance.duePaise, status: r.balance.status } };
+  } catch (e) {
+    return refused(e);
+  }
+}
+
+/** A mistaken entry undone (owner only); it stays on the record, struck through. */
+export async function reverseMoney(input: unknown): Promise<BillResult<{ duePaise: number }>> {
+  const parsed = reversalInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'form.invalid' };
+  const s = await scoped();
+  if ('error' in s) return { ok: false, error: s.error };
+  try {
+    const r = await payments.reversePayment(s.scope, {
+      paymentId: parsed.data.id,
+      reason: parsed.data.reversalReason,
+    });
+    touched();
+    return { ok: true, value: { duePaise: r.balance.duePaise } };
+  } catch (e) {
+    return refused(e);
+  }
+}
+
+/** The reminder the owner opened in WhatsApp, kept so the bill shows "yaad dilaya" (the app never sends). */
+export async function reminderOpened(input: unknown): Promise<BillResult<undefined>> {
+  const parsed = reminderInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'form.invalid' };
+  const s = await scoped();
+  if ('error' in s) return { ok: false, error: s.error };
+  try {
+    await reminders.recordReminder(s.scope, parsed.data);
+    return { ok: true, value: undefined };
+  } catch (e) {
+    return refused(e);
+  }
+}

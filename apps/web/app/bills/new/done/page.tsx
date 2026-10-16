@@ -1,15 +1,28 @@
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
-import { loadBillDone } from '../../../../screens/bill-done/data';
+import { loadBillDone, loadIssued } from '../../../../screens/bill-done/data';
 import { BillDoneScreen } from '../../../../screens/bill-done/Screen';
-import { getViewer, shellOf, type SearchParams } from '../../../../screens/viewer';
+import { getViewer, one, shellOf, type SearchParams } from '../../../../screens/viewer';
 
 export const dynamic = 'force-dynamic';
 
-/** The done screen renders the issued draft from sessionStorage; the loader's fallback paper serves the screenshots. */
+/**
+ * A session lands here with the issued bill's id (Stage 6): the paper from
+ * its snapshot and the real file to share. A look (?as=) renders the draft
+ * from sessionStorage, with the loader's fallback paper for the screenshots.
+ */
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const viewer = await getViewer(await searchParams);
+  const sp = await searchParams;
+  const viewer = await getViewer(sp);
+  const id = one(sp.id);
+  if (id) {
+    const issued = await loadIssued(viewer, id);
+    if (!issued) notFound();
+    return (
+      <BillDoneScreen fallback={issued.fallback} share={issued.share} live={issued.live} viewer={shellOf(viewer)} />
+    );
+  }
   const data = loadBillDone(viewer);
   if (!data) redirect('/');
-  return <BillDoneScreen fallback={data.fallback} share={data.share} viewer={shellOf(viewer)} />;
+  return <BillDoneScreen fallback={data.fallback} share={data.share} live={null} viewer={shellOf(viewer)} />;
 }

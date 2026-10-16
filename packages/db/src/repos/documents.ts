@@ -1,9 +1,11 @@
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
 
 import {
   GST_RULES,
   TaxEngineError,
+  type Balance,
   RuleError,
+  ageInDays,
   afterAllocation,
   assertCivilDate,
   computeTax,
@@ -25,6 +27,7 @@ import {
 import * as schema from '../schema';
 import { withTenant, type Role, type TenantScope, type Tx } from '../scope';
 import { allow, NotFoundError, type RoleProbe, type TenancyProbe } from './allow';
+import { balancesIn } from './payments';
 import { configOf, type SeriesKind } from './series';
 
 /**
@@ -156,6 +159,11 @@ export function sellerOf(b: typeof schema.businesses.$inferSelect): IssueBusines
     city: b.city,
     phone: b.phone,
     upi: b.upi,
+    // Stage 6: the bank, and the logo and signature as the files they are at issue (business files never change),
+    // so a re-rendered bill prints what the customer got (I2).
+    bank: b.bankAccount && b.bankIfsc ? { name: b.bankName ?? '', account: b.bankAccount, ifsc: b.bankIfsc } : null,
+    logoRef: b.logoFileId,
+    signatureRef: b.signatureFileId,
   };
 }
 
@@ -452,6 +460,14 @@ export async function issueDocument(scope: TenantScope, input: { id: string; tod
       })
       .where(eq(schema.documents.id, draft.id))
       .returning();
+    // The customer's directory order (Stage 6): the date of their latest bill, never moved back.
+    if (row!.customerId && row!.kind !== 'credit_note')
+      await db
+        .update(schema.customers)
+        .set({
+          lastBilledAt: sql`greatest(coalesce(${schema.customers.lastBilledAt}, ${row!.issueDate}), ${row!.issueDate})`,
+        })
+        .where(eq(schema.customers.id, row!.customerId));
     return asDocument(row!);
   });
 }
@@ -549,7 +565,229 @@ export async function createCreditNote(scope: TenantScope, input: CreditNoteInpu
   });
 }
 
+export type BillFilter = 'all' | 'due' | 'paid' | 'cancelled';
+export interface BillRow {
+  id: string;
+  number: string;
+  kind: DocumentKindColumn;
+  status: DocumentStatus;
+  issueDate: string;
+  customerId: string | null;
+  customerName: string;
+  seriesId: string;
+  totalPaise: number;
+  balance: Balance;
+  linkedDocumentId: string | null;
+  /** The latest payment that still counts: its date and how it came (the timeline's "aa gaye 30 Jul · UPI"). */
+  paidOn: string | null;
+  method: string | null;
+}
+
+/**
+ * The bills list (Stage 6): issued and cancelled bills newest first, with
+ * what each still owes, filtered the way the chips say (Sab / Baaki / Aa
+ * gaye / Cancel), searched by number or customer name. Credit notes come
+ * with their bill, not as rows of their own.
+ */
+export async function listBills(
+  scope: TenantScope,
+  filter: { status?: BillFilter; q?: string; customerId?: string; seriesId?: string; limit?: number } = {},
+): Promise<BillRow[]> {
+  return withTenant(scope, async (tx) => {
+    const q = filter.q?.trim();
+    const rows = await tx.db
+      .select({
+        id: schema.documents.id,
+        number: schema.documents.number,
+        kind: schema.documents.kind,
+        status: schema.documents.status,
+        issueDate: schema.documents.issueDate,
+        customerId: schema.documents.customerId,
+        customerName: schema.documents.customerName,
+        seriesId: schema.documents.seriesId,
+        totals: schema.documents.totals,
+        linkedDocumentId: schema.documents.linkedDocumentId,
+      })
+      .from(schema.documents)
+      .where(
+        and(
+          eq(schema.documents.businessId, scope.businessId),
+          ne(schema.documents.status, 'draft'),
+          ne(schema.documents.kind, 'credit_note'),
+          ...(filter.status === 'cancelled' ? [eq(schema.documents.status, 'cancelled')] : []),
+          ...(filter.customerId ? [eq(schema.documents.customerId, filter.customerId)] : []),
+          ...(filter.seriesId ? [eq(schema.documents.seriesId, filter.seriesId)] : []),
+          ...(q
+            ? [
+                sql`(${schema.documents.search} @@ plainto_tsquery('simple', ${q}) or ${schema.documents.number} ilike ${`%${q}%`} or ${schema.documents.customerName} ilike ${`%${q}%`})`,
+              ]
+            : []),
+        ),
+      )
+      .orderBy(desc(schema.documents.issueDate), desc(schema.documents.issuedAt))
+      .limit(filter.limit ?? 500);
+    const balances = await balancesIn(
+      tx,
+      rows.map((r) => r.id),
+    );
+    const paid = rows.length
+      ? await tx.db
+          .select({
+            documentId: schema.payments.documentId,
+            date: schema.payments.date,
+            method: schema.payments.method,
+          })
+          .from(schema.payments)
+          .where(
+            and(
+              inArray(
+                schema.payments.documentId,
+                rows.map((r) => r.id),
+              ),
+              eq(schema.payments.kind, 'payment'),
+              isNull(schema.payments.reversedAt),
+            ),
+          )
+          .orderBy(asc(schema.payments.date), asc(schema.payments.createdAt))
+      : [];
+    const lastPaid = new Map(paid.map((p) => [p.documentId, p]));
+    const out = rows.map((r) => ({
+      id: r.id,
+      number: r.number ?? '',
+      kind: r.kind as DocumentKindColumn,
+      status: r.status as DocumentStatus,
+      issueDate: r.issueDate,
+      customerId: r.customerId,
+      customerName: r.customerName,
+      seriesId: r.seriesId,
+      totalPaise: (r.totals as { totalPaise?: number } | null)?.totalPaise ?? 0,
+      balance: balances.get(r.id)!,
+      linkedDocumentId: r.linkedDocumentId,
+      paidOn: lastPaid.get(r.id)?.date ?? null,
+      method: lastPaid.get(r.id)?.method ?? null,
+    }));
+    if (filter.status === 'due') return out.filter((r) => r.balance.status === 'due' || r.balance.status === 'partial');
+    if (filter.status === 'paid') return out.filter((r) => r.balance.status === 'paid');
+    return out;
+  });
+}
+
+/**
+ * The worker's daily "aaj yaad dilao" list (no message is sent; the owner
+ * decides): unpaid bills whose payment terms end today, and those already
+ * past them. Terms are the business's default days (0: due on the bill date).
+ */
+export async function duesToday(
+  scope: TenantScope,
+  today: string,
+  termsDays: number,
+): Promise<{ dueToday: BillRow[]; overdue: BillRow[] }> {
+  const open = await listBills(scope, { status: 'due' });
+  return {
+    dueToday: open.filter((r) => ageInDays(r.issueDate, today) === termsDays),
+    overdue: open.filter((r) => ageInDays(r.issueDate, today) > termsDays),
+  };
+}
+
+/** Everything the bill view shows: the document, what it owes, the money against it, its credit notes. */
+export async function billView(scope: TenantScope, id: string) {
+  return withTenant(scope, async (tx) => {
+    const doc = (await tx.db.select().from(schema.documents).where(eq(schema.documents.id, id)))[0];
+    if (!doc || doc.status === 'draft') throw new NotFoundError('document');
+    const balance = (await balancesIn(tx, [doc.id])).get(doc.id)!;
+    const entries = await tx.db
+      .select()
+      .from(schema.payments)
+      .where(eq(schema.payments.documentId, doc.id))
+      .orderBy(asc(schema.payments.createdAt));
+    const creditNotes = await tx.db
+      .select()
+      .from(schema.documents)
+      .where(and(eq(schema.documents.linkedDocumentId, doc.id), eq(schema.documents.kind, 'credit_note')))
+      .orderBy(asc(schema.documents.createdAt));
+    const reminders = await tx.db
+      .select({
+        id: schema.remindersSent.id,
+        tone: schema.remindersSent.tone,
+        createdAt: schema.remindersSent.createdAt,
+      })
+      .from(schema.remindersSent)
+      .where(eq(schema.remindersSent.documentId, doc.id))
+      .orderBy(desc(schema.remindersSent.createdAt));
+    return { document: asDocument(doc), balance, entries, creditNotes: creditNotes.map(asDocument), reminders };
+  });
+}
+
+/**
+ * The bill a URL names: its id, or its number (the newest with that number:
+ * a series without the year in its numbers starts again each April).
+ */
+export async function findBill(scope: TenantScope, idOrNumber: string): Promise<string | null> {
+  return withTenant(scope, async ({ db }) => {
+    const byId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrNumber);
+    const row = (
+      await db
+        .select({ id: schema.documents.id })
+        .from(schema.documents)
+        .where(
+          and(
+            byId ? eq(schema.documents.id, idOrNumber) : eq(schema.documents.number, idOrNumber),
+            ne(schema.documents.status, 'draft'),
+          ),
+        )
+        .orderBy(desc(schema.documents.issueDate))
+        .limit(1)
+    )[0];
+    return row?.id ?? null;
+  });
+}
+
+/** The customer's last issued bill, for "Pichle jaisa hi?": its lines as drafted again. */
+export async function lastBillFor(scope: TenantScope, customerId: string): Promise<Document | null> {
+  return withTenant(scope, async ({ db }) => {
+    const row = (
+      await db
+        .select()
+        .from(schema.documents)
+        .where(
+          and(
+            eq(schema.documents.customerId, customerId),
+            eq(schema.documents.status, 'issued'),
+            ne(schema.documents.kind, 'credit_note'),
+          ),
+        )
+        .orderBy(desc(schema.documents.issueDate), desc(schema.documents.issuedAt))
+        .limit(1)
+    )[0];
+    return row ? asDocument(row) : null;
+  });
+}
+
+/** The issued bills of one or many customers' latest dates, for the customer lists' order and dues. */
+export async function documentsByIds(scope: TenantScope, ids: string[]): Promise<Document[]> {
+  if (!ids.length) return [];
+  return withTenant(scope, async ({ db }) =>
+    (await db.select().from(schema.documents).where(inArray(schema.documents.id, ids))).map(asDocument),
+  );
+}
+
 // --- probes for the generated tests (not part of the product API)
+/**
+ * An issued bill any business may make: no tax line, so a regular registrant
+ * and a composition dealer both issue it. Used by the payments, reminders and
+ * document-files probes.
+ */
+export async function probeIssuedBill(scope: TenantScope, name = 'Probe Customer'): Promise<string> {
+  const owner = { ...scope, role: 'owner' as const };
+  const d = await createDraft(owner, {
+    customer: { name, stateCode: '27' },
+    placeOfSupplyStateCode: '27',
+    dateIso: '2026-10-15',
+    gstOn: false,
+    lines: [{ description: 'Probe work', quantityMilli: 1000, unitPricePaise: 100000, gstBp: 0, taxRateChosen: true }],
+  });
+  return (await issueDocument(owner, { id: d.id, today: '2026-10-15' })).id;
+}
 const PROBE_TODAY = '2026-10-15';
 const probeDraft = (): DraftInput => ({
   customer: { name: 'Probe Customer', stateCode: '27' },

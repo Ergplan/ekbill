@@ -67,7 +67,7 @@ if ! curl -fsS http://127.0.0.1:8080/api/health; then
   echo; echo "The app is not healthy. Logs: docker logs \$(docker ps -q --fi
 if [ "$AUTH_MODE" = "switcher" ]; then
   say "Seeding the build's people and businesses (AUTH_MODE=switcher: test data only)"
-  "${COMPOSE[@]}" exec -T -e AUTH_MODE=switcher app node --import tsx scripts/seed.mjs
+  "${COMPOSE[@]}" exec -T -e AUTH_MODE=switcher app node --conditions=react-server --import tsx scripts/seed.mjs
 filter label=com.docker.compose.project=$COMPOSE_PROJECT --filter label=com.docker.compose.service=app)"
   exit 1
 fi

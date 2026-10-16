@@ -17,6 +17,12 @@ import {
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return 'tsvector';
+  },
+});
+
 /**
  * The database, as Drizzle sees it (Stage 2: identity, tenancy, roles, audit,
  * the model-call log). Migrations are the SQL in ../migrations (generated
@@ -294,7 +300,7 @@ export const documents = pgTable(
     financialYear: text('financial_year'),
     issueDate: date('issue_date', { mode: 'string' }).notNull(),
     dueDate: date('due_date', { mode: 'string' }),
-    customerId: uuid('customer_id'),
+    customerId: uuid('customer_id').references((): AnyPgColumn => customers.id),
     customerName: text('customer_name').notNull(),
     customerGstin: text('customer_gstin'),
     customerState: text('customer_state'),
@@ -330,8 +336,14 @@ export const documents = pgTable(
       .references(() => users.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    /** Search over the number and the customer's name (Stage 6): kept by Postgres itself, never by a job. */
+    search: tsvector('search').generatedAlwaysAs(
+      sql`to_tsvector('simple', coalesce(number, '') || ' ' || coalesce(customer_name, ''))`,
+    ),
   },
   (t) => [
+    index('documents_search').using('gin', t.search),
+    index('documents_customer').on(t.businessId, t.customerId),
     // I3: a number is unique per series per financial year, and backs the gapless allocation.
     uniqueIndex('documents_number')
       .on(t.businessId, t.seriesId, t.financialYear, t.number)
@@ -554,4 +566,110 @@ export const importRows = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex('import_rows_import_position').on(t.importId, t.position)],
+);
+
+/**
+ * Money against a bill (Stage 6): a payment ("Paise aa gaye", full or part)
+ * or an adjustment ("Kam karo": written off, not received). What is due is
+ * one function (packages/engine/src/ledger.ts#balanceOf). An entry is never
+ * changed or removed: a mistake is reversed, once, with a reason.
+ */
+export const payments = pgTable(
+  'payments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id),
+    /** payment | adjustment */
+    kind: text('kind').notNull(),
+    amountPaise: bigint('amount_paise', { mode: 'number' }).notNull(),
+    date: date('date', { mode: 'string' }).notNull(),
+    /** upi | cash | bank | cheque | other; null for an adjustment. */
+    method: text('method'),
+    note: text('note'),
+    reversedAt: timestamp('reversed_at', { withTimezone: true }),
+    reversedBy: uuid('reversed_by').references(() => users.id),
+    reversalReason: text('reversal_reason'),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('payments_document').on(t.documentId),
+    index('payments_business_date').on(t.businessId, t.date),
+    check('payments_kind', sql`${t.kind} in ('payment', 'adjustment')`),
+    check('payments_amount', sql`${t.amountPaise} > 0`),
+    check(
+      'payments_method',
+      sql`(${t.kind} = 'payment' and ${t.method} in ('upi', 'cash', 'bank', 'cheque', 'other')) or (${t.kind} = 'adjustment' and ${t.method} is null)`,
+    ),
+    check('payments_reversal', sql`(${t.reversedAt} is null) = (${t.reversedBy} is null)`),
+  ],
+);
+
+/**
+ * A bill as a file (Stage 6): rendered from its issued snapshot, once per
+ * format, paper and design, and kept; a re-render of an issued bill gives
+ * the same bill (I2).
+ */
+export const documentFiles = pgTable(
+  'document_files',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id),
+    /** pdf | jpg */
+    kind: text('kind').notNull(),
+    /** a4 | a5 | 80mm | 58mm */
+    paper: text('paper').notNull(),
+    /** classic | modern | simple */
+    design: text('design').notNull(),
+    bytes: bytea('bytes').notNull(),
+    size: integer('size').notNull(),
+    sha256: text('sha256').notNull(),
+    renderMs: integer('render_ms'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('document_files_one').on(t.documentId, t.kind, t.paper, t.design),
+    check('document_files_kind', sql`${t.kind} in ('pdf', 'jpg')`),
+    check('document_files_paper', sql`${t.paper} in ('a4', 'a5', '80mm', '58mm')`),
+    check('document_files_design', sql`${t.design} in ('classic', 'modern', 'simple')`),
+  ],
+);
+
+/** A reminder the owner opened in WhatsApp (Stage 6): the tone, the language, the words. Nothing is sent by the app. */
+export const remindersSent = pgTable(
+  'reminders_sent',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id),
+    customerId: uuid('customer_id').references(() => customers.id),
+    /** gentle | direct | second */
+    tone: text('tone').notNull(),
+    language: text('language').notNull(),
+    text: text('text').notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('reminders_sent_document').on(t.documentId),
+    check('reminders_sent_tone', sql`${t.tone} in ('gentle', 'direct', 'second')`),
+  ],
 );

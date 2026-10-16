@@ -13,6 +13,7 @@ import {
   supplyKind,
   type TaxInput,
 } from '../../packages/engine/src/index';
+import { compute as formPreview } from '../../apps/web/screens/bill/compute';
 
 const line = (description: string, qty: string, price: string, pct: number) => ({
   description,
@@ -441,5 +442,33 @@ describe('twenty fixtures through the one engine (I4)', () => {
     expect(gstr1.totals.cgstPaise + gstr1.totals.statePaise + gstr1.totals.igstPaise + gstr1.totals.cessPaise).toBe(
       direct.gstPaise,
     );
+  });
+
+  // Stage 6: the bill form's running total (the MakeBar) is the same engine call as the issued bill.
+  const plain = FIXTURES.filter(
+    (f) =>
+      !f.refused &&
+      !f.input.roundToRupee &&
+      f.input.lines.every((l) => !l.priceIncludesTax && !l.discountPaise && !l.cessBp && !l.unit),
+  );
+  it.each(plain)('$name: the form preview shows what the bill will say', (f) => {
+    const rates = f.input.lines.map((l) => l.gstBp / 100);
+    const preview = formPreview(
+      {
+        lines: f.input.lines.map((l) => ({
+          what: l.description,
+          qty: String(l.quantityMilli / 1000),
+          rate: (l.unitPricePaise / 100).toFixed(2),
+        })),
+        gst: { on: f.input.gstOn, mode: 'perline', rate: rates[0] ?? 18, perLine: rates },
+        customerState: f.input.customerStateCode,
+        date: f.input.dateIso,
+      },
+      { registration: f.input.registration, stateCode: f.input.sellerStateCode },
+    );
+    const direct = computeTax(f.input);
+    expect(preview.totalPaise).toBe(direct.totalPaise);
+    expect(preview.gstPaise).toBe(direct.gstPaise);
+    expect(preview.heads).toEqual(direct.heads);
   });
 });

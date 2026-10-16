@@ -24,18 +24,24 @@ export { ForbiddenError, NotFoundError, allow } from './repos/allow';
 export type { Business, BusinessProfile } from './repos/businesses';
 export type { Series } from './repos/series';
 export type { BusinessFile } from './repos/files';
-export type { Document } from './repos/documents';
+export type { BillRow, Document } from './repos/documents';
+export type { DocumentFile } from './repos/document-files';
 export type { Customer } from './repos/customers';
 export type { Item } from './repos/items';
+export type { Payment } from './repos/payments';
+export type { ReminderSent } from './repos/reminders';
 export type { Import, ImportRow, FileReading, FileSummary } from './repos/imports';
 export { REPOSITORIES, type RepositoryName } from './repos/index';
 export * as businesses from './repos/businesses';
 export * as customers from './repos/customers';
+export * as documentFiles from './repos/document-files';
 export * as documents from './repos/documents';
 export * as files from './repos/files';
 export * as imports from './repos/imports';
 export * as items from './repos/items';
 export * as memberships from './repos/memberships';
+export * as payments from './repos/payments';
+export * as reminders from './repos/reminders';
 export * as series from './repos/series';
 export * as users from './repos/users';
 export {
@@ -50,6 +56,7 @@ export {
   seedUserById,
 } from './seed';
 export * as schema from './schema';
+export { businessesWithBills } from './system';
 
 export interface SchemaStatus {
   ok: boolean;

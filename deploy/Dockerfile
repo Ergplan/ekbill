@@ -47,6 +47,8 @@ COPY --from=build /app/design ./design
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/apps/worker ./apps/worker
 COPY --from=build /app/scripts/seed.mjs ./scripts/seed.mjs
+# The seed reads the build fixtures (the demo businesses' customers, items and bills).
+COPY --from=build /app/tests/fixtures/v2.json ./tests/fixtures/v2.json
 RUN mkdir -p /app/state && useradd -r -u 10001 -m app && chown -R app /app
 USER app
 EXPOSE 3000

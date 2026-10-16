@@ -6,5 +6,12 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@ekbill/db": "*",
+    "@ekbill/engine": "*",
+    "@types/qrcode": "^1.5.5",
+    "playwright-core": "^1.64.0",
+    "qrcode": "^1.5.4"
   }
 }

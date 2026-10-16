@@ -59,14 +59,14 @@ describe('issueDocument: the one writer (I2)', () => {
     const issued = await documents.issueDocument(scope, { id: draft.id, today: TODAY });
     expect(issued.status).toBe('issued');
     expect(issued.kind).toBe('tax_invoice');
-    expect(issued.number).toMatch(/^INV-2026-27\/\d{3}$/);
+    expect(issued.number).toMatch(/^INV-\d{3}$/);
     expect(issued.financialYear).toBe('2026-27');
     expect(issued.issuedAt).toBeInstanceOf(Date);
     const snapshot = issued.issuedSnapshot!;
     expect(snapshot.version).toBe(1);
     expect(snapshot.title).toBe('TAX INVOICE');
     expect(snapshot.seller.legalName).toBe('Sharma Electricals');
-    expect(snapshot.seller.gstin).toBe('27AAPFU0939F1ZV');
+    expect(snapshot.seller.gstin).toBe('27AAAAA0000A1Z2');
     expect(snapshot.customer.gstin).toBe(mehta.gstin);
     expect(snapshot.rulePackVersion).toMatch(/^\d{4}\.\d{2}\.\d{2}/);
     expect(snapshot.rulesApplied).toEqual(expect.arrayContaining(['place-of-supply-state', 'document-kinds-2017']));
@@ -85,7 +85,7 @@ describe('issueDocument: the one writer (I2)', () => {
     // The series moved on by one.
     const s = await series.getSeries(scope, issued.seriesId);
     expect(s.fy).toBe('2026-27');
-    expect(`INV-2026-27/${String(s.nextNumber - 1).padStart(3, '0')}`).toBe(issued.number);
+    expect(`INV-${String(s.nextNumber - 1).padStart(3, '0')}`).toBe(issued.number);
   });
 
   it('refuses the engine blockers and spends no number', async () => {
@@ -129,7 +129,7 @@ describe('issueDocument: the one writer (I2)', () => {
     expect(draft.kind).toBe('bill_of_supply');
     const issued = await documents.issueDocument(scope, { id: draft.id, today: TODAY });
     expect(issued.kind).toBe('bill_of_supply');
-    expect(issued.number).toMatch(/^GK\/\d{4}$/);
+    expect(issued.number).toMatch(/^BOS-\d{3}$/);
     expect(issued.issuedSnapshot!.title).toBe('BILL OF SUPPLY');
     expect(issued.issuedSnapshot!.legend).toContain('not eligible to collect tax');
     expect(issued.totals!.gstPaise).toBe(0);
@@ -185,7 +185,7 @@ describe('issueDocument: the one writer (I2)', () => {
     expect(note.linkedDocumentId).toBe(invoice.id);
     expect(note.customerGstin).toBe(mehta.gstin);
     const issuedNote = await documents.issueDocument(owner, { id: note.id, today: TODAY });
-    expect(issuedNote.number).toMatch(/^CN-2026-27\/\d{3}$/);
+    expect(issuedNote.number).toMatch(/^CN-\d{3}$/);
     const snapshot = issuedNote.issuedSnapshot as IssuedSnapshot;
     expect(snapshot.kind).toBe('credit-note');
     expect(snapshot.title).toBe('CREDIT NOTE');
@@ -216,7 +216,7 @@ describe('issueDocument: the one writer (I2)', () => {
       withTenant(scope, ({ client }) =>
         client.query(`update documents set ${set} where id = $1`, [issued.id, ...params]),
       );
-    await expect(change("number = 'INV-2026-27/999'")).rejects.toThrow(/cannot be changed/);
+    await expect(change("number = 'INV-999'")).rejects.toThrow(/cannot be changed/);
     await expect(change("lines = '[]'::jsonb")).rejects.toThrow(/cannot be changed/);
     await expect(change("totals = '{}'::jsonb")).rejects.toThrow(/cannot be changed/);
     await expect(change("issued_snapshot = '{}'::jsonb")).rejects.toThrow(/cannot be changed/);

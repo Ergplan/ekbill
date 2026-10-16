@@ -24,7 +24,8 @@ import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { BillDraft, Computed } from '../bill/compute';
 import { longDate } from '../fixtures';
-import { handoffToWhatsApp } from '../share';
+import { billFileUrl, handoffToWhatsApp, handoffWithFile } from '../share';
+import type { BillDoneData } from './data';
 import { manifest } from './manifest';
 
 interface Issued {
@@ -41,24 +42,33 @@ interface Issued {
   customer: { id: string | null; name: string; gstin: string | null; phone?: string | null } | null;
 }
 
+type Size = 'A4' | 'A5' | '80mm' | '58mm';
+const SIZE_OF: Record<string, Size> = { a4: 'A4', a5: 'A5', '80mm': '80mm', '58mm': '58mm' };
+
 export function BillDoneScreen({
   fallback,
   share: shareDefault,
+  live,
   viewer,
 }: {
   fallback: PaperData;
   share: 'pdf' | 'jpg';
+  /** The issued bill (Stage 6): its paper and its file; null for a look at the prototype. */
+  live: BillDoneData['live'];
   viewer: ShellViewer;
 }) {
   const router = useRouter();
   const as = (href: string) => withAs(href, viewer.as);
-  const [issued] = useDraft<Issued | null>(`${viewer.personId}:issued`, null);
+  const [stored] = useDraft<Issued | null>(`${viewer.personId}:issued`, null);
+  const issued = live ? null : stored;
   const [share, setShare] = useState<'pdf' | 'jpg'>(shareDefault);
-  const [paperSize, setPaperSize] = useState<'A4' | 'A5' | '80mm' | '58mm'>('A4');
+  const [paperSize, setPaperSize] = useState<Size>(live ? (SIZE_OF[live.paperSize] ?? 'A4') : 'A4');
+  const [fileError, setFileError] = useState(false);
   const [sizeOpen, setSizeOpen] = useState(false);
   const [sent, setSent] = useState(false);
-  const customerId = issued?.customer?.id ?? null;
+  const customerId = live ? live.customerId : (issued?.customer?.id ?? null);
   const paper = useMemo<PaperData>(() => {
+    if (live) return live.paper;
     if (!issued) return fallback;
     const { draft, computed, business, customer } = issued;
     const kind = computed.documentKind;
@@ -86,7 +96,8 @@ export function BillDoneScreen({
       upiId: business.upi,
       legend: kind === 'bill-of-supply' ? t('paper.bos.legend', undefined, 'en') : null,
     };
-  }, [issued, fallback]);
+  }, [issued, fallback, live]);
+  const fileName = `${paper.number.replace(/[^A-Za-z0-9._-]+/g, '-')}.${share}`;
 
   return (
     <AppShell viewer={viewer} tab="bills" tour={manifest.tour} noTabs>
@@ -100,18 +111,33 @@ export function BillDoneScreen({
       <div className="eb-sticky eb-sticky--bare" data-guide="whatsapp">
         <WhatsAppButton
           onClick={() => {
-            void handoffToWhatsApp({
-              phone: issued?.customer?.phone ?? null,
-              title: `${paper.title} ${paper.number}`,
-              text: t('done.wa.text', {
-                customer: paper.customer.name,
-                business: paper.seller.name,
-                title: paper.title,
-                number: paper.number,
-                amount: rupees(paper.totalPaise),
-              }),
-            }).then((r) => {
-              if (r !== 'cancelled') setSent(true);
+            const text = t('done.wa.text', {
+              customer: paper.customer.name,
+              business: paper.seller.name,
+              title: paper.title,
+              number: paper.number,
+              amount: rupees(paper.totalPaise),
+            });
+            setFileError(false);
+            const handoff = live
+              ? handoffWithFile({
+                  phone: live.customerPhone,
+                  title: `${paper.title} ${paper.number}`,
+                  text,
+                  file: {
+                    url: billFileUrl(live.documentId, share, paperSize),
+                    name: fileName,
+                    type: share === 'pdf' ? 'application/pdf' : 'image/jpeg',
+                  },
+                })
+              : handoffToWhatsApp({
+                  phone: issued?.customer?.phone ?? null,
+                  title: `${paper.title} ${paper.number}`,
+                  text,
+                });
+            void handoff.then((r) => {
+              if (r === 'failed') setFileError(true);
+              else if (r !== 'cancelled') setSent(true);
             });
           }}
           aria-pressed={sent}
@@ -128,7 +154,21 @@ export function BillDoneScreen({
         <OutlineButton data-guide="size" onClick={() => setSizeOpen(true)}>
           {t('done.size')} · {paperSize}
         </OutlineButton>
+        {live ? (
+          <a
+            className="eb-btn eb-btn--ghost"
+            href={billFileUrl(live.documentId, share, paperSize, true)}
+            download={fileName}
+          >
+            {t('view.download')}
+          </a>
+        ) : null}
       </div>
+      {fileError ? (
+        <p className="eb-meta" role="alert">
+          {t('done.file.error')}
+        </p>
+      ) : null}
       <Meta>{t('bill.registers')}</Meta>
       <div className="eb-actions">
         <GhostButton data-guide="home" onClick={() => router.push(as('/'))}>

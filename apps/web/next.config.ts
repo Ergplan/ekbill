@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
     '@ekbill/design',
   ],
   // Chromium (PDF/JPEG rendering, Stage 6) and the database driver run in Node, outside the bundler.
-  serverExternalPackages: ['playwright-core', 'pg', 'pino'],
+  serverExternalPackages: ['playwright-core', 'pg', 'pino', 'qrcode', 'pg-boss'],
   devIndicators: false,
   // The tests and the VM reach the dev server by IP; without this, Next refuses their chunk requests and nothing hydrates.
   allowedDevOrigins: ['127.0.0.1', 'localhost'],

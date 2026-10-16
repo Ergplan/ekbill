@@ -28,6 +28,8 @@ async function hydrated(page: Page) {
 async function stubShare(page: Page) {
   await page.addInitScript(() => {
     (window as unknown as { __shared: unknown[] }).__shared = [];
+    // A phone that can share files: a real bill (a session, Stage 6) goes as its PDF.
+    Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
     Object.defineProperty(navigator, 'share', {
       configurable: true,
       value: (data: unknown) => {

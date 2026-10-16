@@ -123,3 +123,65 @@ export const commitImportInput = z.object({
   /** The rows the owner ticked (import_rows.id). */
   rowIds: z.array(z.string().uuid()).max(500),
 });
+
+/** One line of the bill form as typed: the engine parses the strings (parseQuantity, parseMoney). */
+const billLine = z.object({
+  what: z.string().trim().max(200),
+  qty: z.string().trim().max(20),
+  rate: z.string().trim().max(20),
+  gstRate: z.number().min(0).max(100).nullable(),
+});
+// table: documents
+/** "Bill banao": the form as typed; the server drafts and issues it (issueDocument, I2). */
+export const issueBillInput = z.object({
+  /** The draft an earlier refused attempt left (the same bill tried again), else absent. */
+  id: z.string().uuid().nullable().optional(),
+  seriesId: z.string().uuid().nullable().optional(),
+  customerId: z.string().uuid().nullable().optional(),
+  customerName: z.string().trim().min(1).max(200),
+  customerGstin: z.string().trim().max(15).nullable().optional(),
+  customerPhone: z.string().trim().max(30).nullable().optional(),
+  customerState: z.string().trim().max(2).nullable().optional(),
+  /** The new customer's language, when the form adds one. */
+  customerLanguage: z.enum(['hi-Latn', 'en']).nullable().optional(),
+  issueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  gstOn: z.boolean(),
+  lines: z.array(billLine).min(1).max(100),
+});
+// table: documents
+/** Cancel (owner): the reason stays on the bill; the number is never reused. */
+export const cancelBillInput = z.object({
+  id: z.string().uuid(),
+  cancelledReason: z.string().trim().min(1).max(200),
+});
+// table: documents
+/** A credit note against an issued bill (owner): an amount and a reason. */
+export const creditNoteBillInput = z.object({
+  linkedDocumentId: z.string().uuid(),
+  amount: z.string().trim().min(1).max(20),
+  notes: z.string().trim().min(1).max(200),
+});
+// table: payments
+/** "Paise aa gaye" (payment) or "Kam karo" (adjustment, owner). */
+export const paymentInput = z.object({
+  documentId: z.string().uuid(),
+  kind: z.enum(['payment', 'adjustment']),
+  amount: z.string().trim().min(1).max(20),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  method: z.enum(['upi', 'cash', 'bank', 'cheque', 'other']).nullable().optional(),
+  note: z.string().trim().max(200).nullable().optional(),
+});
+// table: payments
+/** A mistaken entry undone (owner), with a reason. */
+export const reversalInput = z.object({
+  id: z.string().uuid(),
+  reversalReason: z.string().trim().min(1).max(200),
+});
+// table: reminders_sent
+/** A reminder handed to WhatsApp: what was opened, in which tone and language (never sent by the app). */
+export const reminderInput = z.object({
+  documentId: z.string().uuid(),
+  tone: z.enum(['gentle', 'direct', 'second']),
+  language: z.enum(['hi-Latn', 'en']),
+  text: z.string().max(2000),
+});

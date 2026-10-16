@@ -31,6 +31,8 @@ test('the brand-new owner lands on welcome; an unknown person goes back to the l
   // Another journey in this run may have set the brand-new owner up; the seed makes them new again.
   await seedBuild(process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5440/ekbill2_dev', {
     log: () => undefined,
+    // The people only: the bills were issued by global-setup, in a Node with the server's import conditions.
+    bills: false,
   });
   await page.goto('/dev/switch/new');
   await expect(page).toHaveURL(/\/welcome/);

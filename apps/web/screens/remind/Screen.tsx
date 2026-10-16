@@ -16,7 +16,8 @@ import {
 
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { shortDate } from '../fixtures';
-import { handoffToWhatsApp } from '../share';
+import { reminderOpened } from '../../actions/bills';
+import { billFileUrl, handoffToWhatsApp, handoffWithFile } from '../share';
 import { manifest } from './manifest';
 import type { RemindData } from './data';
 
@@ -69,8 +70,24 @@ export function RemindScreen({ data, viewer }: { data: RemindData; viewer: Shell
       <div className="eb-sticky eb-sticky--bare" data-guide="open">
         <WhatsAppButton
           onClick={() => {
-            void handoffToWhatsApp({ text, title: data.fileName, phone: data.contact }).then((r) => {
-              if (r !== 'cancelled') setOpened(true);
+            const live = data.live;
+            const handoff = live
+              ? handoffWithFile({
+                  text,
+                  title: data.fileName,
+                  phone: data.phone,
+                  file: {
+                    url: billFileUrl(live.documentId, data.share, live.paperSize),
+                    name: data.fileName,
+                    type: data.share === 'pdf' ? 'application/pdf' : 'image/jpeg',
+                  },
+                })
+              : handoffToWhatsApp({ text, title: data.fileName, phone: data.phone });
+            void handoff.then((r) => {
+              if (r === 'cancelled' || r === 'failed') return;
+              setOpened(true);
+              // Kept so the bill shows it was reminded; the app never sends a message itself.
+              if (live) void reminderOpened({ documentId: live.documentId, tone, language: lang, text });
             });
           }}
           aria-pressed={opened}

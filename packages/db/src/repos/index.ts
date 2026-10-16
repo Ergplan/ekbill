@@ -7,11 +7,14 @@
 export const REPOSITORIES = [
   'businesses',
   'customers',
+  'document-files',
   'documents',
   'files',
   'imports',
   'items',
   'memberships',
+  'payments',
+  'reminders',
   'series',
   'users',
 ] as const;

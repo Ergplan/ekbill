@@ -13,5 +13,11 @@
   "customerInput.id": "customers.id (the row changed; absent for a new customer)",
   "itemInput.id": "items.id (the row changed; absent for a new item)",
   "commitImportInput.importId": "imports.id (status → committed)",
-  "commitImportInput.rowIds": "import_rows.id → customers (one per ticked row)"
+  "commitImportInput.rowIds": "import_rows.id → customers (one per ticked row)",
+  "issueBillInput.id": "documents.id (the draft a refused attempt left; updated, never a second draft)",
+  "issueBillInput.customerLanguage": "customers.language (the customer the form adds)",
+  "issueBillInput.lines": "derived: engine parseQuantity/parseMoney → documents.lines (IssueLine[])",
+  "creditNoteBillInput.amount": "derived: engine proportionalCredit → documents.lines of the credit note",
+  "paymentInput.amount": "derived: engine parseMoney → payments.amount_paise",
+  "reversalInput.id": "payments.id (the entry reversed)"
 }

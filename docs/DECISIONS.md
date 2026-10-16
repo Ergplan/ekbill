@@ -472,3 +472,72 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `playwright.config.ts` passes `AUTH_MODE=switcher` and the dev database to the dev server and the worker it starts, and starts the worker beside the dev server.
 - Why: the journeys depended on a shell variable that a restarted shell did not have.
 - Asked by: the Stage 5 Playwright run.
+
+### Search is a generated column, not a job
+
+- Decision: `documents.search` is a stored generated `tsvector` over the number, the customer's name and GSTIN, with a GIN index; `listBills` matches it or an `ilike` on the number and name.
+- Options: the master prompt's "search index job" in the worker.
+- Why: Postgres keeps a generated column right on every write, inside the same transaction; a job would lag the bill the owner just made, and there is nothing to index outside the row.
+- Asked by: the Stage 6 prompt (search index job).
+
+### "Bill banao" drafts and issues in one action
+
+- Decision: `issueBill` creates the draft (startDocument) and calls `issueDocument` in the same request; when the engine refuses, the draft stays and its id goes back to the form, which sends it with the next try (`updateDraft`), so one bill is one draft.
+- Options: saving a draft on every keystroke (the form keeps the half-typed bill in the tab, as in Stage 1).
+- Why: the owner taps once; nothing is left half-issued (I2); a refused bill is not lost.
+- Asked by: the Stage 6 prompt (startDocument, issue via issueDocument).
+
+### The shared format is printed at issue, the rest by the worker
+
+- Decision: the format and paper the business shares (`bill_share_as`, `bill_paper`) are printed and kept inside `issueBill` (budget 3 s); `render-other-sizes` prints the other seven combinations of the business's design; a render that fails leaves the bill issued and the file route prints it on the first ask.
+- Why: the WhatsApp tap on the done screen should find its file waiting; a printer failure must never undo or repeat an issue (I2).
+- Asked by: the Stage 6 prompt (budget 3 s; other sizes on demand).
+
+### The accountant reads files without keeping them
+
+- Decision: `printAndKeep` for a role that may not keep a file (the accountant) prints from the snapshot and returns the bytes without storing them.
+- Why: reading is the accountant's; keeping a file is a write (`storeRendering` is owner and staff).
+- Asked by: the roles table (I8) meeting the download route.
+
+### A credit note's amount follows the bill's own rates
+
+- Decision: "Rakam kam karo" takes one amount and a reason; `makeCreditNote` splits it over the bill's rate summary in the bill's proportion, each part tax-inclusive at its rate, so the GST reversed matches the GST charged.
+- Options: one line at the first line's rate (the seed's way for its single-rate bill).
+- Why: a bill with lines at 5 % and 18 % would otherwise reverse the wrong tax.
+- Asked by: the approved credit-note screen (one amount, one reason).
+
+### A bill with a credit note is not cancelled
+
+- Decision: the bill view hides "Cancel karke naya banao" once a credit note is issued against the bill; the repository refuses it anyway (`credit-note-exists`).
+- Why: the bill is corrected already; cancelling it too would leave a credit note against nothing.
+- Asked by: the owner journey in `tests/e2e/bills.spec.ts`.
+
+### The seed's businesses match the fixtures
+
+- Decision: Sharma Electricals' seeded GSTIN is the fixture's `27AAAAA0000A1Z2` (the seed had given it Mehta Traders' GSTIN, which the engine refuses as self-billing); the seeded series are the fixture's (INV-, AMC-, CN-; BOS-, GKCN-) without the year, so INV-031 is INV-031.
+- Why: the seed issues the fixture bills through `issueDocument`, and the screens' numbers are the approved ones.
+- Asked by: `self-billing` on the first seed run.
+
+### A look stays on the fixtures
+
+- Decision: `scopeOf(viewer)` is null for a `?as=` look even with a session cookie; the bill screens, Home and the dues read the fixtures for it; the customer screens map their real rows to fixture keys for a look.
+- Why: a look is the /flow review and the Stage 1 baselines, not an identity.
+- Asked by: I10.
+
+### A walk-in's place of supply
+
+- Decision: a bill without GST for a customer with no state on record is a supply at the counter (the seller's state); a tax invoice of a regular business asks the state (the CheckStrip's "Chuno", with every state under "Doosra state").
+- Why: the engine blocks a tax invoice without a place of supply; asking only where it matters keeps the walk-in bill at three fields.
+- Asked by: `missing-place-of-supply` on the first seed run.
+
+### The daily dues list is logged, not sent
+
+- Decision: `dues-today` runs at 08:00 IST, reads `businessesWithBills()` (ids only, outside any tenant), then per business as its owner (actor `system`) lists what falls due today and what is past due; it logs the counts and sends nothing.
+- Why: the master prompt says no auto-sending; the owner opens each reminder in WhatsApp.
+- Asked by: the Stage 6 prompt (a worker job listing "due today").
+
+### Playwright seeds in its own Node
+
+- Decision: `tests/e2e/global-setup.ts` runs `tests/e2e/prepare.ts` with `--conditions=react-server`; it seeds, cancels today's test bills and reverses today's test payments on fixture bills, so a rerun meets neither the duplicate guard nor paid-off dues.
+- Why: the seed now issues bills through the repositories, which import `server-only`.
+- Asked by: the first full Playwright run of Stage 6.

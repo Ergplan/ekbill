@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 
 import { t } from '@ekbill/copy';
 import { parseMoney } from '@ekbill/engine';
@@ -22,7 +22,10 @@ import {
   StatusPill,
 } from '@ekbill/ui';
 
+import { cancelBill, recordMoney, reverseMoney } from '../../actions/bills';
 import { rupees } from '../money';
+import { sayRefusal } from '../refusal';
+import { billFileUrl, handoffWithFile } from '../share';
 import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
@@ -49,7 +52,14 @@ export function BillViewScreen({
   const [paidOpen, setPaidOpen] = useState(openPaid && canMoney && bill.duePaise > 0);
   const [mode, setMode] = useState<'all' | 'part' | null>(null);
   const [amount, setAmount] = useState('');
-  const [date, setDate] = useState(TODAY);
+  const live = data.live;
+  const [date, setDate] = useState(live?.today ?? TODAY);
+  const [pending, startTransition] = useTransition();
+  const [problem, setProblem] = useState<string | null>(null);
+  const [adjustOpen, setAdjustOpen] = useState(false);
+  const [adjustNote, setAdjustNote] = useState('');
+  const [reverseId, setReverseId] = useState<string | null>(null);
+  const [reverseReason, setReverseReason] = useState('');
   const [method, setMethod] = useState<Method>('upi');
   // Every amount recorded on this screen, in order; the due is the bill's due minus all of them.
   const [recorded, setRecorded] = useState<Array<{ paise: number; method: Method; date: string }>>([]);
@@ -59,16 +69,95 @@ export function BillViewScreen({
   const due = Math.max(0, bill.duePaise - recordedPaise);
   const status = recorded.length ? (due === 0 ? 'paid' : 'partial') : bill.status;
   const last = recorded[recorded.length - 1] ?? null;
+  const fileName = `${bill.number.replace(/[^A-Za-z0-9._-]+/g, '-')}.${data.share}`;
 
+  /** A server write, then the page again from the server (the balance is never kept on the phone). */
+  const act = (
+    run: () => Promise<{ ok: true } | ({ ok: false } & Parameters<typeof sayRefusal>[0])>,
+    after?: () => void,
+  ) => {
+    setProblem(null);
+    startTransition(async () => {
+      const r = await run();
+      if (!r.ok) {
+        setProblem(sayRefusal(r));
+        return;
+      }
+      after?.();
+      router.refresh();
+    });
+  };
   const record = (paise: number) => {
+    if (live) {
+      act(
+        () =>
+          recordMoney({
+            documentId: live.documentId,
+            kind: 'payment',
+            amount: (paise / 100).toFixed(2),
+            date,
+            method,
+          }),
+        () => {
+          setAmount('');
+          setPaidOpen(false);
+          setMode(null);
+        },
+      );
+      return;
+    }
     setRecorded((cur) => [...cur, { paise, method, date }]);
     setAmount('');
     setPaidOpen(false);
     setMode(null);
   };
+  const redoHref = () =>
+    bill.customer
+      ? `/bills/new?customer=${bill.customer}&redo=${encodeURIComponent(bill.number)}`
+      : `/bills/new?new=1&name=${encodeURIComponent(data.customerName)}&redo=${encodeURIComponent(bill.number)}`;
   const cancelAndRedo = () => {
-    router.push(as(`/bills/new?customer=${bill.customer}&redo=${bill.number}`));
+    if (live) {
+      act(
+        () => cancelBill({ id: live.documentId, cancelledReason: reason }),
+        () => router.push(as(redoHref())),
+      );
+      return;
+    }
+    router.push(as(redoHref()));
   };
+  const shareAgain = () => {
+    if (!live) return;
+    void handoffWithFile({
+      phone: data.customerPhone,
+      title: `${data.paper.title} ${bill.number}`,
+      text: t('done.wa.text', {
+        customer: data.customerName,
+        business: data.paper.seller.name,
+        title: data.paper.title,
+        number: bill.number,
+        amount: rupees(bill.totalPaise),
+      }),
+      file: {
+        url: billFileUrl(live.documentId, data.share, live.paperSize),
+        name: fileName,
+        type: data.share === 'pdf' ? 'application/pdf' : 'image/jpeg',
+      },
+    }).then((r) => {
+      if (r === 'failed') setProblem(t('done.file.error'));
+    });
+  };
+  const download = live ? (
+    <a
+      className="eb-btn eb-btn--ghost"
+      data-guide="download"
+      href={billFileUrl(live.documentId, data.share, live.paperSize, true)}
+      download={fileName}
+    >
+      {t('view.download')}
+    </a>
+  ) : (
+    <OutlineButton data-guide="download">{t('view.download')}</OutlineButton>
+  );
 
   return (
     <AppShell
@@ -114,18 +203,57 @@ export function BillViewScreen({
             <OutlineButton data-guide="remind" onClick={() => router.push(as(`/bills/${bill.number}/remind`))}>
               {t('action.remind')}
             </OutlineButton>
-            <OutlineButton data-guide="wa">{t('view.wa.again')}</OutlineButton>
-            <OutlineButton data-guide="download">{t('view.download')}</OutlineButton>
+            <OutlineButton data-guide="wa" onClick={shareAgain}>
+              {t('view.wa.again')}
+            </OutlineButton>
+            {download}
           </div>
+          {live && canFix ? (
+            <GhostButton data-guide="adjust" onClick={() => setAdjustOpen(true)}>
+              {t('view.adjust')}
+            </GhostButton>
+          ) : null}
         </div>
       ) : (
         <div className="eb-actions">
           {canMoney && status !== 'cancelled' ? (
-            <OutlineButton data-guide="wa">{t('view.wa.again')}</OutlineButton>
+            <OutlineButton data-guide="wa" onClick={shareAgain}>
+              {t('view.wa.again')}
+            </OutlineButton>
           ) : null}
-          <OutlineButton data-guide="download">{t('view.download')}</OutlineButton>
+          {download}
         </div>
       )}
+      {problem ? (
+        <p className="eb-meta" role="alert" style={{ whiteSpace: 'pre-line' }}>
+          {problem}
+        </p>
+      ) : null}
+      {live && live.reminders > 0 ? <Meta>{t('view.reminded', { n: live.reminders })}</Meta> : null}
+
+      {live && live.entries.length ? (
+        <section className="eb-card eb-rows" data-guide="entries" aria-label={t('view.entries')}>
+          <h2 className="eb-meta">{t('view.entries')}</h2>
+          {live.entries.map((e) => (
+            <div key={e.id} className="eb-billrow">
+              <span style={e.reversed ? { textDecoration: 'line-through' } : undefined}>
+                {e.kind === 'payment'
+                  ? t('view.entry.payment', {
+                      amount: rupees(e.amountPaise),
+                      date: shortDate(e.date),
+                      method: t(`view.paid.${e.method ?? 'other'}`),
+                    })
+                  : t('view.entry.adjustment', { amount: rupees(e.amountPaise), date: shortDate(e.date) })}
+              </span>
+              {e.reversed ? (
+                <Meta>{t('view.entry.reversed', { reason: e.reversalReason ?? '' })}</Meta>
+              ) : canFix && status !== 'cancelled' ? (
+                <GhostButton onClick={() => setReverseId(e.id)}>{t('view.entry.reverse')}</GhostButton>
+              ) : null}
+            </div>
+          ))}
+        </section>
+      ) : null}
 
       {data.creditNote ? (
         <Meta>
@@ -145,7 +273,10 @@ export function BillViewScreen({
         <details className="eb-folded" data-guide="mistake">
           <summary>{t('view.mistake')}</summary>
           <div className="eb-folded__body">
-            <OutlineButton onClick={() => setCancelOpen(true)}>{t('view.cancel')}</OutlineButton>
+            {data.creditNote ? null : (
+              // A bill with a credit note is corrected already; it is not cancelled on top (the engine refuses).
+              <OutlineButton onClick={() => setCancelOpen(true)}>{t('view.cancel')}</OutlineButton>
+            )}
             <OutlineButton onClick={() => router.push(as(`/bills/${bill.number}/credit-note`))}>
               {t('view.credit')}
             </OutlineButton>
@@ -197,12 +328,14 @@ export function BillViewScreen({
               ]}
             />
             <AccentButton
+              disabled={pending}
               onClick={() => {
                 try {
                   const p = parseMoney(amount);
-                  if (p > 0) record(Math.min(p, due));
+                  // A look clamps to what is due; a real bill lets the engine say "more than due".
+                  if (p > 0) record(live ? p : Math.min(p, due));
                 } catch {
-                  // the field keeps focus; nothing recorded
+                  setProblem(t('pay.error.amount'));
                 }
               }}
             >
@@ -227,11 +360,104 @@ export function BillViewScreen({
             maxLength={120}
           />
         </Field>
-        <AccentButton disabled={!reason.trim()} onClick={cancelAndRedo}>
+        <AccentButton disabled={!reason.trim() || pending} onClick={cancelAndRedo}>
           {t('view.cancel.go')}
         </AccentButton>
         <GhostButton onClick={() => setCancelOpen(false)}>{t('action.cancel')}</GhostButton>
       </Sheet>
+
+      {live ? (
+        <Sheet
+          open={adjustOpen}
+          title={t('view.adjust.q')}
+          onClose={() => setAdjustOpen(false)}
+          closeLabel={t('action.cancel')}
+        >
+          <Field id="adjust-amount" label={t('view.paid.amount')}>
+            <Input
+              id="adjust-amount"
+              numeric
+              large
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </Field>
+          <Field id="adjust-note" label={t('view.adjust.note')}>
+            <Input
+              id="adjust-note"
+              value={adjustNote}
+              onChange={(e) => setAdjustNote(e.target.value)}
+              maxLength={200}
+            />
+          </Field>
+          {problem ? (
+            <p className="eb-meta" role="alert">
+              {problem}
+            </p>
+          ) : null}
+          <AccentButton
+            disabled={!amount.trim() || pending}
+            onClick={() =>
+              act(
+                () =>
+                  recordMoney({
+                    documentId: live.documentId,
+                    kind: 'adjustment',
+                    amount,
+                    date,
+                    note: adjustNote || null,
+                  }),
+                () => {
+                  setAmount('');
+                  setAdjustNote('');
+                  setAdjustOpen(false);
+                },
+              )
+            }
+          >
+            {t('view.adjust.save')}
+          </AccentButton>
+        </Sheet>
+      ) : null}
+
+      {live ? (
+        <Sheet
+          open={reverseId !== null}
+          title={t('view.entry.reverse.q')}
+          onClose={() => setReverseId(null)}
+          closeLabel={t('action.cancel')}
+        >
+          <Field id="reverse-reason" label={t('view.entry.reverse.q')}>
+            <Input
+              id="reverse-reason"
+              autoFocus
+              value={reverseReason}
+              onChange={(e) => setReverseReason(e.target.value)}
+              maxLength={200}
+            />
+          </Field>
+          {problem ? (
+            <p className="eb-meta" role="alert">
+              {problem}
+            </p>
+          ) : null}
+          <AccentButton
+            disabled={!reverseReason.trim() || pending}
+            onClick={() =>
+              act(
+                () => reverseMoney({ id: reverseId, reversalReason: reverseReason }),
+                () => {
+                  setReverseId(null);
+                  setReverseReason('');
+                },
+              )
+            }
+          >
+            {t('view.entry.reverse.go')}
+          </AccentButton>
+        </Sheet>
+      ) : null}
     </AppShell>
   );
 }

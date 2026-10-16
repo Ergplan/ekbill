@@ -1,5 +1,9 @@
-import { TODAY, type Business } from '../fixtures';
-import { billsOf, customersOf, rowOf, unpaidOf, type RowData } from '../common';
+import { customers as customerRepo } from '@ekbill/db';
+
+import { type Business } from '../fixtures';
+import { customersOf, type RowData } from '../common';
+import { ledgerOf, scopeOf, unpaidRows } from '../live';
+import { avatarIndex } from '../people';
 import type { Viewer } from '../viewer';
 
 export interface HomeData {
@@ -17,11 +21,18 @@ export interface HomeData {
   owed: { totalPaise: number; people: number; oldestDays: number; rows: RowData[] };
 }
 
-/** Home: three questions. Chips by recency; counts for this month; dues oldest first. */
-export function loadHome(viewer: Viewer): HomeData {
+/** Home: three questions. Chips by recency; counts for this month; dues oldest first (Stage 6: the documents). */
+export async function loadHome(viewer: Viewer): Promise<HomeData> {
   const b = viewer.business;
-  // No business yet, or a business set up today with nothing in it (Stages 5–6 fill it): the first-bill welcome.
-  if (!b || (billsOf(b).length === 0 && customersOf(b).length === 0)) {
+  const scope = scopeOf(viewer);
+  const ledger = await ledgerOf(viewer);
+  const customers = !b
+    ? []
+    : scope
+      ? (await customerRepo.listCustomers(scope)).map((c) => ({ id: c.id, name: c.name, index: avatarIndex(c.id) }))
+      : customersOf(b).map((c) => ({ id: c.id, name: c.name, index: c.index }));
+  // No business yet, or a business set up today with nothing in it: the first-bill welcome.
+  if (!b || (ledger.bills.length === 0 && customers.length === 0)) {
     return {
       kind: 'new',
       personName: viewer.person.name,
@@ -37,22 +48,22 @@ export function loadHome(viewer: Viewer): HomeData {
       owed: { totalPaise: 0, people: 0, oldestDays: 0, rows: [] },
     };
   }
-  const bills = billsOf(b);
-  const customers = customersOf(b);
+  const bills = ledger.bills;
+  const today = ledger.today;
   const lastBillOf = new Map<string, string>();
   for (const bill of bills) if (!lastBillOf.has(bill.customer)) lastBillOf.set(bill.customer, bill.date);
   const byRecency = [...customers].sort((x, y) =>
     (lastBillOf.get(y.id) ?? '').localeCompare(lastBillOf.get(x.id) ?? ''),
   );
-  const month = TODAY.slice(0, 7);
+  const month = today.slice(0, 7);
   const sent = bills.filter((x) => x.status !== 'cancelled');
   const weeks = Array.from({ length: 8 }, (_, i) => {
-    const end = Date.parse(TODAY) - (7 - i) * 7 * 86_400_000;
+    const end = Date.parse(today) - (7 - i) * 7 * 86_400_000;
     const start = end - 7 * 86_400_000;
     return sent.filter((x) => Date.parse(x.date) > start && Date.parse(x.date) <= end).length;
   });
-  const unpaid = unpaidOf(b);
-  const rows = unpaid.map((x) => rowOf(b, x));
+  const rows = unpaidRows(ledger);
+  const rowOfBill = new Map(ledger.bills.map((x, i) => [x, ledger.rows[i]!]));
   return {
     kind: viewer.role === 'owner' ? 'owner' : viewer.role,
     personName: viewer.person.name,
@@ -63,7 +74,7 @@ export function loadHome(viewer: Viewer): HomeData {
     customerCount: customers.length,
     showSearch: customers.length > 8,
     sentThisMonth: sent.filter((x) => x.date.startsWith(month)).length,
-    recent: sent.slice(0, 3).map((x) => rowOf(b, x)),
+    recent: sent.slice(0, 3).map((x) => rowOfBill.get(x)!),
     sparkline: weeks,
     owed: {
       totalPaise: rows.reduce((s, r) => s + r.duePaise, 0),

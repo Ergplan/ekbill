@@ -108,8 +108,8 @@ export const SEED = {
       // A regular registrant in Maharashtra, ₹5 lakh a year, e-invoicing answered "no".
       profile: {
         registrationType: 'regular',
-        gstin: '27AAPFU0939F1ZV',
-        pan: 'AAPFU0939F',
+        gstin: '27AAAAA0000A1Z2',
+        pan: 'AAAAA0000A',
         stateCode: '27',
         turnoverBand: '40l',
         turnoverPaise: 400000000,
@@ -119,14 +119,23 @@ export const SEED = {
         phone: '+919822012345',
         upi: 'sharma.electricals@upi',
       },
+      // The fixture's series (Stage 6): the seed issues INV-031… and AMC-004… through them, so the next bill is INV-045.
       series: [
         {
           id: '00000000-0000-4000-a000-000000000011',
-          name: 'Bills',
+          name: 'INV',
           kind: 'bill',
           prefix: 'INV-',
           padding: 3,
-          includeFy: true,
+          includeFy: false,
+        },
+        {
+          id: '00000000-0000-4000-a000-000000000013',
+          name: 'AMC',
+          kind: 'bill',
+          prefix: 'AMC-',
+          padding: 3,
+          includeFy: false,
         },
         {
           id: '00000000-0000-4000-a000-000000000012',
@@ -134,7 +143,7 @@ export const SEED = {
           kind: 'credit_note',
           prefix: 'CN-',
           padding: 3,
-          includeFy: true,
+          includeFy: false,
         },
       ],
     },
@@ -164,18 +173,18 @@ export const SEED = {
       series: [
         {
           id: '00000000-0000-4000-a000-000000000021',
-          name: 'Bills',
+          name: 'BOS',
           kind: 'bill',
-          prefix: 'GK/',
-          padding: 4,
+          prefix: 'BOS-',
+          padding: 3,
           includeFy: false,
         },
         {
           id: '00000000-0000-4000-a000-000000000022',
           name: 'Credit notes',
           kind: 'credit_note',
-          prefix: 'GKCN/',
-          padding: 4,
+          prefix: 'GKCN-',
+          padding: 3,
           includeFy: false,
         },
       ],
@@ -275,7 +284,13 @@ export function seedAllowed(url: string, env: NodeJS.ProcessEnv = process.env): 
 }
 
 /** Upsert everything, each business in its own scoped transaction (the policies bind the login role too: FORCE RLS). */
-export async function seedBuild(url: string, { log = console.log }: { log?: (s: string) => void } = {}): Promise<void> {
+export async function seedBuild(
+  url: string,
+  {
+    log = console.log,
+    bills = true,
+  }: { log?: (s: string) => void; /** Issue the fixture bills too (Stage 6). */ bills?: boolean } = {},
+): Promise<void> {
   const client = new pg.Client({ connectionString: url });
   await client.connect();
   const db = drizzle(client, { schema });
@@ -428,4 +443,106 @@ export async function seedBuild(url: string, { log = console.log }: { log?: (s: 
   } finally {
     await client.end();
   }
+  if (!bills) return;
+  const issued = await seedBills(url);
+  if (issued) log(`seed: ${issued} fixture bills issued`);
+}
+
+/**
+ * The fixture bills as real documents (Stage 6): issued through
+ * issueDocument in number order (the series moved up to each fixture
+ * number first, so INV-031 is INV-031), then their payments, the cancelled
+ * bill and the credit note, as the owner, actor 'system'. A bill already
+ * there is left alone, so the seed runs again without change.
+ */
+export async function seedBills(url: string): Promise<number> {
+  process.env.DATABASE_URL ??= url;
+  const { createDraft, issueDocument, cancelDocument, createCreditNote, listBills } = await import('./repos/documents');
+  const { recordPayment } = await import('./repos/payments');
+  let issued = 0;
+  for (const b of SEED.businesses) {
+    const bills = fixture.bills.filter((x) => x.business === b.key);
+    if (!bills.length) continue;
+    const owner = seedUser(b.owner)!;
+    const scope = {
+      businessId: b.id,
+      userId: owner.id,
+      role: 'owner' as const,
+      requestId: 'seed',
+      actorKind: 'system' as const,
+    };
+    const have = new Set((await listBills(scope)).map((x) => x.number));
+    const seriesOf = (prefix: string) => b.series.find((sr) => sr.kind === 'bill' && sr.prefix === `${prefix}-`)!;
+    const sorted = [...bills].sort((x, y) => x.number.localeCompare(y.number, 'en', { numeric: true }));
+    for (const bill of sorted) {
+      if (have.has(bill.number)) continue;
+      const sr = seriesOf(bill.series);
+      const sequence = Number(bill.number.replace(/^\D+/, ''));
+      // Move the series to the fixture's number (up only; the bills are issued in number order).
+      const { withTenant } = await import('./scope');
+      await withTenant(scope, async ({ client }) => {
+        await client.query('update series set next_number = greatest(next_number, $2) where id = $1', [
+          sr.id,
+          sequence,
+        ]);
+      });
+      const customerId = seedCustomerId(b.key, bill.customer);
+      const c = fixture.customers.find((x) => x.business === b.key && x.id === bill.customer);
+      const draft = await createDraft(scope, {
+        seriesId: sr.id,
+        customer: {
+          id: customerId,
+          name: c?.name ?? bill.customer,
+          gstin: c?.gstin ?? null,
+          stateCode: c?.stateCode ?? null,
+          phone: c?.phone ?? null,
+        },
+        // A walk-in with no state on record buys at the counter: the seller's state.
+        placeOfSupplyStateCode: c?.stateCode ?? b.profile?.stateCode ?? null,
+        dateIso: bill.date,
+        gstOn: bill.kind === 'tax-invoice',
+        lines: bill.lines.map((l) => ({
+          description: l.what,
+          quantityMilli: Math.round(l.qty * 1000),
+          unitPricePaise: l.ratePaise,
+          gstBp: Math.round((l.gstRate ?? 0) * 100),
+          taxRateChosen: true,
+          hsnCode: null,
+        })),
+      });
+      const doc = await issueDocument(scope, { id: draft.id, today: bill.date });
+      issued += 1;
+      for (const p of fixture.payments.filter((x) => x.business === b.key && x.bill === bill.number)) {
+        await recordPayment(scope, {
+          documentId: doc.id,
+          amountPaise: p.amountPaise,
+          dateIso: p.date,
+          method: p.method,
+          today: p.date,
+        });
+      }
+      if (bill.status === 'cancelled')
+        await cancelDocument(scope, { id: doc.id, reason: bill.cancelledReason ?? 'Galti se bana' });
+      for (const cn of fixture.creditNotes.filter((x) => x.business === b.key && x.bill === bill.number)) {
+        const rate = bill.lines[0]?.gstRate ?? 0;
+        const note = await createCreditNote(scope, {
+          invoiceId: doc.id,
+          dateIso: cn.date,
+          reason: cn.reason,
+          lines: [
+            {
+              description: cn.reason,
+              quantityMilli: 1000,
+              unitPricePaise: cn.amountPaise,
+              gstBp: Math.round(rate * 100),
+              taxRateChosen: true,
+              priceIncludesTax: true,
+            },
+          ],
+        });
+        await issueDocument(scope, { id: note.id, today: cn.date });
+      }
+    }
+  }
+  return issued;
 }

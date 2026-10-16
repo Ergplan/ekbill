@@ -1,4 +1,5 @@
-import { billsOf, rowOf, type RowData } from '../common';
+import type { RowData } from '../common';
+import { ledgerOf } from '../live';
 import type { Viewer } from '../viewer';
 
 export interface BillsData {
@@ -6,9 +7,10 @@ export interface BillsData {
   series: string[];
 }
 
-/** Every bill of the business, newest first; the series the business uses. */
-export function loadBills(viewer: Viewer): BillsData {
+/** Every bill of the business, newest first (Stage 6: the documents, for a session); the series the business uses. */
+export async function loadBills(viewer: Viewer): Promise<BillsData> {
   const b = viewer.business;
   if (!b) return { rows: [], series: [] };
-  return { rows: billsOf(b).map((x) => rowOf(b, x)), series: b.series.map((s) => s.prefix) };
+  const ledger = await ledgerOf(viewer);
+  return { rows: ledger.rows, series: b.series.map((s) => s.prefix) };
 }

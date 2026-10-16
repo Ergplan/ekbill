@@ -2576,5 +2576,173 @@
   "auth.forbidden": {
     "hi-Latn": "Yeh aapke role mein nahi hai",
     "en": "Your role cannot do this"
+  },
+  "form.invalid": {
+    "hi-Latn": "Kuch galat bhara hai, ek baar dekh lo",
+    "en": "Something in the form is not right; please check it"
+  },
+  "auth.signed.out": {
+    "hi-Latn": "Pehle login karo",
+    "en": "Please sign in first"
+  },
+  "auth.no.business": {
+    "hi-Latn": "Pehle dukaan set up karo",
+    "en": "Set up your business first"
+  },
+  "error.generic": {
+    "hi-Latn": "Kuch gadbad ho gayi, dobara try karo",
+    "en": "Something went wrong; please try again"
+  },
+  "bill.refused": {
+    "hi-Latn": "Bill abhi nahi ban sakta:",
+    "en": "The bill cannot be made yet:"
+  },
+  "bill.making": {
+    "hi-Latn": "Bill ban raha hai…",
+    "en": "Making the bill…"
+  },
+  "bill.check.amount": {
+    "hi-Latn": "Kitna aur rate number mein likho",
+    "en": "Write the quantity and rate as numbers"
+  },
+  "bill.dup": {
+    "hi-Latn": "{customer} ka {amount} ka bill {number} {days} din pehle bana tha. Phir se banayein?",
+    "en": "A {amount} bill {number} for {customer} was made {days} days ago. Make another?"
+  },
+  "bill.dup.go": {
+    "hi-Latn": "Haan, naya banao",
+    "en": "Yes, make a new one"
+  },
+  "bill.dup.back": {
+    "hi-Latn": "Nahi, ruko",
+    "en": "No, wait"
+  },
+  "bill.rate.odd": {
+    "hi-Latn": "{what}: pichli baar {last} tha, abhi {now}. Sahi hai?",
+    "en": "{what}: it was {last} last time, now {now}. Is that right?"
+  },
+  "bill.state.not-a-draft": {
+    "hi-Latn": "Yeh bill pehle hi ban chuka hai",
+    "en": "This bill has already been made"
+  },
+  "bill.state.not-issued": {
+    "hi-Latn": "Yeh bill bana hi nahi, ya cancel ho gaya",
+    "en": "This bill was not issued, or is cancelled"
+  },
+  "bill.state.series-inactive": {
+    "hi-Latn": "Yeh number series band hai; Aap mein doosri chuno",
+    "en": "This number series is retired; choose another in You"
+  },
+  "bill.state.series-kind": {
+    "hi-Latn": "Yeh series bills ke liye nahi hai",
+    "en": "This series is not for bills"
+  },
+  "bill.state.credit-note-exists": {
+    "hi-Latn": "Is bill ka credit note pehle se hai",
+    "en": "This bill already has a credit note"
+  },
+  "bill.state.bad-lines": {
+    "hi-Latn": "Kaam ki lines sahi nahi hain",
+    "en": "The lines of work are not right"
+  },
+  "bill.check.state.pick": {
+    "hi-Latn": "Kaunsa state?",
+    "en": "Which state?"
+  },
+  "pay.error.amount": {
+    "hi-Latn": "Rakam sahi likho",
+    "en": "Write a valid amount"
+  },
+  "pay.error.more": {
+    "hi-Latn": "Baaki se zyada nahi likh sakte",
+    "en": "Cannot be more than what is due"
+  },
+  "pay.error.future": {
+    "hi-Latn": "Aage ki taareekh nahi chalegi",
+    "en": "The date cannot be in the future"
+  },
+  "pay.error.before": {
+    "hi-Latn": "Bill ki taareekh se pehle ki nahi ho sakti",
+    "en": "Cannot be before the bill date"
+  },
+  "pay.error.method": {
+    "hi-Latn": "Kaise aaye, woh chuno",
+    "en": "Choose how it was paid"
+  },
+  "pay.error.notIssued": {
+    "hi-Latn": "Is bill pe paise nahi likh sakte",
+    "en": "Money cannot be recorded on this bill"
+  },
+  "pay.error.reason": {
+    "hi-Latn": "Kyun, ek line mein likho",
+    "en": "Write why, in one line"
+  },
+  "view.paid.cheque": {
+    "hi-Latn": "Cheque",
+    "en": "Cheque"
+  },
+  "view.paid.other": {
+    "hi-Latn": "Aur kuch",
+    "en": "Other"
+  },
+  "view.adjust": {
+    "hi-Latn": "Kam karo",
+    "en": "Write off"
+  },
+  "view.adjust.q": {
+    "hi-Latn": "Kitna chhod rahe ho?",
+    "en": "How much are you letting go?"
+  },
+  "view.adjust.note": {
+    "hi-Latn": "Kyun? (ek line, zaroori nahi)",
+    "en": "Why? (one line, optional)"
+  },
+  "view.adjust.save": {
+    "hi-Latn": "Kam karo",
+    "en": "Write it off"
+  },
+  "view.entries": {
+    "hi-Latn": "Paison ka hisaab",
+    "en": "Money against this bill"
+  },
+  "view.entry.payment": {
+    "hi-Latn": "{amount} aaye · {date} · {method}",
+    "en": "{amount} received · {date} · {method}"
+  },
+  "view.entry.adjustment": {
+    "hi-Latn": "{amount} chhoda · {date}",
+    "en": "{amount} written off · {date}"
+  },
+  "view.entry.reversed": {
+    "hi-Latn": "Hata diya: {reason}",
+    "en": "Removed: {reason}"
+  },
+  "view.entry.reverse": {
+    "hi-Latn": "Galat hai? Hatao",
+    "en": "Wrong? Remove it"
+  },
+  "view.entry.reverse.q": {
+    "hi-Latn": "Kyun hata rahe ho?",
+    "en": "Why are you removing it?"
+  },
+  "view.entry.reverse.go": {
+    "hi-Latn": "Hatao",
+    "en": "Remove"
+  },
+  "view.reminded": {
+    "hi-Latn": "{n} baar yaad dilaya",
+    "en": "Reminded {n} times"
+  },
+  "view.credited": {
+    "hi-Latn": "{amount} credit note se kam hua",
+    "en": "{amount} reduced by credit note"
+  },
+  "done.file": {
+    "hi-Latn": "File",
+    "en": "File"
+  },
+  "done.file.error": {
+    "hi-Latn": "File abhi nahi bani; Download se dobara try karo",
+    "en": "The file is not ready; try Download again"
   }
 }

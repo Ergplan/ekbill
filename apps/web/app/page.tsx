@@ -6,5 +6,5 @@ export const dynamic = 'force-dynamic';
 
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const viewer = await getViewer(await searchParams);
-  return <HomeScreen data={loadHome(viewer)} viewer={shellOf(viewer)} />;
+  return <HomeScreen data={await loadHome(viewer)} viewer={shellOf(viewer)} />;
 }

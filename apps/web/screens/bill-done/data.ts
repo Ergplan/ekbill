@@ -1,6 +1,9 @@
 import type { PaperData } from '@ekbill/ui';
 
+import { customers, documents } from '@ekbill/db';
+
 import { billsOf, customerOf } from '../common';
+import { paperOfDocument, scopeOf } from '../live';
 import { paperOfBill } from '../paper';
 import type { Viewer } from '../viewer';
 
@@ -8,6 +11,43 @@ export interface BillDoneData {
   /** The paper the screen shows until the issued draft (sessionStorage) replaces it; blank for a brand-new owner. */
   fallback: PaperData;
   share: 'pdf' | 'jpg';
+  /** The issued bill (Stage 6): the paper from its snapshot, the file to share, the customer's number. */
+  live: {
+    documentId: string;
+    number: string;
+    customerId: string | null;
+    customerName: string;
+    customerPhone: string | null;
+    totalPaise: number;
+    paper: PaperData;
+    paperSize: 'a4' | 'a5' | '80mm' | '58mm';
+  } | null;
+}
+
+/** The done screen of a bill just issued, by its id (the form sends you here). */
+export async function loadIssued(viewer: Viewer, id: string): Promise<BillDoneData | null> {
+  const scope = scopeOf(viewer);
+  if (!scope || !viewer.business || viewer.role === 'accountant') return null;
+  const docId = await documents.findBill(scope, id);
+  if (!docId) return null;
+  const doc = await documents.getDocument(scope, docId);
+  if (doc.status !== 'issued' || doc.kind === 'credit_note') return null;
+  const customer = doc.customerId ? await customers.getCustomer(scope, doc.customerId).catch(() => null) : null;
+  const paper = paperOfDocument(doc);
+  return {
+    fallback: paper,
+    share: viewer.business.look.share,
+    live: {
+      documentId: doc.id,
+      number: doc.number ?? '',
+      customerId: doc.customerId,
+      customerName: doc.customerName,
+      customerPhone: customer?.phone ?? doc.customerPhone,
+      totalPaise: doc.totals?.totalPaise ?? 0,
+      paper,
+      paperSize: viewer.loaded?.profile.look.paper ?? 'a4',
+    },
+  };
 }
 
 /** The done screen's data: the newest fixture bill as the fallback paper, the business's share format. */
@@ -26,6 +66,7 @@ export function loadBillDone(viewer: Viewer): BillDoneData | null {
         totalPaise: 0,
       },
       share: 'pdf',
+      live: null,
     };
   }
   const bill = billsOf(b).find((x) => x.status !== 'cancelled');
@@ -52,7 +93,12 @@ export function loadBillDone(viewer: Viewer): BillDoneData | null {
         ...brand,
       },
       share: b.look.share,
+      live: null,
     };
   }
-  return { fallback: { ...paperOfBill(b, bill, customerOf(b, bill.customer)), ...brand }, share: b.look.share };
+  return {
+    fallback: { ...paperOfBill(b, bill, customerOf(b, bill.customer)), ...brand },
+    share: b.look.share,
+    live: null,
+  };
 }
