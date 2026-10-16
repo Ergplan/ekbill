@@ -11,7 +11,10 @@ import * as schema from './schema';
  * /dev/switch). Deterministic ids, so the fixture screens (Stage 1, until
  * Stages 4–9 wire them) can map a session to their persona by key. Three
  * businesses with owner, staff and accountant each, and one owner with no
- * business yet. Idempotent: run it again and nothing changes.
+ * business yet. Run it again and it puts the build's test data back as the
+ * fixture has it (people's settings, memberships, the businesses' profiles):
+ * deploy/vm/up.sh runs it on every deploy in switcher mode. Bills already
+ * there are left alone.
  */
 export const SEED = {
   users: [

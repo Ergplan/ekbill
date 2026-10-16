@@ -67,6 +67,26 @@ test('the theme persists per user: Sharma ji picks Harmony, Ravi stays Narangi, 
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'narangi');
 });
 
+test('the language is saved for the person: Ravi picks English, it is there after a reload, then Hinglish again', async ({
+  page,
+}) => {
+  await page.goto('/dev/switch/ravi?to=/aap');
+  await hydrated(page);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'hi-Latn');
+  await page.getByRole('radio', { name: 'English' }).click();
+  await page.waitForTimeout(500); // the action's round trip
+  await page.reload();
+  await hydrated(page);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en-IN');
+  await expect(page.getByRole('radio', { name: 'English' })).toBeChecked();
+  // Leave Ravi as the seed has him.
+  await page.getByRole('radio', { name: 'Hinglish' }).click();
+  await page.waitForTimeout(500);
+  await page.reload();
+  await hydrated(page);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'hi-Latn');
+});
+
 test('in the build the OTP door is closed (404) and the switcher is the door', async ({ request }) => {
   const res = await request.post('/api/auth/otp', { data: { idToken: 'x'.repeat(40) } });
   expect(res.status()).toBe(404);

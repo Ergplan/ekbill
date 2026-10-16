@@ -443,7 +443,12 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
           control={
             <ThemeSwitch
               labels={{ narangi: t('theme.narangi'), harmony: t('theme.harmony'), group: t('aap.theme') }}
-              onChange={(theme) => void setTheme({ theme })}
+              onChange={(theme) =>
+                void setTheme({ theme }).then(
+                  (r) => (r.ok ? undefined : setNotice({ kind: 'error', text: t(r.error) })),
+                  () => setNotice({ kind: 'error', text: t('error.generic') }),
+                )
+              }
             />
           }
         />
@@ -456,8 +461,17 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
               label={t('aap.lang')}
               value={lang}
               onChange={(v) => {
+                const was = lang;
                 setLang(v);
-                void setLanguage({ language: v });
+                // A save that fails says so and puts the choice back: the screen never shows what was not kept.
+                const undo = (text: string) => {
+                  setLang(was);
+                  setNotice({ kind: 'error', text });
+                };
+                void setLanguage({ language: v }).then(
+                  (r) => (r.ok ? undefined : undo(t(r.error))),
+                  () => undo(t('error.generic')),
+                );
               }}
               options={[
                 { value: 'hi-Latn', label: t('aap.lang.hi') },

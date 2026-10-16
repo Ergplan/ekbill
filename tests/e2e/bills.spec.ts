@@ -141,7 +141,7 @@ test('a line naming a saved item carries its unit onto the bill', async ({ page 
   await hydrated(page);
   await page.getByLabel('Customer ka naam').fill(`Unit check ${String(Date.now()).slice(-6)}`);
   await page.getByLabel('Kya kiya?').first().fill('Ceiling fan install');
-  await page.getByLabel('Qty').first().fill('2');
+  await page.getByLabel('Kitna').first().fill('2');
   await page.getByLabel('Rate (₹)').first().fill('1350');
   await sameState(page);
   await page.getByRole('button', { name: /Bill banao/ }).click();

@@ -11,11 +11,12 @@ What is done:
 - coverage of the unit and integration runs
 - dependency upgrades: no high or critical advisory left
 - CI that runs everything and reports everything (it had been stopping early since Stage 3)
-- thirty-three real defects, fixed with tests that fail without the fix:
+- forty-three real defects, fixed with tests that fail without the fix:
   - The coverage runs, the clean-clone run and CI found four, one of which broke every bill link for a new business.
   - A review of what the seed never exercises found eleven: money, numbering and GST.
   - A review of the boundaries and the money's states found nine, among them credit notes past the bill and cancelled bills that kept their money.
   - A review of the worker, model output and the commits found nine, among them the voice able to record a payment and one photo made into two bills.
+  - A review of GST compliance found ten, among them bills with GST off missing from GSTR-1 and rates the law no longer has.
 - the README: what EkBill is, how to run and deploy it, the design pack
 - `mvp-final` resolves in Ergplan/easybills (`7173c46`)
 
@@ -121,6 +122,27 @@ A third agent read the worker and its jobs, every path a model's answer takes, a
 | The nightly jobs              | Walked load-test and archived businesses (embedding calls for synthetic bills)                                                                          | Real, active businesses only                                                                                                                                                 |
 | Queue options                 | Whoever created a queue first set them for good                                                                                                         | The worker applies its own on every start                                                                                                                                    |
 | Photo corrections             | Whatever the screen sent                                                                                                                                | Worked out on the server from the reading and the bill                                                                                                                       |
+
+## A fourth review: GST compliance
+
+A fourth agent read the engine, the rule pack, the printed bill and the returns against the CGST Act and Rules and GSTN's formats (read only). It reported ten findings. Each was verified here. Eight are fixed and two in part, each with a test that fails without the fix:
+
+| Finding                                 | Before                                                                                                                                    | Now                                                                                                                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| GST off on a regular business's bill    | Printed "INVOICE"; stored as a bill of supply and left out of GSTR-1 altogether                                                           | A bill of supply (s. 31(3)(c)) without the composition legend, in Table 8, Table 13's range and 3B 3.1(c)                                |
+| Nil-rated parts                         | A 0 % line went into B2B or B2CS at rate 0, and into the taxable total                                                                    | GSTR-1 Table 8 (new: by supply type, in the CA pack and `gstr1.json`); the taxable total counts the taxed parts                          |
+| Credit note against a B2C Large invoice | Netted into B2CS                                                                                                                          | CDNUR, type B2CL, from the linked invoice's value; every note names its invoice                                                          |
+| GSTR-3B 3.2                             | Counted the invoices but not the credit notes                                                                                             | Inter-State credit notes to unregistered customers netted by State                                                                       |
+| Rates                                   | Any rate issued: 12 % on a 2026 bill                                                                                                      | A rate the pack does not have on the bill's date is refused (`selectable-rates-gst2`)                                                    |
+| Composition, out of State               | Issued                                                                                                                                    | Refused (s. 10(2)(c) and 10(2A))                                                                                                         |
+| e-invoicing                             | Applied to walk-in bills too; an owner's "Nahi" above ₹5 crore was only noted                                                             | B2B only. The "Nahi" stays a notice: it is the only way to state an exemption (KNOWN-GAPS)                                               |
+| Quarterly 3B due dates                  | Chhattisgarh, Madhya Pradesh, and Andaman and Nicobar on the 24th                                                                         | Group A, the 22nd (Notification 76/2020)                                                                                                 |
+| Rules 46 and 53 on paper                | No reverse-charge statement; the counter receipt had no HSN, no buyer address or State, no place of supply, no invoice date on a note     | All printed, the place of supply with its code                                                                                           |
+| HSN summary and units                   | A service carried a unit and a quantity; a credit note subtracted its "1"; credit-note lines had no HSN; a bill line lost the item's unit | SAC: UQC NA, quantity 0; notes net the value only; notes split by the bill's HSN, rate and unit; the unit is on the line and the preview |
+
+In part: a B2B line with no HSN and a large B2C bill with no address are warned about or refused by the engine, but the bill form has no field for either (KNOWN-GAPS). The HSN table is still one list, not split into B2B and B2C.
+
+Found while fixing: the seed put the composition dealer in Kanpur and its customers in Maharashtra, so every one of its bills was an inter-State supply. The block found it. The fixture and its generator now put the customers in Uttar Pradesh. The 12 % line in the integration suite's hand-computed quarter is now 5 %.
 
 ## Dependencies
 

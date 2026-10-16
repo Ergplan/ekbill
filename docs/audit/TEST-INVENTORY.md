@@ -7,8 +7,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
 | unit        | 39    | 368    |
-| integration | 23    | 260    |
-| e2e         | 16    | 61     |
+| integration | 23    | 262    |
+| e2e         | 16    | 62     |
 
 ## unit
 
@@ -641,6 +641,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the application role scoped to A sees A and not B (the cross-tenant query of the report)
 - a write outside the scope is refused by the policy
 - a model actor may not insert into an authoritative table, even inside a valid scope
+- a model actor may not change a personâ€™s settings either (users: Stage 2 review)
+- a model call outside a business is its personâ€™s alone (ai_calls: Stage 2 review)
 - the application role cannot write the audit trail directly
 
 ### `tests/integration/roles.test.ts`
@@ -886,6 +888,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - switch to the owner of Sharma Electricals and see Sharma; to the staff of Gupta Kirana and see Gupta
 - the brand-new owner lands on welcome; an unknown person goes back to the list
 - the theme persists per user: Sharma ji picks Harmony, Ravi stays Narangi, Sharma ji is still Harmony
+- the language is saved for the person: Ravi picks English, it is there after a reload, then Hinglish again
 - in the build the OTP door is closed (404) and the switcher is the door
 
 ### `tests/e2e/kit.spec.ts` Ã—

@@ -79,6 +79,48 @@ describe('row-level security and the model-actor refusal (raw connections)', () 
     await client.query('rollback');
   });
 
+  it('a model actor may not change a person’s settings either (users: Stage 2 review)', async () => {
+    const owner = '00000000-0000-4000-8000-000000000001';
+    await client.query('begin');
+    await client.query('set local role ekbill_app');
+    await client.query("select set_config('app.user_id', $1, true), set_config('app.actor_kind', 'model', true)", [
+      owner,
+    ]);
+    await expect(client.query("update users set theme = 'harmony' where id = $1", [owner])).rejects.toThrow(
+      /model may not write/,
+    );
+    await client.query('rollback');
+  });
+
+  it('a model call outside a business is its person’s alone (ai_calls: Stage 2 review)', async () => {
+    const [mine, theirs] = ['00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000001'];
+    const asUser = async (userId: string) => {
+      await client.query('set local role ekbill_app');
+      await client.query("select set_config('app.user_id', $1, true), set_config('app.business_id', '', true)", [
+        userId,
+      ]);
+    };
+    await client.query('begin');
+    await asUser(mine);
+    await client.query(
+      "insert into ai_calls (business_id, user_id, purpose, model, prompt_version, input_hash, outcome) values (null, $1, 'probe', 'm', 'v', 'h', 'ok')",
+      [mine],
+    );
+    const own = await client.query("select count(*)::int as n from ai_calls where purpose = 'probe'");
+    expect((own.rows[0] as { n: number }).n).toBe(1);
+    // Another person, also outside any business, neither sees it nor can write a row in its name.
+    await asUser(theirs);
+    const other = await client.query("select count(*)::int as n from ai_calls where purpose = 'probe'");
+    expect((other.rows[0] as { n: number }).n).toBe(0);
+    await expect(
+      client.query(
+        "insert into ai_calls (business_id, user_id, purpose, model, prompt_version, input_hash, outcome) values (null, $1, 'probe', 'm', 'v', 'h', 'ok')",
+        [mine],
+      ),
+    ).rejects.toThrow(/row-level security/);
+    await client.query('rollback');
+  });
+
   it('the application role cannot write the audit trail directly', async () => {
     const a = businessOf('sharma');
     await client.query('begin');

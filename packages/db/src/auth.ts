@@ -35,7 +35,8 @@ const db = () => drizzle(getPool(), { schema });
 
 /** The scope a session id resolves to, or null when it is unknown, expired, or its membership is no longer active. */
 export async function resolveScope(sessionId: string, requestId: string): Promise<Resolved | null> {
-  if (!/^[0-9a-f-]{36}$/i.test(sessionId)) return null;
+  // A UUID's own shape: 36 hyphens would pass a looser test and reach Postgres as an invalid uuid (a 500).
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) return null;
   const rows = await db()
     .select({
       sessionId: schema.sessions.id,

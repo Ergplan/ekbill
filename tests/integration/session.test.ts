@@ -38,6 +38,9 @@ describe('sessions resolve to a scope (resolveScope)', () => {
 
   it('an unknown, malformed, expired or deleted session resolves to nothing', async () => {
     expect(await resolveScope('not-a-uuid', 'r')).toBeNull();
+    // Shaped like a uuid by length alone (Stage 2 review): null, never a database error.
+    expect(await resolveScope('-'.repeat(36), 'r')).toBeNull();
+    expect(await resolveScope('gggggggg-gggg-gggg-gggg-gggggggggggg', 'r')).toBeNull();
     expect(await resolveScope('00000000-0000-4000-8000-00000000ffff', 'r')).toBeNull();
     const sharma = businessOf('sharma');
     const s = await createSession({ userId: seedUser('sharma')!.id, businessId: sharma.id });
