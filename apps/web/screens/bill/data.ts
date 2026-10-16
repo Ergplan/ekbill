@@ -1,5 +1,5 @@
 import { customers as customerRepo, documents, items as itemRepo, series as seriesRepo } from '@ekbill/db';
-import { findState, previewNumber, type RecentBill } from '@ekbill/engine';
+import { findState, previewNumber, type AssessBusiness, type RecentBill } from '@ekbill/engine';
 
 import { FIXTURE, TODAY, type Business } from '../fixtures';
 import { billOf, billsOf, customerOf, customersOf } from '../common';
@@ -36,7 +36,7 @@ export interface BillFormData {
   /** The draft the form opens with (number from the series, today's date). */
   initial: BillDraft;
   /** Item suggestions for "Kya kiya?" */
-  items: Array<{ name: string; rate: string; gstRate: number | null }>;
+  items: Array<{ name: string; rate: string; gstRate: number | null; hsn?: string | null }>;
   /** For the picker (bill-start): customers by recency. */
   pick: Array<{ id: string; name: string; index: number }>;
   mode: 'existing' | 'new-customer' | 'first';
@@ -52,6 +52,8 @@ export interface BillFormData {
     lastLines: Array<{ description: string; unitPricePaise: number }>;
     /** The cancelled-and-redone bill's id. */
     redoId: string | null;
+    /** The seller as assess() sees it: the form runs the issue's checks as the owner types (Stage 8). */
+    seller: AssessBusiness;
   } | null;
 }
 
@@ -108,7 +110,7 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
   for (const x of ledger.bills) if (x.customer && !last.has(x.customer)) last.set(x.customer, x.date);
   const people = await customerRepo.listCustomers(scope);
   const pick = [...people].sort((x, y) => (last.get(y.id) ?? '').localeCompare(last.get(x.id) ?? ''));
-  const itemRows = await itemRepo.listItems(scope);
+  const [itemRows, seller] = await Promise.all([itemRepo.listItems(scope), documents.sellerNow(scope)]);
   const fortnight = ledger.bills
     .map((x, i) => ({ x, r: ledger.rows[i]! }))
     .filter(({ r }) => r.days <= 14)
@@ -162,6 +164,7 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
       name: i.name,
       rate: i.defaultRatePaise === null ? '' : String(i.defaultRatePaise / 100),
       gstRate: i.defaultTaxBp === null ? null : i.defaultTaxBp / 100,
+      hsn: i.hsnSac,
     })),
     pick: pick.map((c) => ({ id: c.id, name: c.name, index: avatarIndex(c.id) })),
     mode,
@@ -174,6 +177,14 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
         ? previousDoc.lines.map((l) => ({ description: l.description, unitPricePaise: l.unitPricePaise }))
         : [],
       redoId,
+      seller: {
+        registration: seller.registration,
+        gstin: seller.gstin,
+        stateCode: seller.stateCode,
+        turnoverPaise: seller.turnoverPaise,
+        eInvoiceSelfDeclaredNotApplicable: seller.eInvoiceSelfDeclaredNotApplicable,
+        eInvoiceExemption: seller.eInvoiceExemption ?? null,
+      },
     },
   };
 }

@@ -224,3 +224,73 @@ describe('issuance assessment', () => {
     expect(codes(a)).toContain('b2c-recipient-details');
   });
 });
+
+/** Stage 8: every check the bill form shows (with "Kyun?"), each with a passing and a failing case. */
+describe('the bill form checks, pass and fail', () => {
+  const notes = (a: ReturnType<typeof assessDocument>) => a.notices.map((n) => n.code);
+
+  it('reverse charge is not issued in this release; an ordinary supply is', () => {
+    expect(codes(assess({}, customer, { flags: ['reverse-charge'] }))).toContain('unsupported-reverse-charge');
+    expect(codes(assess())).not.toContain('unsupported-reverse-charge');
+  });
+
+  it('a regular business switching GST off is told it makes a plain invoice', () => {
+    expect(notes(assess({}, customer, { gstOn: false }))).toContain('gst-off-plain-invoice');
+    expect(notes(assess())).not.toContain('gst-off-plain-invoice');
+  });
+
+  it('a self-declared e-invoicing exemption is noted, not blocked', () => {
+    const big = { turnoverPaise: 600_000_000_00, eInvoiceSelfDeclaredNotApplicable: true };
+    const a = assess(big);
+    expect(notes(a)).toContain('e-invoicing-self-declared');
+    expect(codes(a)).not.toContain('e-invoicing-applicable');
+    expect(notes(assess({ turnoverPaise: 100_000_00 }))).not.toContain('e-invoicing-self-declared');
+  });
+
+  it("the customer's GSTIN state against the place of supply is asked about, never refused", () => {
+    const a = assess({}, customer, { placeOfSupplyStateCode: '24' });
+    expect(a.canIssue).toBe(true);
+    expect(a.notices).toContainEqual(
+      expect.objectContaining({
+        code: 'gstin-state-differs',
+        ruleId: 'place-of-supply-state',
+        message: { key: 'assess.gstin-state-differs', params: { gstinState: '27', pos: '24' } },
+      }),
+    );
+    expect(notes(assess())).not.toContain('gstin-state-differs');
+    expect(notes(assess({}, walkIn, { placeOfSupplyStateCode: '24' }))).not.toContain('gstin-state-differs');
+  });
+
+  it('a bill dated within a month of a rate change says its own date decides the rates', () => {
+    const before = assess({}, customer, { dateIso: '2025-09-15' });
+    expect(before.notices).toContainEqual(
+      expect.objectContaining({
+        code: 'rates-by-date',
+        ruleId: 'selectable-rates-2017',
+        message: { key: 'assess.rates-by-date', params: { from: '2025-09-22' } },
+      }),
+    );
+    const after = assess({}, customer, { dateIso: '2025-10-01' });
+    expect(after.notices).toContainEqual(
+      expect.objectContaining({ code: 'rates-by-date', ruleId: 'selectable-rates-gst2' }),
+    );
+    expect(notes(assess())).not.toContain('rates-by-date');
+    expect(notes(assess({}, customer, { gstOn: false, dateIso: '2025-09-15' }))).not.toContain('rates-by-date');
+  });
+
+  it('every check with a rule has a "Kyun?" in both registers', async () => {
+    const { explain } = await import('../../packages/engine/src/rules');
+    const all = [
+      assess({}, customer, { placeOfSupplyStateCode: '24' }),
+      assess({}, customer, { dateIso: '2025-09-15' }),
+      assess({ registration: 'composition', gstin: '27AAPFU0939F1ZV' }, walkIn, { gstOn: false }),
+      assess({ turnoverPaise: 600_000_000_00, eInvoiceSelfDeclaredNotApplicable: true }),
+    ];
+    for (const x of all.flatMap((a) => [...a.blockers, ...a.notices]).filter((x) => x.ruleId)) {
+      const e = explain(x.ruleId!);
+      expect(e, x.code).not.toBeNull();
+      expect(e!['hi-Latn'].length).toBeGreaterThan(10);
+      expect(e!.en.length).toBeGreaterThan(10);
+    }
+  });
+});

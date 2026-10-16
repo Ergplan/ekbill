@@ -124,7 +124,7 @@ describe('the bill form reads the engine (I4)', () => {
 
 describe('every consumer reads the same engine result (I4)', () => {
   const sharmaBiz = FIXTURE.businesses.find((b) => b.id === 'sharma')!;
-  it('the form, the paper and the GST workings agree on a fixture bill', () => {
+  it('the form, the paper and the GST workings agree on a fixture bill', async () => {
     const bill = billOf(sharmaBiz, 'INV-037')!; // Bansal, Madhya Pradesh: IGST
     const customer = customerOf(sharmaBiz, bill.customer);
     const form = compute(
@@ -141,7 +141,7 @@ describe('every consumer reads the same engine result (I4)', () => {
     expect(paper.taxLines).toEqual(form.heads);
     expect(form.heads.map((h) => h.label)).toEqual(['IGST 18%']);
     const owner = FIXTURE.people.find((p) => p.business === 'sharma' && p.role === 'owner')!;
-    const gst = loadGst({
+    const gst = (await loadGst({
       person: owner,
       business: sharmaBiz,
       role: 'owner',
@@ -150,7 +150,7 @@ describe('every consumer reads the same engine result (I4)', () => {
       theme: 'narangi',
       language: 'hi-Latn',
       loaded: null,
-    })!;
+    }))!;
     const row = gst.b2b.find((r) => r.number === bill.number)!;
     expect(row.totalPaise).toBe(form.totalPaise);
     expect(row.gstPaise).toBe(form.gstPaise);

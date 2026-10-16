@@ -4,7 +4,16 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 
 import { t } from '@ekbill/copy';
-import { GST_STATES, checkGstin, findDuplicate, rateOddities } from '@ekbill/engine';
+import {
+  GST_STATES,
+  assessDocument,
+  checkGstin,
+  explain,
+  findDuplicate,
+  rateOddities,
+  type Blocker,
+  type Notice,
+} from '@ekbill/engine';
 import {
   AccentButton,
   AddLineButton,
@@ -86,6 +95,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
   const [draftId, setDraftId] = useState<string | null>(null);
   const [dupOpen, setDupOpen] = useState(false);
   const [stateOther, setStateOther] = useState(false);
+  const [why, setWhy] = useState<string | null>(null);
   const patch = (p: Partial<BillDraft>) => setD((cur) => ({ ...cur, ...p }));
   const regular = business.registration === 'regular';
   const rates = useMemo(() => ratesFor(d.date), [d.date]);
@@ -111,11 +121,60 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
         data.live.lastLines,
       )
     : [];
+  // Stage 8: the issue's own checks (assess), as the owner types, each with "Kyun?" from the rule pack.
+  const gstOnNow = regular && d.gst.on;
+  const assessment = data.live
+    ? assessDocument({
+        business: data.live.seller,
+        customer: {
+          name: data.customer?.name ?? d.customerName,
+          gstin: data.customer?.gstin ?? (newGst?.ok ? newGst.normalised : null),
+          stateCode: d.customerState,
+          address: null,
+        },
+        document: {
+          kind: 'bill',
+          dateIso: d.date,
+          gstOn: gstOnNow,
+          placeOfSupplyStateCode: d.customerState ?? (gstOnNow ? null : business.stateCode),
+          lines: d.lines
+            .filter((l) => l.what.trim() || l.rate.trim())
+            .map((l, i) => ({
+              description: l.what,
+              gstBp: gstOnNow
+                ? Math.round((d.gst.mode === 'perline' ? (d.gst.perLine[i] ?? d.gst.rate) : d.gst.rate) * 100)
+                : 0,
+              taxRateChosen: true,
+              hsnCode: data.items.find((it) => it.name.toLowerCase() === l.what.trim().toLowerCase())?.hsn ?? null,
+            })),
+          flags: [],
+          totals: { totalPaise: c.totalPaise, supply: c.supply },
+        },
+        today: data.live.today,
+      })
+    : null;
+  const whyButton = (ruleId: string | null) =>
+    ruleId && explain(ruleId) ? (
+      <AccentButton small onClick={() => setWhy(ruleId)}>
+        {t('check.why')}
+      </AccentButton>
+    ) : undefined;
+  const asItem = (x: Blocker | Notice): CheckItem => ({
+    id: `assess-${x.code}`,
+    text: t(x.message.key, x.message.params),
+    action: whyButton(x.ruleId),
+  });
+  // The state is asked by the strip above; an empty form is not yet a bill to judge.
+  const covered = new Set(['missing-place-of-supply', 'no-lines']);
+  if (assessment && linesOkForChecks(d))
+    for (const b of assessment.blockers.filter((x) => !covered.has(x.code))) checks.push(asItem(b));
   const notes: CheckItem[] = odd.map((o) => ({
     id: `odd-${o.what}`,
     text: t('bill.rate.odd', { what: o.what, last: rupees(o.lastRatePaise), now: rupees(o.nowRatePaise) }),
   }));
   if (c.noRules) checks.push({ id: 'date', text: t('bill.check.date') });
+  if (assessment && linesOkForChecks(d))
+    for (const n of assessment.notices.filter((x) => !covered.has(x.code))) notes.push(asItem(n));
   const linesOk = c.lines.some((l) => !l.blank && l.taxablePaise > 0);
   const canMake = linesOk && checks.length === 0 && (data.mode === 'existing' || d.customerName.trim().length > 0);
 
@@ -469,6 +528,27 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
           </Field>
         ) : null}
       </Sheet>
+      <Sheet
+        open={why !== null}
+        title={t('check.why.title')}
+        onClose={() => setWhy(null)}
+        closeLabel={t('action.done')}
+      >
+        {why ? (
+          <>
+            <p className="eb-body" data-testid="why-text">
+              {explain(why)?.['hi-Latn']}
+            </p>
+            <Meta>{t('check.source', { source: explain(why)?.source ?? '' })}</Meta>
+          </>
+        ) : null}
+        <AccentButton onClick={() => setWhy(null)}>{t('action.done')}</AccentButton>
+      </Sheet>
     </AppShell>
   );
+}
+
+/** The checks speak once the form holds a line with something in it. */
+function linesOkForChecks(d: BillDraft): boolean {
+  return d.lines.some((l) => l.what.trim() && l.rate.trim());
 }

@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sp = await searchParams;
   const viewer = await getViewer(sp);
-  const data = loadGst(viewer, { period: one(sp.period) });
+  const data = await loadGst(viewer, { period: one(sp.period), q: one(sp.q) });
   if (!data) redirect('/');
   return <GstScreen data={data} viewer={shellOf(viewer)} />;
 }

@@ -67,8 +67,8 @@ function columnIndex(ref: string): number {
   return n - 1;
 }
 
-/** The first sheet, as rows of strings. Empty cells are ''. */
-export function readXlsx(bytes: Uint8Array): string[][] {
+/** A sheet (the first unless `sheet` names another, 1-based), as rows of strings. Empty cells are ''. */
+export function readXlsx(bytes: Uint8Array, sheetNumber = 1): string[][] {
   const entries = readZip(bytes);
   const dec = new TextDecoder();
   const file = (name: string) => entries.find((e) => e.name === name);
@@ -80,7 +80,9 @@ export function readXlsx(bytes: Uint8Array): string[][] {
       shared.push([...si[1]!.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map((m) => unescape(m[1]!)).join(''));
     }
   }
-  const sheet = file('xl/worksheets/sheet1.xml') ?? entries.find((e) => /^xl\/worksheets\/sheet\d+\.xml$/.test(e.name));
+  const sheet =
+    file(`xl/worksheets/sheet${sheetNumber}.xml`) ??
+    (sheetNumber === 1 ? entries.find((e) => /^xl\/worksheets\/sheet\d+\.xml$/.test(e.name)) : undefined);
   if (!sheet) throw new Error('No worksheet');
   const xml = dec.decode(sheet.data);
   const rows: string[][] = [];

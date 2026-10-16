@@ -11,6 +11,7 @@ export const REPOSITORIES = [
   'document-files',
   'documents',
   'files',
+  'gst',
   'imports',
   'items',
   'memberships',

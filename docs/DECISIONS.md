@@ -590,3 +590,34 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: the webServer command removes `apps/web/.next/dev` before `npm run dev`; `tests/e2e/prepare.ts` also archives the customers earlier runs added.
 - Why: a dev server killed mid-compile left Turbopack's cache unusable (pages never hydrated); old test customers pushed the fixtures' off Home's eight chips.
 - Asked by: the Stage 7 Playwright runs.
+
+### The workings are a read-only repository over the snapshots
+
+- Decision: `repos/gst.ts` reads issued and cancelled documents of the period and hands their snapshots to the engine's salvaged `buildGstr1` and `buildGstr3bOutward`; a regular business's bills of supply are left out of GSTR-1; it has no writes (an empty `allowedRoles`), and the generated roles test skips it.
+- Why: I2 (only the snapshot), I4 (only the engine); the same period renders the same way every time.
+- Asked by: the Stage 8 prompt (workings, drill-down).
+
+### The CA pack is built on request
+
+- Decision: `GET /api/gst/pack` builds the zip when the owner taps "CA ko bhejo": workings.xlsx (written without a library: inline strings, numbers, no formulas), gstr1.json and each bill's kept A4 PDF (printed and kept first if it was not yet); fflate zips it.
+- Options: a worker job and a download link later; an xlsx library.
+- Why: a quarter of a small shop is tens of bills and the PDFs are mostly kept already; no formulas means nothing recomputes the engine's figures.
+- Asked by: the Stage 8 prompt (CA pack).
+
+### gstr1.json is checked against the offline tool's structure, transcribed
+
+- Decision: `tests/fixtures/gstn/gstr1-sample.json` holds the GSTR-1 offline tool's JSON structure, transcribed key by key because the build container cannot reach gst.gov.in; the integration test checks every key path and type of the pack's gstr1.json against it. Replacing the file with GSTN's own sample needs no other change.
+- Why: the prompt asks to validate against the sample; the sample cannot be fetched here.
+- Asked by: the Stage 8 prompt (gstr1.json).
+
+### The bill form runs the issue's checks
+
+- Decision: the form calls the same `assessDocument` that `issueDocument` calls, with the seller as `sellerNow()` reads it; blockers stop "Bill banao" in the CheckStrip, notices are shown, each with "Kyun?" (the pack entry's Hinglish explanation and source). Two notices join `assess`: the customer's GSTIN state against the place of supply (asked, not refused) and a bill dated within 31 days of a rate change (its own date decides). The e-invoicing self-declaration is said only when the turnover is unknown or above the threshold.
+- Why: one set of checks (I4, I5); the owner sees the refusal before tapping, with the reason in the rule's own words.
+- Asked by: the Stage 8 prompt (per-bill checks).
+
+### The pack's rules as a document
+
+- Decision: `scripts/rules-update.mjs` lists the entries (`rules:update`) and writes `docs/GST-RULES.md` (`rules:doc`) with a prose section for the CA; the watcher runs `rules:doc:check`; Prettier leaves the generated file alone.
+- Why: the CA reads what the app applies, generated so it cannot drift.
+- Asked by: the Stage 8 prompt (rule-update workflow).

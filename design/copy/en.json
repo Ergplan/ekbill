@@ -696,5 +696,14 @@
   "photo.unavailable.sub": "Write the bill yourself; try the photo again later",
   "photo.customer.match": "Matched {name} ({score}%)",
   "photo.customer.new": "New customer: {name}",
-  "photo.total.differs": "The photo says {read}; the lines add up to {lines}. The bill follows the lines."
+  "photo.total.differs": "The photo says {read}; the lines add up to {lines}. The bill follows the lines.",
+  "gst.drill.sub": "{n} documents · {from} to {to}",
+  "gst.drill.credit": "credit note",
+  "gst.send.text": "{business}: GST workings for {period}: workings.xlsx, gstr1.json and every bill.",
+  "gst.send.making": "Making the zip…",
+  "check.why": "Why?",
+  "check.why.title": "Why this?",
+  "check.source": "Rule: {source}",
+  "assess.gstin-state-differs": "The customer’s GSTIN is from state {gstinState}, but the place of supply says {pos}. Is that right?",
+  "assess.rates-by-date": "GST rates changed on {from}: this bill uses the rates of its own date."
 }

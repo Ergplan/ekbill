@@ -2784,5 +2784,41 @@
   "photo.total.differs": {
     "hi-Latn": "Photo pe {read} likha hai; kaam jodke {lines} aata hai. Bill kaam ke hisaab se banega.",
     "en": "The photo says {read}; the lines add up to {lines}. The bill follows the lines."
+  },
+  "gst.drill.sub": {
+    "hi-Latn": "{n} documents · {from} se {to}",
+    "en": "{n} documents · {from} to {to}"
+  },
+  "gst.drill.credit": {
+    "hi-Latn": "credit note",
+    "en": "credit note"
+  },
+  "gst.send.text": {
+    "hi-Latn": "{business} ka GST hisaab, {period}: workings.xlsx, gstr1.json aur saare bills.",
+    "en": "{business}: GST workings for {period}: workings.xlsx, gstr1.json and every bill."
+  },
+  "gst.send.making": {
+    "hi-Latn": "Zip ban rahi hai…",
+    "en": "Making the zip…"
+  },
+  "check.why": {
+    "hi-Latn": "Kyun?",
+    "en": "Why?"
+  },
+  "check.why.title": {
+    "hi-Latn": "Yeh kyun?",
+    "en": "Why this?"
+  },
+  "check.source": {
+    "hi-Latn": "Niyam: {source}",
+    "en": "Rule: {source}"
+  },
+  "assess.gstin-state-differs": {
+    "hi-Latn": "Customer ka GSTIN state {gstinState} ka hai, par supply state {pos} likha hai. Sahi hai?",
+    "en": "The customer’s GSTIN is from state {gstinState}, but the place of supply says {pos}. Is that right?"
+  },
+  "assess.rates-by-date": {
+    "hi-Latn": "{from} ko GST rates badle the: yeh bill apni tareekh ke rates lagata hai.",
+    "en": "GST rates changed on {from}: this bill uses the rates of its own date."
   }
 }

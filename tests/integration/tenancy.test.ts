@@ -8,6 +8,7 @@ import * as customers from '../../packages/db/src/repos/customers';
 import * as document_files from '../../packages/db/src/repos/document-files';
 import * as documents from '../../packages/db/src/repos/documents';
 import * as files from '../../packages/db/src/repos/files';
+import * as gst from '../../packages/db/src/repos/gst';
 import * as imports from '../../packages/db/src/repos/imports';
 import * as items from '../../packages/db/src/repos/items';
 import * as memberships from '../../packages/db/src/repos/memberships';
@@ -101,6 +102,13 @@ describe('tenancy (I1): every repository, business A against business B', () => 
     const a = await scopeFor('sharma', 'owner');
     const b = await otherBusiness('gupta');
     const { touched } = await files.tenancyProbes[1]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("gst: workingsFor counts nothing of another business's bills", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await gst.tenancyProbes[0]!.run(a, b);
     expect(touched).not.toContain(b.businessId);
     for (const id of touched) expect(id).toBe(a.businessId);
   });

@@ -1,4 +1,4 @@
-import { addDays, compareDates, type CivilDate } from './dates';
+import { addDays, compareDates, daysBetween, type CivilDate } from './dates';
 import {
   GST_RULES,
   compositionRule,
@@ -6,6 +6,7 @@ import {
   documentKindRule,
   hsnDigitsFor,
   irnReportingWindow,
+  ruleOn,
   thresholdOn,
   type DocumentKind,
   type Registration,
@@ -151,6 +152,33 @@ export function assessDocument(
   if (business.registration === 'regular' && business.gstin && customer.gstin && customer.gstin === business.gstin)
     block('self-billing');
 
+  // --- the customer's GSTIN state against the place of supply: asked, not refused (goods may go elsewhere) ---
+  if (
+    chargesGst &&
+    customer.gstin &&
+    document.placeOfSupplyStateCode &&
+    customer.gstin.slice(0, 2) !== document.placeOfSupplyStateCode
+  )
+    note('gstin-state-differs', 'place-of-supply-state', {
+      gstinState: customer.gstin.slice(0, 2),
+      pos: document.placeOfSupplyStateCode,
+    });
+
+  // --- a bill dated within a month of a rate change: its own date decides the rates, and it says so ---
+  if (chargesGst) {
+    const current = ruleOn('selectable-rates', document.dateIso, rules);
+    const slabs = rules.entries.filter((e) => e.kind === 'selectable-rates');
+    const first = slabs.map((e) => e.effectiveFrom).sort()[0];
+    // A change is the start of any slab table after the first (the first is GST's own start).
+    const change = slabs.find(
+      (e) => e.effectiveFrom !== first && Math.abs(daysBetween(e.effectiveFrom, document.dateIso)) <= 31,
+    );
+    if (current && change) {
+      ruleIds.add(current.id);
+      note('rates-by-date', current.id, { from: change.effectiveFrom });
+    }
+  }
+
   // --- HSN digits by turnover band -----------------------------------------
   if (chargesGst) {
     const hsn = hsnDigitsFor(business.turnoverPaise, document.dateIso, rules);
@@ -184,8 +212,11 @@ export function assessDocument(
       if (!exempt) {
         // The owner's answer (asked once, under Aap) is the gate: a "no" is said, never overruled by a turnover
         // band; the GST checks of Stage 8 flag the contradiction. Without an answer, the band decides.
-        if (business.eInvoiceSelfDeclaredNotApplicable) note('e-invoicing-self-declared', e.ruleId);
-        else if (business.turnoverPaise === null) block('e-invoicing-unscreened', e.ruleId);
+        if (business.eInvoiceSelfDeclaredNotApplicable) {
+          // Said only where it matters: the turnover is unknown, or above the threshold (Stage 8's contradiction check).
+          if (business.turnoverPaise === null || business.turnoverPaise > e.thresholdPaise)
+            note('e-invoicing-self-declared', e.ruleId);
+        } else if (business.turnoverPaise === null) block('e-invoicing-unscreened', e.ruleId);
         else if (business.turnoverPaise > e.thresholdPaise) {
           block('e-invoicing-applicable', e.ruleId);
           const w = irnReportingWindow(business.turnoverPaise, document.dateIso, rules);

@@ -1,0 +1,93 @@
+{
+  "_source": "Structure of the GSTR-1 JSON the GSTN offline tool imports and the portal's 'Upload JSON' takes (GSTN, GSTR-1 Offline Utility, sample JSON; tutorial.gst.gov.in). Transcribed key by key: the build container cannot reach gst.gov.in. Replace with the official sample file and the test checks against it unchanged.",
+  "gstin": "27AAAAA0000A1Z2",
+  "fp": "092026",
+  "b2b": [
+    {
+      "ctin": "27AABCG1234H1ZZ",
+      "inv": [
+        {
+          "inum": "INV-001",
+          "idt": "01-09-2026",
+          "val": 11800,
+          "pos": "27",
+          "rchrg": "N",
+          "inv_typ": "R",
+          "itms": [
+            { "num": 1801, "itm_det": { "rt": 18, "txval": 10000, "iamt": 0, "camt": 900, "samt": 900, "csamt": 0 } }
+          ]
+        }
+      ]
+    }
+  ],
+  "b2cl": [
+    {
+      "pos": "23",
+      "inv": [
+        {
+          "inum": "INV-002",
+          "idt": "02-09-2026",
+          "val": 118000,
+          "itms": [
+            { "num": 1801, "itm_det": { "rt": 18, "txval": 100000, "iamt": 18000, "camt": 0, "samt": 0, "csamt": 0 } }
+          ]
+        }
+      ]
+    }
+  ],
+  "b2cs": [
+    {
+      "sply_ty": "INTRA",
+      "pos": "27",
+      "typ": "OE",
+      "rt": 18,
+      "txval": 500,
+      "iamt": 0,
+      "camt": 45,
+      "samt": 45,
+      "csamt": 0
+    }
+  ],
+  "cdnr": [
+    {
+      "ctin": "27AABCG1234H1ZZ",
+      "nt": [
+        {
+          "ntty": "C",
+          "nt_num": "CN-001",
+          "nt_dt": "05-09-2026",
+          "val": 1180,
+          "pos": "27",
+          "rchrg": "N",
+          "inv_typ": "R",
+          "itms": [{ "num": 1, "itm_det": { "rt": 18, "txval": 1000, "iamt": 0, "camt": 90, "samt": 90, "csamt": 0 } }]
+        }
+      ]
+    }
+  ],
+  "hsn": {
+    "data": [
+      {
+        "num": 1,
+        "hsn_sc": "9987",
+        "desc": "Repair services",
+        "uqc": "NOS",
+        "qty": 1,
+        "rt": 18,
+        "txval": 10000,
+        "iamt": 0,
+        "camt": 900,
+        "samt": 900,
+        "csamt": 0
+      }
+    ]
+  },
+  "doc_issue": {
+    "doc_det": [
+      {
+        "doc_num": 1,
+        "docs": [{ "num": 1, "from": "INV-001", "to": "INV-002", "totnum": 2, "cancel": 0, "net_issue": 2 }]
+      }
+    ]
+  }
+}

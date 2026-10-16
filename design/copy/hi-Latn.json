@@ -689,5 +689,14 @@
   "photo.unavailable.sub": "Bill khud likh lo; photo baad mein phir try karna",
   "photo.customer.match": "{name} se mila ({score}%)",
   "photo.customer.new": "Naya customer: {name}",
-  "photo.total.differs": "Photo pe {read} likha hai; kaam jodke {lines} aata hai. Bill kaam ke hisaab se banega."
+  "photo.total.differs": "Photo pe {read} likha hai; kaam jodke {lines} aata hai. Bill kaam ke hisaab se banega.",
+  "gst.drill.sub": "{n} documents · {from} se {to}",
+  "gst.drill.credit": "credit note",
+  "gst.send.text": "{business} ka GST hisaab, {period}: workings.xlsx, gstr1.json aur saare bills.",
+  "gst.send.making": "Zip ban rahi hai…",
+  "check.why": "Kyun?",
+  "check.why.title": "Yeh kyun?",
+  "check.source": "Niyam: {source}",
+  "assess.gstin-state-differs": "Customer ka GSTIN state {gstinState} ka hai, par supply state {pos} likha hai. Sahi hai?",
+  "assess.rates-by-date": "{from} ko GST rates badle the: yeh bill apni tareekh ke rates lagata hai."
 }

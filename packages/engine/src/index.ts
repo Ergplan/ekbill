@@ -302,3 +302,4 @@ export {
   type ReadingWarning,
   type ReadLine,
 } from './read-bill';
+export { gstnDate, gstnPeriod, toGstr1Json, type Gstr1Json, type ItemDetail } from './gstr1-json';

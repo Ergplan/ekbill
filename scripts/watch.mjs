@@ -78,6 +78,7 @@ function checks(changed) {
   list.push(['trace:check', 'node', ['scripts/trace.mjs', '--check']]);
   list.push(['flow:check', 'node', ['scripts/flow-map.mjs', '--check']]);
   list.push(['gen:check', 'node', ['scripts/gen-tests.mjs', '--check']]);
+  list.push(['rules:doc:check', 'node', ['scripts/rules-update.mjs', '--check']]);
   if (touchesDb || once) list.push(['vitest integration', 'npx', ['vitest', 'run', '--project', 'integration']]);
   return list;
 }

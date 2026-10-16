@@ -56,7 +56,10 @@ const roles = [
   "import { describe, expect, it } from 'vitest';",
   '',
   "import { ForbiddenError } from '../../packages/db/src/repos/allow';",
-  ...modules.map((m) => `import * as ${m.replace(/-/g, '_')} from '../../packages/db/src/repos/${m}';`),
+  // A read-only module (no writes, e.g. gst) has nothing to test here.
+  ...modules
+    .filter((m) => allowedRolesOf(sources[m], m).length)
+    .map((m) => `import * as ${m.replace(/-/g, '_')} from '../../packages/db/src/repos/${m}';`),
   "import { scopeFor, seeded } from './helpers';",
   '',
   "describe('roles (I8): every repository write, every role', () => {",

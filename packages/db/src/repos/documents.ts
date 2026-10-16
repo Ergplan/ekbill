@@ -753,6 +753,11 @@ export async function findBill(scope: TenantScope, idOrNumber: string): Promise<
   });
 }
 
+/** The seller as the engine sees it now (the bill form's checks run the same assess() as the issue). */
+export async function sellerNow(scope: TenantScope): Promise<IssueBusiness> {
+  return withTenant(scope, async (tx) => sellerOf(await businessRow(tx)));
+}
+
 /** The customer's last issued bill, for "Pichle jaisa hi?": its lines as drafted again. */
 export async function lastBillFor(scope: TenantScope, customerId: string): Promise<Document | null> {
   return withTenant(scope, async ({ db }) => {

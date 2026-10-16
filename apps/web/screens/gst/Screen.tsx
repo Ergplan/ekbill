@@ -1,12 +1,25 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { t } from '@ekbill/copy';
-import { Display, HeroPanel, IconChip, Meta, Money, MoneyHero, PrimaryCTA, Segmented, StatTile } from '@ekbill/ui';
+import {
+  Display,
+  FilterChips,
+  HeroPanel,
+  IconChip,
+  Meta,
+  Money,
+  MoneyHero,
+  PrimaryCTA,
+  Segmented,
+  StatTile,
+} from '@ekbill/ui';
 
 import { rupees } from '../money';
 import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
+import { handoffWithFile } from '../share';
 import { manifest } from './manifest';
 import type { GstData } from './data';
 
@@ -14,6 +27,24 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
   const router = useRouter();
   const as = (href: string) => withAs(href, viewer.as);
   const canSend = viewer.role !== 'staff';
+  const live = data.live;
+  const [sending, setSending] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const range = live ? `from=${live.from}&to=${live.to}` : '';
+  const drill = (q: string) => (live ? `/gst/docs?${range}&${q}` : '/bills');
+  const sendPack = () => {
+    if (!live) return;
+    setSending(true);
+    setProblem(null);
+    void handoffWithFile({
+      title: t('gst.send'),
+      text: t('gst.send.text', { business: viewer.businessName ?? '', period: data.period.label }),
+      file: { url: `/api/gst/pack?${range}`, name: `GST-${live.from}-${live.to}.zip`, type: 'application/zip' },
+    }).then((r) => {
+      setSending(false);
+      if (r === 'failed') setProblem(t('done.file.error'));
+    });
+  };
   return (
     <AppShell viewer={viewer} tab="gst" tour={manifest.tour.filter((s) => canSend || s.target !== 'send')}>
       <section className="eb-heading">
@@ -28,13 +59,25 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
         <Segmented<'month' | 'quarter'>
           label={t('gst.quarter')}
           value={data.period.mode}
-          onChange={(v) => router.push(as(v === 'month' ? '/gst?period=month' : '/gst'))}
+          onChange={(v) =>
+            router.push(
+              as(`${v === 'month' ? '/gst?period=month' : '/gst?period=quarter'}${live ? `&q=${live.anchor}` : ''}`),
+            )
+          }
           options={[
             { value: 'month', label: t('gst.period.month') },
             { value: 'quarter', label: t('gst.period.quarter') },
           ]}
         />
       </div>
+      {live && live.periods.length > 1 ? (
+        <FilterChips<string>
+          label={t('gst.quarter')}
+          value={live.anchor}
+          onChange={(q) => router.push(`/gst?period=${data.period.mode}&q=${q}`)}
+          options={live.periods.map((p) => ({ value: p.key, label: p.label }))}
+        />
+      ) : null}
       <HeroPanel tone="gst" eyebrow={t('gst.quarter')} title={data.period.label} sub={t('gst.sales')}>
         <MoneyHero paise={data.taxablePaise} />
         <div className="eb-tiles" data-guide="tiles">
@@ -61,7 +104,7 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
           </thead>
           <tbody>
             {data.byRate.map((r) => (
-              <tr key={r.rate} onClick={() => router.push(as('/bills'))}>
+              <tr key={r.rate} onClick={() => router.push(as(drill(`table=rate&rate=${Math.round(r.rate * 100)}`)))}>
                 <td>{r.rate}%</td>
                 <td>
                   <Money paise={r.taxablePaise} whole />
@@ -82,7 +125,7 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
         <Meta>{t('gst.drill')}</Meta>
       </section>
       <section className="eb-card" data-guide="b2b">
-        <h2 className="eb-card__title">{t('gst.b2b')}</h2>
+        <h2 className="eb-card__title">{live ? <a href={drill('table=b2b')}>{t('gst.b2b')}</a> : t('gst.b2b')}</h2>
         <Meta>{t('gst.b2b.sub', { n: data.b2b.length })}</Meta>
         <div className="eb-rows">
           {data.b2b.map((r) => (
@@ -100,14 +143,25 @@ export function GstScreen({ data, viewer }: { data: GstData; viewer: ShellViewer
             </a>
           ))}
         </div>
-        <Meta>{t('gst.b2c', { n: data.b2cBills })}</Meta>
+        {live ? (
+          <a className="eb-meta" href={drill('table=b2c')}>
+            {t('gst.b2c', { n: data.b2cBills })}
+          </a>
+        ) : (
+          <Meta>{t('gst.b2c', { n: data.b2cBills })}</Meta>
+        )}
       </section>
       {canSend ? (
         <div className="eb-sticky">
-          <PrimaryCTA data-guide="send" icon="send" onClick={() => undefined}>
-            {t('gst.send')}
+          <PrimaryCTA data-guide="send" icon="send" onClick={sendPack} disabled={sending}>
+            {sending ? t('gst.send.making') : t('gst.send')}
           </PrimaryCTA>
         </div>
+      ) : null}
+      {problem ? (
+        <p className="eb-meta" role="alert">
+          {problem}
+        </p>
       ) : null}
       <Meta>{t('gst.pack')}</Meta>
     </AppShell>
