@@ -15,6 +15,18 @@ npm run dev                            # http://127.0.0.1:3000/dev/switch (the a
 
 Checks, as CI runs them: `npm run watch -- --once` (lint, format, types, unit, drizzle, rules, tokens, copy, trace, flow, generated tests, integration), then `npm run e2e` (Playwright at 390px in both themes; it seeds the dev database first). If the dev server was killed rather than stopped, start it on a clean cache (`rm -rf apps/web/.next`): a stale Turbopack cache makes every page reload in a loop.
 
+## The design pack
+
+`design/` is the quality bar for how it looks: tokens (`design/tokens`, the Narangi and Harmony themes), the component notes (`design/components.md`), the reference screens and the Urbanist typeface (SIL OFL 1.1, `design/fonts/OFL-LICENSE.txt`). `packages/ui` builds from the tokens; `npm run tokens:check` refuses a colour or size that is not one; `/kit` shows every component in both themes, and the approved Stage 1 screens are the Playwright baselines.
+
+## For an auditor
+
+`docs/audit/`: start with `docs/audit/AUDIT-PROMPT.md`; `docs/audit/README.md` runs the whole suite from a clean clone with a throwaway Postgres and no secrets.
+
+## Sign-in
+
+The build runs with `AUTH_MODE=switcher` (`/dev/switch` signs in any seeded person: test data only). Phone OTP (Firebase) is built and tested against the Auth emulator, and is switched on by the operator (`docs/stages/stage-10-report.md`).
+
 ## Layout
 
 See `docs/ARCHITECTURE.md`. Decisions: `docs/DECISIONS.md`. What is knowingly missing: `docs/KNOWN-GAPS.md`. Stage reports and independent reviews: `docs/stages/`.

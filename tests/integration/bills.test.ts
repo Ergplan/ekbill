@@ -287,7 +287,8 @@ describe('the default series', () => {
 describe('dues past the list limit (Stage 10)', () => {
   it('an old unpaid bill is still a due when newer settled bills fill the limit', async () => {
     const owner = await scopeFor('sharma', 'owner');
-    const old = await issue(100000, '2026-04-02');
+    // Old, and outside the quarter gst.test.ts computes by hand.
+    const old = await issue(100000, '2026-03-02');
     for (const d of ['2026-10-01', '2026-10-02', '2026-10-03']) {
       const b = await issue(100000, d);
       await payments.recordPayment(owner, {

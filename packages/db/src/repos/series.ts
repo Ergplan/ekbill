@@ -68,7 +68,7 @@ export async function listSeries(scope: TenantScope, filter: { kind?: SeriesKind
           ...(filter.kind ? [eq(schema.series.kind, filter.kind)] : []),
         ),
       )
-      .orderBy(asc(schema.series.createdAt));
+      .orderBy(asc(schema.series.createdAt), asc(schema.series.id));
     return rows.map(asSeries);
   });
 }
@@ -89,7 +89,7 @@ export async function defaultSeries(scope: TenantScope, kind: SeriesKind): Promi
         .select()
         .from(schema.series)
         .where(and(eq(schema.series.kind, kind), eq(schema.series.active, true)))
-        .orderBy(asc(schema.series.createdAt))
+        .orderBy(asc(schema.series.createdAt), asc(schema.series.id))
         .limit(1)
     )[0];
     return row ? asSeries(row) : null;

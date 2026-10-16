@@ -43,6 +43,13 @@ let numbers: Record<'A' | 'B' | 'C' | 'D' | 'CN', string>;
 seeded();
 beforeAll(async () => {
   const owner = await scopeFor('sharma', 'owner');
+  // The figures below are hand-computed for this quarter alone: another test file that issues a Sharma document
+  // dated in it would change them, depending on the order vitest runs the files in. Say so plainly.
+  const before = await gst.workingsFor(owner, Q);
+  if (before.documents.length)
+    throw new Error(
+      `gst.test.ts needs Sharma's ${Q[0]}..${Q[2]} to itself; already there: ${before.documents.map((d) => d.number).join(', ')}`,
+    );
   const issue = async (date: string, customer: documents.DraftCustomer, lines: IssueLine[]) => {
     const d = await documents.createDraft(owner, { customer, dateIso: date, lines });
     return documents.issueDocument(owner, { id: d.id, today: date });

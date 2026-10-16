@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { Limiter, MINUTE, clientAddress, isSignIn, isWrite, limitsFromEnv } from '../../apps/web/server/rate-limit';
 
@@ -44,8 +44,17 @@ describe('the limiter', () => {
 });
 
 describe('the proxy', () => {
+  // The proxy reads its limits once, when it is first imported: pin them, whatever the shell running the tests
+  // says (CI and Playwright's servers set both to 0, limits off).
+  beforeAll(() => {
+    vi.stubEnv('RATE_SIGNIN_PER_MIN', '30');
+    vi.stubEnv('RATE_WRITES_PER_MIN', '60');
+  });
+  afterAll(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('answers the 31st sign-in from one address with 429, the Hinglish words and Retry-After', async () => {
-    process.env.RATE_SIGNIN_PER_MIN = '30';
     const { NextRequest } = await import('next/server');
     const { proxy } = await import('../../apps/web/proxy');
     const req = () =>

@@ -3,6 +3,7 @@ node_modules
 dist
 design
 .watch
+coverage
 tests/e2e/__screenshots__
 package-lock.json
 docs/FIELD-TRACE.md
@@ -10,3 +11,4 @@ docs/SCREEN-FLOW.md
 packages/db/migrations/meta
 docs/stages/*-review-*.md
 docs/GST-RULES.md
+docs/audit/npm-audit.json

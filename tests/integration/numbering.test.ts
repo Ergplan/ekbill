@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import * as documents from '../../packages/db/src/repos/documents';
+import { getPool } from '../../packages/db/src/pool';
 import * as series from '../../packages/db/src/repos/series';
 import { scopeFor, seeded } from './helpers';
 
@@ -44,6 +45,7 @@ describe('numbering (I3)', () => {
     expect(after.fy).toBe('2026-27');
   }, 60_000);
 
+  // A year boundary no other test's figures depend on (gst.test.ts owns Sharma's Apr–Jun 2026).
   it('restarts at 1 when the financial year rolls over, and keeps the year in the number when asked', async () => {
     const scope = await scopeFor('sharma', 'owner');
     const s = await series.createSeries(scope, {
@@ -54,23 +56,23 @@ describe('numbering (I3)', () => {
       includeFy: true,
     });
     const march = await documents.issueDocument(scope, {
-      id: (await documents.createDraft(scope, draftIn(s.id, '2026-03-31'))).id,
-      today: '2026-03-31',
+      id: (await documents.createDraft(scope, draftIn(s.id, '2025-03-31'))).id,
+      today: '2025-03-31',
     });
     const marchAgain = await documents.issueDocument(scope, {
-      id: (await documents.createDraft(scope, draftIn(s.id, '2026-03-31'))).id,
-      today: '2026-03-31',
+      id: (await documents.createDraft(scope, draftIn(s.id, '2025-03-31'))).id,
+      today: '2025-03-31',
     });
     const april = await documents.issueDocument(scope, {
-      id: (await documents.createDraft(scope, draftIn(s.id, '2026-04-01'))).id,
-      today: '2026-04-01',
+      id: (await documents.createDraft(scope, draftIn(s.id, '2025-04-01'))).id,
+      today: '2025-04-01',
     });
     expect([march.number, marchAgain.number, april.number]).toEqual([
+      'FY/2024-25/001',
+      'FY/2024-25/002',
       'FY/2025-26/001',
-      'FY/2025-26/002',
-      'FY/2026-27/001',
     ]);
-    expect([march.financialYear, april.financialYear]).toEqual(['2025-26', '2026-27']);
+    expect([march.financialYear, april.financialYear]).toEqual(['2024-25', '2025-26']);
   });
 
   it('the next number only goes up, never below what was issued', async () => {
@@ -126,5 +128,36 @@ describe('numbering (I3)', () => {
         includeFy: false,
       }),
     ).rejects.toMatchObject({ problem: 'prefix-length' });
+  });
+
+  // Found by the Stage 11 coverage run: series made in one transaction share created_at, and an update (a number
+  // spent) moves a row in the heap, so ordering by created_at alone let the "first" series change between reads.
+  it('lists series in the same order whatever is updated, when they were made at the same moment', async () => {
+    const scope = await scopeFor('verma', 'owner');
+    const a = await series.createSeries(scope, {
+      name: `Tie A ${Date.now()}`,
+      kind: 'bill',
+      prefix: 'TA-',
+      padding: 3,
+      includeFy: false,
+    });
+    const b = await series.createSeries(scope, {
+      name: `Tie B ${Date.now()}`,
+      kind: 'bill',
+      prefix: 'TB-',
+      padding: 3,
+      includeFy: false,
+    });
+    const pool = getPool();
+    await pool.query('update series set created_at = $1 where id = any($2)', ['2026-01-01T00:00:00Z', [a.id, b.id]]);
+    const ids = async () =>
+      (await series.listSeries(scope, { kind: 'bill' })).map((s) => s.id).filter((id) => id === a.id || id === b.id);
+    const first = await ids();
+    for (let i = 0; i < 5; i += 1) {
+      // Whichever is listed first is renamed (name is indexed, so the update is not HOT): its new row version goes
+      // to the end of the heap and of the index, which is the order a tie on created_at came back in before.
+      await pool.query("update series set name = name || '.' where id = $1", [first[0]]);
+      expect(await ids()).toEqual(first);
+    }
   });
 });

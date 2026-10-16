@@ -96,7 +96,7 @@ export async function listPayments(scope: TenantScope, documentId: string): Prom
       .select()
       .from(schema.payments)
       .where(eq(schema.payments.documentId, documentId))
-      .orderBy(asc(schema.payments.createdAt)),
+      .orderBy(asc(schema.payments.createdAt), asc(schema.payments.id)),
   );
 }
 

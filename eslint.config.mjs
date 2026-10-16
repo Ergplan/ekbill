@@ -15,6 +15,7 @@ export default tseslint.config(
       '**/dist/**',
       'design/**',
       '.watch/**',
+      'coverage/**',
       'tests/e2e/__screenshots__/**',
     ],
   },

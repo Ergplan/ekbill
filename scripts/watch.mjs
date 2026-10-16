@@ -3,12 +3,12 @@
 // first red, on every save; writes .watch/status.json and .watch/log.
 //
 //   npm run watch            # watch the tree and re-run on change
-//   npm run watch -- --once  # run once and exit non-zero on red (CI, pre-commit)
+//   npm run watch -- --once  # run every check once and exit non-zero on any red (CI, pre-commit)
 //
 // Checks: eslint, prettier --check, tsc --noEmit (one root tsconfig covers
 // every workspace), vitest unit for the changed package then the whole unit
 // suite, drizzle-kit check, rules:check, tokens:check, trace:check,
-// flow:check, and the integration suite when packages/db or apps/web/actions
+// flow:check, audit:pack:check (Stage 11), and the integration suite when packages/db or apps/web/actions
 // changed. Playwright, load and paid-model calls are @slow and not here.
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, appendFileSync, writeFileSync, watch } from 'node:fs';
@@ -79,11 +79,12 @@ function checks(changed) {
   list.push(['flow:check', 'node', ['scripts/flow-map.mjs', '--check']]);
   list.push(['gen:check', 'node', ['scripts/gen-tests.mjs', '--check']]);
   list.push(['rules:doc:check', 'node', ['scripts/rules-update.mjs', '--check']]);
+  list.push(['audit:pack:check', 'node', ['--import', 'tsx', 'scripts/audit-pack.mjs', '--check']]);
   if (touchesDb || once) list.push(['vitest integration', 'npx', ['vitest', 'run', '--project', 'integration']]);
   return list;
 }
 
-function runAll(changed) {
+function runAll(changed, { keepGoing = false } = {}) {
   const at = new Date().toISOString();
   log(
     `---- run at ${at}${
@@ -101,8 +102,10 @@ function runAll(changed) {
     const r = run(name, cmd, args);
     results.push(r);
     if (!r.ok) {
-      failed = [{ name: r.name, tail: r.out.split('\n').slice(-40).join('\n') }];
-      break; // stop at the first red: fix it before the rest matters
+      failed.push({ name: r.name, tail: r.out.split('\n').slice(-40).join('\n') });
+      // Watching: stop at the first red, fix it before the rest matters. Once (CI): run everything, so one red
+      // check (the rule pack waiting on rules:verify) does not hide the others.
+      if (!keepGoing) break;
     }
   }
   const status = {
@@ -112,12 +115,12 @@ function runAll(changed) {
     ran: results.map((r) => ({ name: r.name, ok: r.ok, ms: r.ms })),
   };
   writeFileSync(STATUS, `${JSON.stringify(status, null, 2)}\n`);
-  log(status.ok ? 'GREEN' : `RED: ${failed[0].name}`);
+  log(status.ok ? 'GREEN' : `RED: ${failed.map((f) => f.name).join(', ')}`);
   return status.ok;
 }
 
 if (once) {
-  process.exit(runAll([]) ? 0 : 1);
+  process.exit(runAll([], { keepGoing: true }) ? 0 : 1);
 }
 
 let pending = new Set();

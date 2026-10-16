@@ -753,3 +753,23 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: Firebase Admin runs with application default credentials (the VM's service account through the metadata server) and the project ID; in CI, the emulator. No service-account key is created or stored anywhere.
 - Why: the standing rule (never create or download a service-account key); verifying an ID token needs only Google's public keys and the project. The Firebase Authentication Admin role the operator grants covers what Admin calls may need later (revocation checks).
 - Asked by: the Stage 10 prompt (Admin credentials through the VM's service account).
+
+## 2026-10-16 — Stage 11
+
+### Advisories are fixed by upgrading, and an unused path is pinned rather than left
+
+- Decision: sharp 0.35.5, fflate 0.8.3 and firebase-admin 14 (which no longer depends on node-forge). The Firebase client's Firestore (never imported; only `firebase/app` and `firebase/auth` are) asks for `@grpc/grpc-js` ~1.9, which has two advisories: a root `overrides` entry lifts it to ^1.14.6. The one remaining advisory, esbuild under drizzle-kit, is moderate and dev only (its development server is never started), and its suggested fix is a downgrade of drizzle-kit to 0.18; it stays, recorded in `docs/audit/DEPENDENCIES.md`.
+- Why: an auditor should find no reachable high advisory. sharp and fflate read what people upload.
+- Asked by: master prompt Stage 11 (DEPENDENCIES.md with npm audit).
+
+### The one-shot watcher runs every check
+
+- Decision: `npm run watch -- --once` (CI) runs every check and reports every red; the watching mode still stops at the first. In CI, the build and the browser journeys run even when a check is red.
+- Why: CI on main had been red since Stage 3 at the unit step (two tests read the CI shell's environment: the rate limits and the seed's switcher allowance), and stopping there hid everything after it, including the integration suite and Playwright. The rule pack's count of unverified entries stays red until `rules:verify` runs on the VM; it must not hide the rest.
+- Asked by: Stage 11's clean-clone run (the CI profile from the README alone).
+
+### Coverage counts the unit and integration runs only
+
+- Decision: `npm run audit:coverage` measures vitest with v8 over the product source; the browser journeys are not merged in.
+- Why: the journeys run against a separate `next` process, whose coverage would need the server instrumented. The actions and screens read low for that reason, and COVERAGE.md says so; the journeys are listed in TEST-INVENTORY.md.
+- Asked by: master prompt Stage 11 (COVERAGE.md).

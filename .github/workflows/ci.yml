@@ -43,19 +43,27 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Watcher checks, once
+      # Before the checks: the integration tests render PDFs.
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Watcher checks, once (every check runs; any red fails the job)
         run: npm run watch -- --once
       - name: Watcher status
         if: always()
         run: cat .watch/status.json
-      - name: Chromium for Playwright
-        run: npx playwright install --with-deps chromium
+      # The journeys run even when a check is red, so one red check (the rule pack waiting on rules:verify on the
+      # VM) does not hide them.
       - name: Build
+        if: ${{ !cancelled() }}
         run: npm run build
       - name: Playwright (phone, both themes; @slow excluded)
+        if: ${{ !cancelled() }}
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
           E2E_PROD: '1'
+          # As playwright.config.ts gives the servers it starts: the stand-in model, never a real one.
+          AI_TRANSPORT: fake
+          AI_FAKE_DIR: ${{ github.workspace }}/tests/fixtures/bills/fake
         run: |
           npm run db:migrate
           npm run seed

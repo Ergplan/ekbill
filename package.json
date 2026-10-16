@@ -46,7 +46,11 @@
     "db:generate": "drizzle-kit generate --config packages/db/drizzle.config.ts",
     "db:check": "drizzle-kit check --config packages/db/drizzle.config.ts",
     "eval:read-bill": "node --conditions=react-server --import tsx packages/ai/eval/read-bill.ts",
-    "seed": "node --conditions=react-server --import tsx scripts/seed.mjs"
+    "seed": "node --conditions=react-server --import tsx scripts/seed.mjs",
+    "audit:pack": "node --import tsx scripts/audit-pack.mjs",
+    "audit:pack:check": "node --import tsx scripts/audit-pack.mjs --check",
+    "audit:deps": "node scripts/audit-deps.mjs",
+    "audit:coverage": "node scripts/audit-coverage.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -57,14 +61,19 @@
     "@types/pngjs": "^6.0.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "@vitest/coverage-v8": "^5.0.4",
     "drizzle-kit": "^0.31.11",
     "eslint": "^10.0.0",
     "eslint-plugin-react-hooks": "^7.1.0",
+    "fflate": "^0.8.3",
     "pixelmatch": "^8.0.0",
     "pngjs": "^7.0.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.0",
     "vitest": "^5.0.4"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.6"
   }
 }

@@ -51,7 +51,8 @@ describe('trace:check and flow:check', () => {
 
 describe('seed', () => {
   it('refuses a database that is not dev or test', () => {
-    const r = run('seed.mjs', [], { DATABASE_URL: 'postgres://x@h/ekbill' });
+    // Not the build's own instance (switcher mode would allow it): only the database's name can.
+    const r = run('seed.mjs', [], { DATABASE_URL: 'postgres://x@h/ekbill', AUTH_MODE: 'otp' });
     expect(r.code).toBe(1);
     expect(r.out).toContain('refusing');
   });

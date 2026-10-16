@@ -234,7 +234,7 @@ async function seriesFor(tx: Tx, id: string | null | undefined, kind: SeriesKind
           .select()
           .from(schema.series)
           .where(and(eq(schema.series.kind, kind), eq(schema.series.active, true)))
-          .orderBy(asc(schema.series.createdAt))
+          .orderBy(asc(schema.series.createdAt), asc(schema.series.id))
           .limit(1)
       )[0];
   if (!row) throw new NotFoundError('series');
@@ -733,12 +733,12 @@ export async function billView(scope: TenantScope, id: string) {
       .select()
       .from(schema.payments)
       .where(eq(schema.payments.documentId, doc.id))
-      .orderBy(asc(schema.payments.createdAt));
+      .orderBy(asc(schema.payments.createdAt), asc(schema.payments.id));
     const creditNotes = await tx.db
       .select()
       .from(schema.documents)
       .where(and(eq(schema.documents.linkedDocumentId, doc.id), eq(schema.documents.kind, 'credit_note')))
-      .orderBy(asc(schema.documents.createdAt));
+      .orderBy(asc(schema.documents.createdAt), asc(schema.documents.id));
     const reminders = await tx.db
       .select({
         id: schema.remindersSent.id,
