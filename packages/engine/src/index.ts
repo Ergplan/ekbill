@@ -326,3 +326,11 @@ export {
   type RecordKind,
   type SearchRecord,
 } from './poocho';
+export {
+  linesFromSpeech,
+  matchCustomer,
+  whoOwesReply,
+  type SpokenLine,
+  type VoiceCustomer,
+  type VoiceDue,
+} from './voice';

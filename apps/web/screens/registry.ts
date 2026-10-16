@@ -91,6 +91,7 @@ export const STATE_URLS: Array<{ screen: string; state: string; url: string; as?
   { screen: 'setup', state: 'gstin', url: '/setup/gstin' },
   { screen: 'setup', state: 'review', url: '/setup/review' },
   { screen: 'home', state: 'new', url: '/', as: 'new' },
+  { screen: 'help', state: 'terms', url: '/help?kind=percent' },
   { screen: 'home', state: 'staff', url: '/', as: 'staff' },
   { screen: 'home', state: 'accountant', url: '/', as: 'accountant' },
   { screen: 'home', state: 'composition', url: '/', as: 'composition' },

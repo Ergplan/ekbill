@@ -2142,3 +2142,32 @@ main.eb-screen.eb-flow {
   background: var(--eb-surface);
   box-shadow: var(--eb-shadow-card);
 }
+
+/* The voice while it talks (Stage 9): a pill above the tab bar with "Bas". */
+.eb-voice {
+  position: fixed;
+  z-index: 32;
+  left: 50%;
+  bottom: calc(var(--eb-size-nav) + 36px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 8px 8px 16px;
+  border-radius: var(--eb-radius-pill);
+  background: var(--eb-ink-btn);
+  color: var(--eb-on-ink-btn);
+  font-size: var(--eb-type-body-size);
+  font-weight: var(--eb-weight-medium);
+  box-shadow: var(--eb-shadow-nav);
+}
+.eb-voice__stop {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--eb-radius-pill);
+  background: var(--eb-accent);
+  color: var(--eb-on-accent);
+  font-weight: var(--eb-weight-bold);
+}

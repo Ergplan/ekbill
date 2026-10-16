@@ -130,5 +130,9 @@ export function shellOf(v: Viewer) {
     role: v.role,
     as: v.as,
     language: v.language,
+    // "Bolke" (Aap): the voice starts on arrival.
+    voice: v.business?.voiceOnArrival ?? false,
+    // A signed-in member (not a look, not the demo): the voice can be minted for them.
+    signedIn: Boolean(v.session?.scope) && !v.as,
   };
 }

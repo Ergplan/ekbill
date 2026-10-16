@@ -669,3 +669,33 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `recordAiCall` allows the accountant (Poocho is every member's).
 - Why: rule 9 (every call one row) for a role that may ask.
 - Asked by: the Stage 9 roles table (Poocho: accountant "Full.").
+
+### The voice presses only what cannot commit, by default
+
+- Decision: `screens/voice/dom.ts` lets the voice press an in-app link, a choice (a radio chip) or an item marked `data-voice="safe"` (Aage, Abhi nahi, Aur kaam jodo, the back arrow, the GST strip, Poocho's ask); every other button, a link out of the app (WhatsApp) and a download are OWNER-ONLY: the voice lights them with "Yeh aap khud dabao." and the tool answers refused. The model is told which items are OWNER-ONLY in each screen description, and the tool descriptions say so too.
+- Why: rule 17 and I6; the MVP matched labels against a list of committing words, which a new button could slip past. Deny by default fails safe.
+- Asked by: the Stage 9 prompt ("committing buttons lit, never pressed").
+
+### The voice lives in the root layout
+
+- Decision: `VoiceProvider` wraps every page in `app/layout.tsx` and draws its own highlight; `voiceAvailable()` (a model and a key, or the stand-in) is read on the server. The mic starts the voice where it is available and the tour otherwise; "Bolke" (businesses.voice_on_arrival) starts it on arrival only after the owner has started it once on that phone (the browser asks for the microphone on a tap).
+- Why: one conversation must survive moving between screens ("Mehta ka bill banao" opens the form and carries on); a page may not use the microphone or play sound before a tap.
+- Asked by: the Stage 9 prompt (voice: "Bolke" opt-in, the mic in the tab bar).
+
+### The build drives the voice through the stand-in
+
+- Decision: under `AI_TRANSPORT=fake` the session endpoint answers `fake: true`; the browser opens no connection and exposes `window.__ekbillVoice.run(tool, args)` and the messages it would have sent, so Playwright exercises the screen descriptions and every tool on real screens. Nothing in production sets `AI_TRANSPORT`.
+- Why: no model is called from the build container; the tools are the part that can break the owner's screen.
+- Asked by: the Stage 9 tests ("voice unit tests") and the build's rule on model calls.
+
+### The contract helper stores no contract
+
+- Decision: the helper takes the contract's terms (typed, or read from its pasted text) and what was billed before (the instalments ticked, or an amount) each time, works out this bill with the engine, and opens the bill form with the line; no contracts or projects table.
+- Why: the Stage 9 prompt says "change nothing permanent"; the bill itself carries the working in its line ("Advance (instalment 1 of 3: 30% of contract value ₹5,00,000)"), so the customer's accountant can follow it. A stored contract that knows its own bills is a later stage's table.
+- Asked by: the Stage 9 prompt (contract helper, salvaged).
+
+### One way into the bill form from elsewhere
+
+- Decision: `screens/bill/prefill.ts` (sessionStorage, one hop, read once and removed) carries lines and a GST rate from the voice's start_bill and from the contract helper to `/bills/new?customer=`.
+- Why: the form's draft is per person, bill number and customer (Stage 4); a URL with the lines would put the owner's figures in the address bar and the history.
+- Asked by: the Stage 9 voice and contract helper.

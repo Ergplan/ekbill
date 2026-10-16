@@ -6,6 +6,9 @@ import '@ekbill/design/tokens/fonts.css';
 import '@ekbill/design/tokens/themes.css';
 import '@ekbill/ui/styles.css';
 import './globals.css';
+import { voiceAvailable } from '@ekbill/ai';
+
+import { VoiceProvider } from '../screens/voice/VoiceProvider';
 import { Hydrated } from './Hydrated';
 
 export const metadata: Metadata = {
@@ -40,7 +43,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         />
       </head>
       <body>
-        {children}
+        {/* The voice (Stage 9) lives above the screens, so one conversation survives moving between them. */}
+        <VoiceProvider available={voiceAvailable()}>{children}</VoiceProvider>
         <Hydrated />
       </body>
     </html>

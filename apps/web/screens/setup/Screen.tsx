@@ -31,6 +31,7 @@ import {
 
 import { finishSetup, setBusinessFile } from '../../actions/business';
 import { clearDraft, useDraft } from '../draft';
+import { useVoice } from '../voice/VoiceProvider';
 import { manifest, type SetupStep } from './manifest';
 
 export interface SetupDraft {
@@ -215,6 +216,8 @@ export function SetupScreen({ step }: { step: SetupStep }) {
     router.push('/');
   };
 
+  // The voice walks the questions too (Stage 9): the mic starts it here, before there is a tab bar.
+  const voice = useVoice();
   const stepIndex = ['name', 'gst', 'gstin', 'turnover', 'irn', 'review'].indexOf(step);
   const total = d.gst === 'yes' ? (d.turnover === 'd' ? 6 : 5) : d.gst === 'composition' ? 4 : 3;
 
@@ -222,12 +225,21 @@ export function SetupScreen({ step }: { step: SetupStep }) {
     <main className="eb-screen">
       <header className="eb-topbar">
         <div className="eb-topbar__left">
-          <IconButton name="back" label={t('action.back')} data-guide="back" onClick={() => go(prevStep(step, d))} />
+          <IconButton
+            name="back"
+            label={t('action.back')}
+            data-guide="back"
+            data-voice="safe"
+            onClick={() => go(prevStep(step, d))}
+          />
           {stepIndex >= 0 ? (
             <div className="eb-topbar__sub">{t('setup.step', { n: Math.min(stepIndex + 1, total), total })}</div>
           ) : null}
         </div>
         <div className="eb-topbar__right">
+          {voice?.available ? (
+            <IconButton name="mic" label={t('action.mic')} data-guide="mic" data-voice="owner" onClick={voice.toggle} />
+          ) : null}
           <button
             type="button"
             className="eb-iconbtn"
@@ -260,7 +272,7 @@ export function SetupScreen({ step }: { step: SetupStep }) {
               </div>
             </Field>
             <div className="eb-sticky eb-sticky--bare">
-              <PrimaryCTA data-guide="next" onClick={() => advance()}>
+              <PrimaryCTA data-guide="next" data-voice="safe" onClick={() => advance()}>
                 {t('action.next')}
               </PrimaryCTA>
             </div>
@@ -316,7 +328,7 @@ export function SetupScreen({ step }: { step: SetupStep }) {
               </div>
             </Field>
             <div className="eb-sticky eb-sticky--bare">
-              <PrimaryCTA data-guide="next" onClick={() => advance()}>
+              <PrimaryCTA data-guide="next" data-voice="safe" onClick={() => advance()}>
                 {t('action.next')}
               </PrimaryCTA>
             </div>
@@ -382,10 +394,10 @@ export function SetupScreen({ step }: { step: SetupStep }) {
               </div>
             </Field>
             <div className="eb-actions eb-actions--stack eb-sticky eb-sticky--bare">
-              <PrimaryCTA data-guide="next" onClick={() => advance()}>
+              <PrimaryCTA data-guide="next" data-voice="safe" onClick={() => advance()}>
                 {t('action.next')}
               </PrimaryCTA>
-              <GhostButton data-guide="skip" onClick={skip}>
+              <GhostButton data-guide="skip" data-voice="safe" onClick={skip}>
                 {t('action.skip')}
               </GhostButton>
             </div>
@@ -412,10 +424,10 @@ export function SetupScreen({ step }: { step: SetupStep }) {
               </div>
             </Field>
             <div className="eb-actions eb-actions--stack eb-sticky eb-sticky--bare">
-              <PrimaryCTA data-guide="next" onClick={() => advance()}>
+              <PrimaryCTA data-guide="next" data-voice="safe" onClick={() => advance()}>
                 {t('action.next')}
               </PrimaryCTA>
-              <GhostButton data-guide="skip" onClick={skip}>
+              <GhostButton data-guide="skip" data-voice="safe" onClick={skip}>
                 {t('action.skip')}
               </GhostButton>
             </div>
@@ -463,10 +475,10 @@ export function SetupScreen({ step }: { step: SetupStep }) {
               </select>
             </Field>
             <div className="eb-actions eb-actions--stack eb-sticky eb-sticky--bare">
-              <PrimaryCTA data-guide="next" onClick={() => advance()}>
+              <PrimaryCTA data-guide="next" data-voice="safe" onClick={() => advance()}>
                 {t('action.next')}
               </PrimaryCTA>
-              <GhostButton data-guide="skip" onClick={skip}>
+              <GhostButton data-guide="skip" data-voice="safe" onClick={skip}>
                 {t('action.skip')}
               </GhostButton>
             </div>
@@ -486,10 +498,10 @@ export function SetupScreen({ step }: { step: SetupStep }) {
               />
             </div>
             <div className="eb-actions eb-actions--stack eb-sticky eb-sticky--bare">
-              <PrimaryCTA data-guide="next" onClick={() => advance()}>
+              <PrimaryCTA data-guide="next" data-voice="safe" onClick={() => advance()}>
                 {t('action.next')}
               </PrimaryCTA>
-              <GhostButton data-guide="skip" onClick={skip}>
+              <GhostButton data-guide="skip" data-voice="safe" onClick={skip}>
                 {t('action.skip')}
               </GhostButton>
             </div>
@@ -574,7 +586,7 @@ export function SetupScreen({ step }: { step: SetupStep }) {
                 {saving ? t('setup.saving') : t('setup.go')}
               </PrimaryCTA>
               {!d.upi || !d.signature ? (
-                <GhostButton data-guide="more" onClick={() => go('pan')}>
+                <GhostButton data-guide="more" data-voice="safe" onClick={() => go('pan')}>
                   {t('setup.enough.more')}
                 </GhostButton>
               ) : null}

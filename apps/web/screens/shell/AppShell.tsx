@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 import { t } from '@ekbill/copy';
 import { GuideHighlight, Icon, IconButton, Logo, ProfileRing, TabBar, useTour, type GuideStep } from '@ekbill/ui';
 
 import type { Registration, Role } from '../types';
+import { useVoice } from '../voice/VoiceProvider';
 import { tabsFor } from './nav';
 
 /** The serialisable part of the viewer that the shell needs. */
@@ -20,13 +21,18 @@ export interface ShellViewer {
   as: string | null;
   /** The person's own language (users.language); the dictionary switch arrives with the Aap wiring in Stage 4. */
   language?: 'hi-Latn' | 'en';
+  /** "Bolke" on Aap: the voice starts on arrival (Stage 9). */
+  voice?: boolean;
+  /** A signed-in member, not a look or the demo. */
+  signedIn?: boolean;
 }
 
 /**
  * Every product screen sits in this shell: the top bar (logo + profile ring
  * on tab roots, back + title elsewhere), the floating tab bar with the mic,
  * the "Tour" button and the guide highlight (rule 17). The mic starts the
- * tour in Stage 1; Stage 9 hands the same highlight to the Realtime voice.
+ * voice where a session can be minted (Stage 9), else the tour; the voice
+ * moves the same highlight.
  */
 export function AppShell({
   viewer,
@@ -38,6 +44,7 @@ export function AppShell({
   tour,
   children,
   noTabs,
+  topMic,
 }: {
   viewer: ShellViewer;
   tab?: 'home' | 'bills' | 'gst' | 'you';
@@ -48,9 +55,17 @@ export function AppShell({
   tour: GuideStep[];
   children: ReactNode;
   noTabs?: boolean;
+  /** The mic in the top bar where there is no tab bar and the voice walks the screen (the photo's review). */
+  topMic?: boolean;
 }) {
   const router = useRouter();
   const guide = useTour(tour);
+  const voice = useVoice();
+  const talk = voice?.available ? voice.toggle : guide.running ? guide.stop : guide.start;
+  // The VoiceProvider reads this on arrival ("Bolke": start talking at once).
+  useEffect(() => {
+    document.documentElement.dataset.bolke = viewer.voice ? 'on' : 'off';
+  }, [viewer.voice]);
   const withAs = (href: string) => (viewer.as ? `${href}${href.includes('?') ? '&' : '?'}as=${viewer.as}` : href);
   const tabs = tabsFor(viewer.registration, viewer.role);
   const initial = viewer.personName.trim().charAt(0).toUpperCase() || 'E';
@@ -64,6 +79,7 @@ export function AppShell({
               label={t('action.back')}
               onClick={() => router.push(withAs(back))}
               data-guide="back"
+              data-voice="safe"
             />
           ) : (
             <Logo />
@@ -77,6 +93,10 @@ export function AppShell({
         </div>
         <div className="eb-topbar__right">
           {actions}
+          {topMic && voice?.available && viewer.signedIn ? (
+            // No tab bar here (the photo's review): the mic sits in the top bar instead.
+            <IconButton name="mic" label={t('action.mic')} data-guide="mic" data-voice="owner" onClick={voice.toggle} />
+          ) : null}
           {tour.length ? (
             <button
               type="button"
@@ -99,7 +119,7 @@ export function AppShell({
           items={tabs}
           current={tab ?? ''}
           micLabel={t('action.mic')}
-          onMic={guide.running ? guide.stop : guide.start}
+          onMic={talk}
           renderLink={(item, inner, active) => (
             <Link href={withAs(item.href)} className="eb-tab" aria-current={active ? 'page' : undefined}>
               {inner}

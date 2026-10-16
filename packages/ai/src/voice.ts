@@ -1,0 +1,285 @@
+import { createHash, randomUUID } from 'node:crypto';
+
+import { AiUnavailableError, type Recorder } from './client';
+import { modelConfig } from './config';
+import { loadPrompt } from './prompts';
+
+/**
+ * The voice (Stage 9; salvaged from the MVP's src/lib/voice/session.ts and
+ * app/api/voice/session): the server mints a short-lived client secret for
+ * one OpenAI Realtime session, with the instructions (prompts/voice/v1.md)
+ * and the tools baked in so the page cannot widen them. The browser talks to
+ * OpenAI over WebRTC with that secret; the real key never leaves the server.
+ * Each mint is one ai_calls row (purpose voice-session). The tools act through
+ * the browser: open a screen, light up, fill, press the safe items; nothing
+ * that commits (rule 17, I6).
+ */
+export const VOICE_PROMPT = { name: 'voice', version: 1 } as const;
+export const TRANSCRIBE_PROMPT = { name: 'voice-transcribe', version: 1 } as const;
+export const VOICE_SCREENS = [
+  'home',
+  'new_bill',
+  'bills',
+  'dues',
+  'customers',
+  'ask',
+  'help',
+  'you',
+  'gst',
+  'photo',
+] as const;
+export type VoiceScreen = (typeof VOICE_SCREENS)[number];
+
+export const VOICE_TOOLS = [
+  {
+    type: 'function',
+    name: 'start_bill',
+    description:
+      'Open the bill form for a customer with the lines filled in. The owner checks it and taps Bill banao; you do not make the bill. Use the customer name exactly as the owner said it; the app matches it to its list.',
+    parameters: {
+      type: 'object',
+      properties: {
+        customer_name: {
+          type: 'string',
+          description: 'Who the bill is for. Empty string for a new customer whose name the owner did not say.',
+        },
+        lines: {
+          type: 'array',
+          description: 'Each thing done: a short description, a quantity (default 1) and the rate in rupees.',
+          items: {
+            type: 'object',
+            properties: {
+              what: { type: 'string' },
+              qty: { type: 'number' },
+              rate: { type: 'number', description: 'Rupees per unit' },
+            },
+            required: ['what', 'rate'],
+          },
+        },
+      },
+      required: ['customer_name', 'lines'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'who_owes',
+    description:
+      'The unpaid bills: who, how much, for how many days. Read it back briefly in Hinglish, biggest or oldest first.',
+    parameters: { type: 'object', properties: {} },
+  },
+  {
+    type: 'function',
+    name: 'remind',
+    description: 'Open the reminder for a customer who owes money. The owner sends it from there.',
+    parameters: { type: 'object', properties: { customer_name: { type: 'string' } }, required: ['customer_name'] },
+  },
+  {
+    type: 'function',
+    name: 'ask_records',
+    description:
+      "Answer a question about the owner's own bills, customers, items or rates. Returns an answer written only from their records; read it back briefly. Not for who owes money now (use who_owes).",
+    parameters: {
+      type: 'object',
+      properties: { question: { type: 'string', description: 'The question, in the words the owner used.' } },
+      required: ['question'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'go_to',
+    description:
+      'Open a screen. new_bill asks whose bill; dues is who owes money; help is for a bill that is part of a bigger contract; photo is for making a bill from a photo. The app tells you what is on the new screen.',
+    parameters: {
+      type: 'object',
+      properties: { screen: { type: 'string', enum: [...VOICE_SCREENS] } },
+      required: ['screen'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'show',
+    description:
+      'Put the ring round one item on the screen (an item id from the [screen] list) while you talk about it, with the few words you are saying. Use it every time you ask for a field or mention a button.',
+    parameters: {
+      type: 'object',
+      properties: {
+        item_id: { type: 'string' },
+        say: { type: 'string', description: 'Your words, short, shown under the ring.' },
+      },
+      required: ['item_id', 'say'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'fill',
+    description:
+      'Type what the owner said into a field on the screen (an item of kind field). Numbers as digits (3500, not teen hazaar). Then show the next field and ask for it.',
+    parameters: {
+      type: 'object',
+      properties: { item_id: { type: 'string' }, value: { type: 'string' } },
+      required: ['item_id', 'value'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'tap',
+    description:
+      'Press an item on the screen for the owner. Refused for OWNER-ONLY items (they make, save, send, pay or share): for those the ring goes round it and you ask the owner to tap it.',
+    parameters: { type: 'object', properties: { item_id: { type: 'string' } }, required: ['item_id'] },
+  },
+  {
+    type: 'function',
+    name: 'guide_steps',
+    description:
+      "The screen's tour: the things to point at, in order, with what to say. Use it when the owner asks what to do here or how this screen works.",
+    parameters: { type: 'object', properties: {} },
+  },
+] as const;
+
+const SETUP_NOTE =
+  'RIGHT NOW the owner is setting up the app for the first time, one question per screen: the business name, whether they have GST (and the number), then what that needs. There are no bills or customers yet, so start_bill, who_owes, remind, ask_records and go_to do nothing; just help with the questions. Show each one, ask it, fill() the answer, tap() Aage. The last screen shows all the answers; the owner taps the button to start (OWNER-ONLY).';
+
+/** The instructions for one session: the versioned prompt with the business, its customers and the setup note filled in. */
+export function voiceInstructions(args: {
+  businessName: string | null;
+  customers: ReadonlyArray<{ name: string }>;
+}): string {
+  const names = args.customers
+    .slice(0, 60)
+    .map((c) =>
+      c.name
+        .replace(/[\r\n{}]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 60),
+    )
+    .join(', ');
+  return loadPrompt(VOICE_PROMPT.name, VOICE_PROMPT.version)
+    .replace(
+      '{{business}}',
+      args.businessName
+        ? `a small Indian business called "${args.businessName.replace(/["\r\n]+/g, ' ')}"`
+        : 'small Indian businesses',
+    )
+    .replace('{{setup}}', args.businessName ? '' : `\n${SETUP_NOTE}\n`)
+    .replace('{{customers}}', names || 'none yet');
+}
+
+/** The body sent to OpenAI to mint a client secret: ten minutes, one session, these instructions and tools. */
+export function realtimeSessionBody(args: {
+  businessName: string | null;
+  customers: ReadonlyArray<{ name: string }>;
+  model: string;
+  voice: string;
+}) {
+  return {
+    expires_after: { anchor: 'created_at', seconds: 600 },
+    session: {
+      type: 'realtime',
+      model: args.model,
+      instructions: voiceInstructions(args),
+      audio: {
+        input: {
+          // Without a hint the transcriber guesses the language from a few syllables of Hinglish.
+          transcription: {
+            model: 'gpt-4o-mini-transcribe',
+            prompt: loadPrompt(TRANSCRIBE_PROMPT.name, TRANSCRIBE_PROMPT.version).trim(),
+          },
+          // A phone held close to the mouth, often in a shop with noise around.
+          noise_reduction: { type: 'near_field' },
+        },
+        output: { voice: args.voice },
+      },
+      tools: VOICE_TOOLS,
+      tool_choice: 'auto',
+    },
+  };
+}
+
+export interface RealtimeSecret {
+  secret: string;
+  expiresAt: number | null;
+  model: string;
+  baseUrl: string;
+  /** The build's stand-in (AI_TRANSPORT=fake): the browser opens no connection and the tests drive the tools. */
+  fake: boolean;
+}
+
+export type RealtimeTransport = (
+  body: ReturnType<typeof realtimeSessionBody>,
+  signal: AbortSignal,
+) => Promise<{ value: string; expiresAt: number | null }>;
+
+let override: RealtimeTransport | null = null;
+/** Tests: mint with this transport (null restores the environment's). */
+export function setRealtimeTransport(t: RealtimeTransport | null): void {
+  override = t;
+}
+
+const openAiRealtimeTransport: RealtimeTransport = async (body, signal) => {
+  const cfg = modelConfig();
+  if (!cfg.apiKey) throw new AiUnavailableError('OPENAI_API_KEY is not set');
+  const res = await fetch(`${cfg.baseUrl}/v1/realtime/client_secrets`, {
+    method: 'POST',
+    signal,
+    headers: { authorization: `Bearer ${cfg.apiKey}`, 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`client_secrets ${res.status}`);
+  const out = (await res.json()) as { value?: string; expires_at?: number };
+  if (!out.value) throw new Error('client_secrets: no value');
+  return { value: out.value, expiresAt: out.expires_at ?? null };
+};
+
+const fakeRealtimeTransport: RealtimeTransport = async () => ({
+  value: `fake-${randomUUID()}`,
+  expiresAt: Math.floor(Date.now() / 1000) + 600,
+});
+
+/** Whether a voice session can be minted here at all (a model and a key, or the stand-in). */
+export function voiceAvailable(env: NodeJS.ProcessEnv = process.env): boolean {
+  if (override || env.AI_TRANSPORT === 'fake') return true;
+  const cfg = modelConfig(env);
+  return Boolean(cfg.apiKey && cfg.realtimeModel);
+}
+
+export async function mintVoiceSession(args: {
+  businessName: string | null;
+  customers: ReadonlyArray<{ name: string }>;
+  record: Recorder;
+}): Promise<RealtimeSecret> {
+  const fake = !override && process.env.AI_TRANSPORT === 'fake';
+  const cfg = modelConfig();
+  const model = fake ? 'fake-realtime' : override ? 'test-realtime' : cfg.realtimeModel;
+  if (!model) throw new AiUnavailableError('OPENAI_REALTIME_MODEL is not set');
+  const body = realtimeSessionBody({ ...args, model, voice: cfg.realtimeVoice });
+  const inputHash = createHash('sha256').update(body.session.instructions).digest('hex');
+  const started = Date.now();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15_000);
+  const row = (outcome: 'ok' | 'error' | 'timeout', error: string | null) =>
+    args.record({
+      purpose: 'voice-session',
+      model,
+      promptVersion: `${VOICE_PROMPT.name}/v${VOICE_PROMPT.version}`,
+      inputHash,
+      tokensIn: null,
+      tokensOut: null,
+      costMicros: null,
+      latencyMs: Date.now() - started,
+      outcome,
+      error,
+    });
+  try {
+    const t = override ?? (fake ? fakeRealtimeTransport : openAiRealtimeTransport);
+    const out = await t(body, controller.signal);
+    await row('ok', null);
+    return { secret: out.value, expiresAt: out.expiresAt, model, baseUrl: cfg.baseUrl, fake };
+  } catch (e) {
+    if (e instanceof AiUnavailableError) throw e;
+    await row(controller.signal.aborted ? 'timeout' : 'error', String((e as Error)?.message ?? e).slice(0, 300));
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}

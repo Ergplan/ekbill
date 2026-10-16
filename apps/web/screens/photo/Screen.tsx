@@ -197,6 +197,7 @@ export function PhotoScreen({ state, review, business, today, live, sendsPhotos,
       title={t('photo.title')}
       tour={state === 'review' ? manifest.tour : []}
       noTabs={state === 'review'}
+      topMic={state === 'review'}
     >
       {state === 'pick' ? (
         <>

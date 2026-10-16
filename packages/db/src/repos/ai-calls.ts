@@ -1,7 +1,7 @@
 import { and, desc, eq } from 'drizzle-orm';
 
 import * as schema from '../schema';
-import { withTenant, type Role, type TenantScope } from '../scope';
+import { withTenant, withUser, type Role, type TenantScope } from '../scope';
 import { allow, type RoleProbe, type TenancyProbe } from './allow';
 
 /**
@@ -37,6 +37,24 @@ export async function recordAiCall(
     const [r] = await db
       .insert(schema.aiCalls)
       .values({ businessId: scope.businessId, userId: scope.userId, ...row, error: row.error?.slice(0, 300) ?? null })
+      .returning({ id: schema.aiCalls.id });
+    return r!.id;
+  });
+}
+
+/**
+ * A call for a person with no business yet (the voice walking a brand-new
+ * owner through setup): business_id null, as the ai_calls policy allows for
+ * calls outside a business; the person and the request are on the row's trail.
+ */
+export async function recordUserAiCall(
+  who: { userId: string; requestId: string },
+  row: Parameters<typeof recordAiCall>[1],
+): Promise<string> {
+  return withUser({ userId: who.userId, requestId: who.requestId }, async ({ db }) => {
+    const [r] = await db
+      .insert(schema.aiCalls)
+      .values({ businessId: null, userId: who.userId, ...row, error: row.error?.slice(0, 300) ?? null })
       .returning({ id: schema.aiCalls.id });
     return r!.id;
   });

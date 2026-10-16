@@ -22,5 +22,9 @@
   "reversalInput.id": "payments.id (the entry reversed)",
   "inviteInput.phone": "derived: engine toE164 → users.phone_e164 (the invited person)",
   "inviteInput.name": "users.name (a person new to EkBill; an existing one keeps theirs)",
-  "askInput.question": "not stored: searched (search_records) and sent to the text model; ai_calls.input_hash keeps its hash"
+  "askInput.question": "not stored: searched (search_records) and sent to the text model; ai_calls.input_hash keeps its hash",
+  "voiceNameInput.customerName": "not stored: matched to customers.name (engine matchCustomer) to open a screen",
+  "voiceBillInput.customerName": "not stored: matched to customers.name, or the new customer's name on the bill form (stored only when the owner issues)",
+  "voiceBillInput.lines": "not stored: derived: engine linesFromSpeech → the bill form's lines (documents.lines only when the owner issues)",
+  "voiceAskInput.question": "not stored: as askInput.question"
 }

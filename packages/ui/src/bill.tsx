@@ -147,7 +147,7 @@ export function AddLineButton({
   guide?: string;
 }) {
   return (
-    <button type="button" className="eb-addline" onClick={onClick} data-guide={guide}>
+    <button type="button" className="eb-addline" onClick={onClick} data-guide={guide} data-voice="safe">
       <Icon name="plus" size={18} />
       {children}
     </button>

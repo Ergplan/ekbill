@@ -1721,6 +1721,38 @@
     "hi-Latn": "Band",
     "en": "Off"
   },
+  "voice.off": {
+    "hi-Latn": "Bolke abhi band hai.",
+    "en": "Voice is off here."
+  },
+  "voice.failed": {
+    "hi-Latn": "Awaaz jud nahi paayi. Thodi der mein phir dabao.",
+    "en": "Voice could not connect. Tap again in a while."
+  },
+  "voice.noMic": {
+    "hi-Latn": "Mic ki ijaazat nahi mili. Phone ki settings mein mic kholo.",
+    "en": "No permission for the microphone. Allow it in the phone's settings."
+  },
+  "voice.connecting": {
+    "hi-Latn": "Jod rahe hain…",
+    "en": "Connecting…"
+  },
+  "voice.live": {
+    "hi-Latn": "Sun rahi hoon. Boliye.",
+    "en": "Listening. Go ahead."
+  },
+  "voice.stop": {
+    "hi-Latn": "Bas",
+    "en": "Stop"
+  },
+  "voice.unmute": {
+    "hi-Latn": "Awaaz chalu karo",
+    "en": "Turn the sound on"
+  },
+  "voice.ownerOnly": {
+    "hi-Latn": "Yeh aap khud dabao.",
+    "en": "Tap this one yourself."
+  },
   "aap.team": {
     "hi-Latn": "Team",
     "en": "Team"
@@ -1868,6 +1900,126 @@
   "help.chosen": {
     "hi-Latn": "Theek hai. Agla sawaal Stage 9 mein (contract helper).",
     "en": "Alright. The next question comes in Stage 9 (contract helper)."
+  },
+  "help.terms": {
+    "hi-Latn": "Contract batao",
+    "en": "Tell us the contract"
+  },
+  "help.paste": {
+    "hi-Latn": "Contract ka text hai? Yahan daalo",
+    "en": "Have the contract's text? Paste it here"
+  },
+  "help.paste.read": {
+    "hi-Latn": "Isse bharo",
+    "en": "Fill from it"
+  },
+  "help.paste.found": {
+    "hi-Latn": "{n} cheezein bhar di. Check karo.",
+    "en": "Filled {n} things. Check them."
+  },
+  "help.paste.none": {
+    "hi-Latn": "Isme se kuch samajh nahi aaya. Khud bhar do.",
+    "en": "Could not read anything from it. Fill it in yourself."
+  },
+  "help.customer": {
+    "hi-Latn": "Kiska kaam hai?",
+    "en": "Whose job is it?"
+  },
+  "help.customer.pick": {
+    "hi-Latn": "Customer chuno",
+    "en": "Choose the customer"
+  },
+  "help.ask.customer": {
+    "hi-Latn": "Pehle customer chuno",
+    "en": "Choose the customer first"
+  },
+  "help.name": {
+    "hi-Latn": "Kaam ka naam",
+    "en": "Name of the job"
+  },
+  "help.name.ph": {
+    "hi-Latn": "Jaise: Green Park wiring",
+    "en": "Like: Green Park wiring"
+  },
+  "help.total": {
+    "hi-Latn": "Poore contract ki rakam",
+    "en": "The whole contract's value"
+  },
+  "help.total.ph": {
+    "hi-Latn": "Jaise: 5 lakh",
+    "en": "Like: 5 lakh"
+  },
+  "help.gst": {
+    "hi-Latn": "GST",
+    "en": "GST"
+  },
+  "help.gst.extra": {
+    "hi-Latn": "Upar se",
+    "en": "On top"
+  },
+  "help.gst.included": {
+    "hi-Latn": "Isi mein",
+    "en": "Included"
+  },
+  "help.gst.none": {
+    "hi-Latn": "GST nahi",
+    "en": "No GST"
+  },
+  "help.ms": {
+    "hi-Latn": "Kisten",
+    "en": "Instalments"
+  },
+  "help.ms.label": {
+    "hi-Latn": "Kisht",
+    "en": "Instalment"
+  },
+  "help.ms.presets": {
+    "hi-Latn": "Jaldi chuno",
+    "en": "Quick pick"
+  },
+  "help.ms.add": {
+    "hi-Latn": "Aur kisht",
+    "en": "Another instalment"
+  },
+  "help.count": {
+    "hi-Latn": "Kitni kisht?",
+    "en": "How many instalments?"
+  },
+  "help.which": {
+    "hi-Latn": "Yeh bill kaunsi kisht ka?",
+    "en": "Which instalment is this bill for?"
+  },
+  "help.ask.which": {
+    "hi-Latn": "Kaunsi kisht ka bill? Chuno",
+    "en": "Which instalment? Choose one"
+  },
+  "help.billed": {
+    "hi-Latn": "Bill ban chuka",
+    "en": "Already billed"
+  },
+  "help.done": {
+    "hi-Latn": "Ab tak kitna kaam hua (%)",
+    "en": "Work done so far (%)"
+  },
+  "help.before": {
+    "hi-Latn": "Pehle kitne ke bill ban chuke",
+    "en": "Billed before this"
+  },
+  "help.error.before": {
+    "hi-Latn": "Pehle ke bills contract se zyada nahi ho sakte",
+    "en": "Billed before cannot be more than the contract"
+  },
+  "help.retention": {
+    "hi-Latn": "Retention (%), agar customer kuch rokta hai",
+    "en": "Retention (%), if the customer holds some back"
+  },
+  "help.plan": {
+    "hi-Latn": "Is bill ka hisaab",
+    "en": "This bill's working"
+  },
+  "help.make": {
+    "hi-Latn": "Is hisaab se bill banao",
+    "en": "Make the bill from this"
   },
   "flow.title": {
     "hi-Latn": "Screen flow",

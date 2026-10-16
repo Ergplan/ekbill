@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 
 import { t } from '@ekbill/copy';
 import {
@@ -40,6 +40,7 @@ import { sayRefusal } from '../refusal';
 import { withAs } from '../links';
 import { rupees } from '../money';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
+import { takePrefill } from './prefill';
 import { businessFromSetup, compute, ratesFor, type BillDraft, type SetupAnswers } from './compute';
 import { manifest } from './manifest';
 import type { BillFormData } from './data';
@@ -97,6 +98,21 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
   const [stateOther, setStateOther] = useState(false);
   const [why, setWhy] = useState<string | null>(null);
   const patch = (p: Partial<BillDraft>) => setD((cur) => ({ ...cur, ...p }));
+  // Lines handed over once (Stage 9): what the voice heard, or the contract helper's working, with its GST.
+  useEffect(() => {
+    const p = takePrefill();
+    if (!p) return;
+    setD((cur) => {
+      const rate = p.gstRate ?? cur.gst.rate;
+      return {
+        ...cur,
+        lines: p.lines,
+        gst: { ...cur.gst, on: p.gstOn === false ? false : cur.gst.on, rate, perLine: p.lines.map(() => rate) },
+      };
+    });
+    // Once, on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const regular = business.registration === 'regular';
   const rates = useMemo(() => ratesFor(d.date), [d.date]);
   const c = useMemo(() => compute(d, business), [d, business]);
@@ -378,7 +394,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
       </AddLineButton>
 
       {regular ? (
-        <button type="button" className="eb-strip" data-guide="gst" onClick={() => setGstOpen(true)}>
+        <button type="button" className="eb-strip" data-guide="gst" data-voice="safe" onClick={() => setGstOpen(true)}>
           {gstStrip}
         </button>
       ) : business.registration === 'composition' ? (

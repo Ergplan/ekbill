@@ -36,3 +36,15 @@ export {
   setEmbedTransport,
   type EmbedTransport,
 } from './embed';
+export {
+  VOICE_SCREENS,
+  VOICE_TOOLS,
+  mintVoiceSession,
+  realtimeSessionBody,
+  setRealtimeTransport,
+  voiceAvailable,
+  voiceInstructions,
+  type RealtimeSecret,
+  type RealtimeTransport,
+  type VoiceScreen,
+} from './voice';

@@ -137,6 +137,7 @@ export function AskScreen({
           ) : null}
           <GhostButton
             data-guide="more"
+            data-voice="safe"
             onClick={() => {
               setQ('');
               setShown(null);
@@ -147,7 +148,7 @@ export function AskScreen({
         </Card>
       ) : (
         <div className="eb-sticky">
-          <PrimaryCTA data-guide="go" icon="chat" disabled={!q.trim()} onClick={() => go(q)}>
+          <PrimaryCTA data-guide="go" data-voice="safe" icon="chat" disabled={!q.trim()} onClick={() => go(q)}>
             {t('ask.go')}
           </PrimaryCTA>
         </div>

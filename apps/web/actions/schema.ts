@@ -215,3 +215,8 @@ export const memberInput = z.object({
 
 /** Poocho's question (Stage 9): searched and answered, never stored (ai_calls keeps its hash). */
 export const askInput = z.object({ question: z.string().trim().min(2).max(500) });
+
+/** The voice's tools (Stage 9): what the model heard, never stored; each opens a screen or answers in words. */
+export const voiceNameInput = z.object({ customerName: z.string().max(120) });
+export const voiceBillInput = z.object({ customerName: z.string().max(120), lines: z.unknown() });
+export const voiceAskInput = z.object({ question: z.string().trim().min(2).max(500) });

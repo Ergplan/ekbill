@@ -130,6 +130,7 @@ const SHEET_LABELS: Record<string, string[]> = {
   import: ['Files chuno', 'N customers add karo'],
   team: ['Bhejo'],
   ask: ['Poocho'],
+  help: ['Is hisaab se bill banao'],
   'bill-done': [],
   customer: [],
   gst: ['INV-042'],
