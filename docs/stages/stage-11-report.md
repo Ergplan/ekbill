@@ -11,7 +11,7 @@ What is done:
 - coverage of the unit and integration runs
 - dependency upgrades: no high or critical advisory left
 - CI that runs everything and reports everything (it had been stopping early since Stage 3)
-- three real defects, found by the coverage runs and the clean-clone run, fixed with tests (one of them broke every bill link for a new business)
+- fifteen real defects, fixed with tests that fail without the fix. The coverage runs, the clean-clone run and CI found four of them, one of which broke every bill link for a new business. A review of what the seed never exercises found the other eleven: money, numbering and GST among them.
 - the README: what EkBill is, how to run and deploy it, the design pack
 - `mvp-final` resolves in Ergplan/easybills (`7173c46`)
 
@@ -60,6 +60,30 @@ The fix:
 
 1. **Order-dependent GST test.** `gst.test.ts` hand-computes Sharma Electricals' April–June 2026. `numbering.test.ts` (the financial-year rollover) and `bills.test.ts` (an old due) issued Sharma bills in that quarter. When vitest happened to run them first, the quarter's figures changed and three GST tests failed. Reproduced by importing the files in that order. The other two now date their bills outside the quarter. The GST test refuses to start on a quarter that is not empty, naming the bills it found.
 2. **Rows ordered by a column that ties.** Series, payments and a bill's credit notes were ordered by `created_at` alone. Rows made in one transaction share it (a business's first series are made together), and a tie comes back in whatever order the scan returns. That order changes when a row is rewritten. The one that matters is `documents.ts`: when a document names no series, issuing takes "the first active series of its kind", which could change from one issue to the next. `id` now breaks every such tie. The new test makes two series at the same moment and renames whichever is listed first, forcing a non-HOT update. It fails without the fix and passes with it.
+
+## A review of what the seed never exercises
+
+The bill-link defect had one cause: the seeded businesses never number with the year, so no test met a slash. A separate review pass (a second agent, reading and running the engine, never the databases) looked for more of that kind. It reported ten findings. Each one was verified here, reproduced, and fixed with a test that fails without the fix:
+
+| Finding                                                                                      | Before                                                                                                                 | Now                                                                                   |
+| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| A bill dated in an earlier year than its series had reached (a paper bill photographed late) | Restarted at 1 and moved the series back a year. Every later bill then failed on the unique number, for good           | Continues that year's numbers; the series stays put                                   |
+| A series without the year restarts each April, but links named a bill by number alone        | Last year's INV-001 opened this year's: Paise aa gaye and reminders went to the wrong bill                             | Links carry `?fy=`; a prefix belongs to one series                                    |
+| A tax-inclusive figure (every credit note)                                                   | 21 % of whole-bill credit notes came to a paisa more or less than the bill (60,000 measured)                           | The line total is what was entered; a full credit gives back exactly what was charged |
+| gstr1.json credit notes                                                                      | At the seller's own state: an inter-State note read as intra-State                                                     | At the note's own place of supply                                                     |
+| Table 13                                                                                     | One range across every series; credit notes left out                                                                   | One row per series and document type (1 and 5)                                        |
+| Names in Devanagari or Tamil                                                                 | Compared as "", so equal to every other: an import kept one and silently dropped the rest; walk-ins read as duplicates | Compared in every script                                                              |
+| Poocho's question in Hindi or Tamil                                                          | Vowel signs stripped: "शर्मा किराना" asked for "शर"                                                                    | Whole words                                                                           |
+| "+91 098765 43210"                                                                           | Stored as `+9109876543210`, a number that does not exist                                                               | `+919876543210`; 0091 read as +91                                                     |
+| The 10,000th bill of a year on the default series                                            | `INV-2026-27/10000`, 17 characters (rule 46 allows 16)                                                                 | Refused in words, nothing spent                                                       |
+| "28 Dec" read off a photo on 5 January                                                       | Next December, then dropped as implausible                                                                             | Last December                                                                         |
+
+Two more came out of the same work:
+
+- the bills search took what was typed as an `ilike` pattern (`%` found every bill)
+- the CA pack could give two documents one file name
+
+Not changed: a link with no year (a Poocho answer quoting a bare number) still opens the newest bill with that number.
 
 ## Dependencies
 
