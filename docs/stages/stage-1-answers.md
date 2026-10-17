@@ -21,3 +21,16 @@ The operator walked the live app and sent screenshots of two defects that were i
 
 - **Home** (and its staff, accountant and composition states): the "Bheje hue bills" count used classes with no style, so the figure and its words ran together ("03bills gaye is mahine"). The figure is now the pack's figure size with the words beside it.
 - **The switcher** (`/dev/switch`): the list cancelled the card's padding, so avatars and role pills touched the card's edges. The rows now sit inside the card.
+
+## 17 Oct 2026: the alignment pass and five languages (I10)
+
+The operator wrote: "Keep building. Will do final review after full application development. The screens are good but text alignment please check everywhere. We need hindi, marathi, and tamil version also, both text and voice." The build agent takes "text alignment please check everywhere" as the answer to re-record the baselines the pass changes, both themes, with no other change to the design:
+
+- **Lists on a card** (Bills, Paise aane hain, Customers, Items, Team, the import's rows, the GST drill-down, the bill's Paison ka hisaab): `eb-rows` on the card itself cancelled the card's padding (the switcher's defect of 16 Oct, everywhere else), so avatars and amounts touched the card's edges. The rows now keep the card's side inset; the first row has no rule above it.
+- **Paise aane hain**: Yaad dilao and Paise aa gaye start under the name, not under the avatar; one rule between customers, not two.
+- **The bill form**: the customer's name field leaves the header the room a heading does; a line's Rakam sits on the line of Kitna and Rate (it was lower); "KAAM 01" comes from the dictionary.
+- **Bills**: the series chips (INV-, AMC-) were a pill inside a pill; one pill now.
+- **GST**: the hero's two tiles inherited the hero's light text on their white surface (Narangi showed the icons and no figures); a long amount shrinks to its tile.
+- **Customers**: only "Naya customer" floats; "Purane bills upload karo" sits after the list (floating under the main button let the list show between the two).
+- **Aap**: the logo and signature thumbnails are a row's height; "Logo hatao" is a row of its own words.
+- **Hindi, Marathi, Tamil**: no letter-spacing (it pulls vowel signs apart) and taller lines for headings.

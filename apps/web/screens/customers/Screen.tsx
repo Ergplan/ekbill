@@ -62,14 +62,19 @@ export function CustomersScreen({ rows, viewer }: { rows: CustomerRow[]; viewer:
         )}
       </div>
       {canAdd ? (
-        <div className="eb-actions eb-actions--stack eb-sticky">
-          <PrimaryCTA data-guide="new" icon="plus" onClick={() => router.push(as('/customers/new'))}>
-            {t('home.bill.new')}
-          </PrimaryCTA>
-          <OutlineButton data-guide="import" onClick={() => router.push(as('/customers/import'))}>
-            {t('customers.import')}
-          </OutlineButton>
-        </div>
+        <>
+          {/* Only the main button floats: a second one floating under it let the list show between the two. */}
+          <div className="eb-actions eb-actions--stack">
+            <OutlineButton data-guide="import" onClick={() => router.push(as('/customers/import'))}>
+              {t('customers.import')}
+            </OutlineButton>
+          </div>
+          <div className="eb-sticky">
+            <PrimaryCTA data-guide="new" icon="plus" onClick={() => router.push(as('/customers/new'))}>
+              {t('home.bill.new')}
+            </PrimaryCTA>
+          </div>
+        </>
       ) : null}
     </AppShell>
   );

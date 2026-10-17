@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, useTransition } from 'react';
 
-import { t } from '@ekbill/copy';
+import { t, type Locale } from '@ekbill/copy';
 import {
   GST_STATES,
   assessDocument,
@@ -57,7 +57,7 @@ interface NewCustomerDraft {
   name: string;
   phone: string;
   gstin: string;
-  lang: 'hi-Latn' | 'en';
+  lang: Locale;
 }
 
 export function BillScreen({ data, viewer }: { data: BillFormData; viewer: ShellViewer }) {
@@ -392,7 +392,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
           guide={`line-${i}`}
           value={l}
           labels={{
-            kaam: 'KAAM',
+            kaam: t('view.lines'),
             what: t('bill.item.what'),
             whatHint: t('bill.item.what.hint'),
             qty: t('bill.item.qty'),

@@ -854,6 +854,20 @@
   margin: 6px 0 0;
   padding: 0;
 }
+/* A list that is itself the card: the rows keep the card's side inset (amounts and avatars clear the edge) and the
+   first row has no rule above it. */
+.eb-card.eb-rows {
+  padding: 4px var(--eb-space-card-pad);
+  gap: 0;
+}
+.eb-card.eb-rows > h2:first-child {
+  margin: 14px 0 8px;
+}
+.eb-rows > .eb-billrow:first-child,
+.eb-rows > :first-child > .eb-billrow:first-child,
+.eb-rows > h2:first-child + .eb-billrow {
+  border-top: 0;
+}
 .eb-card__more {
   display: flex;
   justify-content: center;
@@ -920,6 +934,9 @@
   padding: 20px;
   border-radius: var(--eb-radius-tile);
   background: var(--eb-surface);
+  /* Its own ink: inside a hero panel it inherited the panel's light text, white on its white surface. */
+  color: var(--eb-text);
+  min-width: 0;
   box-shadow: var(--eb-shadow-card);
   display: flex;
   flex-direction: column;
@@ -936,11 +953,16 @@
 }
 .eb-stat__value {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 8px;
+  gap: 4px 8px;
+}
+/* A tile is half a phone wide: a long amount ("₹1,29,763") shrinks to fit it instead of running past its edge. */
+.eb-stat {
+  container-type: inline-size;
 }
 .eb-stat__figure {
-  font-size: var(--eb-type-figure-size);
+  font-size: min(var(--eb-type-figure-size), 24cqi);
   line-height: 1;
   font-weight: var(--eb-weight-medium);
   letter-spacing: -0.03em;
@@ -1096,15 +1118,18 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   gap: 12px;
-  align-items: end;
+  align-items: start;
 }
+/* Its label on the same line as Kitna and Rate, the amount centred on the fields' line. */
 .eb-line__amount {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  padding-bottom: 12px;
 }
 .eb-line__amount .eb-money {
+  display: flex;
+  align-items: center;
+  min-height: var(--eb-size-field);
   font-size: var(--eb-type-card-size);
 }
 .eb-addline {
@@ -1841,6 +1866,10 @@ a.eb-setting {
 .eb-heading {
   padding: 14px 10px 6px;
 }
+/* A screen that opens on a field (the bill form) leaves the header the same room a heading does. */
+.eb-screen__body > .eb-field:first-child {
+  padding-top: 14px;
+}
 .eb-question {
   padding: 22px 10px 10px;
 }
@@ -1909,11 +1938,15 @@ a.eb-setting {
 .eb-kv dt {
   font-weight: var(--eb-weight-medium);
 }
+.eb-duerow > .eb-billrow {
+  border-top: 0;
+}
 .eb-duerow + .eb-duerow {
   border-top: 1px solid var(--eb-divider);
 }
+/* Under the name, not under the avatar: the buttons start where the text does. */
 .eb-duerow__actions {
-  padding: 0 16px 14px 70px;
+  padding: 0 0 14px calc(var(--eb-size-avatar) + 12px);
 }
 .eb-strip {
   width: 100%;
@@ -2150,6 +2183,12 @@ main.eb-screen.eb-flow {
   max-width: 160px;
   object-fit: contain;
 }
+/* In a settings row: a thumbnail the row's height, so the row lines up with the rows around it. */
+.eb-setting__value .eb-logo-preview {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+}
 .eb-logo-preview {
   display: block;
   width: 72px;
@@ -2188,4 +2227,22 @@ main.eb-screen.eb-flow {
   background: var(--eb-accent);
   color: var(--eb-on-accent);
   font-weight: var(--eb-weight-bold);
+}
+
+/* A setting that is a block of its own under the group's title (the five languages, which wrap on a phone). */
+.eb-settings__block {
+  padding: 12px 16px;
+}
+
+/* ------------------------------------------------- Devanagari and Tamil --- */
+/* Hindi, Marathi and Tamil: no tracking (it pulls a letter's vowel signs apart, "वे लै"), and taller lines for the
+   marks above and below the letters. Latin words and figures in those pages lose only their tracking. */
+html:root:is([lang='hi'], [lang='mr'], [lang='ta']) {
+  --eb-type-display-tracking: 0;
+  --eb-type-title-tracking: 0;
+  --eb-type-display-line: 1.25;
+  --eb-type-title-line: 1.3;
+}
+:root:is([lang='hi'], [lang='mr'], [lang='ta']) :is(.eb-hero__eyebrow, .eb-line__label, .eb-settings__title) {
+  letter-spacing: 0;
 }

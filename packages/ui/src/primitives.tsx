@@ -212,7 +212,9 @@ export function StatusPill({ status, label }: { status: Status; label: string })
 }
 
 export function Avatar({ name, index, size = 'row' }: { name: string; index: number; size?: 'row' | 'chip' | 'big' }) {
-  const initial = name.trim().charAt(0).toUpperCase() || '?';
+  // The first letter as read (a grapheme): "क्" of "क्षितिज", "ஸ்ரீ" whole, never half a letter.
+  const first = new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(name.trim())[Symbol.iterator]().next();
+  const initial = (first.done ? '' : first.value.segment).toUpperCase() || '?';
   return (
     <span
       className={`eb-avatar eb-avatar--${size}`}

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { t } from '@ekbill/copy';
-import { BillRow, Display, EmptyState, FilterChips, Meta, SearchInput, SeriesChip } from '@ekbill/ui';
+import { BillRow, Display, EmptyState, FilterChips, Meta, SearchInput } from '@ekbill/ui';
 
 import { billPath, withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
@@ -31,9 +31,7 @@ export function BillsScreen({ data, viewer }: { data: BillsData; viewer: ShellVi
     <AppShell viewer={viewer} tab="bills" tour={manifest.tour}>
       <section className="eb-heading">
         <Display as="h1">{t('bills.title')}</Display>
-        <Meta>
-          {t('dues.sub', { n: data.rows.length, amount: '' }).replace(' ·  baaki', '').replace(' ·  due', '')}
-        </Meta>
+        <Meta>{t('bills.count', { n: data.rows.length })}</Meta>
       </section>
       <SearchInput
         value={q}
@@ -56,7 +54,7 @@ export function BillsScreen({ data, viewer }: { data: BillsData; viewer: ShellVi
         />
       </div>
       {data.series.length > 1 ? (
-        <div className="eb-chips" role="radiogroup" aria-label="Series" data-guide="series">
+        <div className="eb-chips" role="radiogroup" aria-label={t('aap.series')} data-guide="series">
           {['all', ...data.series].map((s) => (
             <button
               key={s}
@@ -66,7 +64,7 @@ export function BillsScreen({ data, viewer }: { data: BillsData; viewer: ShellVi
               className="eb-chip"
               onClick={() => setSeries(s)}
             >
-              {s === 'all' ? t('bills.series.all') : <SeriesChip>{s}</SeriesChip>}
+              {s === 'all' ? t('bills.series.all') : s}
             </button>
           ))}
         </div>
