@@ -173,13 +173,15 @@ test('a tap on the mic while the voice is still connecting stops it for good (St
 test('the voice asks for a bill while a bill form is open: the lines land on it, and on no later form (Stage 9 review)', async ({
   page,
 }) => {
+  // The voice is started on Home (on a phone the bill form is a full-screen task with no mic of its own), then the
+  // owner opens the bill form, and the voice asks for a bill while it is open.
   await page.goto('/dev/switch/sharma?to=/');
-  await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
-  await page.getByRole('link', { name: 'Mehta Traders' }).first().click();
-  await expect(page).toHaveURL(/\/bills\/new\?customer=/);
   await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
   await page.locator('[data-guide="mic"]').click();
   await expect(page.getByTestId('voice-live')).toBeVisible();
+  await page.getByRole('link', { name: 'Mehta Traders' }).first().click();
+  await expect(page).toHaveURL(/\/bills\/new\?customer=/);
+  await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
   await page.evaluate(() =>
     (window as unknown as { __ekbillVoice: { run: (n: string, a: unknown) => Promise<unknown> } }).__ekbillVoice.run(
       'start_bill',

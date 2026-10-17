@@ -348,6 +348,24 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
     }
   }, [available, state, runTool, onEvent, send, stop, tellScreen]);
 
+  // While talking, a tap on a plain link inside the app moves within the page instead of loading a new one, which
+  // would end the conversation (Stage 9 review: the owner opening a customer's bill from Home lost the voice).
+  useEffect(() => {
+    if (state !== 'live' && state !== 'connecting') return;
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as Element | null)?.closest?.('a[href]');
+      if (!(a instanceof HTMLAnchorElement) || a.target || a.hasAttribute('download')) return;
+      const url = new URL(a.href, window.location.href);
+      if (url.origin !== window.location.origin || url.pathname.startsWith('/api/')) return;
+      if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+      e.preventDefault();
+      router.push(`${url.pathname}${url.search}${url.hash}`);
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, [state, router]);
+
   // A new screen while talking: tell the model what is on it, and carry on.
   useEffect(() => {
     if (state !== 'live') return;
