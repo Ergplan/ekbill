@@ -22,11 +22,13 @@ export interface RenderOtherSizesJob {
 }
 
 export async function runRenderOtherSizes(job: RenderOtherSizesJob): Promise<number> {
+  // Keeping a file is the owner's and staff's. An accountant never issues, so a job in their name is not acted on,
+  // and never run with a role they do not have (Stage 6 review: it was raised to staff).
+  if (job.role === 'accountant') return 0;
   const scope: TenantScope = {
     businessId: job.businessId,
     userId: job.userId,
-    // Keeping a file is the owner's and staff's; an accountant never issues, so never queues this.
-    role: job.role === 'accountant' ? 'staff' : job.role,
+    role: job.role,
     requestId: job.requestId,
     actorKind: 'system',
   };

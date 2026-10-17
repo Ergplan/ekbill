@@ -155,6 +155,8 @@ export const issueBillInput = z.object({
   issueDate: civilDate,
   gstOn: z.boolean(),
   lines: z.array(billLine).min(1).max(100),
+  /** Cancel-and-redo: the cancelled bill this one replaces (its link, documents.linked_document_id). */
+  replaces: z.string().uuid().nullable().optional(),
 });
 // table: documents
 /** Cancel (owner): the reason stays on the bill; the number is never reused. */

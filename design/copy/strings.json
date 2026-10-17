@@ -2925,6 +2925,10 @@
     "hi-Latn": "Is bill pe paise likhe hain. Pehle unhe wapas karo, phir cancel karo.",
     "en": "Money is recorded on this bill. Reverse it first, then cancel."
   },
+  "bill.state.not-cancelled": {
+    "hi-Latn": "Naya bill sirf cancel kiye bill ki jagah banta hai",
+    "en": "A bill is redone only in place of a cancelled one"
+  },
   "bill.state.bad-lines": {
     "hi-Latn": "Kaam ki lines sahi nahi hain",
     "en": "The lines of work are not right"

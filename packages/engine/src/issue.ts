@@ -46,6 +46,8 @@ export interface IssueBusiness extends AssessBusiness {
   /** Where the logo and signature live (Stage 4 saves them); the snapshot carries the references, not the bytes. */
   logoRef?: string | null;
   signatureRef?: string | null;
+  /** The bill's look at issue (design and accent), so every later print of it looks the same (I2, Stage 6 review). */
+  look?: { design: string; accent: string } | null;
 }
 export interface IssueCustomer extends AssessCustomer {
   id: string | null;

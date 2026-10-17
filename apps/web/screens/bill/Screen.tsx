@@ -250,6 +250,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
         issueDate: d.date,
         gstOn,
         lines: d.lines.map((l, i) => ({ what: l.what, qty: l.qty, rate: l.rate, gstRate: gstOn ? rateOf(i) : null })),
+        replaces: live.redoId,
       });
       if (r.ok) {
         clearDraft(draftKey);

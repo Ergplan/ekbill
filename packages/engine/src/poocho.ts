@@ -1,5 +1,6 @@
 import { moneyForMessage, pctText } from './contract';
 import { financialYearOf, formatDateShort, type CivilDate } from './dates';
+import { lineGross } from './money';
 
 /**
  * "Poocho" (Stage 9; salvaged from the MVP's src/lib/search/documents.ts):
@@ -50,7 +51,14 @@ export interface BillForSearch {
   dueDate: CivilDate | null;
   customerName: string;
   customerCity: string | null;
-  lines: ReadonlyArray<{ description: string; quantityMilli: number; unitPricePaise: number; gstBp: number }>;
+  /** The snapshot's lines; grossPaise is what the engine priced each at (older rows without it: lineGross). */
+  lines: ReadonlyArray<{
+    description: string;
+    quantityMilli: number;
+    unitPricePaise: number;
+    gstBp: number;
+    grossPaise?: number;
+  }>;
   subtotalPaise: number;
   gstPaise: number;
   totalPaise: number;
@@ -69,7 +77,8 @@ export function billRecord(b: BillForSearch): SearchRecord {
   const lines = b.lines
     .filter((l) => l.description.trim() || l.unitPricePaise)
     .map((l) => {
-      const amount = Math.round((l.quantityMilli * l.unitPricePaise) / 1000);
+      // The engine's own figure (I4; Stage 9 review: a second calculation here could differ from the bill).
+      const amount = l.grossPaise ?? lineGross(l.quantityMilli, l.unitPricePaise);
       const rate = l.gstBp ? `, GST ${pctText(l.gstBp)}%` : '';
       return `${redact(l.description.trim()) || 'Item'}: ${qty(l.quantityMilli)} x ${moneyForMessage(l.unitPricePaise)} = ${moneyForMessage(amount)}${rate}`;
     });

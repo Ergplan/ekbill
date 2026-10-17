@@ -40,6 +40,14 @@ const bill: BillForSearch = {
 };
 
 describe('the record texts', () => {
+  it('a line’s amount is the one the engine priced (I4, Stage 9 review)', () => {
+    const r = billRecord({
+      ...bill,
+      lines: [{ description: 'Wire', quantityMilli: 1005, unitPricePaise: 33333, gstBp: 0, grossPaise: 33000 }],
+    });
+    // The snapshot's figure, not this file's own arithmetic (which would say ₹335).
+    expect(r.text).toContain('= ₹330');
+  });
   it('a bill says who, when, what, the rate, what came and what is still to come', () => {
     const r = billRecord(bill);
     expect(r).toMatchObject({

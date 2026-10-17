@@ -51,6 +51,8 @@ export class ImportError extends Error {
 export const allowedRoles = {
   startImport: ['owner', 'staff'],
   recordReading: ['owner', 'staff'],
+  /** Setting an import aside: the worker's last attempt, or the upload whose queue send failed (Stage 5 review). */
+  failImport: ['owner', 'staff'],
   commitImport: ['owner', 'staff'],
 } as const satisfies Record<string, readonly Role[]>;
 
@@ -159,7 +161,7 @@ export async function recordReading(
 }
 
 export async function failImport(scope: TenantScope, importId: string, error: string): Promise<void> {
-  allow(scope, allowedRoles.recordReading, 'read old bills');
+  allow(scope, allowedRoles.failImport, 'set an import aside');
   await withTenant(scope, async ({ db }) => {
     await db
       .update(schema.imports)
@@ -287,6 +289,13 @@ export const roleProbes: Record<keyof typeof allowedRoles, RoleProbe> = {
       { name: 'probe.csv', mime: 'text/csv', bytes: CSV('rec') },
     ]);
     return recordReading(scope, i.id, reading(`rec-${Date.now()}`));
+  },
+  failImport: async (scope) => {
+    const i = await startImport({ ...scope, role: 'owner' }, [
+      { name: 'probe.csv', mime: 'text/csv', bytes: CSV('fail') },
+    ]);
+    await failImport(scope, i.id, 'probe');
+    return i;
   },
   commitImport: async (scope) => {
     const owner = { ...scope, role: 'owner' as const };

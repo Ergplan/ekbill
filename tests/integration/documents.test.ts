@@ -168,6 +168,26 @@ describe('issueDocument: the one writer (I2)', () => {
     });
   });
 
+  it('a redo links back to the cancelled bill it replaces, and to nothing else (Stage 6 review, I2)', async () => {
+    const owner = await scopeFor('sharma', 'owner');
+    const first = await documents.issueDocument(owner, {
+      id: (await documents.createDraft(owner, draftInput())).id,
+      today: TODAY,
+    });
+    // Not yet cancelled: a redo cannot replace a standing bill.
+    await expect(documents.createDraft(owner, { ...draftInput(), replaces: first.id })).rejects.toMatchObject({
+      code: 'not-cancelled',
+    });
+    await documents.cancelDocument(owner, { id: first.id, reason: 'Galat rate' });
+    const redo = await documents.createDraft(owner, { ...draftInput(), replaces: first.id });
+    expect(redo.linkedDocumentId).toBe(first.id);
+    const issued = await documents.issueDocument(owner, { id: redo.id, today: TODAY });
+    expect(issued.linkedDocumentId).toBe(first.id);
+    expect(issued.kind).not.toBe('credit_note');
+    // Cancelling the redo is not refused as if it had a credit note against it.
+    expect((await documents.cancelDocument(owner, { id: issued.id, reason: 'Phir galat' })).status).toBe('cancelled');
+  });
+
   it('credits an issued invoice with a note in its own series that links back', async () => {
     const owner = await scopeFor('sharma', 'owner');
     const invoice = await documents.issueDocument(owner, {

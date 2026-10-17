@@ -108,6 +108,8 @@ export interface DraftInput {
   flags?: SupplyFlag[];
   notes?: string | null;
   roundToRupee?: boolean;
+  /** Cancel-and-redo: the cancelled bill this one replaces, kept as its link (I2, Stage 6 review). */
+  replaces?: string | null;
 }
 
 /** The engine said no: the blockers say why and what to do, in Say keys the screen renders. */
@@ -131,6 +133,7 @@ export class DocumentStateError extends Error {
       | 'series-inactive'
       | 'series-kind'
       | 'credit-note-exists'
+      | 'not-cancelled'
       | 'bad-lines',
     message: string,
   ) {
@@ -177,6 +180,7 @@ export function sellerOf(b: typeof schema.businesses.$inferSelect): IssueBusines
     bank: b.bankAccount && b.bankIfsc ? { name: b.bankName ?? '', account: b.bankAccount, ifsc: b.bankIfsc } : null,
     logoRef: b.logoFileId,
     signatureRef: b.signatureFileId,
+    look: { design: b.billDesign, accent: b.billAccent },
   };
 }
 
@@ -256,6 +260,21 @@ async function seriesFor(tx: Tx, id: string | null | undefined, kind: SeriesKind
   return row;
 }
 
+/** The bill a redo replaces: a cancelled bill of this business (never a credit note), else refused. */
+async function replacedBill(tx: Tx, id: string | null | undefined): Promise<string | null> {
+  if (!id) return null;
+  const row = (
+    await tx.db
+      .select({ id: schema.documents.id, kind: schema.documents.kind, status: schema.documents.status })
+      .from(schema.documents)
+      .where(eq(schema.documents.id, id))
+  )[0];
+  if (!row) throw new NotFoundError('replaced bill');
+  if (row.kind === 'credit_note') throw new DocumentStateError('not-a-bill', 'a credit note is not redone');
+  if (row.status !== 'cancelled') throw new DocumentStateError('not-cancelled', 'only a cancelled bill is redone');
+  return row.id;
+}
+
 export async function createDraft(scope: TenantScope, input: DraftInput): Promise<Document> {
   allow(scope, allowedRoles.createDraft, 'make a bill');
   const dateIso = assertCivilDate(input.dateIso, 'bill date');
@@ -302,6 +321,7 @@ export async function createDraft(scope: TenantScope, input: DraftInput): Promis
         notes: input.notes ?? null,
         roundToRupee: input.roundToRupee ?? false,
         gstOn,
+        linkedDocumentId: await replacedBill(tx, input.replaces),
         createdBy: scope.userId,
       })
       .returning();
@@ -364,6 +384,9 @@ export async function updateDraft(scope: TenantScope, id: string, patch: DraftPa
         lines,
         totals,
         ...(patch.notes !== undefined ? { notes: patch.notes } : {}),
+        ...(patch.replaces !== undefined && current.kind !== 'credit_note'
+          ? { linkedDocumentId: await replacedBill(tx, patch.replaces) }
+          : {}),
         roundToRupee,
         gstOn,
         revision: sql`${schema.documents.revision} + 1`,
@@ -605,7 +628,13 @@ export async function cancelDocument(scope: TenantScope, input: { id: string; re
     const notes = await db
       .select({ id: schema.documents.id })
       .from(schema.documents)
-      .where(and(eq(schema.documents.linkedDocumentId, current.id), eq(schema.documents.status, 'issued')))
+      .where(
+        and(
+          eq(schema.documents.linkedDocumentId, current.id),
+          eq(schema.documents.kind, 'credit_note'),
+          eq(schema.documents.status, 'issued'),
+        ),
+      )
       .limit(1);
     if (notes.length)
       throw new DocumentStateError('credit-note-exists', `document ${current.number} already has a credit note`);

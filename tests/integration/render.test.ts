@@ -223,3 +223,52 @@ describe('the bill on paper', () => {
     },
   );
 });
+
+// Stage 6 review (I2): a later change of look reprinted old bills in it.
+describe('a bill prints in the look it was issued with', () => {
+  it.skipIf(!hasBrowser)(
+    'a change of design and accent after issue leaves the bill as it was',
+    { timeout: 60_000 },
+    async () => {
+      const owner = await scopeFor('sharma', 'owner');
+      const before = (await businesses.getProfile(owner)).look;
+      await businesses.setLook(owner, { design: 'classic', accent: '#2f4a9e' });
+      try {
+        const draft = await documents.createDraft(owner, {
+          customer: { name: 'Look Kept', stateCode: '27' },
+          dateIso: '2026-10-15',
+          lines: [
+            { description: 'Panel', quantityMilli: 1000, unitPricePaise: 50000, gstBp: 1800, taxRateChosen: true },
+          ],
+        });
+        const issued = await documents.issueDocument(owner, { id: draft.id, today: '2026-10-15' });
+        expect((issued.issuedSnapshot as IssuedSnapshot).seller.look).toEqual({ design: 'classic', accent: '#2f4a9e' });
+        await businesses.setLook(owner, { design: 'modern', accent: '#b4232a' });
+        const printed = await printAndKeep(owner, { documentId: issued.id, kind: 'pdf', paper: 'a5' });
+        expect(printed.design).toBe('classic');
+      } finally {
+        await businesses.setLook(owner, before);
+      }
+    },
+  );
+});
+
+// Stage 6 review: a render job in an accountant's name ran as staff and kept files.
+describe('render-other-sizes in an accountant’s name', () => {
+  it('is not acted on, and keeps nothing', async () => {
+    const { runRenderOtherSizes } = await import('../../apps/worker/src/bills/jobs');
+    const { owner, doc } = await seededBill('INV-031');
+    const accountant = await scopeFor('sharma', 'accountant');
+    const before = (await documentFiles.renderingsOf(owner, doc.id)).length;
+    expect(
+      await runRenderOtherSizes({
+        documentId: doc.id,
+        businessId: accountant.businessId,
+        userId: accountant.userId,
+        role: 'accountant',
+        requestId: 'render-accountant',
+      }),
+    ).toBe(0);
+    expect((await documentFiles.renderingsOf(owner, doc.id)).length).toBe(before);
+  });
+});

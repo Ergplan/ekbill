@@ -17,6 +17,7 @@
   "issueBillInput.id": "documents.id (the draft a refused attempt left; updated, never a second draft)",
   "issueBillInput.customerLanguage": "customers.language (the customer the form adds)",
   "issueBillInput.lines": "derived: engine parseQuantity/parseMoney → documents.lines (IssueLine[])",
+  "issueBillInput.replaces": "documents.linked_document_id (the cancelled bill a redo replaces)",
   "creditNoteBillInput.amount": "derived: engine proportionalCredit → documents.lines of the credit note",
   "paymentInput.amount": "derived: engine parseMoney → payments.amount_paise",
   "reversalInput.id": "payments.id (the entry reversed)",

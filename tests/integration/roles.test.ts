@@ -250,6 +250,18 @@ describe('roles (I8): every repository write, every role', () => {
     const scope = await scopeFor('sharma', 'accountant');
     await expect(imports.roleProbes.recordReading(scope)).rejects.toBeInstanceOf(ForbiddenError);
   });
+  it('imports.failImport: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(imports.roleProbes.failImport(scope)).resolves.toBeDefined();
+  });
+  it('imports.failImport: staff may', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(imports.roleProbes.failImport(scope)).resolves.toBeDefined();
+  });
+  it('imports.failImport: accountant may not', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(imports.roleProbes.failImport(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
   it('imports.commitImport: owner may', async () => {
     const scope = await scopeFor('sharma', 'owner');
     await expect(imports.roleProbes.commitImport(scope)).resolves.toBeDefined();

@@ -732,6 +732,7 @@
   "bill.state.credit-note-exists": "This bill already has a credit note",
   "bill.state.not-a-bill": "This is a credit note, not a bill",
   "bill.state.has-money": "Money is recorded on this bill. Reverse it first, then cancel.",
+  "bill.state.not-cancelled": "A bill is redone only in place of a cancelled one",
   "bill.state.bad-lines": "The lines of work are not right",
   "bill.check.state.pick": "Which state?",
   "pay.error.amount": "Write a valid amount",

@@ -21,6 +21,7 @@ import {
   parseMoney,
   parseQuantity,
   todayIst,
+  type BillLook,
   type CheckedReading,
   type IssueLine,
   type IssuedSnapshot,
@@ -143,6 +144,39 @@ export async function issueBill(
 type IssueBillData = z.infer<typeof issueBillInput>;
 
 /** The one issue path of the screens (the form and the photo review): customer, draft, issueDocument, the file. */
+/**
+ * After an issue (a bill or a credit note): the shared format printed and kept at once (budget 3 s), the other
+ * sizes queued for the worker, and Poocho's index brought up to date. Answers the print's time, or null when it
+ * failed (the file is then printed on the first download). Stage 6 review: a credit note had none of this.
+ */
+async function afterIssue(
+  scope: TenantScope,
+  documentId: string,
+  look: Pick<BillLook, 'shareAs' | 'paper'>,
+): Promise<number | null> {
+  let renderMs: number | null = null;
+  try {
+    const t0 = Date.now();
+    await printAndKeep(scope, { documentId, kind: look.shareAs, paper: look.paper });
+    renderMs = Date.now() - t0;
+  } catch (error) {
+    log.warn({ requestId: scope.requestId, documentId, err: error }, 'issue-time render failed');
+  }
+  await enqueue('render-other-sizes', {
+    documentId,
+    businessId: scope.businessId,
+    userId: scope.userId,
+    role: scope.role,
+    requestId: scope.requestId,
+  }).catch((error: unknown) => log.warn({ err: error }, 'render-other-sizes not queued'));
+  await enqueue('index-search', {
+    businessId: scope.businessId,
+    userId: scope.userId,
+    requestId: scope.requestId,
+  }).catch((error: unknown) => log.warn({ err: error }, 'index-search not queued'));
+  return renderMs;
+}
+
 async function issueFrom(
   scope: TenantScope,
   d: IssueBillData,
@@ -202,6 +236,7 @@ async function issueFrom(
       gstOn: d.gstOn,
       lines,
       placeOfSupplyStateCode: placeOfSupply,
+      replaces: d.replaces ?? null,
     };
     const draft = draftId
       ? await documents.updateDraft(scope, draftId, draftInput)
@@ -209,28 +244,7 @@ async function issueFrom(
     if (onDraft) await onDraft(draft.id);
     draftId = draft.id;
     const issued = await documents.issueDocument(scope, { id: draft.id, today });
-    let renderMs: number | null = null;
-    try {
-      const t0 = Date.now();
-      await printAndKeep(scope, { documentId: issued.id, kind: profile.look.shareAs, paper: profile.look.paper });
-      renderMs = Date.now() - t0;
-    } catch (error) {
-      // The bill is issued; the file is printed on the first download instead (the route renders on demand).
-      log.warn({ requestId: scope.requestId, documentId: issued.id, err: error }, 'issue-time render failed');
-    }
-    await enqueue('render-other-sizes', {
-      documentId: issued.id,
-      businessId: scope.businessId,
-      userId: scope.userId,
-      role: scope.role,
-      requestId: scope.requestId,
-    }).catch((error: unknown) => log.warn({ err: error }, 'render-other-sizes not queued'));
-    // Poocho's index and its embeddings (the text is also brought up to date when someone asks).
-    await enqueue('index-search', {
-      businessId: scope.businessId,
-      userId: scope.userId,
-      requestId: scope.requestId,
-    }).catch((error: unknown) => log.warn({ err: error }, 'index-search not queued'));
+    const renderMs = await afterIssue(scope, issued.id, profile.look);
     log.info({ requestId: scope.requestId, documentId: issued.id, number: issued.number, renderMs }, 'bill issued');
     touched();
     return { ok: true, value: { id: issued.id, number: issued.number ?? '', renderMs } };
@@ -289,7 +303,8 @@ export async function makeCreditNote(input: unknown): Promise<BillResult<{ id: s
     });
     try {
       const issued = await documents.issueDocument(scope, { id: note.id, today });
-      log.info({ requestId: scope.requestId, documentId: issued.id, invoice: bill.id }, 'credit note issued');
+      const renderMs = await afterIssue(scope, issued.id, (await businesses.getProfile(scope)).look);
+      log.info({ requestId: scope.requestId, documentId: issued.id, invoice: bill.id, renderMs }, 'credit note issued');
       touched();
       return { ok: true, value: { id: issued.id, number: issued.number ?? '' } };
     } catch (e) {

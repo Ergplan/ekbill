@@ -4,7 +4,7 @@ import { businesses, documentFiles, documents, files, type DocumentFile, type Te
 import type { IssuedSnapshot } from '@ekbill/engine';
 
 import { renderJpeg, renderPdf, upiQrDataUrl } from './render';
-import type { Design, Paper } from './template';
+import { DESIGNS, type Design, type Paper } from './template';
 
 /**
  * Print a bill and keep the file (Stage 6): the web server at issue (the
@@ -25,18 +25,28 @@ async function dataUrlOf(scope: TenantScope, fileId: string | null | undefined):
   }
 }
 
+/** The look a bill prints in: the one kept in its snapshot at issue, else (older bills) the business's today. */
+async function lookOf(scope: TenantScope, snapshot: IssuedSnapshot): Promise<{ design: Design; accent: string }> {
+  const kept = snapshot.seller.look;
+  if (kept && (DESIGNS as readonly string[]).includes(kept.design))
+    return { design: kept.design as Design, accent: kept.accent };
+  const profile = await businesses.getProfile(scope);
+  return { design: profile.look.design, accent: profile.look.accent };
+}
+
 export async function printAndKeep(
   scope: TenantScope,
   input: { documentId: string; kind: FileKind; paper: Paper; design?: Design },
 ): Promise<DocumentFile & { bytes: Buffer }> {
-  // The design is settled before the kept file is looked for: the business's own look when none is asked (it was
-  // looked up as 'classic', so a business on any other design re-rendered on every share and download).
-  const profile = await businesses.getProfile(scope);
-  const design = input.design ?? profile.look.design;
-  const key = { documentId: input.documentId, kind: input.kind, paper: input.paper, design };
   const doc = await documents.getDocument(scope, input.documentId);
   if (doc.status === 'draft' || !doc.issuedSnapshot || !doc.number)
     throw new Error('only an issued document is printed');
+  // The design is settled before the kept file is looked for: the look the bill was issued with (I2, Stage 6 review:
+  // a later change of look reprinted old bills in it), else, for a bill issued before the look was kept, the
+  // business's own.
+  const look = await lookOf(scope, doc.issuedSnapshot as IssuedSnapshot);
+  const design = input.design ?? look.design;
+  const key = { documentId: input.documentId, kind: input.kind, paper: input.paper, design };
   // A cancelled bill prints as what it is, CANCELLED across it and no QR to pay it by, never from the file kept
   // while it stood (Stage 11 review: it downloaded, and went into the CA pack, as a clean tax invoice).
   const cancelled = doc.status === 'cancelled';
@@ -62,7 +72,7 @@ export async function printAndKeep(
     snapshot,
     number: doc.number,
     dueDate: doc.dueDate,
-    look: { design, paper: input.paper, accent: profile.look.accent },
+    look: { design, paper: input.paper, accent: look.accent },
     logoDataUrl: logo,
     signatureDataUrl: signature,
     upiQrDataUrl: qr,
@@ -104,13 +114,15 @@ export async function printAndKeep(
 
 /** Every format, paper and design combination of the business's look not kept yet: the worker's render-other-sizes. */
 export async function printTheRest(scope: TenantScope, documentId: string): Promise<number> {
-  const profile = await businesses.getProfile(scope);
+  const doc = await documents.getDocument(scope, documentId);
+  if (!doc.issuedSnapshot) return 0;
+  const { design } = await lookOf(scope, doc.issuedSnapshot as IssuedSnapshot);
   const have = await documentFiles.renderingsOf(scope, documentId);
   let made = 0;
   for (const kind of ['pdf', 'jpg'] as const) {
     for (const paper of ['a4', 'a5', '80mm', '58mm'] as const) {
-      if (have.some((f) => f.kind === kind && f.paper === paper && f.design === profile.look.design)) continue;
-      await printAndKeep(scope, { documentId, kind, paper, design: profile.look.design });
+      if (have.some((f) => f.kind === kind && f.paper === paper && f.design === design)) continue;
+      await printAndKeep(scope, { documentId, kind, paper, design });
       made += 1;
     }
   }

@@ -6,8 +6,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 43    | 392    |
-| integration | 26    | 278    |
+| unit        | 43    | 393    |
+| integration | 27    | 293    |
 | e2e         | 16    | 66     |
 
 ## unit
@@ -281,6 +281,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 ### `tests/unit/engine-poocho.test.ts`
 
+- a lineâ€™s amount is the one the engine priced (I4, Stage 9 review)
 - a bill says who, when, what, the rate, what came and what is still to come
 - a settled, a cancelled bill and a credit note say so
 - a customer and an item; no phone, GSTIN or bank detail is ever written
@@ -535,6 +536,19 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 ## integration
 
+### `tests/integration/actions.test.ts`
+
+- a credit note is printed and queued after issue, like a bill (Stage 6 review)
+- a refused new-customer bill tried again adds the customer once (Stage 6 review)
+- cancel and credit are the ownerâ€™s; the accountant records no money
+- signed out, every action says so
+- an import id that is not one is refused before anything is read
+- staff do not archive a customer
+- photos: signed out 401; queue down 503 and the reading set aside; else 202 and queued
+- imports: the accountant 403, no files 400, queue down 503 and the import failed
+- a photoâ€™s image: an id that is not one, or another businessâ€™s, is not found
+- staff 403; more than twelve months 400; a month the wrong way round 400
+
 ### `tests/integration/audit-pack.test.ts`
 
 - matches the migrated database: tables, column counts, RLS and audit
@@ -579,6 +593,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - issues a composition business a bill of supply with the legend and no tax
 - cannot issue twice, and cannot issue what is not a draft
 - cancels an issued bill (owner only), never a draft, and never twice
+- a redo links back to the cancelled bill it replaces, and to nothing else (Stage 6 review, I2)
 - credits an issued invoice with a note in its own series that links back
 - credits no more than the bill, even two notes at once; never a credit note; staff cannot rewrite one
 - is immutable once issued: the trigger refuses every change to what the customer saw
@@ -681,6 +696,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 ### `tests/integration/render.test.ts`
 
 - prints the issued snapshot: title, number, seller, buyer, totals, "For" and the signatory
+- is not acted on, and keeps nothing
 
 ### `tests/integration/restore-check.test.ts`
 
@@ -756,6 +772,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - imports.recordReading: owner may
 - imports.recordReading: staff may
 - imports.recordReading: accountant may not
+- imports.failImport: owner may
+- imports.failImport: staff may
+- imports.failImport: accountant may not
 - imports.commitImport: owner may
 - imports.commitImport: staff may
 - imports.commitImport: accountant may not
