@@ -69,7 +69,7 @@ Nothing is stored: the contract is typed each time (Stage 9 changes nothing perm
 
 - sideways scroll
 - a way out (back or tabs) that leads somewhere else
-- tap targets of at least 44 px
+- buttons, button links, fields and chips at least 44 px tall (corrected after the Stage 9 review: the audit measures height, not width, and inline text links are exempt)
 - junk text
 - broken pictures
 - English-only buttons on a Hinglish screen
@@ -96,7 +96,7 @@ Sign-in is switched off; do not put a real business's books here yet.
 | What                                                                                                                                                                                                                             | Where                                                | Count       |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ----------- |
 | The invite lifecycle: invite, sign in by that phone and land in the business, change role, remove; refusals                                                                                                                      | `tests/integration/team.test.ts`                     | 3           |
-| Roles in the UI: the owner invites and removes; staff and the accountant see the team and cannot change it                                                                                                                       | `tests/e2e/team.spec.ts`                             | 2           |
+| Roles in the UI: the owner invites and removes; staff and the accountant are sent back to Aap (corrected after the review)                                                                                                       | `tests/e2e/team.spec.ts`                             | 2           |
 | The flow audit: every screen, five personas × two themes, the new owner's door, a link to nothing                                                                                                                                | `tests/e2e/flow-audit.spec.ts`                       | 12          |
 | The copy dictionary: both registers, the same placeholders                                                                                                                                                                       | `tests/unit/copy-dictionary.test.ts`                 | +1 file     |
 | Poocho's record texts, query, fusion and citations                                                                                                                                                                               | `tests/unit/engine-poocho.test.ts`                   | 7           |

@@ -229,6 +229,16 @@ describe('the bills list (Stage 6 screens read this)', () => {
     expect(mehta.length).toBeGreaterThan(0);
     expect(mehta.every((r) => /mehta/i.test(r.customerName))).toBe(true);
     expect((await documents.listBills(owner, { q: 'INV-031' })).map((r) => r.number)).toEqual(['INV-031']);
+    // By the GSTIN the bill went to, too (Stage 6 review).
+    const gstin = (
+      await withTenant(owner, ({ client }) =>
+        client.query<{ g: string }>(
+          "select customer_gstin as g from documents where customer_gstin is not null and status = 'issued' limit 1",
+        ),
+      )
+    ).rows[0]!.g;
+    const byGstin = await documents.listBills(owner, { q: gstin.slice(0, 12).toLowerCase() });
+    expect(byGstin.length).toBeGreaterThan(0);
     // The URL names a bill by number or id; another business's number finds nothing.
     const id = await documents.findBill(owner, 'INV-031');
     expect(id).toBe(byNumberId(await documents.listBills(owner), 'INV-031'));

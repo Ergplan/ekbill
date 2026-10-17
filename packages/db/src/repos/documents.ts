@@ -813,7 +813,8 @@ export async function listBills(
           ...(filter.until ? [lte(schema.documents.issueDate, filter.until)] : []),
           ...(q
             ? [
-                sql`(${schema.documents.search} @@ plainto_tsquery('simple', ${q}) or ${schema.documents.number} ilike ${like(q)} or ${schema.documents.customerName} ilike ${like(q)})`,
+                // The number, the name, or the GSTIN the bill went to (Stage 6 review: DECISIONS said GSTIN; it was not).
+                sql`(${schema.documents.search} @@ plainto_tsquery('simple', ${q}) or ${schema.documents.number} ilike ${like(q)} or ${schema.documents.customerName} ilike ${like(q)} or ${schema.documents.customerGstin} ilike ${like(q)})`,
               ]
             : []),
         ),

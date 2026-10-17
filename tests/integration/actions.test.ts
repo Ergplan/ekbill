@@ -292,3 +292,43 @@ describe('Aap actions (Stage 4 review: no test called them)', () => {
     }
   });
 });
+
+describe('team, Poocho and voice actions (Stage 9 review: tested through the journeys only)', () => {
+  it('the owner invites, changes the role and removes; staff and the accountant cannot', async () => {
+    const { inviteMember, changeMemberRole, removeMember } = await import('../../apps/web/actions/team');
+    const phone = `98${String(Date.now()).slice(-8)}`;
+    await signIn('sharma', 'staff');
+    expect(await inviteMember({ phone, name: 'Nope', role: 'staff' })).toMatchObject({
+      ok: false,
+      error: 'auth.forbidden',
+    });
+    await signIn('sharma', 'owner');
+    const invited = await inviteMember({ phone, name: 'Kiran', role: 'staff' });
+    expect(invited.ok).toBe(true);
+    const userId = invited.ok ? invited.value.userId : '';
+    expect(await changeMemberRole({ userId, role: 'accountant' })).toEqual({ ok: true, value: undefined });
+    await signIn('sharma', 'accountant');
+    expect(await removeMember({ userId })).toMatchObject({ ok: false, error: 'auth.forbidden' });
+    await signIn('sharma', 'owner');
+    expect(await removeMember({ userId })).toEqual({ ok: true, value: undefined });
+  });
+
+  it('ask answers from the records with the fake model; the voice opens a bill and never for the accountant', async () => {
+    process.env.AI_TRANSPORT = 'fake';
+    try {
+      const { ask } = await import('../../apps/web/actions/ask');
+      const { voiceStartBill, voiceWhoOwes } = await import('../../apps/web/actions/voice');
+      await signIn('sharma', 'owner');
+      expect(await ask({ question: 'x' })).toMatchObject({ ok: false });
+      const r = await ask({ question: 'Mehta Traders ka bill kitna tha?' });
+      expect(r.ok).toBe(true);
+      const bill = await voiceStartBill({ customerName: 'Mehta Traders', lines: [{ what: 'Fan', rate: 450 }] });
+      expect(bill).toMatchObject({ ok: true, href: expect.stringMatching(/^\/bills\/new\?customer=/) });
+      expect((await voiceWhoOwes()).ok).toBe(true);
+      await signIn('sharma', 'accountant');
+      expect(await voiceStartBill({ customerName: 'Mehta Traders', lines: [] })).toMatchObject({ ok: false });
+    } finally {
+      delete process.env.AI_TRANSPORT;
+    }
+  });
+});

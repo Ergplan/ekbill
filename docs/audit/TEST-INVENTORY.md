@@ -7,7 +7,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
 | unit        | 44    | 405    |
-| integration | 27    | 297    |
+| integration | 27    | 299    |
 | e2e         | 16    | 66     |
 
 ## unit
@@ -565,6 +565,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - staff 403; more than twelve months 400; a month the wrong way round 400
 - the last three bills are there with none in the eight weeks (Stage 10 review)
 - the look, a new series, its next number, the default, retire and restore; staff are refused
+- the owner invites, changes the role and removes; staff and the accountant cannot
+- ask answers from the records with the fake model; the voice opens a bill and never for the accountant
 
 ### `tests/integration/audit-pack.test.ts`
 

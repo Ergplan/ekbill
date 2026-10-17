@@ -475,7 +475,7 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 
 ### Search is a generated column, not a job
 
-- Decision: `documents.search` is a stored generated `tsvector` over the number, the customer's name and GSTIN, with a GIN index; `listBills` matches it or an `ilike` on the number and name.
+- Decision: `documents.search` is a stored generated `tsvector` over the number and the customer's name, with a GIN index; `listBills` matches it or an `ilike` on the number, the name or the customer's GSTIN.
 - Options: the master prompt's "search index job" in the worker.
 - Why: Postgres keeps a generated column right on every write, inside the same transaction; a job would lag the bill the owner just made, and there is nothing to index outside the row.
 - Asked by: the Stage 6 prompt (search index job).

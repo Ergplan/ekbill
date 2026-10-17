@@ -17,7 +17,7 @@ What is done:
 What is not done, stated first:
 
 - **Phone OTP is built but not on.** Turning it on is yours (below): the Firebase project's web config in `.env`, the **Firebase Authentication Admin** role for the VM's service account (asked in the Stage 9 report), and `AUTH_MODE=otp`. The rollback is one line: `AUTH_MODE=switcher` in `.env`, then `deploy/vm/up.sh`.
-- **The k6 run is not done.** k6 cannot be installed in the build container (the download is refused). The figures below are `tests/load/measure.mjs`, run against a production build at 1/10 scale. The full run waits for the operator to say "go".
+- **The k6 run is not done.** k6 cannot be installed in the build container (the download is refused). The figures below are `tests/load/measure.mjs`, run against a production build at 1/10 scale. The full run waits for the operator to say "go". Neither `routes.k6.js` nor `measure.mjs` issues a bill or reads a photo: they load Home, the bill form, dues and PDFs. The issue-with-print budget (3 s) is measured by the issue-time render test (`tests/integration/render.test.ts`), and the photo read by `npm run eval:read-bill` on the VM (added after the Stage 10 review).
 - **The restore drill has not run on a real backup.** The build has no bucket. The check it runs (`scripts/restore-check.mjs`) passed on a dump of the build's database, restored in 8 s.
 
 ## What exists
@@ -43,7 +43,7 @@ Here, the 1/10 seed took 15 minutes for 60,003 documents (685 MB). The removal t
 | Poocho's change scan                  | 0.8 ms    |
 | A GST quarter                         | 0.5 ms    |
 
-The customer directory takes 0.2 ms. The existing indexes serve every query: `documents (business_id, status, issue_date)`, `documents (business_id, customer_id)`, `payments (document_id)`, `documents (linked_document_id)`. No index was added.
+The customer directory takes 0.2 ms. The existing indexes serve every query: `documents (business_id, status, issue_date)`, `documents (business_id, customer_id)`, `payments (document_id)`, `documents (linked_document_id)`. No index was added for these queries; `0008_scale.sql` adds only the partial index that finds the load-test businesses (corrected after the Stage 10 review).
 
 **Found by the load seed, fixed:**
 
@@ -57,7 +57,7 @@ The customer directory takes 0.2 ms. The existing indexes serve every query: `do
 - `proxy.ts` limits writes to 60 a minute per session and sign-in attempts to 30 a minute per address. Over the limit it answers 429 in Hinglish with Retry-After.
 - The pool is sized by `DB_POOL_MAX` (web 10, worker 5).
 - The worker runs photo reads and renders two at a time.
-- `deploy/vm/restore-drill.sh` and `deploy/vm/disk-log.sh` (weekly, logs only) are scheduled by `schedule-backup.sh`.
+- `deploy/vm/disk-log.sh` (weekly, logs only) is scheduled by `schedule-backup.sh`; `deploy/vm/restore-drill.sh` is run by hand (step 2). Corrected after the Stage 10 review, which found the drill was not scheduled.
 - `docker-compose.yml` passes the Stage 9 model variables to the app and the worker: the embed model, the realtime voice and the prices.
 
 **Phone OTP** (part 3):
@@ -79,7 +79,7 @@ These are `tests/load/measure.mjs` figures. Each owner walks Home, the bill form
 
 The budgets are Home 400 ms and the bill form 300 ms at p95.
 
-**The gap, with its cause.** The database is not the limit; every query is under 15 ms. The pages are rendered by one Node process, so latency grows with requests in flight. The k6 scenario at full scale (260 virtual users, one-second pauses) asks for far more rendering than one process gives on a small VM.
+**The gap, with its cause.** The database is not the limit: each of the six queries `scripts/explain.mjs` measures runs under 15 ms on its own (the balances query is the payments half of `balancesIn`; corrected after the Stage 10 review). The pages are rendered by one Node process, so latency grows with requests in flight. The k6 scenario at full scale (260 virtual users, one-second pauses) asks for far more rendering than one process gives on a small VM.
 
 Options, for the operator's VM run to decide:
 
