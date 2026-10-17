@@ -24,16 +24,7 @@ import { checkReading, looseDate, nameLikeness, type BillReading } from '@ekbill
 import { normalisePhoto } from '../../../apps/worker/src/read-bill/normalise';
 import { AiOutputError, AiUnavailableError, callVision } from '../src/client';
 import { readBillAnswer } from '../src/read-bill';
-
-interface Truth {
-  name: string;
-  customer: string | null;
-  date: string | null;
-  lines: Array<{ what: string; qty: number; rate: number; amount: number }>;
-  total: number | null;
-  legible?: boolean;
-  found?: boolean;
-}
+import { chooseSet, denominatorsOf, setCounts, type EvalBill, type Source, type Truth } from './score';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const args = process.argv.slice(2);
@@ -41,23 +32,18 @@ if (args.includes('--fake')) process.env.AI_TRANSPORT = 'fake';
 const setArg = args[args.indexOf('--set') + 1];
 const TODAY = process.env.EVAL_TODAY ?? '2026-10-15';
 
-function labelled(dir: string): Array<{ jpg: string; truth: Truth }> {
+function labelled(dir: string, source: Source): EvalBill[] {
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
     .filter((f) => /\.(jpe?g|png|webp)$/i.test(f))
     .map((f) => ({ jpg: join(dir, f), json: join(dir, f.replace(/\.[^.]+$/, '.json')) }))
     .filter((x) => existsSync(x.json))
-    .map((x) => ({ jpg: x.jpg, truth: JSON.parse(readFileSync(x.json, 'utf8')) as Truth }));
+    .map((x) => ({ jpg: x.jpg, truth: JSON.parse(readFileSync(x.json, 'utf8')) as Truth, source }));
 }
 
-const real = labelled(join(ROOT, 'tests/fixtures/bills/real'));
-const synthetic = labelled(join(ROOT, 'tests/fixtures/bills/synthetic'));
-const set =
-  setArg === 'real'
-    ? real
-    : setArg === 'synthetic'
-      ? synthetic
-      : [...real, ...synthetic.slice(0, Math.max(0, 30 - real.length))];
+const real = labelled(join(ROOT, 'tests/fixtures/bills/real'), 'real');
+const synthetic = labelled(join(ROOT, 'tests/fixtures/bills/synthetic'), 'synthetic');
+const set = chooseSet(real, synthetic, setArg === 'real' || setArg === 'synthetic' ? setArg : null);
 
 const near = (a: number | null | undefined, b: number | null | undefined) =>
   a !== null && a !== undefined && b !== null && b !== undefined && Math.abs(a - b) < 0.005;
@@ -75,10 +61,22 @@ async function main() {
   let failures = 0;
   let cost = 0;
   let costKnown = true;
+  let incomplete = false;
   const latencies: number[] = [];
   const perBill: unknown[] = [];
+  const ran: EvalBill[] = [];
+  // A bill not read still counts for what it holds (Stage 7 review: a failure left the denominators).
+  const countUnread = (truth: Truth) => {
+    const d = denominatorsOf(truth);
+    fields += d.fields;
+    asked += d.asked;
+    linesTruth += d.lines;
+    billsWithTotal += d.withTotal;
+  };
 
-  for (const { jpg, truth } of set) {
+  for (const [n, bill] of set.entries()) {
+    const { jpg, truth } = bill;
+    ran.push(bill);
     const bytes = readFileSync(jpg);
     const key = createHash('sha256').update(bytes).digest('hex');
     let checked;
@@ -104,11 +102,21 @@ async function main() {
       });
     } catch (e) {
       failures += 1;
+      countUnread(truth);
       perBill.push({
         name: truth.name,
         error: e instanceof AiUnavailableError || e instanceof AiOutputError ? e.message : String(e),
       });
-      if (e instanceof AiUnavailableError) break;
+      if (e instanceof AiUnavailableError) {
+        // The model went away: the rest are not read, and the report says it is incomplete.
+        incomplete = true;
+        for (const rest of set.slice(n + 1)) {
+          ran.push(rest);
+          countUnread(rest.truth);
+          failures += 1;
+        }
+        break;
+      }
       continue;
     }
     const expectOutcome = truth.legible === false ? 'unreadable' : truth.found === false ? 'no-bill' : 'ready';
@@ -182,7 +190,8 @@ async function main() {
     transport: process.env.AI_TRANSPORT === 'fake' ? 'fake (harness check, not a model)' : 'openai',
     model: process.env.AI_TRANSPORT === 'fake' ? 'fake-reader' : (process.env.OPENAI_VISION_MODEL ?? null),
     prompt: 'read-bill/v1',
-    set: { real: Math.min(real.length, set.length), synthetic: set.length - Math.min(real.length, set.length) },
+    set: setCounts(ran),
+    incomplete,
     fieldAccuracy: pct(right, fields),
     lineRecall: pct(linesFound, linesTruth),
     totalMatch: pct(totalsMatched, billsWithTotal),

@@ -6,8 +6,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 43    | 400    |
-| integration | 27    | 296    |
+| unit        | 44    | 405    |
+| integration | 27    | 297    |
 | e2e         | 16    | 66     |
 
 ## unit
@@ -392,6 +392,11 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - keeps a document whose number was furnished in a different month
 - a record for a quarterâ€™s third month is not IFF: the document stays in the quarterly return (Stage 3 review)
 
+### `tests/unit/eval-score.test.ts`
+
+- counts real and synthetic from the bills run, not the folders
+- a bill not read still counts for its fields, lines and total
+
 ### `tests/unit/help-plan.test.ts`
 
 - 30-40-30 on â‚¹5,00,000 + 18 %: the advance is â‚¹1,50,000 + â‚¹27,000
@@ -479,6 +484,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - passes on the kit
 - holds every pack file to the schema; the only thing it may still report is the count of unverified entries
 - agree with the committed documents
+- the trace reads every key of a one-line object, and a written owner wins over a column (Stage 5 and 9 reviews)
 - refuses a database that is not dev or test
 - accepts a dev database
 
@@ -494,6 +500,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - counts the wa.me tab as opened when the browser returns it, and cuts its opener by hand
 - reports cancelled when the browser blocked the popup
 - opens the customerâ€™s own chat when their number is known
+- a file fetched ahead is shared from the tap with no fetch between
+- a file that did not come is fetched on the tap, and a failure says so
 
 ### `tests/unit/ui-trim.test.ts`
 
@@ -556,6 +564,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - a photoâ€™s image: an id that is not one, or another businessâ€™s, is not found
 - staff 403; more than twelve months 400; a month the wrong way round 400
 - the last three bills are there with none in the eight weeks (Stage 10 review)
+- the look, a new series, its next number, the default, retire and restore; staff are refused
 
 ### `tests/integration/audit-pack.test.ts`
 
@@ -988,10 +997,10 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - kit renders in â€¦
 - shell at desktop width in â€¦ @desktop
 
-### `tests/e2e/otp.spec.ts`
+### `tests/e2e/otp.spec.ts` Ã—
 
 - @otp a new number signs in with the SMS code and lands on welcome; the switcher is closed
-- @otp a wrong code says so and signs nobody in
+- @otp a wrong code says so and signs nobody in (â€¦)
 - @otp an owner already in EkBill signs in with their number and lands in their business
 
 ### `tests/e2e/photo.spec.ts`

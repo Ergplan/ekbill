@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { t } from '@ekbill/copy';
 import {
@@ -25,7 +25,7 @@ import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { BillDraft, Computed } from '../bill/compute';
 import { longDate } from '../fixtures';
 import { billFileName } from '../links';
-import { billFileUrl, handoffToWhatsApp, handoffWithFile } from '../share';
+import { billFileUrl, handoffToWhatsApp, handoffWithFile, prefetchFile } from '../share';
 import type { BillDoneData } from './data';
 import { manifest } from './manifest';
 
@@ -67,6 +67,10 @@ export function BillDoneScreen({
   const [fileError, setFileError] = useState(false);
   const [sizeOpen, setSizeOpen] = useState(false);
   const [sent, setSent] = useState(false);
+  // The file is fetched while the owner reads the bill, so the share tap hands it over at once (Stage 6 review).
+  useEffect(() => {
+    if (live) void prefetchFile(billFileUrl(live.documentId, share, paperSize));
+  }, [live, share, paperSize]);
   const customerId = live ? live.customerId : (issued?.customer?.id ?? null);
   const paper = useMemo<PaperData>(() => {
     if (live) return live.paper;

@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -46,6 +47,14 @@ describe('trace:check and flow:check', () => {
   it('agree with the committed documents', () => {
     expect(run('trace.mjs', ['--check']).code).toBe(0);
     expect(run('flow-map.mjs', ['--check']).code).toBe(0);
+  });
+  it('the trace reads every key of a one-line object, and a written owner wins over a column (Stage 5 and 9 reviews)', () => {
+    const trace = readFileSync(join(ROOT, 'docs', 'FIELD-TRACE.md'), 'utf8');
+    expect(trace).toContain('| archiveCustomerInput | archived |');
+    expect(trace).toContain('| voiceBillInput | lines |');
+    expect(trace).toContain(
+      '| commitImportInput | importId | apps/web/actions/schema.ts | imports.id (status → committed) |',
+    );
   });
 });
 

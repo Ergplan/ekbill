@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 
 import { t } from '@ekbill/copy';
 import { parseMoney } from '@ekbill/engine';
@@ -25,7 +25,7 @@ import {
 import { cancelBill, recordMoney, reverseMoney } from '../../actions/bills';
 import { rupees } from '../money';
 import { sayRefusal } from '../refusal';
-import { billFileUrl, handoffWithFile } from '../share';
+import { billFileUrl, handoffWithFile, prefetchFile } from '../share';
 import { billFileName, billPath, withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
@@ -53,6 +53,12 @@ export function BillViewScreen({
   const [mode, setMode] = useState<'all' | 'part' | null>(null);
   const [amount, setAmount] = useState('');
   const live = data.live;
+  // The file, fetched ahead so "WhatsApp dobara" hands it over at once (Stage 6 review). A cancelled bill is printed
+  // afresh on each ask and kept nowhere, so it is fetched only when tapped.
+  useEffect(() => {
+    if (live && bill.status !== 'cancelled')
+      void prefetchFile(billFileUrl(live.documentId, data.share, live.paperSize));
+  }, [live, bill.status, data.share]);
   const [date, setDate] = useState(live?.today ?? TODAY);
   const [pending, startTransition] = useTransition();
   const [problem, setProblem] = useState<string | null>(null);

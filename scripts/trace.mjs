@@ -66,7 +66,19 @@ function zodSchemas(source) {
       i += 1;
     }
     const body = source.slice(start, i - 1);
-    const fields = [...body.matchAll(/^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:/gm)].map((c) => c[1]);
+    // The object's own keys: at its top level, whatever the line breaks (Stage 9 review: a one-line
+    // z.object({ a, b }) gave only its first key), with comments and strings set aside first.
+    const clean = body
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, '')
+      .replace(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/g, "''");
+    const fields = [];
+    let level = 0;
+    for (const t of clean.matchAll(/[{}()[\]]|([A-Za-z_][A-Za-z0-9_]*)\s*:/g)) {
+      if (t[1]) {
+        if (level === 0) fields.push(t[1]);
+      } else level += '{(['.includes(t[0]) ? 1 : -1;
+    }
     // The nearest "// table: <name>" above the schema names its table (one file may hold schemas of several tables).
     const above = source.slice(0, m.index);
     const tableMatches = [...above.matchAll(/\/\/\s*table:\s*([a-z_]+)/g)];
@@ -94,9 +106,11 @@ for (const dir of ['apps/web', 'packages/engine', 'packages/ai']) {
       const rel = relative(ROOT, file);
       for (const field of s.fields) {
         const key = `${s.name}.${field}`;
+        // An owner written for this schema's field wins over the column of the same name (Stage 5 review: the
+        // column always won, so the overrides were never read).
         let owner = null;
-        if (table && columns.get(table)?.has(field)) owner = `${table}.${field}`;
-        else if (owners[key]) owner = owners[key];
+        if (owners[key]) owner = owners[key];
+        else if (table && columns.get(table)?.has(field)) owner = `${table}.${field}`;
         else if (owners[field]) owner = owners[field];
         inputs.push({ schema: s.name, field, file: rel, owner });
         if (!owner) orphans.push(`${rel}: ${key}`);

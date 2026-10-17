@@ -8,6 +8,7 @@ import { expect, test, type Page } from '@playwright/test';
  */
 const EMULATOR = process.env.FIREBASE_AUTH_EMULATOR_HOST ?? '127.0.0.1:9099';
 const PROJECT = process.env.FIREBASE_PROJECT_ID ?? 'demo-ekbill';
+const BASE = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:3000';
 
 async function hydrated(page: Page) {
   await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
@@ -37,18 +38,23 @@ test('@otp a new number signs in with the SMS code and lands on welcome; the swi
   expect((await page.request.get('/dev/switch/sharma')).status()).toBe(404);
 });
 
-test('@otp a wrong code says so and signs nobody in', async ({ page }) => {
-  const digits = `97${String(Date.now()).slice(-8)}`;
-  await page.goto('/login');
-  await hydrated(page);
-  await page.locator('#phone').fill(digits);
-  await page.locator('[data-guide="next"]').click();
-  await expect(page.getByText('Code daalo')).toBeVisible({ timeout: 20_000 });
-  await codeFor(`+91${digits}`);
-  await page.locator('[data-guide="code"] input').first().fill('000000');
-  await expect(page.locator('main [role="alert"]')).toContainText('Code galat hai');
-  await expect(page).toHaveURL(/\/login/);
-});
+// Both themes (Stage 10 review: the OTP screens were seen in one): the code screen and its refusal in each.
+for (const theme of ['narangi', 'harmony'] as const) {
+  test(`@otp a wrong code says so and signs nobody in (${theme})`, async ({ page }) => {
+    const digits = `9${theme === 'narangi' ? 7 : 6}${String(Date.now()).slice(-8)}`;
+    await page.context().addCookies([{ name: 'eb-theme', value: theme, url: BASE }]);
+    await page.goto('/login');
+    await hydrated(page);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    await page.locator('#phone').fill(digits);
+    await page.locator('[data-guide="next"]').click();
+    await expect(page.getByText('Code daalo')).toBeVisible({ timeout: 20_000 });
+    await codeFor(`+91${digits}`);
+    await page.locator('[data-guide="code"] input').first().fill('000000');
+    await expect(page.locator('main [role="alert"]')).toContainText('Code galat hai');
+    await expect(page).toHaveURL(/\/login/);
+  });
+}
 
 test('@otp an owner already in EkBill signs in with their number and lands in their business', async ({ page }) => {
   const digits = '9822012345'; // Sharma ji, the build seed's owner

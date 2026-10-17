@@ -52,6 +52,31 @@ export function billFileUrl(documentId: string, kind: 'pdf' | 'jpg', paper: stri
 }
 
 /**
+ * Files fetched ahead (Stage 6 review): a phone's share sheet needs the tap's own moment, and a fetch between the
+ * tap and navigator.share can spend it, so the screen fetches the file when it opens and the tap shares what is held.
+ */
+const held = new Map<string, Blob>();
+const fetching = new Map<string, Promise<Blob | null>>();
+
+export function prefetchFile(url: string): Promise<Blob | null> {
+  const known = fetching.get(url);
+  if (known) return known;
+  const p = fetch(url, { credentials: 'same-origin' })
+    .then((res) => (res.ok ? res.blob() : null))
+    .then((blob) => {
+      if (blob) held.set(url, blob);
+      else fetching.delete(url);
+      return blob;
+    })
+    .catch(() => {
+      fetching.delete(url);
+      return null;
+    });
+  fetching.set(url, p);
+  return p;
+}
+
+/**
  * The bill itself to WhatsApp (Stage 6): the phone's share sheet with the
  * PDF or JPG attached where the browser can share files (Android Chrome,
  * iOS Safari); else the file is downloaded and the chat opened with the
@@ -63,14 +88,9 @@ export async function handoffWithFile(message: {
   phone?: string | null;
   file: { url: string; name: string; type: string };
 }): Promise<'shared' | 'opened' | 'cancelled' | 'failed'> {
-  let blob: Blob;
-  try {
-    const res = await fetch(message.file.url, { credentials: 'same-origin' });
-    if (!res.ok) return 'failed';
-    blob = await res.blob();
-  } catch {
-    return 'failed';
-  }
+  // Held already: nothing is awaited before the share. Else fetched now (a desktop has no tap moment to keep).
+  const blob = held.get(message.file.url) ?? (await prefetchFile(message.file.url));
+  if (!blob) return 'failed';
   const nav = typeof navigator === 'undefined' ? null : navigator;
   const file = typeof File === 'undefined' ? null : new File([blob], message.file.name, { type: message.file.type });
   if (nav && file && typeof nav.share === 'function' && typeof nav.canShare === 'function') {

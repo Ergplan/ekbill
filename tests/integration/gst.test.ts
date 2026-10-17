@@ -142,7 +142,12 @@ describe('the workings of a quarter (hand-computed above)', () => {
 describe('gstr1.json and workings.xlsx (the CA pack)', () => {
   /** Every key path of `ours` (arrays collapsed) must exist in the sample with the same JSON type. */
   function paths(v: unknown, prefix = ''): Array<[string, string]> {
-    if (Array.isArray(v)) return v.length ? paths(v[0], `${prefix}[]`) : [[`${prefix}[]`, 'array']];
+    // Every element, not the first alone (Stage 8 review: a second row with another shape went unchecked).
+    if (Array.isArray(v)) {
+      if (!v.length) return [[`${prefix}[]`, 'array']];
+      const all = v.flatMap((x) => paths(x, `${prefix}[]`));
+      return [...new Map(all.map((p) => [p.join(':'), p])).values()];
+    }
     if (v && typeof v === 'object')
       return Object.entries(v as Record<string, unknown>)
         .filter(([k]) => !k.startsWith('_'))

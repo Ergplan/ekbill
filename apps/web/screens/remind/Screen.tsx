@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { t } from '@ekbill/copy';
 import {
@@ -18,7 +18,7 @@ import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { shortDate } from '../fixtures';
 import { reminderOpened } from '../../actions/bills';
 import { billPath } from '../links';
-import { billFileUrl, handoffToWhatsApp, handoffWithFile } from '../share';
+import { billFileUrl, handoffToWhatsApp, handoffWithFile, prefetchFile } from '../share';
 import { manifest } from './manifest';
 import type { RemindData } from './data';
 
@@ -27,6 +27,10 @@ export function RemindScreen({ data, viewer }: { data: RemindData; viewer: Shell
   const [lang, setLang] = useState<'hi-Latn' | 'en'>(data.lang);
   const [opened, setOpened] = useState(false);
   const text = data.messages[lang][tone];
+  // The bill's file, fetched ahead so the share tap hands it over at once (Stage 6 review).
+  useEffect(() => {
+    if (data.live) void prefetchFile(billFileUrl(data.live.documentId, data.share, data.live.paperSize));
+  }, [data.live, data.share]);
   return (
     <AppShell
       viewer={viewer}

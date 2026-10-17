@@ -41,3 +41,29 @@ describe('the WhatsApp hand-off (I9)', () => {
     expect(open.mock.calls[0]?.[0]).toBe('https://wa.me/919876543210?text=hi');
   });
 });
+
+describe('the bill file to the share sheet (Stage 6 review)', () => {
+  it('a file fetched ahead is shared from the tap with no fetch between', async () => {
+    const { handoffWithFile, prefetchFile } = await import('../../apps/web/screens/share');
+    const fetchMock = vi.fn().mockResolvedValue(new Response(new Blob(['%PDF']), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const share = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { share, canShare: () => true });
+    const url = `/api/documents/held-${Date.now()}/file?kind=pdf&paper=a4`;
+    await prefetchFile(url);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const r = await handoffWithFile({ text: 'Bill', file: { url, name: 'b.pdf', type: 'application/pdf' } });
+    expect(r).toBe('shared');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(share.mock.calls[0]![0].files[0].name).toBe('b.pdf');
+  });
+  it('a file that did not come is fetched on the tap, and a failure says so', async () => {
+    const { handoffWithFile } = await import('../../apps/web/screens/share');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 500 })));
+    vi.stubGlobal('navigator', { share: vi.fn(), canShare: () => true });
+    const url = `/api/documents/missing-${Date.now()}/file?kind=pdf&paper=a4`;
+    expect(await handoffWithFile({ text: 'Bill', file: { url, name: 'b.pdf', type: 'application/pdf' } })).toBe(
+      'failed',
+    );
+  });
+});

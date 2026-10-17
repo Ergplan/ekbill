@@ -257,3 +257,38 @@ describe('Home', () => {
     }
   });
 });
+
+describe('Aap actions (Stage 4 review: no test called them)', () => {
+  it('the look, a new series, its next number, the default, retire and restore; staff are refused', async () => {
+    const owner = await signIn('sharma', 'owner');
+    const { saveLook, addSeries, changeSeries, chooseDefaultSeries } = await import('../../apps/web/actions/business');
+    const businesses = await import('../../packages/db/src/repos/businesses');
+    const seriesRepo = await import('../../packages/db/src/repos/series');
+    const before = await businesses.getProfile(owner);
+    try {
+      expect(await saveLook({ billDesign: 'modern', billAccent: '#b4232a' })).toEqual({ ok: true, value: undefined });
+      expect((await businesses.getProfile(owner)).look).toMatchObject({ design: 'modern', accent: '#b4232a' });
+      const t = tag().slice(0, 4).toUpperCase();
+      const added = await addSeries({ name: `Aap ${t}`, kind: 'bill', prefix: `A${t}-`, padding: 3, includeFy: false });
+      expect(added.ok).toBe(true);
+      const id = added.ok ? added.value.id : '';
+      expect(await changeSeries({ id, nextNumber: 50 })).toEqual({ ok: true, value: undefined });
+      // Before its first bill a series' next number may still come down (a typo put right); after, never (I3).
+      expect(await changeSeries({ id, nextNumber: 10 })).toEqual({ ok: true, value: undefined });
+      expect(await chooseDefaultSeries({ defaultSeriesId: id })).toEqual({ ok: true, value: undefined });
+      expect((await businesses.getProfile(owner)).defaultSeriesId).toBe(id);
+      expect(await chooseDefaultSeries({ defaultSeriesId: before.defaultSeriesId! })).toEqual({
+        ok: true,
+        value: undefined,
+      });
+      expect(await changeSeries({ id, active: false })).toEqual({ ok: true, value: undefined });
+      expect((await seriesRepo.listSeries(owner)).find((s) => s.id === id)?.active).toBe(false);
+      expect(await changeSeries({ id, active: true })).toEqual({ ok: true, value: undefined });
+      await signIn('sharma', 'staff');
+      expect(await saveLook({ billDesign: 'simple' })).toMatchObject({ ok: false, error: 'auth.forbidden' });
+      expect(await changeSeries({ id, active: false })).toMatchObject({ ok: false, error: 'auth.forbidden' });
+    } finally {
+      await businesses.setLook(owner, before.look);
+    }
+  });
+});
