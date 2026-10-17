@@ -110,7 +110,7 @@ describe('issuance assessment', () => {
     expect(codes(a)).toContain('gst-status-unconfirmed');
     expect(a.blockers[0]!.whatYouCanDo.key).toBe('assess.gst-status-unconfirmed.do');
   });
-  it.each(['export', 'sez', 'reverse-charge', 'advance-receipt', 'non-gst-supply'] as const)(
+  it.each(['export', 'sez', 'deemed-export', 'reverse-charge', 'advance-receipt', 'non-gst-supply'] as const)(
     'blocks an unsupported supply type: %s',
     (flag) => {
       const a = assess({}, customer, { flags: [flag] });

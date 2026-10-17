@@ -52,18 +52,20 @@ describe('bill numbers', () => {
     expect(canSetNextNumber(inv, 0, 0)).toBe(false);
   });
   it('validates the series against Rule 46 (16 characters, letters, digits, hyphen, slash)', () => {
-    expect(validateSeries({ prefix: 'INV-', padding: 3, includeFinancialYear: true, nextNumber: 1 })).toBeNull();
-    expect(validateSeries({ prefix: 'INV #', padding: 3, includeFinancialYear: false, nextNumber: 1 })).toBe(
+    expect(validateSeries({ prefix: 'INV-', padding: 3, includeFinancialYear: true, nextNumber: 1 }, 16)).toBeNull();
+    expect(validateSeries({ prefix: 'INV #', padding: 3, includeFinancialYear: false, nextNumber: 1 }, 16)).toBe(
       'prefix-characters',
     );
-    expect(validateSeries({ prefix: 'ABCDEFGHIJK', padding: 3, includeFinancialYear: false, nextNumber: 1 })).toBe(
+    expect(validateSeries({ prefix: 'ABCDEFGHIJK', padding: 3, includeFinancialYear: false, nextNumber: 1 }, 16)).toBe(
       'prefix-length',
     );
-    expect(validateSeries({ prefix: 'INV-', padding: 0, includeFinancialYear: false, nextNumber: 1 })).toBe('padding');
-    expect(validateSeries({ prefix: 'INV-', padding: 3, includeFinancialYear: false, nextNumber: 0 })).toBe(
+    expect(validateSeries({ prefix: 'INV-', padding: 0, includeFinancialYear: false, nextNumber: 1 }, 16)).toBe(
+      'padding',
+    );
+    expect(validateSeries({ prefix: 'INV-', padding: 3, includeFinancialYear: false, nextNumber: 0 }, 16)).toBe(
       'next-number',
     );
-    expect(validateSeries({ prefix: 'ABCDEFGHIJ', padding: 8, includeFinancialYear: true, nextNumber: 1 })).toBe(
+    expect(validateSeries({ prefix: 'ABCDEFGHIJ', padding: 8, includeFinancialYear: true, nextNumber: 1 }, 16)).toBe(
       'too-long',
     );
   });

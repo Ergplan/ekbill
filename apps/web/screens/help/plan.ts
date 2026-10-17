@@ -9,6 +9,7 @@ import {
   type ContractTerms,
   type ProjectBill,
   type Say,
+  type TaxAt,
 } from '@ekbill/engine';
 
 import type { BillPrefill } from '../bill/prefill';
@@ -99,7 +100,10 @@ export function milestonesOf(f: HelpForm): Array<{ id: string; label: string; pc
 export type Planned =
   { ok: false; field: string; message: Say } | { ok: true; terms: ContractTerms; bill: ProjectBill };
 
-export function planFrom(f: HelpForm, opts: { chargesGst: boolean; allowedRates: readonly number[] }): Planned {
+export function planFrom(
+  f: HelpForm,
+  opts: { chargesGst: boolean; allowedRates: readonly number[]; at: TaxAt },
+): Planned {
   if (!f.customer) return { ok: false, field: 'customer', message: say('help.ask.customer') };
   const totalPaise = parseAmount(f.total) ?? 0;
   const retentionBp = f.retention.trim() ? bp(f.retention) : 0;
@@ -137,7 +141,7 @@ export function planFrom(f: HelpForm, opts: { chargesGst: boolean; allowedRates:
           },
         ]
       : [];
-    const planned = planProgressBill(terms, f.donePct.trim() ? bp(f.donePct) : 0, entries);
+    const planned = planProgressBill(terms, f.donePct.trim() ? bp(f.donePct) : 0, entries, opts.at);
     return planned.ok
       ? { ok: true, terms, bill: planned.bill }
       : { ok: false, field: 'donePct', message: planned.message };
@@ -158,7 +162,7 @@ export function planFrom(f: HelpForm, opts: { chargesGst: boolean; allowedRates:
   );
   const target = terms.milestones[f.billIndex];
   if (!target) return { ok: false, field: 'billIndex', message: say('help.ask.which') };
-  const planned = planMilestoneBill(terms, target.id, entries);
+  const planned = planMilestoneBill(terms, target.id, entries, opts.at);
   return planned.ok
     ? { ok: true, terms, bill: planned.bill }
     : { ok: false, field: 'billIndex', message: planned.message };

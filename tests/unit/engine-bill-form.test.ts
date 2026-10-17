@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   blankLine,
   checkBill,
-  gstByRate,
   hasMixedRates,
   linesToDraft,
   subtotalOf,
@@ -104,15 +103,10 @@ describe('GST on this bill: Haan or Nahi, one rate or a rate per line', () => {
   it('a rate per line uses each line, and the bill rate where a line has none', () => {
     const r = checkBill(base({ perLine: true }), gstOpts);
     expect(r.ok && r.lines.map((l) => l.gstBp)).toEqual([1800, 1200]);
-    expect(gstByRate(base({ perLine: true }), true)).toEqual([
-      { rateBp: 1200, taxablePaise: 50000, gstPaise: 6000 },
-      { rateBp: 1800, taxablePaise: 200000, gstPaise: 36000 },
-    ]);
   });
   it('Nahi: no GST on any line, and nothing left unanswered', () => {
     const r = checkBill(base({ gstOn: false, gstRateBp: null }), gstOpts);
     expect(r.ok && r.lines.every((l) => l.gstBp === 0 && l.taxRateChosen)).toBe(true);
-    expect(gstByRate(base({ gstOn: false }), true)).toEqual([]);
   });
   it('a line with no rate chosen is marked so the bill cannot go out as a tax invoice', () => {
     const r = checkBill(base({ gstRateBp: null }), gstOpts);

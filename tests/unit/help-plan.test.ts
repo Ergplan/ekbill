@@ -11,7 +11,11 @@ import {
 
 /** Stage 9, the contract helper: the owner's answers through the salvaged engine to the bill's one line. */
 const RATES = [0, 5, 12, 18, 28];
-const opts = { chargesGst: true, allowedRates: RATES };
+const opts = {
+  chargesGst: true,
+  allowedRates: RATES,
+  at: { dateIso: '2026-10-15', sellerStateCode: '27', customerStateCode: '27' },
+};
 const base = (over: Partial<HelpForm>): HelpForm => ({
   ...emptyForm('percent', true, 18),
   customer: 'c1',
@@ -132,5 +136,28 @@ describe('a pasted contract', () => {
     expect(found).toBeGreaterThanOrEqual(4);
     expect(form).toMatchObject({ kind: 'percent', total: '500000', gstMode: 'extra', gstRate: 18, retention: '5' });
     expect(form.milestones.map((m) => m.pct)).toEqual(['30', '40', '30']);
+  });
+});
+
+describe('the helper’s figures are the bill’s (I4, Stage 3 review)', () => {
+  it.each([
+    ['extra', '1,00,001'],
+    ['included', '1,00,001'],
+    ['included', '3,33,333'],
+  ] as const)('GST %s on ₹%s: the total and GST are computeTax’s on the prefilled line', async (gstMode, total) => {
+    const { computeTax, parseMoney } = await import('../../packages/engine/src/index');
+    const p = planFrom(base({ gstMode, gstRate: 18, total, milestones: [{ label: 'All', pct: '100' }] }), opts);
+    expect(p.ok).toBe(true);
+    if (!p.ok) return;
+    const pre = prefillOf(p);
+    const tax = computeTax({
+      lines: [{ description: 'x', quantityMilli: 1000, unitPricePaise: parseMoney(pre.lines[0]!.rate), gstBp: 1800 }],
+      registration: 'regular',
+      gstOn: true,
+      dateIso: '2026-10-15',
+      sellerStateCode: '27',
+      customerStateCode: '27',
+    });
+    expect({ total: p.bill.totalPaise, gst: p.bill.gstPaise }).toEqual({ total: tax.totalPaise, gst: tax.gstPaise });
   });
 });

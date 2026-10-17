@@ -15,7 +15,7 @@ import {
   financialYearOf,
   formatMoneyIndian,
   isEarlierYear,
-  MAX_NUMBER_LENGTH,
+  maxNumberLengthOn,
   nextNumberFor,
   prepareIssue,
   sequenceOf,
@@ -539,7 +539,7 @@ export async function issueDocument(scope: TenantScope, input: { id: string; tod
     const allocated = nextNumberFor(config, draft.issueDate, highestInEarlierYear);
     // Rule 46: a number of at most 16 characters. A series that fits today can outgrow it (INV-2026-27/9999 is 16,
     // the 10,000th bill of the year 17): refuse in words rather than print a number the law does not allow.
-    if (allocated.number.length > MAX_NUMBER_LENGTH)
+    if (allocated.number.length > maxNumberLengthOn(draft.issueDate))
       throw new IssueRefusedError(
         [
           {

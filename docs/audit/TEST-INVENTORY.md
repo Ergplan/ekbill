@@ -6,7 +6,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 43    | 393    |
+| unit        | 43    | 397    |
 | integration | 27    | 293    |
 | e2e         | 16    | 66     |
 
@@ -340,6 +340,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - decides what it says it decides
 - lists what is still unverified, so the report can say so
 - says nothing about an id it does not know
+- the longest number is the packâ€™s: at 12, INV-2026-27/001 is too long
+- an entry without its value is a rule error, not a default
 
 ### `tests/unit/engine-tax.test.ts`
 
@@ -386,6 +388,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - advances by one month or one quarter as appropriate
 - excludes documents already furnished through IFF
 - keeps a document whose number was furnished in a different month
+- a record for a quarterâ€™s third month is not IFF: the document stays in the quarterly return (Stage 3 review)
 
 ### `tests/unit/help-plan.test.ts`
 
@@ -399,6 +402,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - nothing new to bill, or billed-before above the contract, is refused
 - asks for the customer first
 - fills what it can read and counts it
+- GST %s on â‚¹%s: the total and GST are computeTaxâ€™s on the prefilled line
 
 ### `tests/unit/is-uuid.test.ts`
 

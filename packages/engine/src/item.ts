@@ -1,4 +1,4 @@
-import { HSN_INDEX, selectableRates } from './rules';
+import { GST_RULES, HSN_INDEX, RuleError, hsnDigitsFor, selectableRates, type RulePack } from './rules';
 import { say, type Say } from './say';
 
 /**
@@ -47,10 +47,16 @@ export interface ItemClean {
 }
 export type ItemCheck = { ok: true; item: ItemClean } | { ok: false; field: ItemField; message: Say };
 
-/** HSN is 2, 4, 6 or 8 digits; SAC is 6 digits starting 99 (hsn-digits-2021). */
-export function isHsnSac(code: string): boolean {
-  if (/^99\d{4}$/.test(code)) return true;
-  return /^\d{2}(?:\d{2}){0,3}$/.test(code) && !code.startsWith('99');
+/**
+ * HSN is 2, 4, 6 or 8 digits; a SAC is the pack's length starting with the pack's prefix (hsn-digits: 6 digits from
+ * 99). The SAC shape is the pack's on the date (I5, Stage 5 review: it was written here).
+ */
+export function isHsnSac(code: string, dateIso: string, rules: RulePack = GST_RULES): boolean {
+  const r = hsnDigitsFor(null, dateIso, rules);
+  if (!r) throw new RuleError(`no hsn-digits rule for ${dateIso}`);
+  const rest = r.sacDigits - r.sacPrefix.length;
+  if (code.startsWith(r.sacPrefix)) return rest >= 0 && new RegExp(`^${r.sacPrefix}\\d{${rest}}$`).test(code);
+  return /^\d{2}(?:\d{2}){0,3}$/.test(code);
 }
 
 export function checkItem(input: ItemInput, today: string): ItemCheck {
@@ -63,7 +69,7 @@ export function checkItem(input: ItemInput, today: string): ItemCheck {
   if (!name) return fail('name', 'error.required');
   if (name.length > 120) return fail('name', 'error.tooLong', { n: 120 });
   const hsnSac = (input.hsnSac ?? '').replace(/\s/g, '') || null;
-  if (hsnSac && !isHsnSac(hsnSac)) return fail('hsnSac', 'error.hsn');
+  if (hsnSac && !isHsnSac(hsnSac, today)) return fail('hsnSac', 'error.hsn');
   const unit = (input.unit ?? '').trim().toLowerCase() || null;
   if (unit && unit.length > 12) return fail('unit', 'error.tooLong', { n: 12 });
   const rate = input.defaultRatePaise ?? null;

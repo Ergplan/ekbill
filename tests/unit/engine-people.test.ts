@@ -60,9 +60,19 @@ describe('a customer', () => {
 
 describe('an item', () => {
   const TODAY = '2026-10-15';
-  it('accepts HSN of 2, 4, 6 or 8 digits and SAC of 6 starting 99', () => {
-    expect(['85', '8516', '851610', '85161000', '998719'].every(isHsnSac)).toBe(true);
-    expect(['8', '851', '9987', '99871', 'ABCD'].some(isHsnSac)).toBe(false);
+  it('accepts HSN of 2, 4, 6 or 8 digits and SAC of 6 starting 99', async () => {
+    const on = (c: string) => isHsnSac(c, '2026-10-15');
+    expect(['85', '8516', '851610', '85161000', '998719'].every(on)).toBe(true);
+    expect(['8', '851', '9987', '99871', 'ABCD'].some(on)).toBe(false);
+    // The SAC shape is the pack's (I5, Stage 5 review): with SACs from 98, a four-digit 9887 is a short SAC.
+    const { GST_RULES } = await import('../../packages/engine/src/rules');
+    const pack = {
+      ...GST_RULES,
+      entries: GST_RULES.entries.map((e) => (e.kind === 'hsn-digits' ? { ...e, sacPrefix: '98' } : e)),
+    };
+    expect(isHsnSac('988719', '2026-10-15', pack)).toBe(true);
+    expect(isHsnSac('9887', '2026-10-15', pack)).toBe(false);
+    expect(on('9887')).toBe(true);
   });
   it('holds the rate to the ones in force on the date', () => {
     expect(checkItem({ name: 'Fan', defaultTaxBp: 1800, defaultRatePaise: 135000 }, TODAY)).toMatchObject({

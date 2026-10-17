@@ -398,4 +398,8 @@ describe('IFF de-duplication', () => {
     const { included } = excludeIffFurnished(docs, [{ period: '2026-08', documentNumbers: ['INV-001'] }]);
     expect(included.map((d) => d.documentNumber)).toContain('INV-001');
   });
+  it('a record for a quarter’s third month is not IFF: the document stays in the quarterly return (Stage 3 review)', () => {
+    const { included } = excludeIffFurnished(docs, [{ period: '2026-09', documentNumbers: ['INV-004'] }]);
+    expect(included.map((d) => d.documentNumber)).toContain('INV-004');
+  });
 });

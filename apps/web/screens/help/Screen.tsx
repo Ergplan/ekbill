@@ -45,8 +45,19 @@ export function HelpScreen({ data, kind, viewer }: { data: HelpData; kind: HelpK
   const [tried, setTried] = useState(false);
   const patch = (p: Partial<HelpForm>) => setForm((f) => (f ? { ...f, ...p } : f));
   const plan = useMemo(
-    () => (form ? planFrom(form, { chargesGst: data.chargesGst, allowedRates: data.rates }) : null),
-    [form, data.chargesGst, data.rates],
+    () =>
+      form
+        ? planFrom(form, {
+            chargesGst: data.chargesGst,
+            allowedRates: data.rates,
+            at: {
+              dateIso: data.today,
+              sellerStateCode: data.stateCode,
+              customerStateCode: data.customers.find((c) => c.id === form.customer)?.stateCode ?? null,
+            },
+          })
+        : null,
+    [form, data.chargesGst, data.rates, data.today, data.stateCode, data.customers],
   );
   const error = (field: string) =>
     tried && plan && !plan.ok && plan.field === field ? t(plan.message.key, plan.message.params) : undefined;

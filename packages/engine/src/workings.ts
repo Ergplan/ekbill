@@ -583,8 +583,12 @@ export function excludeIffFurnished<T extends { documentNumber: string; document
   documents: readonly T[],
   furnished: readonly IffFurnishedRecord[],
 ): { included: T[]; excluded: T[] } {
+  // IFF covers a quarter's first two months only: a record for the third is not a furnishing (Stage 3 review).
   const set = new Set<string>();
-  for (const f of furnished) for (const n of f.documentNumbers) set.add(`${f.period}|${n}`);
+  for (const f of furnished) {
+    if (!qrmpPlan(f.period, true).iffMonths.includes(f.period)) continue;
+    for (const n of f.documentNumbers) set.add(`${f.period}|${n}`);
+  }
   const included: T[] = [];
   const excluded: T[] = [];
   for (const doc of documents) {

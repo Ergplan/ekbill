@@ -11,7 +11,11 @@ import {
   planProgressBill,
   type BilledEntry,
   type ContractTerms,
+  type TaxAt,
 } from '../../packages/engine/src/contract';
+
+/** A Maharashtra business billing a Maharashtra customer (intra-State) on 15 Oct 2026. */
+const AT: TaxAt = { dateIso: '2026-10-15', sellerStateCode: '27', customerStateCode: '27' };
 
 /** Salvaged from the MVP's tests/unit/contract.test.ts (tag mvp-final); the words are dictionary keys now. */
 const RATES = [0, 500, 1200, 1800, 2800];
@@ -79,7 +83,7 @@ describe('the deal', () => {
 
 describe('an instalment bill', () => {
   it('is the percentage of the contract, with GST on top and the retention worked out', () => {
-    const r = planMilestoneBill(terms, 'm1', []);
+    const r = planMilestoneBill(terms, 'm1', [], AT);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.bill).toMatchObject({
@@ -104,7 +108,7 @@ describe('an instalment bill', () => {
     });
   });
   it('knows what was billed before', () => {
-    const r = planMilestoneBill(terms, 'm2', [billed('m1', lakh(1.5))]);
+    const r = planMilestoneBill(terms, 'm2', [billed('m1', lakh(1.5))], AT);
     expect(r.ok && r.bill).toMatchObject({
       basisPaise: lakh(2),
       billedBeforePaise: lakh(1.5),
@@ -112,7 +116,7 @@ describe('an instalment bill', () => {
     });
   });
   it('never bills an instalment twice', () => {
-    expect(planMilestoneBill(terms, 'm1', [billed('m1', lakh(1.5))])).toEqual({
+    expect(planMilestoneBill(terms, 'm1', [billed('m1', lakh(1.5))], AT)).toEqual({
       ok: false,
       message: { key: 'help.alreadyBilled', params: { number: 'INV-m1' } },
     });
@@ -130,14 +134,14 @@ describe('an instalment bill', () => {
         { id: 'c', label: 'Three', pctBp: 3334 },
       ],
     };
-    const a = planMilestoneBill(thirds, 'a', []);
-    const b = planMilestoneBill(thirds, 'b', [billed('a', 3333000)]);
-    const c = planMilestoneBill(thirds, 'c', [billed('a', 3333000), billed('b', 3333000)]);
+    const a = planMilestoneBill(thirds, 'a', [], AT);
+    const b = planMilestoneBill(thirds, 'b', [billed('a', 3333000)], AT);
+    const c = planMilestoneBill(thirds, 'c', [billed('a', 3333000), billed('b', 3333000)], AT);
     expect([a, b, c].map((x) => x.ok && x.bill.basisPaise)).toEqual([3333000, 3333000, 3334000]);
     expect(c.ok && c.bill.remainingAfterPaise).toBe(0);
   });
   it('takes GST out of the amount when it is inside the contract value', () => {
-    const r = planMilestoneBill({ ...terms, gstMode: 'included' }, 'm1', []);
+    const r = planMilestoneBill({ ...terms, gstMode: 'included' }, 'm1', [], AT);
     expect(r.ok && r.bill).toMatchObject({
       basisPaise: lakh(1.5),
       linePaise: 12711864,
@@ -161,13 +165,13 @@ describe('a running bill, as the work gets done', () => {
     retentionBp: 1000,
   };
   it('bills the work done since the last bill', () => {
-    const first = planProgressBill(progress, 4000, []);
+    const first = planProgressBill(progress, 4000, [], AT);
     expect(first.ok && first.bill).toMatchObject({
       basisPaise: lakh(2),
       cumulativeBp: 4000,
       retentionPaise: lakh(0.2),
     });
-    const second = planProgressBill(progress, 6500, [billed(null, lakh(2), { cumulativeBp: 4000 })]);
+    const second = planProgressBill(progress, 6500, [billed(null, lakh(2), { cumulativeBp: 4000 })], AT);
     expect(second.ok && second.bill).toMatchObject({
       basisPaise: lakh(1.25),
       billedBeforePaise: lakh(2),
@@ -176,16 +180,19 @@ describe('a running bill, as the work gets done', () => {
     expect(second.ok && second.bill.description).toContain('running bill 2: work completed to 65%');
   });
   it('refuses a percentage already billed', () => {
-    expect(planProgressBill(progress, 3000, [billed(null, lakh(2), { cumulativeBp: 4000 })])).toEqual({
+    expect(planProgressBill(progress, 3000, [billed(null, lakh(2), { cumulativeBp: 4000 })], AT)).toEqual({
       ok: false,
       message: { key: 'help.nothingToBill', params: { pct: '40' } },
     });
     expect(billedCumulativeBp(progress, [billed(null, lakh(2), { cumulativeBp: 4000 })])).toBe(4000);
   });
   it('bills exactly what is left at 100%', () => {
-    const r = planProgressBill({ ...progress, totalPaise: 10000001 }, 10000, [
-      billed(null, 3333333, { cumulativeBp: 3333 }),
-    ]);
+    const r = planProgressBill(
+      { ...progress, totalPaise: 10000001 },
+      10000,
+      [billed(null, 3333333, { cumulativeBp: 3333 })],
+      AT,
+    );
     expect(r.ok && r.bill.basisPaise).toBe(10000001 - 3333333);
   });
 });

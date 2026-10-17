@@ -23,14 +23,17 @@ export interface SeriesConfig {
   financialYear: FinancialYear | null;
 }
 
-/** Rule 46: a serial number is at most 16 characters of letters, digits, hyphens and slashes, unique per financial year. */
-export const MAX_NUMBER_LENGTH = 16;
+/**
+ * Rule 46: a serial number of letters, digits, hyphens and slashes, unique per financial year, and no longer than the
+ * rule pack says (rules.ts maxNumberLengthOn; I5, Stage 3 review: the length was a constant here).
+ */
 export const PREFIX_RE = /^[A-Za-z0-9/-]{0,10}$/;
 
 export type SeriesProblem = 'prefix-characters' | 'prefix-length' | 'padding' | 'next-number' | 'too-long';
 
 export function validateSeries(
   series: Pick<SeriesConfig, 'prefix' | 'padding' | 'includeFinancialYear' | 'nextNumber'>,
+  maxLength: number,
 ): SeriesProblem | null {
   if (!/^[A-Za-z0-9/-]*$/.test(series.prefix)) return 'prefix-characters';
   if (series.prefix.length > 10) return 'prefix-length';
@@ -38,8 +41,8 @@ export function validateSeries(
   if (!Number.isInteger(series.nextNumber) || series.nextNumber < 1 || series.nextNumber > 99_999_999)
     return 'next-number';
   if (
-    formatNumber(series, '2026-27', 99_999_999).length > MAX_NUMBER_LENGTH &&
-    formatNumber(series, '2026-27', series.nextNumber).length > MAX_NUMBER_LENGTH
+    formatNumber(series, '2026-27', 99_999_999).length > maxLength &&
+    formatNumber(series, '2026-27', series.nextNumber).length > maxLength
   )
     return 'too-long';
   return null;

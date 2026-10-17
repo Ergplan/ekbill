@@ -30,6 +30,7 @@ export {
   irnReportingWindow,
   placeOfSupply,
   returnDueDate,
+  maxNumberLengthOn,
   ruleOn,
   rulesOn,
   selectableRates,
@@ -67,7 +68,6 @@ export {
   type PrepareResult,
 } from './issue';
 export {
-  MAX_NUMBER_LENGTH,
   PREFIX_RE,
   afterAllocation,
   canSetNextNumber,
@@ -138,7 +138,6 @@ export {
 export {
   blankLine,
   checkBill,
-  gstByRate,
   hasMixedRates,
   isBlankLine,
   lineRateBp,
@@ -177,6 +176,7 @@ export {
   type BillPlan,
   type BillingMode,
   type ContractTerms,
+  type TaxAt,
   type GstMode,
   type Milestone,
   type ParsedContract,

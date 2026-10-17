@@ -1,4 +1,5 @@
-import { formatMoneyIndian } from './money';
+import { applyBasisPoints, formatMoneyIndian, taxableFromInclusive } from './money';
+import { computeTax } from './tax';
 import { say, type Say } from './say';
 
 /**
@@ -42,6 +43,16 @@ export interface BilledEntry {
   /** For a progress bill, how much of the work it billed up to. */
   cumulativeBp: number | null;
   status: 'issued' | 'draft';
+}
+/**
+ * Where and when the bill will be made, so its GST is the engine's own (computeTax, I4; Stage 3 review: the helper
+ * worked its own and could be a paisa off the bill). A State not known yet is the rule pack's unknown-State case,
+ * as on the bill form until the State is chosen.
+ */
+export interface TaxAt {
+  dateIso: string;
+  sellerStateCode: string | null;
+  customerStateCode: string | null;
 }
 export type TermsCheck = { ok: true; terms: ContractTerms } | { ok: false; field: keyof ContractTerms; message: Say };
 
@@ -168,6 +179,7 @@ export function planMilestoneBill(
   terms: ContractTerms,
   milestoneId: string,
   entries: readonly BilledEntry[],
+  at: TaxAt,
 ): BillPlan {
   const index = terms.milestones.findIndex((m) => m.id === milestoneId);
   const m = terms.milestones[index];
@@ -179,8 +191,7 @@ export function planMilestoneBill(
     (x) => x.id !== m.id && !entries.some((e) => e.milestoneId === x.id && e.status === 'issued'),
   );
   // The last instalment is what is left, so rounding never leaves the contract a rupee short or over.
-  const basis =
-    othersPending.length === 0 ? terms.totalPaise - before : Math.round((terms.totalPaise * m.pctBp) / 10000);
+  const basis = othersPending.length === 0 ? terms.totalPaise - before : applyBasisPoints(terms.totalPaise, m.pctBp);
   const description = `${terms.name} - ${m.label} (instalment ${index + 1} of ${terms.milestones.length}: ${pctText(m.pctBp)}% of contract value ${moneyForMessage(terms.totalPaise)})`;
   const working = [
     say('help.calc.this', {
@@ -191,18 +202,19 @@ export function planMilestoneBill(
   ];
   return {
     ok: true,
-    bill: finish(terms, { basis, before, milestoneId: m.id, cumulativeBp: null, description, working }),
+    bill: finish(terms, { basis, before, milestoneId: m.id, cumulativeBp: null, description, working }, at),
   };
 }
 export function planProgressBill(
   terms: ContractTerms,
   cumulativeBp: number,
   entries: readonly BilledEntry[],
+  at: TaxAt,
 ): BillPlan {
   if (!Number.isInteger(cumulativeBp) || cumulativeBp <= 0 || cumulativeBp > 10000)
     return { ok: false, message: say('help.error.pct') };
   const before = billedSum(entries);
-  const upTo = cumulativeBp === 10000 ? terms.totalPaise : Math.round((terms.totalPaise * cumulativeBp) / 10000);
+  const upTo = cumulativeBp === 10000 ? terms.totalPaise : applyBasisPoints(terms.totalPaise, cumulativeBp);
   const basis = upTo - before;
   if (basis <= 0)
     return { ok: false, message: say('help.nothingToBill', { pct: pctText(billedCumulativeBp(terms, entries)) }) };
@@ -216,7 +228,10 @@ export function planProgressBill(
       amount: moneyForMessage(basis),
     }),
   ];
-  return { ok: true, bill: finish(terms, { basis, before, milestoneId: null, cumulativeBp, description, working }) };
+  return {
+    ok: true,
+    bill: finish(terms, { basis, before, milestoneId: null, cumulativeBp, description, working }, at),
+  };
 }
 function finish(
   terms: ContractTerms,
@@ -228,22 +243,29 @@ function finish(
     description: string;
     working: Say[];
   },
+  at: TaxAt,
 ): ProjectBill {
   const rate = terms.gstRateBp ?? 0;
-  let linePaise = p.basis;
-  let gstPaise = 0;
-  let totalPaise = p.basis;
   const working = [...p.working];
-  if (terms.gstMode === 'extra' && rate) {
-    gstPaise = Math.round((p.basis * rate) / 10000);
-    totalPaise = p.basis + gstPaise;
+  const taxed = terms.gstMode !== 'none' && rate > 0;
+  // The bill form gets one line at the taxable value with the contract's rate; GST "included" backs it out of the
+  // amount first. The figures shown are computeTax's on exactly that line, so the bill made from it says the same.
+  const linePaise = taxed && terms.gstMode === 'included' ? taxableFromInclusive(p.basis, rate) : p.basis;
+  const tax = computeTax({
+    lines: [{ description: p.description, quantityMilli: 1000, unitPricePaise: linePaise, gstBp: rate }],
+    registration: 'regular',
+    gstOn: taxed,
+    dateIso: at.dateIso,
+    sellerStateCode: at.sellerStateCode,
+    customerStateCode: at.customerStateCode,
+  });
+  const gstPaise = taxed ? tax.gstPaise : 0;
+  const totalPaise = taxed ? tax.totalPaise : p.basis;
+  if (taxed && terms.gstMode === 'extra')
     working.push(say('help.calc.gst', { rate: pctText(rate), amount: moneyForMessage(gstPaise) }));
-  } else if (terms.gstMode === 'included' && rate) {
-    linePaise = Math.round((p.basis * 10000) / (10000 + rate));
-    gstPaise = p.basis - linePaise;
+  else if (taxed)
     working.push(say('help.calc.included', { taxable: moneyForMessage(linePaise), gst: moneyForMessage(gstPaise) }));
-  }
-  const retentionPaise = Math.round((totalPaise * terms.retentionBp) / 10000);
+  const retentionPaise = applyBasisPoints(totalPaise, terms.retentionBp);
   const remainingAfter = terms.totalPaise - p.before - p.basis;
   working.push(say('help.calc.total', { amount: moneyForMessage(totalPaise) }));
   working.push(say('help.calc.before', { amount: moneyForMessage(p.before) }));
@@ -280,7 +302,7 @@ export function contractNotes(
 ): string {
   const gstWords = terms.gstMode === 'extra' ? ' plus GST' : terms.gstMode === 'included' ? ' including GST' : '';
   const remaining = terms.totalPaise - beforePaise - basisPaise;
-  const retention = Math.round((billTotalPaise * terms.retentionBp) / 10000);
+  const retention = applyBasisPoints(billTotalPaise, terms.retentionBp);
   return [
     `Contract: ${terms.name}, value ${moneyForMessage(terms.totalPaise)}${gstWords}.`,
     `Billed before this bill: ${moneyForMessage(beforePaise)}. This bill: ${moneyForMessage(basisPaise)}. Balance of contract after this bill: ${moneyForMessage(remaining)}.`,

@@ -1,6 +1,13 @@
 import { and, asc, eq, ne, sql } from 'drizzle-orm';
 
-import { canSetNextNumber, validateSeries, type SeriesConfig, type SeriesProblem } from '@ekbill/engine';
+import {
+  canSetNextNumber,
+  maxNumberLengthOn,
+  todayIst,
+  validateSeries,
+  type SeriesConfig,
+  type SeriesProblem,
+} from '@ekbill/engine';
 
 import * as schema from '../schema';
 import { withTenant, type Role, type TenantScope, type Tx } from '../scope';
@@ -106,12 +113,15 @@ export interface SeriesInput {
 }
 
 function check(input: Pick<SeriesInput, 'prefix' | 'padding' | 'includeFy'> & { nextNumber: number }): void {
-  const problem = validateSeries({
-    prefix: input.prefix,
-    padding: input.padding,
-    includeFinancialYear: input.includeFy,
-    nextNumber: input.nextNumber,
-  });
+  const problem = validateSeries(
+    {
+      prefix: input.prefix,
+      padding: input.padding,
+      includeFinancialYear: input.includeFy,
+      nextNumber: input.nextNumber,
+    },
+    maxNumberLengthOn(todayIst(new Date())),
+  );
   if (problem) throw new SeriesError(problem, `series ${problem}`);
 }
 

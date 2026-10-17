@@ -126,26 +126,6 @@ export function linesToDraft(
 export function hasMixedRates(lines: readonly LineDraft[]): boolean {
   return new Set(lines.map((l) => l.gstBp ?? null).filter((r) => r !== null)).size > 1;
 }
-/** GST as the owner types, rate by rate, for the running total (the engine works the real figure with the split and rounding). */
-export function gstByRate(
-  draft: BillFormDraft,
-  chargesGst: boolean,
-): Array<{ rateBp: number; taxablePaise: number; gstPaise: number }> {
-  if (!chargesGst || !draft.gstOn) return [];
-  const rows = new Map<number, { rateBp: number; taxablePaise: number; gstPaise: number }>();
-  for (const line of draft.lines) {
-    if (isBlankLine(line)) continue;
-    const rateBp = lineRateBp(draft, line);
-    if (!rateBp) continue;
-    const amount = subtotalOf([line]);
-    const row = rows.get(rateBp) ?? { rateBp, taxablePaise: 0, gstPaise: 0 };
-    row.taxablePaise += amount;
-    rows.set(rateBp, row);
-  }
-  return [...rows.values()]
-    .map((r) => ({ ...r, gstPaise: Math.round((r.taxablePaise * r.rateBp) / 10000) }))
-    .sort((a, b) => a.rateBp - b.rateBp);
-}
 /** "AMC visit + 2 fans": last time's bill in a few words, for the offer. */
 export function summariseLines(lines: readonly { description: string; quantityMilli: number }[]): string {
   const parts = lines.slice(0, 3).map((l) => {

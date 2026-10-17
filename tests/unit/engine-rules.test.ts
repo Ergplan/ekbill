@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { MAX_NUMBER_LENGTH } from '../../packages/engine/src/numbering';
 import {
   GST_RULES,
   RuleError,
@@ -10,6 +9,7 @@ import {
   explain,
   hsnDigitsFor,
   irnReportingWindow,
+  maxNumberLengthOn,
   placeOfSupply,
   returnDueDate,
   ruleOn,
@@ -90,7 +90,8 @@ const FIXTURES: Fixture[] = [
     outside: '2017-06-30',
     decides: () => {
       const e = rulesOn('document-fields', '2026-10-15').find((x) => x.id === 'tax-invoice-fields-r46')!;
-      expect(e.maxNumberLength).toBe(MAX_NUMBER_LENGTH);
+      expect(e.maxNumberLength).toBe(16);
+      expect(maxNumberLengthOn('2026-10-15')).toBe(16);
       expect(e.document).toBe('tax-invoice');
     },
   },
@@ -385,5 +386,32 @@ describe('the rule pack (I5): one fixture per entry', () => {
 
   it('says nothing about an id it does not know', () => {
     expect(explain('no-such-rule')).toBeNull();
+  });
+});
+
+describe('values the code reads from the pack, never stands in for (I5, Stage 3 review)', () => {
+  const withEntry = (id: string, patch: Record<string, unknown>) => ({
+    ...GST_RULES,
+    entries: GST_RULES.entries.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+  });
+  it('the longest number is the pack’s: at 12, INV-2026-27/001 is too long', async () => {
+    const { validateSeries } = await import('../../packages/engine/src/numbering');
+    const pack = withEntry('tax-invoice-fields-r46', { maxNumberLength: 12 });
+    expect(maxNumberLengthOn('2026-10-15', pack)).toBe(12);
+    const series = { prefix: 'INV-', padding: 3, includeFinancialYear: true, nextNumber: 1 };
+    expect(validateSeries(series, maxNumberLengthOn('2026-10-15', pack))).toBe('too-long');
+    expect(validateSeries(series, maxNumberLengthOn('2026-10-15'))).toBeNull();
+  });
+  it('an entry without its value is a rule error, not a default', () => {
+    expect(() =>
+      maxNumberLengthOn('2026-10-15', withEntry('tax-invoice-fields-r46', { maxNumberLength: undefined })),
+    ).toThrow(RuleError);
+    const due = GST_RULES.entries.find(
+      (e) => e.kind === 'due-date' && e.frequency === 'monthly' && e.form === 'GSTR-3B',
+    );
+    if (due) {
+      const pack = withEntry(due.id, { dayOfNextMonth: undefined });
+      expect(() => returnDueDate('GSTR-3B', 'monthly', '2026-09', '27', pack)).toThrow(RuleError);
+    }
   });
 });

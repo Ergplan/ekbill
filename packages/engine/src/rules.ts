@@ -133,6 +133,18 @@ export function rulesOn(kind: RuleKind, dateIso: string, rules: RulePack = GST_R
 export function ruleOn(kind: RuleKind, dateIso: string, rules: RulePack = GST_RULES): RuleEntry | null {
   return rulesOn(kind, dateIso, rules)[0] ?? null;
 }
+/** A value the pack's entry must carry (I5: rule values are data; Stage 3 review: code stood in for them). */
+function missing(rule: RuleEntry, field: string): never {
+  throw new RuleError(`rule ${rule.id} has no ${field}`);
+}
+
+/** Rule 46: the longest a document number may be on the date (the pack's tax-invoice fields entry). */
+export function maxNumberLengthOn(dateIso: string, rules: RulePack = GST_RULES): number {
+  const e = rulesOn('document-fields', dateIso, rules).find((x) => x.document === 'tax-invoice');
+  if (!e) throw new RuleError(`no document-fields rule for a tax invoice on ${dateIso}`);
+  return e.maxNumberLength ?? missing(e, 'maxNumberLength');
+}
+
 function need(kind: RuleKind, dateIso: string, rules: RulePack, id?: string): RuleEntry {
   const found = id
     ? rulesOn(kind, dateIso, rules).find((e) => e.id === id || e.id.startsWith(id))
@@ -233,8 +245,8 @@ export function hsnDigitsFor(
   return {
     b2b: band.b2bDigits,
     b2c: band.b2cDigits,
-    sacDigits: rule.sacDigits ?? 6,
-    sacPrefix: rule.sacPrefix ?? '99',
+    sacDigits: rule.sacDigits ?? missing(rule, 'sacDigits'),
+    sacPrefix: rule.sacPrefix ?? missing(rule, 'sacPrefix'),
     ruleId: rule.id,
   };
 }
@@ -294,10 +306,13 @@ export function returnDueDate(
   const month = Number(period.slice(5, 7));
   const nextMonth = month === 12 ? { y: year + 1, m: 1 } : { y: year, m: month + 1 };
   let day: number;
-  if (frequency === 'monthly') day = rule.dayOfNextMonth ?? 20;
+  if (frequency === 'monthly') day = rule.dayOfNextMonth ?? missing(rule, 'dayOfNextMonth');
   else {
     const groupA = stateCode && rule.groupAStates?.includes(stateCode);
-    day = groupA && rule.dayAfterQuarterEndGroupA ? rule.dayAfterQuarterEndGroupA : (rule.dayAfterQuarterEnd ?? 24);
+    day =
+      groupA && rule.dayAfterQuarterEndGroupA
+        ? rule.dayAfterQuarterEndGroupA
+        : (rule.dayAfterQuarterEnd ?? missing(rule, 'dayAfterQuarterEnd'));
   }
   return {
     dateIso: `${nextMonth.y}-${String(nextMonth.m).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
