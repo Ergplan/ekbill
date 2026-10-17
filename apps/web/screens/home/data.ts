@@ -70,6 +70,12 @@ export async function loadHome(viewer: Viewer): Promise<HomeData> {
   // Dues are asked for as dues (Stage 10): a business with more bills than one list holds still sees its oldest.
   const rows = unpaidRows(ledger.live ? await ledgerOf(viewer, { status: 'due' }) : ledger);
   const rowOfBill = new Map(ledger.bills.map((x, i) => [x, ledger.rows[i]!]));
+  // The last three are the last three, however long ago (Stage 10 review: a business with no bill in eight weeks
+  // showed none); the eight weeks still decide this month and the sparkline.
+  const older = ledger.live && sent.length < 3 ? await ledgerOf(viewer, { limit: 6 }) : null;
+  const recent = older
+    ? older.rows.filter((_, i) => older.bills[i]!.status !== 'cancelled').slice(0, 3)
+    : sent.slice(0, 3).map((x) => rowOfBill.get(x)!);
   return {
     kind: viewer.role === 'owner' ? 'owner' : viewer.role,
     personName: viewer.person.name,
@@ -80,7 +86,7 @@ export async function loadHome(viewer: Viewer): Promise<HomeData> {
     customerCount: customers.length,
     showSearch: customers.length > 8,
     sentThisMonth: sent.filter((x) => x.date.startsWith(month)).length,
-    recent: sent.slice(0, 3).map((x) => rowOfBill.get(x)!),
+    recent,
     sparkline: weeks,
     owed: {
       totalPaise: rows.reduce((s, r) => s + r.duePaise, 0),

@@ -239,3 +239,21 @@ describe('the CA pack route', () => {
     expect((await get('from=2026-09&to=2026-08')).status).toBe(400);
   });
 });
+
+describe('Home', () => {
+  it('the last three bills are there with none in the eight weeks (Stage 10 review)', async () => {
+    await signIn('sharma', 'owner');
+    const { getViewer } = await import('../../apps/web/screens/viewer');
+    const { loadHome } = await import('../../apps/web/screens/home/data');
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date('2027-09-01T06:00:00Z'));
+      const home = await loadHome(await getViewer());
+      expect(home.sentThisMonth).toBe(0);
+      expect(home.sparkline.every((n) => n === 0)).toBe(true);
+      expect(home.recent).toHaveLength(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

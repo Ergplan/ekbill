@@ -5,7 +5,7 @@ export const manifest: ScreenManifest = {
   route: '/gst',
   title: 'GST',
   purpose:
-    'Regular businesses only: the period, two tiles (Bills, GST), the rate split, the B2B list, the B2C note, drill-down on any figure, and CA ko bhejo with the zip.',
+    'Regular businesses only: the period, two tiles (Bills, GST), the rate split, the B2B list, the B2C note, drill-down on any figure (/gst/docs: the documents behind it, which add up to it), and CA ko bhejo with the zip.',
   primary: { label: 'CA ko bhejo', to: 'external:share', guide: 'send' },
   taps: [
     { label: 'Mahina', to: '/gst', guide: 'period' },

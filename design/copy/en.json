@@ -697,6 +697,7 @@
   "item.hsn.search": "A code or what the work is",
   "item.hsn.none": "Nothing found — ask your CA",
   "import.none": "No customers found. {problems}",
+  "import.some-none": "Nobody was found in: {problems}",
   "import.too-many": "Only the first 2,000 new customers are shown. Add these, then send the file again for the rest.",
   "import.failed": "Could not read the files. Please try again.",
   "import.again": "Pick again",

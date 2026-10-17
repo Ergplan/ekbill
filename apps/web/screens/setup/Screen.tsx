@@ -211,7 +211,17 @@ export function SetupScreen({ step }: { step: SetupStep }) {
       if (at && at !== step) go(at);
       return;
     }
-    if (d.signature) await setBusinessFile({ kind: 'signature', dataUrl: d.signature });
+    // The business is made; a refused signature is said here, before Home (Stage 4 review: it was lost), and Shuru
+    // karo again saves the profile on the same business and tries without it.
+    if (d.signature) {
+      const f = await setBusinessFile({ kind: 'signature', dataUrl: d.signature });
+      if (!f.ok) {
+        setSaving(false);
+        patch({ signature: null });
+        setError(t(f.error, 'say' in f && f.say ? f.say.params : undefined));
+        return;
+      }
+    }
     clearDraft('setup');
     router.push('/');
   };

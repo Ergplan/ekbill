@@ -11,9 +11,9 @@ export const manifest: ScreenManifest = {
     { label: 'Files chuno', to: '/customers/import', guide: 'pick' },
     { label: 'Peeche', to: '/customers', guide: 'back' },
   ],
-  states: ['pick', 'reading', 'rows', 'done'],
-  guides: ['pick', 'files', 'reading', 'rows', 'add'],
-  optionalGuides: ['pick', 'files', 'reading', 'add'],
+  states: ['pick', 'reading', 'rows', 'done', 'failed'],
+  guides: ['pick', 'files', 'reading', 'rows', 'add', 'again'],
+  optionalGuides: ['pick', 'files', 'reading', 'add', 'again'],
   tour: [
     { target: 'pick', say: 'PDF, photo, CSV ya Excel: jo bhi hai, chuno.' },
     { target: 'rows', say: 'Jo mila woh yahan. Tick hatao jo nahi chahiye.' },

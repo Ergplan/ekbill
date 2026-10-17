@@ -1,4 +1,4 @@
-import { readdirSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -18,6 +18,16 @@ describe('screen manifests (Stage 1)', () => {
       .filter((name) => !(NON_PRODUCT_SCREENS as readonly string[]).includes(name));
     for (const dir of dirs) expect(existsSync(join(ROOT, 'apps/web/screens', dir, 'manifest.ts')), dir).toBe(true);
     expect(dirs.sort()).toEqual(SCREENS.map((s) => s.id).sort());
+  });
+  // Stage 5/6 review: a screen drew guides its manifest never declared, so the voice and the tour could not reach them.
+  it('every data-guide a screen draws is declared by its manifest, or is the shell’s', () => {
+    for (const s of SCREENS) {
+      const file = join(ROOT, 'apps/web/screens', s.id, 'Screen.tsx');
+      if (!existsSync(file)) continue;
+      const drawn = new Set([...readFileSync(file, 'utf8').matchAll(/data-guide="([a-z0-9-]+)"/g)].map((m) => m[1]!));
+      const declared = new Set<string>([...s.guides, ...(s.optionalGuides ?? []), ...SHELL_GUIDES]);
+      for (const g of drawn) expect(declared.has(g), `${s.id}: data-guide="${g}"`).toBe(true);
+    }
   });
   it('every manifest id is unique and has a sample URL', () => {
     const ids = SCREENS.map((s) => s.id);

@@ -18,8 +18,8 @@ export const manifest: ScreenManifest = {
     { label: 'Peeche', to: '/bills', guide: 'back' },
   ],
   states: ['due', 'partial', 'paid', 'cancelled', 'credit-note'],
-  guides: ['amount', 'paid', 'remind', 'wa', 'download', 'paper', 'mistake', 'paid-sheet'],
-  optionalGuides: ['paid-sheet'],
+  guides: ['amount', 'paid', 'remind', 'wa', 'download', 'paper', 'mistake', 'paid-sheet', 'adjust', 'entries'],
+  optionalGuides: ['paid-sheet', 'adjust', 'entries'],
   tour: [
     { target: 'amount', say: 'Itna baaki hai is bill pe.' },
     { target: 'paid', say: 'Paise aa gaye? Yahan likh lo: poore, ya kuch hissa.' },
@@ -31,6 +31,6 @@ export const manifest: ScreenManifest = {
     staff: 'No cancel, no credit note.',
     accountant: 'Read, download. No money, no reminder.',
   },
-  hidden: { staff: ['mistake'], accountant: ['paid', 'remind', 'wa', 'mistake'] },
+  hidden: { staff: ['mistake', 'adjust'], accountant: ['paid', 'remind', 'wa', 'mistake', 'adjust'] },
   tab: 'bills',
 };

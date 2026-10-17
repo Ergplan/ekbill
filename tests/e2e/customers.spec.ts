@@ -51,12 +51,15 @@ test('import old bills and a party list: tick two, add them, see them', async ({
   await page.locator('input.eb-filedoor').setInputFiles([
     { name: 'tally-invoice.pdf', mimeType: 'application/pdf', buffer: fixture('tally-invoice.pdf') },
     { name: `parties-${tag}.csv`, mimeType: 'text/csv', buffer: Buffer.from(csv) },
+    { name: 'notes.csv', mimeType: 'text/csv', buffer: Buffer.from('Date,Amount\n2026-01-01,500\n') },
   ]);
   await expect(page).toHaveURL(/state=reading&id=/);
   // The worker reads; the screen asks again until it has.
   await expect(page.getByTestId('import-row').first()).toBeVisible({ timeout: 30_000 });
   const rows = page.getByTestId('import-row');
   await expect(rows).toHaveCount(4);
+  // A file that gave nobody says why, though the others found people (Stage 5 review).
+  await expect(page.locator('main')).toContainText('In files se koi customer nahi mila: notes.csv');
   // Green Park (by GSTIN) and Mehta Traders (by phone) are already customers: marked, not tickable.
   await expect(rows.filter({ hasText: 'Mehta Traders' })).toContainText('Pehle se hai');
   await expect(rows.filter({ hasText: 'Green Park' })).toContainText('Pehle se hai');

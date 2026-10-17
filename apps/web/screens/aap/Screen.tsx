@@ -488,7 +488,7 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
             <Segmented<'on' | 'off'>
               label={t('aap.voice')}
               value={(form ? form.voiceOnArrival : business.voiceOnArrival) ? 'on' : 'off'}
-              onChange={(v) => (form ? patch({ voiceOnArrival: v === 'on' }) : undefined)}
+              onChange={(v) => (editable && form ? patch({ voiceOnArrival: v === 'on' }) : undefined)}
               options={[
                 { value: 'on', label: t('aap.voice.on') },
                 { value: 'off', label: t('aap.voice.off') },
@@ -516,7 +516,8 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
         <SettingRow label={t('aap.about.version', { build })} value="" />
       </SettingGroup>
 
-      {owner ? (
+      {/* One primary on the screen (I9): while a sheet is open its Done is the one, not Save. */}
+      {owner && editing === null ? (
         <div className="eb-sticky">
           {notice ? (
             <p
@@ -843,9 +844,14 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
               <GhostButton
                 onClick={() => {
                   setSignatureDraft(null);
-                  void setBusinessFile({ kind: 'signature', dataUrl: null }).then(() => {
-                    setSignatureUrl(null);
+                  void setBusinessFile({ kind: 'signature', dataUrl: null }).then((r) => {
                     setEditing(null);
+                    // A refusal is said, and the signature stays (Stage 4 review: it said nothing and looked gone).
+                    if (!r.ok) {
+                      setNotice({ kind: 'error', text: t(r.error, 'say' in r && r.say ? r.say.params : undefined) });
+                      return;
+                    }
+                    setSignatureUrl(null);
                     router.refresh();
                   });
                 }}

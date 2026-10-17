@@ -177,6 +177,17 @@ export function ImportScreen({ data, viewer }: { data: ImportData; viewer: Shell
       {state === 'rows' && live && preview.rows.length && preview.summary.some((f) => f.problem === 'too-many') ? (
         <Meta>{t('import.too-many')}</Meta>
       ) : null}
+      {state === 'rows' && live && preview.rows.length > 0 && preview.summary.some((f) => f.found === 0) ? (
+        // The others found people; a file that gave nobody still says why (Stage 5 review: it said nothing).
+        <Meta>
+          {t('import.some-none', {
+            problems: preview.summary
+              .filter((f) => f.found === 0)
+              .map((f) => `${f.name}: ${t(`import.problem.${f.problem ?? 'unrecognised'}`)}`)
+              .join(' · '),
+          })}
+        </Meta>
+      ) : null}
       {state === 'rows' && live && !preview.rows.length ? (
         <Meta>
           {t('import.none', {
@@ -192,7 +203,9 @@ export function ImportScreen({ data, viewer }: { data: ImportData; viewer: Shell
             {t('import.failed')}
           </p>
           <div className="eb-actions">
-            <OutlineButton onClick={() => router.push(as('/customers/import'))}>{t('import.again')}</OutlineButton>
+            <OutlineButton data-guide="again" onClick={() => router.push(as('/customers/import'))}>
+              {t('import.again')}
+            </OutlineButton>
           </div>
         </>
       ) : null}

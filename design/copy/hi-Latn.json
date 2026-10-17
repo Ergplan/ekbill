@@ -690,6 +690,7 @@
   "item.hsn.search": "Code ya kaam ka naam",
   "item.hsn.none": "Kuch nahi mila — CA se poochein",
   "import.none": "Koi customer nahi mila. {problems}",
+  "import.some-none": "In files se koi customer nahi mila: {problems}",
   "import.too-many": "Pehle 2,000 naye customers hi dikhaye hain. Inhe jodne ke baad baaki ke liye file phir se bhejo.",
   "import.failed": "Padh nahi paaye. Phir se koshish karein.",
   "import.again": "Phir se chuno",

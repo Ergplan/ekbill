@@ -113,6 +113,9 @@ test('Aap: the owner edits the shop, Save works once, staff cannot save; the log
   // Edit the shop: a PIN code and an email this run alone would pick, then save once.
   const stamp = String(Date.now()).slice(-5);
   await page.getByText('Naam', { exact: true }).first().click();
+  // One primary on the screen (I9, Stage 4 review): with the sheet open it is the sheet's, not Save.
+  await expect(page.locator('[data-primary="true"]:visible')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Save karo' })).toHaveCount(0);
   await page.getByLabel('PIN code').fill(`4${stamp}`);
   await page.getByLabel('Email').fill(`sharma+${stamp}@example.com`);
   await page.getByRole('button', { name: 'Theek hai' }).click();
@@ -146,5 +149,10 @@ test('Aap: the owner edits the shop, Save works once, staff cannot save; the log
   // Staff see the business read-only: no Save.
   await become(page, 'ravi', '/aap', 'narangi');
   await expect(page.getByRole('button', { name: 'Save karo' })).toHaveCount(0);
+  // Read-only means the voice switch does not move for them either (Stage 4 review).
+  const voice = page.getByRole('radiogroup', { name: 'Bolke' });
+  const before = await voice.getByRole('radio', { checked: true }).innerText();
+  await voice.getByRole('radio', { name: before.includes('Chalu') ? 'Band' : 'Chalu' }).click();
+  await expect(voice.getByRole('radio', { checked: true })).toHaveText(before);
   await expect(page.locator('main')).toContainText('Sharma Electricals');
 });

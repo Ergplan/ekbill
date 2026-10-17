@@ -6,8 +6,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 43    | 399    |
-| integration | 27    | 295    |
+| unit        | 43    | 400    |
+| integration | 27    | 296    |
 | e2e         | 16    | 66     |
 
 ## unit
@@ -413,6 +413,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 ### `tests/unit/manifests.test.ts`
 
 - every screen folder (one with a Screen.tsx) has a manifest, and every manifest is in the registry
+- every data-guide a screen draws is declared by its manifest, or is the shellâ€™s
 - every manifest id is unique and has a sample URL
 - every tap resolves to a screen route or an external door
 - every tour step, tap guide, optional id and role-hidden id is a declared guide id
@@ -554,6 +555,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - imports: the accountant 403, no files 400, queue down 503 and the import failed
 - a photoâ€™s image: an id that is not one, or another businessâ€™s, is not found
 - staff 403; more than twelve months 400; a month the wrong way round 400
+- the last three bills are there with none in the eight weeks (Stage 10 review)
 
 ### `tests/integration/audit-pack.test.ts`
 

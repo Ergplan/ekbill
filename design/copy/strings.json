@@ -2785,6 +2785,10 @@
     "hi-Latn": "Koi customer nahi mila. {problems}",
     "en": "No customers found. {problems}"
   },
+  "import.some-none": {
+    "hi-Latn": "In files se koi customer nahi mila: {problems}",
+    "en": "Nobody was found in: {problems}"
+  },
   "import.too-many": {
     "hi-Latn": "Pehle 2,000 naye customers hi dikhaye hain. Inhe jodne ke baad baaki ke liye file phir se bhejo.",
     "en": "Only the first 2,000 new customers are shown. Add these, then send the file again for the rest."

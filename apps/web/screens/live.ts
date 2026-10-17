@@ -81,7 +81,13 @@ export function rowOfLive(r: BillRow, today: string): RowData {
 
 export async function ledgerOf(
   viewer: Viewer,
-  filter: { customerId?: string; q?: string; status?: 'all' | 'due' | 'paid' | 'cancelled'; since?: string } = {},
+  filter: {
+    customerId?: string;
+    q?: string;
+    status?: 'all' | 'due' | 'paid' | 'cancelled';
+    since?: string;
+    limit?: number;
+  } = {},
 ): Promise<Ledger> {
   const b = viewer.business;
   const scope = scopeOf(viewer);
