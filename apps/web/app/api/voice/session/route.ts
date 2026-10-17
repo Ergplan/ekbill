@@ -25,6 +25,7 @@ export async function POST() {
     const session = await mintVoiceSession({
       businessName: me.business?.tradeName ?? null,
       customers: names,
+      language: me.user.language,
       record: (row) =>
         scope
           ? aiCalls.recordAiCall(scope, row)

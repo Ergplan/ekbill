@@ -95,15 +95,27 @@ export function linesFromSpeech(raw: unknown): SpokenLine[] {
   return out;
 }
 
+/** The words of the answer, in the person's language (the app passes its dictionary's; Hinglish by default). */
+export interface DuesWords {
+  none: string;
+  total: (amount: string, count: number) => string;
+  row: (name: string, amount: string, days: number) => string;
+}
+const HINGLISH_DUES: DuesWords = {
+  none: 'Koi paise baaki nahi. Sab aa gaye.',
+  total: (amount, count) => `Total ${amount} baaki, ${count} bills.`,
+  row: (name, amount, days) => `${name}: ${amount}, ${days} din`,
+};
+
 /** The answer to "kiske paise aane hain", for the model to read out: biggest first, at most six. */
-export function whoOwesReply(due: readonly VoiceDue[]): string {
-  if (!due.length) return 'Koi paise baaki nahi. Sab aa gaye.';
+export function whoOwesReply(due: readonly VoiceDue[], words: DuesWords = HINGLISH_DUES): string {
+  if (!due.length) return words.none;
   const total = due.reduce((s, d) => s + d.amountPaise, 0);
   const rows = [...due]
     .sort((a, b) => b.amountPaise - a.amountPaise)
     .slice(0, 6)
-    .map((d) => `${d.customerName}: ${moneyForMessage(d.amountPaise)}, ${d.days} din`);
-  return `Total ${moneyForMessage(total)} baaki, ${due.length} bills. ${rows.join('. ')}.`;
+    .map((d) => words.row(d.customerName, moneyForMessage(d.amountPaise), d.days));
+  return `${words.total(moneyForMessage(total), due.length)} ${rows.join('. ')}.`;
 }
 
 /**

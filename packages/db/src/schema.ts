@@ -51,7 +51,7 @@ export const users = pgTable(
   },
   (t) => [
     check('users_theme', sql`${t.theme} in ('narangi', 'harmony', 'system')`),
-    check('users_language', sql`${t.language} in ('hi-Latn', 'en')`),
+    check('users_language', sql`${t.language} in ('hi-Latn', 'en', 'hi', 'mr', 'ta')`),
     check('users_phone_e164', sql`${t.phoneE164} ~ '^\\+[1-9][0-9]{7,14}$'`),
   ],
 );

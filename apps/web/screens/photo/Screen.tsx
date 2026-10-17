@@ -281,7 +281,7 @@ export function PhotoScreen({ state, review, business, today, live, sendsPhotos,
 
       {state === 'review' ? (
         <>
-          <img src={photoSrc} alt="Kaccha bill" className="eb-photo" data-guide="photo" />
+          <img src={photoSrc} alt={t('photo.title')} className="eb-photo" data-guide="photo" />
           <section className="eb-heading">
             <Display as="h1" size="title">
               {t('photo.review.title')}

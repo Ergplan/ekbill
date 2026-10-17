@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { t } from '@ekbill/copy';
+import { LOCALES, LOCALE_NAMES, t, type Locale } from '@ekbill/copy';
 import {
   AttachmentRow,
   GhostButton,
@@ -24,7 +24,7 @@ import type { RemindData } from './data';
 
 export function RemindScreen({ data, viewer }: { data: RemindData; viewer: ShellViewer }) {
   const [tone, setTone] = useState<Tone>('gentle');
-  const [lang, setLang] = useState<'hi-Latn' | 'en'>(data.lang);
+  const [lang, setLang] = useState<Locale>(data.lang);
   const [opened, setOpened] = useState(false);
   const text = data.messages[lang][tone];
   // The bill's file, fetched ahead so the share tap hands it over at once (Stage 6 review).
@@ -67,8 +67,9 @@ export function RemindScreen({ data, viewer }: { data: RemindData; viewer: Shell
         />
       </HeroPanel>
       <div className="eb-actions">
-        <GhostButton data-guide="lang" onClick={() => setLang(lang === 'en' ? 'hi-Latn' : 'en')}>
-          {t('remind.lang')} · {lang === 'en' ? 'English' : 'Hinglish'}
+        {/* The message in the next of the app's languages; it opens in the customer's. */}
+        <GhostButton data-guide="lang" onClick={() => setLang(LOCALES[(LOCALES.indexOf(lang) + 1) % LOCALES.length]!)}>
+          {t('remind.lang')} · {LOCALE_NAMES[lang]}
         </GhostButton>
       </div>
       <Meta>{t('remind.attach')}</Meta>

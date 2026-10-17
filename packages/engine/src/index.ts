@@ -337,6 +337,7 @@ export {
   reminderFor,
   matchCustomer,
   whoOwesReply,
+  type DuesWords,
   type SpokenLine,
   type VoiceCustomer,
   type VoiceDue,

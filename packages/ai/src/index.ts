@@ -44,7 +44,10 @@ export {
   setRealtimeTransport,
   voiceAvailable,
   voiceInstructions,
+  voiceLanguage,
+  transcribePrompt,
   type RealtimeSecret,
   type RealtimeTransport,
+  type VoiceLocale,
   type VoiceScreen,
 } from './voice';

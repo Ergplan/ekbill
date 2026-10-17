@@ -67,24 +67,34 @@ test('the theme persists per user: Sharma ji picks Harmony, Ravi stays Narangi, 
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'narangi');
 });
 
-test('the language is saved for the person: Ravi picks English, it is there after a reload, then Hinglish again', async ({
+test('the language is the person’s: Ravi picks each of the five, the screens speak it, then Hinglish again', async ({
   page,
 }) => {
+  const errors: string[] = [];
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
   await page.goto('/dev/switch/ravi?to=/aap');
   await hydrated(page);
   await expect(page.locator('html')).toHaveAttribute('lang', 'hi-Latn');
-  await page.getByRole('radio', { name: 'English' }).click();
-  await page.waitForTimeout(500); // the action's round trip
-  await page.reload();
-  await hydrated(page);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en-IN');
-  await expect(page.getByRole('radio', { name: 'English' })).toBeChecked();
-  // Leave Ravi as the seed has him.
-  await page.getByRole('radio', { name: 'Hinglish' }).click();
-  await page.waitForTimeout(500);
-  await page.reload();
-  await hydrated(page);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'hi-Latn');
+  // The tab bar's Home, as each language says it (the dictionary's nav.home).
+  const steps = [
+    { pick: 'हिन्दी', lang: 'hi', home: 'होम' },
+    { pick: 'मराठी', lang: 'mr', home: 'होम' },
+    { pick: 'தமிழ்', lang: 'ta', home: 'முகப்பு' },
+    { pick: 'English', lang: 'en-IN', home: 'Home' },
+    { pick: 'Hinglish', lang: 'hi-Latn', home: 'Ghar' },
+  ];
+  for (const step of steps) {
+    // A saved choice reloads the page, drawn in it.
+    await page.getByRole('radio', { name: step.pick }).click();
+    await expect(page.locator('html')).toHaveAttribute('lang', step.lang, { timeout: 15_000 });
+    await hydrated(page);
+    await expect(page.getByRole('radio', { name: step.pick })).toBeChecked();
+    await expect(page.locator('nav').first()).toContainText(step.home);
+  }
+  // The server's text and the browser's agreed in every language: no hydration mismatch.
+  expect(errors.filter((e) => /hydrat/i.test(e))).toEqual([]);
 });
 
 test('with sign-in off, a new phone at login is a new owner: the code fills itself in, then setup', async ({

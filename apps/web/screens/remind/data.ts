@@ -1,4 +1,4 @@
-import { t } from '@ekbill/copy';
+import { LOCALES, t, type Locale } from '@ekbill/copy';
 
 import { daysBetween, shortDate, type Bill } from '../fixtures';
 import { billOf, customerOf } from '../common';
@@ -14,11 +14,11 @@ export interface RemindData {
   contact: string;
   /** The customer's number, for the WhatsApp chat (null: the share sheet asks). */
   phone: string | null;
-  lang: 'hi-Latn' | 'en';
+  lang: Locale;
   days: number;
   share: 'pdf' | 'jpg';
   fileName: string;
-  messages: Record<'hi-Latn' | 'en', { gentle: string; direct: string; second: string }>;
+  messages: Record<Locale, { gentle: string; direct: string; second: string }>;
   /** The real bill (Stage 6): the reminder is recorded against it and the file attached. */
   live: { documentId: string; paperSize: 'a4' | 'a5' | '80mm' | '58mm'; sent: number } | null;
 }
@@ -27,7 +27,7 @@ interface Who {
   name: string;
   contact: string;
   phone: string | null;
-  lang: 'hi-Latn' | 'en';
+  lang: Locale;
 }
 
 function build(
@@ -48,7 +48,7 @@ function build(
     date: shortDate(bill.date),
     upi: b.upi ?? '',
   };
-  const msgs = (locale: 'hi-Latn' | 'en') => ({
+  const msgs = (locale: Locale) => ({
     gentle: t('remind.msg.warm', params, locale),
     direct: t('remind.msg.direct', params, locale),
     second: t('remind.msg.second', params, locale),
@@ -62,12 +62,12 @@ function build(
     days,
     share: b.look.share,
     fileName: billFileName(bill.number, b.look.share === 'pdf' ? 'pdf' : 'jpg'),
-    messages: { 'hi-Latn': msgs('hi-Latn'), en: msgs('en') },
+    messages: Object.fromEntries(LOCALES.map((l) => [l, msgs(l)])) as RemindData['messages'],
     live,
   };
 }
 
-/** The reminder for one bill: three tones in the customer's language (Hinglish or English; KNOWN-GAPS for the rest). */
+/** The reminder for one bill: three tones, in each of the app's languages, opening in the customer's. */
 export async function loadRemind(viewer: Viewer, number: string, fy?: string | null): Promise<RemindData | null> {
   const b = viewer.business;
   if (!b) return null;

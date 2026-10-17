@@ -136,6 +136,9 @@ describe('fusion and citations', () => {
     expect(m).toContain('[1] Bill INV-042 · Mehta Traders\none');
     expect(m).toContain('[2] Item · AMC\ntwo');
     expect(m.endsWith('Question: Mehta ka rate?')).toBe(true);
+    // The person's app language, for a question whose own language is not clear (a name, a number).
+    const marathi = recordsMessage('Mehta?', [{ title: 'x', text: 'y' }], 'Marathi');
+    expect(marathi.endsWith('</records>\n\nApp language: Marathi\nQuestion: Mehta?')).toBe(true);
     expect(citationsIn('Rate ₹3,500 tha [2], bill [2] [9] [1].', 2)).toEqual([2, 1]);
     expect(renumberCitations('Rate ₹3,500 tha [2], bill [7] mein.', [2])).toBe('Rate ₹3,500 tha [1], bill mein.');
   });

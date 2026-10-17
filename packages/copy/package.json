@@ -2,12 +2,20 @@
   "name": "@ekbill/copy",
   "version": "2.0.0-dev",
   "private": true,
-  "description": "Every string the owner sees, in Hinglish (hi-Latn) and English, by key. Seeded from the design pack; the bill itself is English (rule 16).",
+  "description": "Every string the owner sees, by key, in Hinglish (hi-Latn), English, Hindi, Marathi and Tamil. Seeded from the design pack; the bill itself is English (rule 16).",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "react-server": "./src/server.ts",
+      "default": "./src/index.ts"
+    },
+    "./provider": "./src/provider.tsx",
+    "./server": "./src/server.ts"
   },
   "dependencies": {
     "@ekbill/design": "*"
+  },
+  "peerDependencies": {
+    "react": "*"
   }
 }

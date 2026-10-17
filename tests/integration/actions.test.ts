@@ -331,4 +331,24 @@ describe('team, Poocho and voice actions (Stage 9 review: tested through the jou
       delete process.env.AI_TRANSPORT;
     }
   });
+
+  it("the voice's replies come in the person's language: Tamil, then Marathi, then back to Hinglish", async () => {
+    const { setLanguage } = await import('../../apps/web/actions/user');
+    const { voiceRemind, voiceStartBill, voiceWhoOwes } = await import('../../apps/web/actions/voice');
+    await signIn('sharma', 'owner');
+    try {
+      expect(await setLanguage({ language: 'ta' })).toMatchObject({ ok: true });
+      const bill = await voiceStartBill({ customerName: 'Mehta Traders', lines: [{ what: 'Fan', rate: 450 }] });
+      expect(bill.reply).toBe(
+        'Mehta Traders பில் திறக்கிறது, 1 வரிகளுடன். சரிபாருங்கள்; பில் போடவும் என்பதை உரிமையாளர் தட்டுவார்.',
+      );
+      expect((await voiceWhoOwes()).reply).toMatch(/மொத்தம் ₹[\d,]+ பாக்கி|எந்த பாக்கியும் இல்லை/);
+      expect((await voiceRemind({})).reply).toBe('யாருக்கு நினைவூட்டல்?');
+      expect(await setLanguage({ language: 'mr' })).toMatchObject({ ok: true });
+      expect((await voiceStartBill({})).reply).toBe('समजलं नाही, पुन्हा सांगा?');
+    } finally {
+      await setLanguage({ language: 'hi-Latn' });
+    }
+    expect((await voiceStartBill({})).reply).toBe('Samjha nahi, dobara bolo?');
+  });
 });

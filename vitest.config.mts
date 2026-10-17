@@ -12,6 +12,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@ekbill/engine': here('./packages/engine/src/index.ts'),
+      '@ekbill/copy/server': here('./packages/copy/src/server.ts'),
+      '@ekbill/copy/provider': here('./packages/copy/src/provider.tsx'),
       '@ekbill/copy': here('./packages/copy/src/index.ts'),
       '@ekbill/db/migrate': here('./packages/db/migrate.mjs'),
       '@ekbill/db': here('./packages/db/src/index.ts'),

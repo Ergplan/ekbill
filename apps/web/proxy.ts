@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { t } from '@ekbill/copy';
+import { localeOf, t } from '@ekbill/copy/server';
 
 import { Limiter, clientAddress, isRender, isSignIn, isWrite, limitsFromEnv } from './server/rate-limit';
 
@@ -17,8 +17,15 @@ import { Limiter, clientAddress, isRender, isSignIn, isWrite, limitsFromEnv } fr
 const limiter = new Limiter();
 const limits = limitsFromEnv();
 
-function tooMany(id: string, key: 'rate.writes' | 'rate.signin', retryAfterSeconds: number, json: boolean) {
-  const words = t(key);
+function tooMany(
+  request: NextRequest,
+  id: string,
+  key: 'rate.writes' | 'rate.signin',
+  retryAfterSeconds: number,
+  json: boolean,
+) {
+  // In the person's language (the cookie the layout reads too).
+  const words = t(key, undefined, localeOf(request.cookies.get('eb-lang')?.value));
   const res = json
     ? NextResponse.json({ error: key, message: words }, { status: 429 })
     : new NextResponse(words, { status: 429, headers: { 'content-type': 'text/plain; charset=utf-8' } });
@@ -33,18 +40,18 @@ export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   if (isSignIn(path)) {
     const v = limiter.hit(`signin:${clientAddress(request.headers)}`, limits.signIn);
-    if (!v.ok) return tooMany(id, 'rate.signin', v.retryAfterSeconds, path.startsWith('/api/'));
+    if (!v.ok) return tooMany(request, id, 'rate.signin', v.retryAfterSeconds, path.startsWith('/api/'));
   } else if (isRender(request.method, path)) {
     const session = request.cookies.get('eb-session')?.value;
     const v = limiter.hit(
       session ? `render:${session}` : `render-ip:${clientAddress(request.headers)}`,
       limits.renders,
     );
-    if (!v.ok) return tooMany(id, 'rate.writes', v.retryAfterSeconds, true);
+    if (!v.ok) return tooMany(request, id, 'rate.writes', v.retryAfterSeconds, true);
   } else if (isWrite(request.method)) {
     const session = request.cookies.get('eb-session')?.value;
     const v = limiter.hit(session ? `write:${session}` : `write-ip:${clientAddress(request.headers)}`, limits.writes);
-    if (!v.ok) return tooMany(id, 'rate.writes', v.retryAfterSeconds, true);
+    if (!v.ok) return tooMany(request, id, 'rate.writes', v.retryAfterSeconds, true);
   }
   const headers = new Headers(request.headers);
   headers.set('x-request-id', id);

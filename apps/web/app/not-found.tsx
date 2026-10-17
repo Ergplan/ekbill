@@ -1,4 +1,6 @@
-import { t } from '@ekbill/copy';
+import { cookies } from 'next/headers';
+
+import { localeOf, t } from '@ekbill/copy';
 import { EmptyState } from '@ekbill/ui';
 
 /**
@@ -6,16 +8,18 @@ import { EmptyState } from '@ekbill/ui';
  * item): said in the app's words, with the way home (the flow audit's
  * "always a way out").
  */
-export default function NotFound() {
+export default async function NotFound() {
+  // A server component: the dictionary has no provider here, so the person's language is passed.
+  const locale = localeOf((await cookies()).get('eb-lang')?.value);
   return (
     <main className="eb-screen">
       <EmptyState
         icon="file"
-        title={t('error.notFound')}
-        sub={t('error.notFound.sub')}
+        title={t('error.notFound', undefined, locale)}
+        sub={t('error.notFound.sub', undefined, locale)}
         action={
           <a className="eb-btn eb-btn--ink" href="/" data-guide="home">
-            {t('nav.home')}
+            {t('nav.home', undefined, locale)}
           </a>
         }
       />

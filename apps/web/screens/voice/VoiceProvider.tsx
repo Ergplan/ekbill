@@ -9,6 +9,7 @@ import { GuideHighlight, type GuideStep } from '@ekbill/ui';
 import { voiceAsk, voiceRemind, voiceStartBill, voiceWhoOwes } from '../../actions/voice';
 import { writePrefill } from '../bill/prefill';
 import { SCREENS } from '../registry';
+import { localTour } from '../tour';
 import type { ScreenManifest } from '../types';
 import { fillItem, findItem, ownerOnly, snapshot, tapItem } from './dom';
 
@@ -209,7 +210,7 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
         }
         case 'guide_steps': {
           const m = manifestFor(window.location.pathname, window.location.search);
-          return { steps: (m?.tour ?? []).filter((s) => findItem(s.target)) };
+          return { steps: localTour(m?.tour ?? []).filter((s) => findItem(s.target)) };
         }
         default:
           return { ok: false, reason: 'no such tool' };

@@ -225,9 +225,15 @@ export function fuseRanks<T extends string>(lists: readonly (readonly T[])[], k 
 }
 
 /** The records as the model reads them: numbered, each with its title. */
-export function recordsMessage(question: string, records: ReadonlyArray<{ title: string; text: string }>): string {
+export function recordsMessage(
+  question: string,
+  records: ReadonlyArray<{ title: string; text: string }>,
+  /** The app's language by name ("Marathi"): the answer's language when the question's is not clear. */
+  language?: string,
+): string {
   const body = records.map((r, i) => `[${i + 1}] ${r.title}\n${r.text.slice(0, 1500)}`).join('\n\n');
-  return `<records>\n${body}\n</records>\n\nQuestion: ${question.trim().slice(0, 500)}`;
+  const lang = language ? `App language: ${language}\n` : '';
+  return `<records>\n${body}\n</records>\n\n${lang}Question: ${question.trim().slice(0, 500)}`;
 }
 
 /** The record numbers an answer cites, in order, each once, only ones that exist. */

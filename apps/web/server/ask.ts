@@ -1,7 +1,16 @@
 import 'server-only';
 
 import { aiCalls, search, type SearchHit, type TenantScope } from '@ekbill/db';
-import { AiUnavailableError, askAnswer, callText, embedModelName, embedTexts, type Recorder } from '@ekbill/ai';
+import {
+  AiUnavailableError,
+  askAnswer,
+  callText,
+  embedModelName,
+  embedTexts,
+  voiceLanguage,
+  type Recorder,
+  type VoiceLocale,
+} from '@ekbill/ai';
 import { citationsIn, recordsMessage, renumberCitations } from '@ekbill/engine';
 
 import { log } from './log';
@@ -13,7 +22,8 @@ import { log } from './log';
  * the text model numbered, with the versioned prompt that answers only from
  * them and cites what it used. Without a model, or when it fails, the owner
  * gets the matching records themselves. The voice's ask_records tool is this
- * same function.
+ * same function. The answer comes in the question's language, else the
+ * person's app language.
  */
 export interface AskSource {
   title: string;
@@ -30,7 +40,7 @@ export interface AskResult {
 
 const source = (h: SearchHit): AskSource => ({ title: h.title, href: h.href, kind: h.kind });
 
-export async function askRecords(scope: TenantScope, question: string): Promise<AskResult> {
+export async function askRecords(scope: TenantScope, question: string, language?: VoiceLocale): Promise<AskResult> {
   const q = question.trim().slice(0, 500);
   const record: Recorder = (row) => aiCalls.recordAiCall(scope, row);
   await search.refreshIndex(scope, { limit: 300 }).catch((e: unknown) => {
@@ -42,8 +52,8 @@ export async function askRecords(scope: TenantScope, question: string): Promise<
   try {
     const { value } = await callText({
       purpose: 'ask',
-      prompt: { name: 'ask', version: 1 },
-      text: recordsMessage(q, hits),
+      prompt: { name: 'ask', version: 2 },
+      text: recordsMessage(q, hits, voiceLanguage(language).name),
       key: 'ask',
       output: askAnswer,
       record,

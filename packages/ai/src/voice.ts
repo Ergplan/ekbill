@@ -7,15 +7,46 @@ import { loadPrompt } from './prompts';
 /**
  * The voice (Stage 9; salvaged from the MVP's src/lib/voice/session.ts and
  * app/api/voice/session): the server mints a short-lived client secret for
- * one OpenAI Realtime session, with the instructions (prompts/voice/v1.md)
+ * one OpenAI Realtime session, with the instructions (prompts/voice/v2.md)
  * and the tools baked in so the page cannot widen them. The browser talks to
  * OpenAI over WebRTC with that secret; the real key never leaves the server.
  * Each mint is one ai_calls row (purpose voice-session). The tools act through
  * the browser: open a screen, light up, fill, press the safe items; nothing
  * that commits (rule 17, I6).
  */
-export const VOICE_PROMPT = { name: 'voice', version: 1 } as const;
-export const TRANSCRIBE_PROMPT = { name: 'voice-transcribe', version: 1 } as const;
+export const VOICE_PROMPT = { name: 'voice', version: 2 } as const;
+export const TRANSCRIBE_PROMPT = { name: 'voice-transcribe', version: 2 } as const;
+export const VOICE_LANGUAGE_PROMPT = { name: 'voice-language', version: 1 } as const;
+
+/** The app's languages (the person's choice in Aap; @ekbill/copy's LOCALES). */
+export type VoiceLocale = 'hi-Latn' | 'en' | 'hi' | 'mr' | 'ta';
+export interface VoiceLanguage {
+  name: string;
+  note: string;
+  script: string;
+  words: string;
+}
+
+/** One language's section of prompts/voice-language: what the voice and the transcriber are told about it. */
+export function voiceLanguage(locale: VoiceLocale = 'hi-Latn'): VoiceLanguage {
+  const text = loadPrompt(VOICE_LANGUAGE_PROMPT.name, VOICE_LANGUAGE_PROMPT.version);
+  const section = (code: string) => text.split(/^## /m).find((s) => s.split('\n', 1)[0]!.trim() === code);
+  const body = section(locale) ?? section('hi-Latn')!;
+  const field = (key: keyof VoiceLanguage) => new RegExp(`^${key}: (.+)$`, 'm').exec(body)?.[1]?.trim() ?? '';
+  return { name: field('name'), note: field('note'), script: field('script'), words: field('words') };
+}
+
+/**
+ * The transcriber's language hint (ISO 639-1). Hinglish has none: it is Hindi
+ * and English in one sentence, and a "hi" hint writes it in Devanagari.
+ */
+const TRANSCRIBE_LANGUAGE: Record<VoiceLocale, string | null> = {
+  'hi-Latn': null,
+  en: 'en',
+  hi: 'hi',
+  mr: 'mr',
+  ta: 'ta',
+};
 export const VOICE_SCREENS = [
   'home',
   'new_bill',
@@ -143,7 +174,10 @@ const SETUP_NOTE =
 export function voiceInstructions(args: {
   businessName: string | null;
   customers: ReadonlyArray<{ name: string }>;
+  /** The person's app language: the voice starts in it. */
+  language?: VoiceLocale;
 }): string {
+  const lang = voiceLanguage(args.language);
   const names = args.customers
     .slice(0, 60)
     .map((c) =>
@@ -162,13 +196,26 @@ export function voiceInstructions(args: {
         : 'small Indian businesses',
     )
     .replace('{{setup}}', args.businessName ? '' : `\n${SETUP_NOTE}\n`)
+    .replaceAll('{{language}}', lang.name)
+    .replace('{{languageNote}}', lang.note)
     .replace('{{customers}}', names || 'none yet');
+}
+
+/** What the transcriber is told: the language, its script and its common words. */
+export function transcribePrompt(language?: VoiceLocale): string {
+  const lang = voiceLanguage(language);
+  return loadPrompt(TRANSCRIBE_PROMPT.name, TRANSCRIBE_PROMPT.version)
+    .replace('{{language}}', lang.name)
+    .replace('{{script}}', lang.script)
+    .replace('{{words}}', lang.words)
+    .trim();
 }
 
 /** The body sent to OpenAI to mint a client secret: ten minutes, one session, these instructions and tools. */
 export function realtimeSessionBody(args: {
   businessName: string | null;
   customers: ReadonlyArray<{ name: string }>;
+  language?: VoiceLocale;
   model: string;
   voice: string;
   /** A written copy of what the owner says; left out when no model is set (the realtime model hears the audio). */
@@ -187,7 +234,10 @@ export function realtimeSessionBody(args: {
             ? {
                 transcription: {
                   model: args.transcribeModel,
-                  prompt: loadPrompt(TRANSCRIBE_PROMPT.name, TRANSCRIBE_PROMPT.version).trim(),
+                  prompt: transcribePrompt(args.language),
+                  ...(TRANSCRIBE_LANGUAGE[args.language ?? 'hi-Latn']
+                    ? { language: TRANSCRIBE_LANGUAGE[args.language ?? 'hi-Latn']! }
+                    : {}),
                 },
               }
             : {}),
@@ -252,6 +302,7 @@ export function voiceAvailable(env: NodeJS.ProcessEnv = process.env): boolean {
 export async function mintVoiceSession(args: {
   businessName: string | null;
   customers: ReadonlyArray<{ name: string }>;
+  language?: VoiceLocale;
   record: Recorder;
 }): Promise<RealtimeSecret> {
   const fake = !override && process.env.AI_TRANSPORT === 'fake';

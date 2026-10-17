@@ -78,8 +78,8 @@ export function HelpScreen({ data, kind, viewer }: { data: HelpData; kind: HelpK
           onChoose={setChoice}
           choices={data.help.choices.map((c) => ({
             value: c.id as HelpKind,
-            label: c.title,
-            sub: c.sub,
+            label: t(`help.choice.${c.id}.title`),
+            sub: t(`help.choice.${c.id}.sub`),
           }))}
         />
         <div className="eb-sticky">
@@ -109,7 +109,7 @@ export function HelpScreen({ data, kind, viewer }: { data: HelpData; kind: HelpK
         <Display as="h1" size="title">
           {t('help.terms')}
         </Display>
-        <Meta>{data.help.choices.find((c) => c.id === form.kind)?.title}</Meta>
+        <Meta>{t(`help.choice.${form.kind}.title`)}</Meta>
       </section>
 
       <div data-guide="paste">

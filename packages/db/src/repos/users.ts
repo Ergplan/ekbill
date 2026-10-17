@@ -9,7 +9,7 @@ export interface User {
   name: string;
   phoneE164: string;
   theme: 'narangi' | 'harmony' | 'system';
-  language: 'hi-Latn' | 'en';
+  language: 'hi-Latn' | 'en' | 'hi' | 'mr' | 'ta';
 }
 
 /** A person's own settings: every role may change their own theme and language (users carries no business data). */

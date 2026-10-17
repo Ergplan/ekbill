@@ -18,7 +18,7 @@ export interface SessionUser {
   name: string;
   phoneE164: string;
   theme: 'narangi' | 'harmony' | 'system';
-  language: 'hi-Latn' | 'en';
+  language: 'hi-Latn' | 'en' | 'hi' | 'mr' | 'ta';
 }
 export interface Resolved {
   sessionId: string;

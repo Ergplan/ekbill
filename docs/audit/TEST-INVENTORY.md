@@ -6,8 +6,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 44    | 405    |
-| integration | 27    | 299    |
+| unit        | 44    | 409    |
+| integration | 27    | 300    |
 | e2e         | 16    | 66     |
 
 ## unit
@@ -63,6 +63,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - has every literal key the screens and actions use
 - says every key in both registers, with the same placeholders
 - builds the run-time keys the screens compose
+- says every app key in all five languages, each in its own script
+- translates every screen's tour: each manifest line is a tour key's Hinglish, word for word
 
 ### `tests/unit/credit-note-lines.test.ts`
 
@@ -517,8 +519,10 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - turns what was heard into the formâ€™s three fields; quantity defaults to 1
 - drops nonsense instead of guessing
 - biggest first, with the total, at most six
+- in the words given: the person's language
 - the instructions are the versioned prompt with the business and its customers; a name cannot break out
 - the body: ten minutes, the tools baked in; a transcript only when a transcription model is set
+- the voice starts in the person's language and the transcriber is told it, with its script
 - no tool makes, saves, sends or pays: the voice opens, lights, fills and presses safe items only (rule 17)
 - every mint is one ai_calls row; a refusal is an error row
 - is off without a model and a key, and makes no row; the stand-in says it is fake
@@ -567,6 +571,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the look, a new series, its next number, the default, retire and restore; staff are refused
 - the owner invites, changes the role and removes; staff and the accountant cannot
 - ask answers from the records with the fake model; the voice opens a bill and never for the accountant
+- the voice's replies come in the person's language: Tamil, then Marathi, then back to Hinglish
 
 ### `tests/integration/audit-pack.test.ts`
 
@@ -990,7 +995,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - switch to the owner of Sharma Electricals and see Sharma; to the staff of Gupta Kirana and see Gupta
 - the brand-new owner lands on welcome; an unknown person goes back to the list
 - the theme persists per user: Sharma ji picks Harmony, Ravi stays Narangi, Sharma ji is still Harmony
-- the language is saved for the person: Ravi picks English, it is there after a reload, then Hinglish again
+- the language is the personâ€™s: Ravi picks each of the five, the screens speak it, then Hinglish again
 - with sign-in off, a new phone at login is a new owner: the code fills itself in, then setup
 - in the build the OTP door is closed (404) and the switcher is the door
 
@@ -1014,7 +1019,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 ### `tests/e2e/poocho.spec.ts`
 
 - the owner asks about Mehta Traders: an answer from the records, cited, and the record one tap away
-- the accountant asks too; a question about nothing says nothing was found
+- the accountant asks too, in her English; a question about nothing says nothing was found
 
 ### `tests/e2e/screens.spec.ts` Ã—
 

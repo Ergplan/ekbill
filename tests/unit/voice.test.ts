@@ -7,7 +7,9 @@ import {
   realtimeSessionBody,
   setRealtimeTransport,
   voiceAvailable,
+  transcribePrompt,
   voiceInstructions,
+  voiceLanguage,
   type AiCallRow,
 } from '../../packages/ai/src/index';
 import { linesFromSpeech, matchCustomer, reminderFor, whoOwesReply } from '../../packages/engine/src/index';
@@ -70,6 +72,18 @@ describe('whoOwesReply', () => {
       ]),
     ).toBe('Total ₹4,500 baaki, 2 bills. B: ₹3,500, 40 din. A: ₹1,000, 3 din.');
   });
+
+  it("in the words given: the person's language", () => {
+    const words = {
+      none: 'Nothing is due.',
+      total: (amount: string, count: number) => `${amount} due in all, ${count} bills.`,
+      row: (name: string, amount: string, days: number) => `${name}: ${amount}, ${days} days`,
+    };
+    expect(whoOwesReply([], words)).toBe('Nothing is due.');
+    expect(whoOwesReply([{ customerName: 'A', amountPaise: 100000, days: 3 }], words)).toBe(
+      '₹1,000 due in all, 1 bills. A: ₹1,000, 3 days.',
+    );
+  });
 });
 
 describe('the session the server mints', () => {
@@ -106,6 +120,41 @@ describe('the session the server mints', () => {
     });
     expect(written.session.audio.input.transcription).toMatchObject({ model: 'a-transcriber' });
     expect(written.session.audio.input.transcription?.prompt).toContain('Hinglish');
+    // Hinglish is two languages in one sentence: no language hint (a "hi" hint writes it in Devanagari).
+    expect(written.session.audio.input.transcription).not.toHaveProperty('language');
+  });
+
+  it("the voice starts in the person's language and the transcriber is told it, with its script", () => {
+    for (const [language, name, iso] of [
+      ['en', 'English', 'en'],
+      ['hi', 'Hindi', 'hi'],
+      ['mr', 'Marathi', 'mr'],
+      ['ta', 'Tamil', 'ta'],
+    ] as const) {
+      const text = voiceInstructions({ businessName: 'Sharma Electricals', customers: [], language });
+      expect(text).toContain(`The owner chose ${name} as the app's language. Start in it:`);
+      expect(text).not.toContain('{{');
+      const body = realtimeSessionBody({
+        businessName: 'X',
+        customers: [],
+        language,
+        model: 'm',
+        voice: 'marin',
+        transcribeModel: 'a-transcriber',
+      });
+      expect(body.session.audio.input.transcription).toMatchObject({ language: iso });
+      expect(body.session.audio.input.transcription?.prompt).toContain(`speaking ${name}`);
+      expect(body.session.audio.input.transcription?.prompt).not.toContain('{{');
+    }
+    expect(voiceInstructions({ businessName: 'X', customers: [] })).toContain('The owner chose Hinglish');
+    expect(transcribePrompt('hi')).toContain('Devanagari');
+    expect(transcribePrompt('ta')).toContain('Tamil script');
+    // Every language has all four parts; an unknown one is Hinglish.
+    for (const l of ['hi-Latn', 'en', 'hi', 'mr', 'ta'] as const) {
+      const v = voiceLanguage(l);
+      expect([v.name, v.note, v.script, v.words].every(Boolean)).toBe(true);
+    }
+    expect(voiceLanguage('xx' as never).name).toBe('Hinglish');
   });
 
   it('no tool makes, saves, sends or pays: the voice opens, lights, fills and presses safe items only (rule 17)', () => {
@@ -131,7 +180,7 @@ describe('the session the server mints', () => {
     setRealtimeTransport(async () => ({ value: 'ek_secret', expiresAt: 123 }));
     const s = await mintVoiceSession({ businessName: 'X', customers: [], record });
     expect(s).toMatchObject({ secret: 'ek_secret', expiresAt: 123, fake: false });
-    expect(rows).toMatchObject([{ purpose: 'voice-session', promptVersion: 'voice/v1', outcome: 'ok' }]);
+    expect(rows).toMatchObject([{ purpose: 'voice-session', promptVersion: 'voice/v2', outcome: 'ok' }]);
     setRealtimeTransport(async () => {
       throw new Error('client_secrets 401');
     });

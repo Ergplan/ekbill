@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, type ReactNode } from 'react';
 
-import { t } from '@ekbill/copy';
+import { t, type Locale } from '@ekbill/copy';
 import { GuideHighlight, Icon, IconButton, Logo, ProfileRing, TabBar, useTour, type GuideStep } from '@ekbill/ui';
 
+import { localTour } from '../tour';
 import type { Registration, Role } from '../types';
 import { useVoice } from '../voice/VoiceProvider';
 import { tabsFor } from './nav';
@@ -20,7 +21,7 @@ export interface ShellViewer {
   role: Role;
   as: string | null;
   /** The person's own language (users.language); the dictionary switch arrives with the Aap wiring in Stage 4. */
-  language?: 'hi-Latn' | 'en';
+  language?: Locale;
   /** "Bolke" on Aap: the voice starts on arrival (Stage 9). */
   voice?: boolean;
   /** A signed-in member, not a look or the demo. */
@@ -59,7 +60,7 @@ export function AppShell({
   topMic?: boolean;
 }) {
   const router = useRouter();
-  const guide = useTour(tour);
+  const guide = useTour(localTour(tour));
   const voice = useVoice();
   const talk = voice?.available ? voice.toggle : guide.running ? guide.stop : guide.start;
   // The VoiceProvider reads this on arrival ("Bolke": start talking at once).

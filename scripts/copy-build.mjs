@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Regenerate design/copy/hi-Latn.json and design/copy/en.json from
-// design/copy/strings.json (one dictionary, two registers). `--check` fails
-// when the per-language files are stale or a key lacks a register (invoice.*
-// keys are English-only by design: the bill never speaks Hinglish).
+// Regenerate design/copy/<locale>.json (hi-Latn, en, hi, mr, ta) from
+// design/copy/strings.json (one dictionary, five registers). `--check` fails
+// when the per-language files are stale, a key lacks a register, or a register's
+// {placeholders} differ from the English (invoice.* keys are English-only by
+// design: the bill never speaks the app's languages).
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,24 +13,33 @@ const DIR = join(ROOT, 'design', 'copy');
 const check = process.argv.includes('--check');
 
 const strings = JSON.parse(readFileSync(join(DIR, 'strings.json'), 'utf8'));
-const out = { 'hi-Latn': {}, en: {} };
+// The registers the app speaks (packages/copy LOCALES); the bill's keys (invoice.*) are English alone.
+const LOCALES = ['hi-Latn', 'en', 'hi', 'mr', 'ta'];
+const out = Object.fromEntries(LOCALES.map((l) => [l, {}]));
 const problems = [];
+const placeholders = (s) => [...new Set(s.match(/\{\w+\}/g) ?? [])].sort().join(',');
 for (const [key, entry] of Object.entries(strings)) {
   if (key.startsWith('_')) continue;
   const english = entry.en;
   if (typeof english !== 'string' || !english) problems.push(`${key}: no en`);
-  const hinglish = key.startsWith('invoice.') ? undefined : entry['hi-Latn'];
-  if (!key.startsWith('invoice.') && (typeof hinglish !== 'string' || !hinglish)) problems.push(`${key}: no hi-Latn`);
   out.en[key] = english;
-  if (hinglish !== undefined) out['hi-Latn'][key] = hinglish;
+  if (key.startsWith('invoice.')) continue;
+  for (const locale of LOCALES.filter((l) => l !== 'en')) {
+    const text = entry[locale];
+    if (typeof text !== 'string' || !text) problems.push(`${key}: no ${locale}`);
+    // A register that drops or renames a {placeholder} shows the brace on screen.
+    else if (placeholders(text) !== placeholders(english))
+      problems.push(`${key}: ${locale} placeholders differ from en`);
+    else out[locale][key] = text;
+  }
 }
 if (problems.length) {
-  console.error('copy: every key needs both registers (invoice.* only en):');
+  console.error('copy: every key needs all five registers with the same {placeholders} (invoice.* only en):');
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
 let stale = [];
-for (const locale of ['hi-Latn', 'en']) {
+for (const locale of LOCALES) {
   const file = join(DIR, `${locale}.json`);
   const text = `${JSON.stringify(out[locale], null, 2)}\n`;
   const current = (() => {

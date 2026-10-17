@@ -7,6 +7,8 @@ import '@ekbill/design/tokens/themes.css';
 import '@ekbill/ui/styles.css';
 import './globals.css';
 import { voiceAvailable } from '@ekbill/ai';
+import { htmlLang, localeOf } from '@ekbill/copy';
+import { LocaleProvider } from '@ekbill/copy/provider';
 
 import { VoiceProvider } from '../screens/voice/VoiceProvider';
 import { Hydrated } from './Hydrated';
@@ -30,10 +32,11 @@ export const viewport: Viewport = {
  * sticks across reloads.
  */
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  // The person's language (users.language, echoed in a cookie by /dev/switch and the Aap action); Hinglish by default.
-  const lang = (await cookies()).get('eb-lang')?.value === 'en' ? 'en-IN' : 'hi-Latn';
+  // The person's language (users.language, echoed in a cookie by sign-in, /dev/switch and the Aap action); Hinglish by
+  // default. Every screen below reads it through the provider (the dictionary's t()).
+  const locale = localeOf((await cookies()).get('eb-lang')?.value);
   return (
-    <html lang={lang} suppressHydrationWarning>
+    <html lang={htmlLang(locale)} data-locale={locale} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -44,7 +47,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body>
         {/* The voice (Stage 9) lives above the screens, so one conversation survives moving between them. */}
-        <VoiceProvider available={voiceAvailable()}>{children}</VoiceProvider>
+        <LocaleProvider locale={locale}>
+          <VoiceProvider available={voiceAvailable()}>{children}</VoiceProvider>
+        </LocaleProvider>
         <Hydrated />
       </body>
     </html>

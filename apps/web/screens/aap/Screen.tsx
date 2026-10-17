@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { t } from '@ekbill/copy';
+import { LOCALES, LOCALE_NAMES, t, type Locale } from '@ekbill/copy';
 import {
   ANSWER_OF_REGISTRATION,
   BILL_ACCENTS,
@@ -27,6 +27,7 @@ import {
   Input,
   Meta,
   PrimaryCTA,
+  FilterChips,
   Segmented,
   SettingGroup,
   SettingRow,
@@ -156,7 +157,7 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
   const as = (href: string) => withAs(href, viewer.as);
   const owner = viewer.role === 'owner';
   const editable = owner && profile !== null;
-  const [lang, setLang] = useState<'hi-Latn' | 'en'>(viewer.language ?? business.lang);
+  const [lang, setLang] = useState<Locale>(viewer.language ?? business.lang);
   const [form, setForm] = useState<Form | null>(profile ? formOf(profile) : null);
   const [savedForm, setSavedForm] = useState<string>(profile ? JSON.stringify(formOf(profile)) : '');
   const [editing, setEditing] = useState<Editing>(null);
@@ -393,7 +394,7 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
           />
         ) : null}
         {editable && logoUrl ? (
-          <SettingRow label="" value={t('aap.look.logo.remove')} onClick={() => void removeLogo()} />
+          <SettingRow label={t('aap.look.logo.remove')} value="" onClick={() => void removeLogo()} />
         ) : null}
         <SettingRow
           label={t('aap.look.sign')}
@@ -454,32 +455,28 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
         />
       </SettingGroup>
       <SettingGroup title={t('aap.lang')} guide="lang">
-        <SettingRow
-          label={t('aap.lang')}
-          control={
-            <Segmented<'hi-Latn' | 'en'>
-              label={t('aap.lang')}
-              value={lang}
-              onChange={(v) => {
-                const was = lang;
-                setLang(v);
-                // A save that fails says so and puts the choice back: the screen never shows what was not kept.
-                const undo = (text: string) => {
-                  setLang(was);
-                  setNotice({ kind: 'error', text });
-                };
-                void setLanguage({ language: v }).then(
-                  (r) => (r.ok ? undefined : undo(t(r.error))),
-                  () => undo(t('error.generic')),
-                );
-              }}
-              options={[
-                { value: 'hi-Latn', label: t('aap.lang.hi') },
-                { value: 'en', label: t('aap.lang.en') },
-              ]}
-            />
-          }
-        />
+        {/* Five languages, each in its own script; they wrap on a phone. A saved choice reloads the page, so every
+            screen is drawn in it (the layout reads the language once per page). */}
+        <div className="eb-settings__block">
+          <FilterChips<Locale>
+            label={t('aap.lang')}
+            value={lang}
+            onChange={(v) => {
+              const was = lang;
+              setLang(v);
+              // A save that fails says so and puts the choice back: the screen never shows what was not kept.
+              const undo = (text: string) => {
+                setLang(was);
+                setNotice({ kind: 'error', text });
+              };
+              void setLanguage({ language: v }).then(
+                (r) => (r.ok ? window.location.reload() : undo(t(r.error))),
+                () => undo(t('error.generic')),
+              );
+            }}
+            options={LOCALES.map((l) => ({ value: l, label: LOCALE_NAMES[l] }))}
+          />
+        </div>
       </SettingGroup>
       <SettingGroup title={t('aap.voice')} guide="voice">
         <SettingRow

@@ -1,3 +1,4 @@
+import { localeOf, type Locale } from '@ekbill/copy';
 import { NotFoundError, customers, documents } from '@ekbill/db';
 import { ageInDays } from '@ekbill/engine';
 import type { PaperData } from '@ekbill/ui';
@@ -23,7 +24,7 @@ export interface LedgerEntryView {
 export interface BillViewData {
   bill: Bill;
   customerName: string;
-  customerLang: 'hi-Latn' | 'en';
+  customerLang: Locale;
   customerPhone: string | null;
   days: number;
   paper: PaperData;
@@ -88,7 +89,7 @@ export async function loadBillView(viewer: Viewer, number: string, fy?: string |
     return {
       bill,
       customerName: doc.customerName,
-      customerLang: customer?.language === 'en' ? 'en' : 'hi-Latn',
+      customerLang: localeOf(customer?.language),
       customerPhone: customer?.phone ?? doc.customerPhone,
       days: ageInDays(doc.issueDate, today),
       paper: paperOfDocument(doc),

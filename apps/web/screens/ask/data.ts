@@ -30,9 +30,9 @@ export async function loadAsk(viewer: Viewer, opts: { state: string | null }): P
   ]);
   const owes = [...due].sort((a, b) => b.balance.duePaise - a.balance.duePaise)[0]?.customerName;
   const examples = [
-    owes ? t('ask.example.due', { name: owes }) : null,
-    people[0] ? t('ask.example.last', { name: people[0].name }) : null,
-    things[0] ? t('ask.example.rate', { item: things[0].name }) : null,
+    owes ? t('ask.example.due', { name: owes }, viewer.language) : null,
+    people[0] ? t('ask.example.last', { name: people[0].name }, viewer.language) : null,
+    things[0] ? t('ask.example.rate', { item: things[0].name }, viewer.language) : null,
   ].filter((e): e is string => Boolean(e));
   return {
     ask: { examples, answer: { question: '', text: '', sources: [] } },

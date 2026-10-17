@@ -1,3 +1,4 @@
+import type { Locale } from '@ekbill/copy';
 import 'server-only';
 
 import { seedBusinessById, seedUserById, type Resolved } from '@ekbill/db';
@@ -26,7 +27,7 @@ export interface Viewer {
   /** The real identity behind the view, when there is a session. */
   session: Resolved | null;
   theme: 'narangi' | 'harmony' | 'system';
-  language: 'hi-Latn' | 'en';
+  language: Locale;
   /** The real business behind the view (Stage 4): its profile, series and files; null for a look or no business. */
   loaded: LoadedBusiness | null;
 }

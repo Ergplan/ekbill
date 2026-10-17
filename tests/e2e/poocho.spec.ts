@@ -9,8 +9,8 @@ import { expect, test, type Page } from '@playwright/test';
 async function hydrated(page: Page) {
   await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
 }
-async function ask(page: Page, question: string) {
-  await page.getByLabel('Poocho', { exact: true }).fill(question);
+async function ask(page: Page, question: string, label = 'Poocho') {
+  await page.getByLabel(label, { exact: true }).fill(question);
   await page.locator('[data-guide="go"]').click();
 }
 
@@ -35,12 +35,14 @@ test('the owner asks about Mehta Traders: an answer from the records, cited, and
   await expect(page.locator('main')).toContainText('Mehta Traders');
 });
 
-test('the accountant asks too; a question about nothing says nothing was found', async ({ page }) => {
+// Meera (the CA) chose English: the screen and its answers are in English.
+test('the accountant asks too, in her English; a question about nothing says nothing was found', async ({ page }) => {
   await page.goto('/dev/switch/meera?to=/poocho');
   await hydrated(page);
-  await ask(page, 'AMC visit ka rate kya hai?');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en-IN');
+  await ask(page, 'What is the AMC visit rate?', 'Ask');
   await expect(page.getByTestId('ask-answer')).toContainText('AMC', { timeout: 30_000 });
   await page.locator('[data-guide="more"]').click();
-  await ask(page, 'qqqzzzxxx wwwvvv');
-  await expect(page.getByTestId('ask-answer')).toContainText('kuch nahi mila', { timeout: 30_000 });
+  await ask(page, 'qqqzzzxxx wwwvvv', 'Ask');
+  await expect(page.getByTestId('ask-answer')).toContainText('Nothing about this in your records', { timeout: 30_000 });
 });

@@ -20,7 +20,7 @@ export const themeInput = z.object({
 });
 // table: users
 export const languageInput = z.object({
-  language: z.enum(['hi-Latn', 'en']),
+  language: z.enum(['hi-Latn', 'en', 'hi', 'mr', 'ta']),
 });
 // table: users
 export const nameInput = z.object({
@@ -151,7 +151,7 @@ export const issueBillInput = z.object({
   customerPhone: z.string().trim().max(30).nullable().optional(),
   customerState: z.string().trim().max(2).nullable().optional(),
   /** The new customer's language, when the form adds one. */
-  customerLanguage: z.enum(['hi-Latn', 'en']).nullable().optional(),
+  customerLanguage: z.enum(['hi-Latn', 'en', 'hi', 'mr', 'ta']).nullable().optional(),
   issueDate: civilDate,
   gstOn: z.boolean(),
   lines: z.array(billLine).min(1).max(100),
@@ -192,7 +192,7 @@ export const reversalInput = z.object({
 export const reminderInput = z.object({
   documentId: z.string().uuid(),
   tone: z.enum(['gentle', 'direct', 'second']),
-  language: z.enum(['hi-Latn', 'en']),
+  language: z.enum(['hi-Latn', 'en', 'hi', 'mr', 'ta']),
   text: z.string().max(2000),
 });
 // table: extraction_corrections

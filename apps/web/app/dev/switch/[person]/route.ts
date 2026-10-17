@@ -1,3 +1,4 @@
+import type { Locale } from '@ekbill/copy';
 import { NextResponse } from 'next/server';
 
 import {
@@ -55,7 +56,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ pers
           id: byPhone.id,
           key: phone!,
           theme: byPhone.theme as 'narangi' | 'harmony' | 'system',
-          language: byPhone.language as 'hi-Latn' | 'en',
+          language: byPhone.language as Locale,
         }
       : null;
   // A relative Location keeps the host the browser used (127.0.0.1 or localhost), so the cookie travels with it.

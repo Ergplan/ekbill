@@ -1,5 +1,6 @@
 'use server';
 
+import { localeOf, t, type Locale } from '@ekbill/copy';
 import { customers, documents } from '@ekbill/db';
 import {
   ageInDays,
@@ -16,16 +17,18 @@ import { voiceAskInput, voiceBillInput, voiceNameInput } from './schema';
 
 /**
  * The voice's tools that need the business's records (Stage 9). Each answers
- * a short Hinglish reply for the model to say and, where it opens a screen,
- * the address; none of them writes anything (rule 17: the voice opens and
- * fills, the owner commits).
+ * a short reply in the person's app language for the model to say and, where
+ * it opens a screen, the address; none of them writes anything (rule 17: the
+ * voice opens and fills, the owner commits).
  */
 export type VoiceReply = { ok: boolean; reply: string; href?: string; lines?: SpokenLine[] };
 
-const NOT_YET = 'Pehle dukaan ki jaankari poori karo, phir yeh kar sakte hain.';
-
 async function scope() {
   return (await current())?.scope ?? null;
+}
+
+async function language(): Promise<Locale> {
+  return localeOf((await current())?.user.language);
 }
 
 async function dues(s: NonNullable<Awaited<ReturnType<typeof scope>>>) {
@@ -43,17 +46,26 @@ async function dues(s: NonNullable<Awaited<ReturnType<typeof scope>>>) {
 }
 
 export async function voiceWhoOwes(): Promise<VoiceReply> {
+  const l = await language();
   const s = await scope();
-  if (!s) return { ok: false, reply: NOT_YET };
-  return { ok: true, reply: whoOwesReply(await dues(s)) };
+  if (!s) return { ok: false, reply: t('voice.reply.notYet', undefined, l) };
+  return {
+    ok: true,
+    reply: whoOwesReply(await dues(s), {
+      none: t('voice.reply.dues.none', undefined, l),
+      total: (amount, count) => t('voice.reply.dues.total', { amount, count }, l),
+      row: (name, amount, days) => t('voice.reply.dues.row', { name, amount, days }, l),
+    }),
+  };
 }
 
 export async function voiceStartBill(input: unknown): Promise<VoiceReply> {
+  const l = await language();
   const parsed = voiceBillInput.safeParse(input);
-  if (!parsed.success) return { ok: false, reply: 'Samjha nahi, dobara bolo?' };
+  if (!parsed.success) return { ok: false, reply: t('voice.reply.again', undefined, l) };
   const s = await scope();
-  if (!s) return { ok: false, reply: NOT_YET };
-  if (s.role === 'accountant') return { ok: false, reply: 'Accountant bill nahi banate; owner ya staff banayenge.' };
+  if (!s) return { ok: false, reply: t('voice.reply.notYet', undefined, l) };
+  if (s.role === 'accountant') return { ok: false, reply: t('voice.reply.accountant', undefined, l) };
   const said = parsed.data.customerName.trim();
   const lines = linesFromSpeech(parsed.data.lines);
   const customer = said ? matchCustomer(said, await customers.listCustomers(s)) : null;
@@ -64,35 +76,42 @@ export async function voiceStartBill(input: unknown): Promise<VoiceReply> {
     ok: true,
     href,
     lines,
-    reply: `${customer?.name ?? (said || 'Naye customer')} ka bill khul raha hai, ${lines.length} line ke saath. Check karwao; Bill banao owner dabayenge.`,
+    reply: t(
+      'voice.reply.bill',
+      { name: customer?.name ?? (said || t('voice.reply.newCustomer', undefined, l)), count: lines.length },
+      l,
+    ),
   };
 }
 
 export async function voiceRemind(input: unknown): Promise<VoiceReply> {
+  const l = await language();
   const parsed = voiceNameInput.safeParse(input);
-  if (!parsed.success) return { ok: false, reply: 'Kiska reminder?' };
+  if (!parsed.success) return { ok: false, reply: t('voice.reply.remind.who', undefined, l) };
   const s = await scope();
-  if (!s) return { ok: false, reply: NOT_YET };
+  if (!s) return { ok: false, reply: t('voice.reply.notYet', undefined, l) };
   const said = parsed.data.customerName;
   const due = await dues(s);
   const who = reminderFor(said, await customers.listCustomers(s), due);
-  if (who.kind === 'ask') return { ok: false, reply: `Kaunse ${said}? ${who.names.join(', ')}.` };
-  if (who.kind === 'none') return { ok: false, reply: `${who.name} ke koi paise baaki nahi.` };
+  if (who.kind === 'ask')
+    return { ok: false, reply: t('voice.reply.remind.which', { name: said, names: who.names.join(', ') }, l) };
+  if (who.kind === 'none') return { ok: false, reply: t('voice.reply.remind.none', { name: who.name }, l) };
   const row = who.row;
   return {
     ok: true,
     href: `/bills/${encodeURIComponent(row.number)}/remind${row.financialYear ? `?fy=${row.financialYear}` : ''}`,
-    reply: `${row.customerName} ka reminder khul raha hai. WhatsApp pe bhejna owner dabayenge.`,
+    reply: t('voice.reply.remind.open', { name: row.customerName }, l),
   };
 }
 
 export async function voiceAsk(input: unknown): Promise<VoiceReply> {
+  const l = await language();
   const parsed = voiceAskInput.safeParse(input);
-  if (!parsed.success) return { ok: false, reply: 'Kya poochna hai?' };
+  if (!parsed.success) return { ok: false, reply: t('voice.reply.ask.what', undefined, l) };
   const s = await scope();
-  if (!s) return { ok: false, reply: NOT_YET };
-  const r = await askRecords(s, parsed.data.question);
+  if (!s) return { ok: false, reply: t('voice.reply.notYet', undefined, l) };
+  const r = await askRecords(s, parsed.data.question, l);
   if (r.answer) return { ok: true, reply: r.answer.replace(/\s*\[\d+\]/g, '') };
-  if (!r.sources.length) return { ok: true, reply: 'Records mein yeh nahi mila.' };
-  return { ok: true, reply: `Seedha jawab nahi bana. Yeh mila: ${r.sources.map((x) => x.title).join('; ')}.` };
+  if (!r.sources.length) return { ok: true, reply: t('voice.reply.ask.none', undefined, l) };
+  return { ok: true, reply: t('voice.reply.ask.sources', { titles: r.sources.map((x) => x.title).join('; ') }, l) };
 }

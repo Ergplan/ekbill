@@ -1,3 +1,4 @@
+import type { Locale } from '@ekbill/copy';
 import fixture from '../../../tests/fixtures/v2.json';
 
 import type { Registration, Role } from './types';
@@ -45,7 +46,7 @@ export interface Business {
   series: Series[];
   look: Look;
   theme: 'narangi' | 'harmony' | 'system';
-  lang: 'hi-Latn' | 'en';
+  lang: Locale;
   voiceOnArrival: boolean;
   gstDefaultRate: number | null;
 }
@@ -59,7 +60,7 @@ export interface Customer {
   pan: string | null;
   stateCode: string | null;
   stateName: string | null;
-  lang: 'hi-Latn' | 'en';
+  lang: Locale;
   notes: string | null;
 }
 export interface Item {
