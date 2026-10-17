@@ -1034,20 +1034,19 @@ function SeriesEditor({
         >
           {t('aap.series.add')}
         </PrimaryCTA>
-        {rows
-          .filter((r) => r.kind === 'bill')
-          .map((r) => (
-            <div key={r.id} className="eb-actions">
-              {r.active && !r.isDefault ? (
-                <GhostButton onClick={() => void makeDefault(r)}>{`${t('aap.series.default')}: ${r.name}`}</GhostButton>
-              ) : null}
-              {!r.isDefault ? (
-                <GhostButton
-                  onClick={() => void toggle(r)}
-                >{`${r.active ? t('aap.series.retire') : t('aap.series.restore')}: ${r.name}`}</GhostButton>
-              ) : null}
-            </div>
-          ))}
+        {rows.map((r) => (
+          <div key={r.id} className="eb-actions">
+            {/* The default is a bill series; a credit-note series is retired and restored like any other. */}
+            {r.kind === 'bill' && r.active && !r.isDefault ? (
+              <GhostButton onClick={() => void makeDefault(r)}>{`${t('aap.series.default')}: ${r.name}`}</GhostButton>
+            ) : null}
+            {!r.isDefault ? (
+              <GhostButton
+                onClick={() => void toggle(r)}
+              >{`${r.active ? t('aap.series.retire') : t('aap.series.restore')}: ${r.name}`}</GhostButton>
+            ) : null}
+          </div>
+        ))}
       </div>
     </div>
   );

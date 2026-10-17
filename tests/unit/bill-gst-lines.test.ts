@@ -63,3 +63,16 @@ describe('renamed (Stage 6 review)', () => {
     });
   });
 });
+
+describe('photoTotalCheck (Stage 7 review)', () => {
+  it('follows the lines as edited: a fixed rate makes the note go', async () => {
+    const { photoTotalCheck } = await import('../../apps/web/screens/bill/compute');
+    const business = { registration: 'regular' as const, stateCode: '27' };
+    const at = { customerState: '27', date: '2026-10-15' };
+    const read = [{ what: 'Doorbell', qty: '4', rate: '340' }];
+    expect(photoTotalCheck(140000, { ...at, lines: read }, business)).toEqual({ linesPaise: 136000, differs: true });
+    const fixed = [{ what: 'Doorbell', qty: '4', rate: '350' }];
+    expect(photoTotalCheck(140000, { ...at, lines: fixed }, business)).toEqual({ linesPaise: 140000, differs: false });
+    expect(photoTotalCheck(null, { ...at, lines: fixed }, business)).toBeNull();
+  });
+});

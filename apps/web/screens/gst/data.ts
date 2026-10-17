@@ -164,7 +164,8 @@ async function loadLiveGst(viewer: Viewer, opts: { period?: string | null; q?: s
 
 export type DrillTable = 'rate' | 'b2b' | 'b2c' | 'cdn' | 'all';
 export interface DrillData {
-  title: string;
+  /** The figure's name: a dictionary key, with the rate for a rate's row (Stage 8 review: English literals). */
+  title: { key: string; params?: Record<string, string> };
   from: MonthPeriod;
   to: MonthPeriod;
   rows: Array<{
@@ -190,8 +191,13 @@ export async function loadGstDrill(
   if (!scope || !b || b.registration !== 'regular') return null;
   if (!opts.from || !opts.to || !isMonthPeriod(opts.from) || !isMonthPeriod(opts.to) || opts.to < opts.from)
     return null;
+  // One year at most, as the CA pack: a longer range is refused, never cut short while saying the asked range
+  // (Stage 8 review).
   const months: MonthPeriod[] = [];
-  for (let m: MonthPeriod = opts.from; m <= opts.to && months.length < 12; m = addMonthsToPeriod(m, 1)) months.push(m);
+  for (let m: MonthPeriod = opts.from; m <= opts.to; m = addMonthsToPeriod(m, 1)) {
+    months.push(m);
+    if (months.length > 12) return null;
+  }
   const w = await gst.workingsFor(scope, months);
   const table = (['rate', 'b2b', 'b2c', 'cdn'].includes(opts.table ?? '') ? opts.table : 'all') as DrillTable;
   const rate = opts.rate ? Number(opts.rate) : null;
@@ -221,12 +227,12 @@ export async function loadGstDrill(
     });
   }
   rows.sort((a, b) => a.date.localeCompare(b.date) || a.number.localeCompare(b.number, 'en', { numeric: true }));
-  const titles: Record<DrillTable, string> = {
-    rate: `${(rate ?? 0) / 100}%`,
-    b2b: 'B2B',
-    b2c: 'B2C',
-    cdn: 'Credit notes',
-    all: 'All',
+  const titles: Record<DrillTable, DrillData['title']> = {
+    rate: { key: 'gst.drill.title.rate', params: { rate: String((rate ?? 0) / 100) } },
+    b2b: { key: 'gst.drill.title.b2b' },
+    b2c: { key: 'gst.drill.title.b2c' },
+    cdn: { key: 'gst.drill.title.cdn' },
+    all: { key: 'gst.drill.title.all' },
   };
   return {
     title: titles[table],

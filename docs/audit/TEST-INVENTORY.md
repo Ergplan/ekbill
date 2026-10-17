@@ -6,8 +6,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 43    | 397    |
-| integration | 27    | 293    |
+| unit        | 43    | 399    |
+| integration | 27    | 295    |
 | e2e         | 16    | 66     |
 
 ## unit
@@ -48,6 +48,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - a blank first row leaves each line its own per-line rate
 - a different name drops the State the added customer lent; their name brings it back
 - a State the owner chose stays; with nothing lent the name is all that changes
+- follows the lines as edited: a fixed rate makes the note go
 
 ### `tests/unit/bill-links.test.ts`
 
@@ -330,6 +331,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - stands while the name is as read, or close to the match; goes when the owner types someone else
 - is no amount and no quantity, and the reading is checked without throwing
 - is every field where the bill differs from the reading, and nothing else
+- keeps what the model wrote, not the engineâ€™s reading of it (Stage 7 review)
 
 ### `tests/unit/engine-rules.test.ts`
 
@@ -659,6 +661,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - a bill dated in an earlier year continues that year's numbers and the series carries on
 - a number that repeats across years is found by its year; a prefix belongs to one series
 - refuses, in words, a number past 16 characters, and spends nothing
+- a credit-note series is retired and restored like any, but never the last of its kind (Stage 4 review)
 
 ### `tests/integration/otp-route.test.ts`
 
@@ -913,6 +916,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - import: the reading import is failed, with the reason
 - new customers take the places first, and the cut file says so
 - the add action takes all of an importâ€™s rows
+- its size is its bytesâ€™ size, and its size and creation never change
 
 ## e2e
 

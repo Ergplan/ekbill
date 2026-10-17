@@ -2693,6 +2693,10 @@
     "hi-Latn": "Series ka naam likho",
     "en": "Name the series"
   },
+  "aap.series.error.last-active": {
+    "hi-Latn": "Yeh is tarah ki aakhri series hai. Pehle doosri banao, phir ise band karo.",
+    "en": "This is the last series of its kind in use. Add another first, then retire this one."
+  },
   "aap.save.nothing": {
     "hi-Latn": "Kuch badla nahi",
     "en": "Nothing changed"
@@ -3088,6 +3092,26 @@
   "gst.drill.credit": {
     "hi-Latn": "credit note",
     "en": "credit note"
+  },
+  "gst.drill.title.rate": {
+    "hi-Latn": "{rate}% wale bills",
+    "en": "Bills at {rate}%"
+  },
+  "gst.drill.title.b2b": {
+    "hi-Latn": "Company bills (B2B)",
+    "en": "Company bills (B2B)"
+  },
+  "gst.drill.title.b2c": {
+    "hi-Latn": "Bina GSTIN wale bills (B2C)",
+    "en": "Bills without a GSTIN (B2C)"
+  },
+  "gst.drill.title.cdn": {
+    "hi-Latn": "Credit notes",
+    "en": "Credit notes"
+  },
+  "gst.drill.title.all": {
+    "hi-Latn": "Sab bills",
+    "en": "All bills"
   },
   "gst.send.text": {
     "hi-Latn": "{business} ka GST hisaab, {period}: workings.xlsx, gstr1.json aur saare bills.",

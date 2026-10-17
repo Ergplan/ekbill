@@ -17,6 +17,8 @@ export interface ReadField {
   /** 0–1, as the model put it; the screen colours ≥ 0.85 green, ≥ 0.6 amber, else red. */
   confidence: number;
   unreadable?: boolean;
+  /** What the model wrote, when the engine read it into another form ("12/10/26" → 2026-10-12, "₹1,500/-" → 1500). */
+  read?: string | null;
 }
 export interface ReadLine {
   what: ReadField;
@@ -78,6 +80,11 @@ export interface ReadingContext {
 }
 
 const EMPTY: ReadField = { value: null, confidence: 0, unreadable: true };
+
+/** The field as the engine reads it, carrying the model's own text when that differs (Stage 7 review). */
+function asRead(f: ReadField, raw: ReadField): ReadField {
+  return raw.value !== f.value ? { ...f, read: raw.value } : f;
+}
 
 function clean(f: ReadField | undefined): ReadField {
   if (!f) return { ...EMPTY };
@@ -249,7 +256,7 @@ export function checkReading(reading: BillReading, ctx: ReadingContext): Checked
         warnings.push({ code: 'line-amount', path: `lines.${i}.amount`, params: { expected, read: amountPaise } });
     }
     if (!what.value && !rate.value && !amount.value) continue;
-    lines.push({ what, qty, unit, rate, amount, hsn: clean(raw.hsn) });
+    lines.push({ what, qty: asRead(qty, qtyField), unit, rate: asRead(rate, rateField), amount, hsn: clean(raw.hsn) });
   }
   if (!reading.found || !lines.some((l) => l.what.value || l.rate.value)) return { ...base, outcome: 'no-bill', lines };
 
@@ -300,7 +307,7 @@ export function checkReading(reading: BillReading, ctx: ReadingContext): Checked
   return {
     ...base,
     outcome: 'ready',
-    date,
+    date: asRead(date, dateRead),
     lines,
     imageTotalPaise,
     linesTotalPaise,
@@ -323,20 +330,24 @@ export function correctionsFrom(
   },
 ): Array<{ field: string; modelValue: string | null; humanValue: string | null }> {
   const out: Array<{ field: string; modelValue: string | null; humanValue: string | null }> = [];
-  const add = (field: string, model: string | null | undefined, human: string | null | undefined) => {
-    const m = model?.trim() || null;
+  // Changed or not is decided on the engine's reading (the form shows it); what is kept as the model's value is what
+  // the model wrote (Stage 7 review: an ISO date, a derived rate or a dropped figure was kept as if read).
+  const add = (field: string, f: ReadField | undefined, human: string | null | undefined) => {
+    const m = f?.value?.trim() || null;
     const h = human?.trim() || null;
-    if (m !== h) out.push({ field, modelValue: m, humanValue: h });
+    if (m === h) return;
+    const wrote = f && f.read !== undefined ? f.read : (f?.value ?? null);
+    out.push({ field, modelValue: wrote?.trim() || null, humanValue: h });
   };
-  add('customer', reading.customer.value, billed.customerName);
-  add('date', reading.date.value, billed.issueDate);
+  add('customer', reading.customer, billed.customerName);
+  add('date', reading.date, billed.issueDate);
   const n = Math.max(reading.lines.length, billed.lines.length);
   for (let i = 0; i < n; i += 1) {
     const r = reading.lines[i];
     const b = billed.lines[i];
-    add(`lines.${i}.what`, r?.what.value, b?.what);
-    add(`lines.${i}.qty`, r?.qty.value, b?.qty);
-    add(`lines.${i}.rate`, r?.rate.value, b?.rate);
+    add(`lines.${i}.what`, r?.what, b?.what);
+    add(`lines.${i}.qty`, r?.qty, b?.qty);
+    add(`lines.${i}.rate`, r?.rate, b?.rate);
   }
   return out;
 }

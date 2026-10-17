@@ -38,7 +38,7 @@ export interface Series {
 
 export class SeriesError extends Error {
   constructor(
-    public readonly problem: SeriesProblem | 'next-number-down' | 'name' | 'prefix-taken',
+    public readonly problem: SeriesProblem | 'next-number-down' | 'name' | 'prefix-taken' | 'last-active',
     message: string,
   ) {
     super(message);
@@ -187,6 +187,16 @@ export async function updateSeries(
     if (!next.name) throw new SeriesError('name', 'a series needs a name');
     check(next);
     if (next.prefix !== current.prefix || next.includeFy !== current.includeFy) await refuseTakenPrefix(db, next, id);
+    // A business keeps one series of each kind to number in (Stage 4 review: the last credit-note series could go).
+    if (current.active && !next.active) {
+      const others = await db
+        .select({ id: schema.series.id })
+        .from(schema.series)
+        .where(and(eq(schema.series.kind, current.kind), eq(schema.series.active, true), ne(schema.series.id, id)))
+        .limit(1);
+      if (!others.length)
+        throw new SeriesError('last-active', `${current.name} is the only ${current.kind} series in use`);
+    }
     if (patch.nextNumber !== undefined) {
       // Gapless: everything below next_number in the current year has been issued (I3).
       const highestIssued = current.fy ? current.nextNumber - 1 : 0;

@@ -28,7 +28,7 @@ import { useDraft, writeDraft } from '../draft';
 import { rupees } from '../money';
 import { sayRefusal } from '../refusal';
 import type { LiveReading } from './data';
-import { compute } from '../bill/compute';
+import { compute, photoTotalCheck } from '../bill/compute';
 import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { PhotoReview } from '../fixtures';
@@ -116,6 +116,11 @@ export function PhotoScreen({ state, review, business, today, live, sendsPhotos,
     perLine: [],
   };
   const c = compute({ lines, gst, customerState: business.stateCode, date: fields.date.value || today }, business);
+  const totals = photoTotalCheck(
+    live?.imageTotalPaise ?? null,
+    { lines, customerState: business.stateCode, date: fields.date.value || today },
+    business,
+  );
   const makeLive = (reading: LiveReading) => {
     const name = fields.customer.value.trim();
     // The customer the reading matched (by phone, GSTIN or name: the screen said "… se mila") stands unless the
@@ -347,9 +352,9 @@ export function PhotoScreen({ state, review, business, today, live, sendsPhotos,
           ) : live && fields.customer.value ? (
             <Meta>{t('photo.customer.new', { name: fields.customer.value })}</Meta>
           ) : null}
-          {live?.totalsDiffer && live.imageTotalPaise !== null ? (
+          {live && totals?.differs && live.imageTotalPaise !== null ? (
             <Meta>
-              {t('photo.total.differs', { read: rupees(live.imageTotalPaise), lines: rupees(live.linesTotalPaise) })}
+              {t('photo.total.differs', { read: rupees(live.imageTotalPaise), lines: rupees(totals.linesPaise) })}
             </Meta>
           ) : null}
           {problem ? (

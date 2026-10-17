@@ -112,7 +112,7 @@ describe('checkReading', () => {
       path: 'lines.0.amount',
       params: { expected: 30000, read: 40000 },
     });
-    expect(r.lines[1]!.rate).toEqual({ value: '450', confidence: 0.7 });
+    expect(r.lines[1]!.rate).toEqual({ value: '450', confidence: 0.7, read: null }); // derived: the model wrote none
     expect(r.warnings).toContainEqual({ code: 'rate-derived', path: 'lines.1.rate' });
     expect(r.linesTotalPaise).toBe(30000 + 90000);
   });
@@ -133,7 +133,7 @@ describe('checkReading', () => {
     // 1 paisa for 0.4 of a unit: 2.5 paise a unit, half up to 3.
     expect(r.lines[1]!.rate.value).toBe('0.03');
     // ₹999,99,99,999.99 × 9,99,999: past what a bill's arithmetic holds, so a misread to fix, not a failed reading.
-    expect(r.lines[2]!.rate).toEqual({ value: null, confidence: 0, unreadable: true });
+    expect(r.lines[2]!.rate).toEqual({ value: null, confidence: 0, unreadable: true, read: '9999999999.99' });
     expect(r.warnings).toContainEqual({ code: 'number', path: 'lines.2.rate' });
   });
 
@@ -142,7 +142,7 @@ describe('checkReading', () => {
       reading({ date: f('12/12/26'), lines: [{ what: f('Fan'), qty: f('two'), rate: f('3S0'), amount: f('700') }] }),
       ctx,
     );
-    expect(r.date).toEqual({ value: null, confidence: 0, unreadable: true });
+    expect(r.date).toEqual({ value: null, confidence: 0, unreadable: true, read: '12/12/26' });
     expect(r.warnings.map((w) => w.code)).toEqual(expect.arrayContaining(['date-implausible', 'number']));
     expect(r.lines[0]!.qty.unreadable).toBe(true);
     expect(r.lines[0]!.rate.unreadable).toBe(true);
@@ -230,6 +230,34 @@ describe('what the owner changed on the review', () => {
       { field: 'lines.2.what', modelValue: null, humanValue: 'Wire' },
       { field: 'lines.2.qty', modelValue: null, humanValue: '2' },
       { field: 'lines.2.rate', modelValue: null, humanValue: '50' },
+    ]);
+  });
+
+  it('keeps what the model wrote, not the engine’s reading of it (Stage 7 review)', () => {
+    const r = checkReading(
+      reading({
+        date: f('12/10/26'),
+        lines: [
+          { what: f('Fan'), qty: f('2 pcs'), rate: f('₹1,500/-'), amount: f(null) },
+          { what: f('Labour'), qty: f('1'), rate: f(null), amount: f('900') },
+        ],
+      }),
+      ctx,
+    );
+    const changed = correctionsFrom(r, {
+      customerName: r.customer.value ?? '',
+      issueDate: '2026-10-11',
+      lines: [
+        { what: 'Fan', qty: '3', rate: '1400' },
+        { what: 'Labour', qty: '1', rate: '800' },
+      ],
+    });
+    expect(changed).toEqual([
+      { field: 'date', modelValue: '12/10/26', humanValue: '2026-10-11' },
+      { field: 'lines.0.qty', modelValue: '2 pcs', humanValue: '3' },
+      { field: 'lines.0.rate', modelValue: '₹1,500/-', humanValue: '1400' },
+      // The rate was worked out from the amount; the model wrote none.
+      { field: 'lines.1.rate', modelValue: null, humanValue: '800' },
     ]);
   });
 });

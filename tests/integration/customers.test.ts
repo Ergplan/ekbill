@@ -219,6 +219,31 @@ describe('the import pipeline (I6)', () => {
         client.query(`update import_rows set candidate = '{"name":"x"}'::jsonb where id = $1`, [rows[0]!.id]),
       ),
     ).rejects.toThrow(/only its customer link/);
+    // Stage 5 review: what it matched and its file are part of the reading; the stored file keeps its name and size.
+    await expect(
+      withTenant(owner, ({ client }) =>
+        client.query('update import_rows set existing_customer_id = null where id = $1', [rows[0]!.id]),
+      ),
+    ).rejects.toThrow(/only its customer link/);
+    await expect(
+      withTenant(owner, ({ client }) =>
+        client.query(`update import_rows set file_name = 'other.csv' where id = $1`, [rows[0]!.id]),
+      ),
+    ).rejects.toThrow(/only its customer link/);
+    await expect(
+      withTenant(owner, ({ client }) =>
+        client.query(`update import_files set name = 'x.csv' where import_id = $1`, [started.id]),
+      ),
+    ).rejects.toThrow(/never changed/);
+    await expect(
+      withTenant(owner, ({ client }) =>
+        client.query(
+          `insert into import_files (business_id, import_id, name, mime, bytes, size, sha256)
+           values ($1, $2, 'lie.csv', 'text/csv', '\\x41'::bytea, 5, 'x')`,
+          [owner.businessId, started.id],
+        ),
+      ),
+    ).rejects.toThrow(/import_files_size_is_bytes/);
   });
 
   it('says why a file gave nobody, and refuses an empty pick or a file over 8 MB', async () => {

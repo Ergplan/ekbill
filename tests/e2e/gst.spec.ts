@@ -43,6 +43,9 @@ test('a quarter: the tiles, a drill-down that adds up, B2B, and the CA pack shar
   await page.goto('/gst/docs?from=2026-07&to=2026-09&table=b2b');
   await hydrated(page);
   await expect(page.getByTestId('drill-row').first()).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Company bills (B2B)');
+  // More than a year is refused, never cut short under the asked range (Stage 8 review).
+  expect((await page.request.get('/gst/docs?from=2025-01&to=2026-02&table=all')).status()).toBe(404);
   // The pack: a zip with the workings, gstr1.json and the bills, handed to the share sheet.
   await page.goto('/gst?period=quarter&q=2026-07');
   await hydrated(page);

@@ -85,3 +85,31 @@ describe('an import keeps at most so many customers (Stage 5 review)', () => {
     ).toBe(false);
   });
 });
+
+describe('a stored business file (Stage 4 review, migration 0011)', () => {
+  it('its size is its bytes’ size, and its size and creation never change', async () => {
+    const { withTenant } = await import('../../packages/db/src/scope');
+    const owner = await scopeFor('sharma', 'owner');
+    await expect(
+      withTenant(owner, ({ client }) =>
+        client.query(
+          `insert into business_files (business_id, kind, mime, bytes, size, sha256, created_by)
+           values ($1, 'logo', 'image/png', '\\x41'::bytea, 5, repeat('a', 64), $2)`,
+          [owner.businessId, owner.userId],
+        ),
+      ),
+    ).rejects.toThrow(/business_files_size_is_bytes/);
+    const kept = await withTenant(owner, ({ client }) =>
+      client.query<{ id: string }>(
+        `insert into business_files (business_id, kind, mime, bytes, size, sha256, created_by)
+         values ($1, 'logo', 'image/png', '\\x41'::bytea, 1, repeat('a', 64), $2) returning id`,
+        [owner.businessId, owner.userId],
+      ),
+    );
+    const id = kept.rows[0]!.id;
+    for (const change of ['size = 2', "created_at = now() - interval '1 day'"])
+      await expect(
+        withTenant(owner, ({ client }) => client.query(`update business_files set ${change} where id = $1`, [id])),
+      ).rejects.toThrow(/never changed/);
+  });
+});

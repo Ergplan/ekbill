@@ -160,3 +160,18 @@ export function renamed(
   if (!was && is && cur.customerState === before) return { ...cur, customerName: name, customerState: lent.stateCode };
   return { ...cur, customerName: name };
 }
+
+/**
+ * The photo's own total against the lines as they stand now, before GST (as the reader compared them), so the note
+ * follows the owner's edits (Stage 7 review: it was the worker's comparison, and stayed after a fix). Null when the
+ * photo had no total, else the lines' figure and whether it differs.
+ */
+export function photoTotalCheck(
+  imageTotalPaise: number | null,
+  draft: Pick<BillDraft, 'lines' | 'customerState' | 'date'>,
+  business: Pick<BusinessForBill, 'registration' | 'stateCode'>,
+): { linesPaise: number; differs: boolean } | null {
+  if (imageTotalPaise === null) return null;
+  const linesPaise = compute({ ...draft, gst: { on: false, mode: 'one', rate: 0, perLine: [] } }, business).totalPaise;
+  return { linesPaise, differs: linesPaise !== imageTotalPaise };
+}

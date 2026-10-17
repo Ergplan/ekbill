@@ -288,4 +288,28 @@ describe('numbering (I3)', () => {
     });
     expect((await series.getSeries(scope, s.id)).nextNumber).toBe(100_000);
   });
+
+  it('a credit-note series is retired and restored like any, but never the last of its kind (Stage 4 review)', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    const tag = String(Date.now()).slice(-4);
+    const mine = await series.createSeries(scope, {
+      name: `Notes ${tag}`,
+      kind: 'credit_note',
+      prefix: `CN${tag}-`,
+      padding: 3,
+      includeFy: false,
+    });
+    const others = (await series.listSeries(scope)).filter(
+      (s) => s.kind === 'credit_note' && s.active && s.id !== mine.id,
+    );
+    try {
+      for (const o of others) expect((await series.updateSeries(scope, o.id, { active: false })).active).toBe(false);
+      await expect(series.updateSeries(scope, mine.id, { active: false })).rejects.toMatchObject({
+        problem: 'last-active',
+      });
+    } finally {
+      for (const o of others) await series.updateSeries(scope, o.id, { active: true });
+    }
+    expect((await series.updateSeries(scope, mine.id, { active: false })).active).toBe(false);
+  });
 });

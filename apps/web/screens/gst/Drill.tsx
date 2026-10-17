@@ -14,7 +14,7 @@ export function GstDrillScreen({ data, viewer }: { data: DrillData; viewer: Shel
     <AppShell viewer={viewer} tab="gst" back="/gst" title={t('gst.title')} tour={[]}>
       <section className="eb-heading">
         <Display as="h1" size="title">
-          {data.title}
+          {t(data.title.key, data.title.params)}
         </Display>
         <Meta>{t('gst.drill.sub', { n: data.rows.length, from: data.from, to: data.to })}</Meta>
       </section>
