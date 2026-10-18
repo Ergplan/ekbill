@@ -3,9 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
-import { t } from '@ekbill/copy';
+import { LOCALES, t } from '@ekbill/copy';
 import { checkCustomer, checkGstin, offerLanguage } from '@ekbill/engine';
-import { Display, Field, Input, Meta, PrimaryCTA, Segmented } from '@ekbill/ui';
+import { Display, FilterChips, Field, Input, Meta, PrimaryCTA } from '@ekbill/ui';
 
 import { saveCustomer } from '../../actions/people';
 import { writeDraft } from '../draft';
@@ -17,7 +17,7 @@ export interface NewCustomerDraft {
   name: string;
   phone: string;
   gstin: string;
-  /** hi-Latn | en, or the customer's own language (Stage 5: offered from their name or place). */
+  /** One of the app's five languages, or the customer's own (Stage 5: offered from their name or place). */
   lang: string;
 }
 
@@ -159,16 +159,20 @@ export function CustomerNewScreen({
               maxLength={15}
             />
           </Field>
-          <Segmented<string>
+          {/* The five languages a reminder can be written in, and the one offered from the name when it is another. */}
+          <FilterChips<string>
             label={t('newcust.lang')}
             value={d.lang}
             onChange={(v) => setD({ ...d, lang: v })}
             options={[
-              { value: 'hi-Latn', label: t('customer.lang.hi') },
-              { value: 'en', label: t('customer.lang.en') },
-              ...(live && offer && offer.language !== 'en'
+              ...LOCALES.map((l) => ({
+                value: l as string,
+                label:
+                  l === 'hi-Latn' ? t('customer.lang.hi') : l === 'en' ? t('customer.lang.en') : t(`lang.name.${l}`),
+              })),
+              ...(live && offer && !(LOCALES as readonly string[]).includes(offer.language)
                 ? [{ value: offer.language, label: t(`lang.name.${offer.language}`) }]
-                : live && d.lang !== 'hi-Latn' && d.lang !== 'en'
+                : !(LOCALES as readonly string[]).includes(d.lang)
                   ? [{ value: d.lang, label: t(`lang.name.${d.lang}`) }]
                   : []),
             ]}

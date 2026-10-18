@@ -24,6 +24,7 @@ export const manifest: ScreenManifest = {
     { target: 'hello', say: 'Namaste ji! Hum pehli baar mil rahe hain, to apne baare mein thoda bataiye.' },
     { target: 'answer', say: 'Yahan jawab likho ya chuno. Ek baar mein ek hi sawaal.' },
     { target: 'next', say: 'Aage dabao. Galti ho to peeche aa sakte ho.' },
+    { target: 'go', say: 'Sab sahi hai? Yahan dabao, app shuru ho jaayega.' },
   ],
   roles: {
     owner: 'Only an owner sets up a business.',

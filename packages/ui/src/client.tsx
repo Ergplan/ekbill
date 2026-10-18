@@ -76,11 +76,16 @@ export function GuideHighlight({ step, onDone }: { step: GuideStep | null; onDon
 
 /** Walks a list of steps with a next button; the voice drives the same component directly. */
 export function useTour(steps: GuideStep[]) {
-  const [at, setAt] = useState<number | null>(null);
-  const start = () => setAt(0);
-  const next = () => setAt((i) => (i === null || i + 1 >= steps.length ? null : i + 1));
-  const stop = () => setAt(null);
-  return { step: at === null ? null : (steps[at] ?? null), start, next, stop, running: at !== null };
+  // The steps whose thing is on the screen when the tour starts: a step of another state (setup's "hello" on its
+  // later questions) is skipped, never waited on with nothing lit.
+  const [run, setRun] = useState<{ list: GuideStep[]; at: number } | null>(null);
+  const start = () => {
+    const list = steps.filter((s) => document.querySelector(`[data-guide="${CSS.escape(s.target)}"]`));
+    setRun(list.length ? { list, at: 0 } : null);
+  };
+  const next = () => setRun((r) => (!r || r.at + 1 >= r.list.length ? null : { ...r, at: r.at + 1 }));
+  const stop = () => setRun(null);
+  return { step: run ? (run.list[run.at] ?? null) : null, start, next, stop, running: run !== null };
 }
 
 /* ----------------------------------------------------------- SignaturePad --- */

@@ -873,6 +873,7 @@
   "tour.setup.hello": "Hello! We are meeting for the first time, so tell us a little about yourself.",
   "tour.setup.answer": "Type or pick the answer here. One question at a time.",
   "tour.setup.next": "Tap next. You can go back if you make a mistake.",
+  "tour.setup.go": "All correct? Tap here and the app starts.",
   "tour.switch.people": "While building: tap any name to become that person.",
   "tour.team.members": "Who can do what: the owner everything, staff bills, the CA only looks.",
   "tour.team.invite": "Phone number and role; the invite goes on WhatsApp.",

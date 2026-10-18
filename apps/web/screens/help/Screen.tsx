@@ -50,6 +50,7 @@ export function HelpScreen({ data, kind, viewer }: { data: HelpData; kind: HelpK
         ? planFrom(form, {
             chargesGst: data.chargesGst,
             allowedRates: data.rates,
+            customerName: data.customers.find((c) => c.id === form.customer)?.name ?? null,
             at: {
               dateIso: data.today,
               sellerStateCode: data.stateCode,
@@ -127,7 +128,7 @@ export function HelpScreen({ data, kind, viewer }: { data: HelpData; kind: HelpK
           data-voice="safe"
           disabled={!paste.trim()}
           onClick={() => {
-            const r = fromText(form, paste, data.rates);
+            const r = fromText(form, paste, data.rates, data.customers);
             setForm(r.form);
             setPasteNote(r.found ? t('help.paste.found', { n: r.found }) : t('help.paste.none'));
           }}

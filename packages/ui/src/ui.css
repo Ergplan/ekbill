@@ -1915,6 +1915,11 @@ a.eb-setting {
   gap: var(--eb-space-stack);
   padding: 0 16px 16px;
 }
+/* Something brought into view (a focused field, the tour's ring, the browser's own scroll to a control) stops above
+   the floating button and the tab bar instead of underneath them. */
+html {
+  scroll-padding-bottom: calc(var(--eb-size-nav) + 120px + env(safe-area-inset-bottom, 0px));
+}
 .eb-sticky {
   position: sticky;
   bottom: calc(var(--eb-size-nav) + 36px + env(safe-area-inset-bottom, 0));

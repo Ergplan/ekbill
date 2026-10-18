@@ -6,7 +6,7 @@ Counts are the test titles written in each file; a title inside a loop (marked �
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 44    | 409    |
+| unit        | 44    | 411    |
 | integration | 27    | 300    |
 | e2e         | 16    | 66     |
 
@@ -409,8 +409,10 @@ Counts are the test titles written in each file; a title inside a loop (marked �
 - four equal instalments, the last one taking the paisa
 - work done to 60 %, ₹2,00,000 billed before: this bill is ₹1,00,000
 - nothing new to bill, or billed-before above the contract, is refused
+- with no job name typed, the job is the customer: their name, not a refusal (the walkthrough, 18 Oct)
 - asks for the customer first
 - fills what it can read and counts it
+- chooses the known customer the text names, never one already chosen or a name inside another word
 - GST %s on ₹%s: the total and GST are computeTax’s on the prefilled line
 
 ### `tests/unit/is-uuid.test.ts`

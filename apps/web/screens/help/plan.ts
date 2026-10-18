@@ -102,14 +102,20 @@ export type Planned =
 
 export function planFrom(
   f: HelpForm,
-  opts: { chargesGst: boolean; allowedRates: readonly number[]; at: TaxAt },
+  opts: {
+    chargesGst: boolean;
+    allowedRates: readonly number[];
+    at: TaxAt;
+    /** The chosen customer's name: the job's name when none is typed (the walkthrough, 18 Oct). */
+    customerName?: string | null;
+  },
 ): Planned {
   if (!f.customer) return { ok: false, field: 'customer', message: say('help.ask.customer') };
   const totalPaise = parseAmount(f.total) ?? 0;
   const retentionBp = f.retention.trim() ? bp(f.retention) : 0;
   const checked = checkTerms(
     {
-      name: f.name,
+      name: f.name.trim() || (opts.customerName ?? '').trim(),
       totalPaise,
       gstMode: opts.chargesGst ? f.gstMode : 'none',
       gstRateBp: opts.chargesGst && f.gstMode !== 'none' && f.gstRate !== null ? f.gstRate * 100 : null,
@@ -178,10 +184,32 @@ export function prefillOf(p: Extract<Planned, { ok: true }>): BillPrefill {
 }
 
 /** The helper's fields from a pasted contract (the engine's literal reading); what it cannot find stays as it was. */
+/** The one known customer the text names (the longest name found, when only one is that long; never a short one). */
+export function customerNamed(text: string, known: ReadonlyArray<{ id: string; name: string }>): string | null {
+  const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+  const hay = ` ${norm(text)
+    .replace(/[^\p{L}\p{N} ]+/gu, ' ')
+    .replace(/\s+/g, ' ')} `;
+  const hits = known
+    .map((c) => ({
+      id: c.id,
+      name: norm(c.name)
+        .replace(/[^\p{L}\p{N} ]+/gu, ' ')
+        .replace(/\s+/g, ' '),
+    }))
+    .filter((c) => c.name.length >= 4 && hay.includes(` ${c.name} `));
+  if (!hits.length) return null;
+  const longest = Math.max(...hits.map((h) => h.name.length));
+  const top = hits.filter((h) => h.name.length === longest);
+  return top.length === 1 ? top[0]!.id : null;
+}
+
 export function fromText(
   f: HelpForm,
   text: string,
   allowedRates: readonly number[],
+  /** The business's customers: one the text names is chosen, unless one is already chosen. */
+  known: ReadonlyArray<{ id: string; name: string }> = [],
 ): { form: HelpForm; found: number } {
   const p = parseContractText(
     text,
@@ -194,6 +222,8 @@ export function fromText(
     apply();
     found += 1;
   };
+  const named = f.customer ? null : customerNamed(text, known);
+  take(named, () => (next.customer = named));
   take(p.name, () => (next.name = p.name!));
   take(p.totalPaise, () => (next.total = String(p.totalPaise! / 100)));
   take(p.gstMode, () => (next.gstMode = p.gstMode!));

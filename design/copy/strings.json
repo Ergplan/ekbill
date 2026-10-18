@@ -6090,6 +6090,13 @@
     "mr": "पुढे दाबा. चूक झाली तर मागे येऊ शकता.",
     "ta": "அடுத்து தட்டுங்கள். தவறு என்றால் பின்னால் வரலாம்."
   },
+  "tour.setup.go": {
+    "hi-Latn": "Sab sahi hai? Yahan dabao, app shuru ho jaayega.",
+    "en": "All correct? Tap here and the app starts.",
+    "hi": "सब सही है? यहाँ दबाओ, ऐप शुरू हो जाएगा।",
+    "mr": "सगळं बरोबर आहे? इथे दाबा, ॲप सुरू होईल.",
+    "ta": "எல்லாம் சரியா? இங்கே தட்டுங்கள், ஆப் தொடங்கும்."
+  },
   "tour.switch.people": {
     "hi-Latn": "Build ke dauran: kisi bhi naam pe tap karke wahi ban jao.",
     "en": "While building: tap any name to become that person.",

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   emptyForm,
+  customerNamed,
   fromText,
   milestonesOf,
   planFrom,
@@ -121,6 +122,13 @@ describe('instalments and a running bill', () => {
     });
   });
 
+  it('with no job name typed, the job is the customer: their name, not a refusal (the walkthrough, 18 Oct)', () => {
+    const named = planFrom(base({ name: '' }), { ...opts, customerName: 'Green Park Society' });
+    expect(named.ok).toBe(true);
+    if (named.ok) expect(prefillOf(named).lines[0]!.what).toMatch(/^Green Park Society - /);
+    expect(planFrom(base({ name: '' }), opts)).toMatchObject({ ok: false, field: 'name' });
+  });
+
   it('asks for the customer first', () => {
     expect(planFrom(base({ customer: null }), opts)).toMatchObject({ ok: false, field: 'customer' });
   });
@@ -136,6 +144,23 @@ describe('a pasted contract', () => {
     expect(found).toBeGreaterThanOrEqual(4);
     expect(form).toMatchObject({ kind: 'percent', total: '500000', gstMode: 'extra', gstRate: 18, retention: '5' });
     expect(form.milestones.map((m) => m.pct)).toEqual(['30', '40', '30']);
+  });
+
+  // The walkthrough (18 Oct): the text named the customer and the owner still had to pick them from the list.
+  it('chooses the known customer the text names, never one already chosen or a name inside another word', () => {
+    const known = [
+      { id: 'g', name: 'Green Park Society' },
+      { id: 'p', name: 'Green Park' },
+      { id: 'm', name: 'Mehta Traders' },
+      { id: 'r', name: 'Ram' },
+    ];
+    const text = 'Contract for Green Park Society wiring worth Rs 5,00,000. 30% advance, 70% on completion.';
+    expect(fromText(emptyForm('percent', true, 18), text, RATES, known).form.customer).toBe('g');
+    expect(fromText({ ...emptyForm('percent', true, 18), customer: 'm' }, text, RATES, known).form.customer).toBe('m');
+    expect(customerNamed('Mehta-Traders ka kaam', known)).toBe('m');
+    expect(customerNamed('MEHTA TRADERS, Nagpur', known)).toBe('m');
+    expect(customerNamed('Ramesh ka kaam', known)).toBeNull();
+    expect(customerNamed('nothing here', known)).toBeNull();
   });
 });
 
