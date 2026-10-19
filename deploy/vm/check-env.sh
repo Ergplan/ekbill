@@ -96,11 +96,16 @@ if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx app; th
       }
       console.log("  the key works");
       const have = new Set(((await r.json()).data || []).map((m) => m.id));
+      // Voice needs a model made for live audio: one that exists but is not (gpt-live-1, 19 Oct) opens a session
+      // and is then refused when the phone connects ("Awaaz jud nahi paayi").
+      const realtime = [...have].filter((id) => /realtime/.test(id)).sort();
       for (const [k, what] of Object.entries(uses)) {
         const m = (process.env[k] || "").trim();
-        const verdict = !m ? "(not set)" : have.has(m) ? m + "  ok" : m + "  NOT FOUND on this key";
+        let verdict = !m ? "(not set)" : have.has(m) ? m + "  ok" : m + "  NOT FOUND on this key";
+        if (k === "OPENAI_REALTIME_MODEL" && m && !/realtime/.test(m)) verdict = m + "  NOT A REALTIME MODEL";
         console.log("  " + k.padEnd(28) + verdict.padEnd(44) + what);
       }
+      console.log("  realtime models on this key: " + (realtime.length ? realtime.join(", ") : "none"));
     })().catch((e) => console.log("  could not reach OpenAI: " + e.message));'
 else
   echo "  the app is not running (start it with deploy/vm/up.sh)"
