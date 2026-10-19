@@ -41,7 +41,7 @@ The operator wrote, with two screenshots (the guide ring below "Customer ka naam
 
 The build agent takes these as the answer to change the approved design where they say, and re-records the baselines they move, both themes:
 
-- **The header, every screen**: three captioned controls top right: Theme (a sun or a moon, one tap), Madad (the tour; a help icon, not the globe) and Aapki profile (the ring).
+- **The header, every screen**: three captioned controls top right: Theme (a sun or a moon, one tap), Madad (the tour; a help icon, not the globe) and Aapki profile (the ring). Welcome and login, before sign-in, carry the same help icon in place of "?"; with Twilio sign-in on, login's code step offers "Code dobara bhejo" after 30 seconds.
 - **Home**: the hello rises in word by word, "Namaste, Sharma ji" in the person's language once they have said their name. Under it, the star: "Naya bill banao" for someone who has billed before, "Pehla bill banao" for a new business, and "Apne baare mein batao" (no name in the hello) for someone who has not said their name. This changes Stage 1 answer 8 only in adding the star; Home keeps its three cards.
 - **Setup, first step**: "Apne baare mein batao": the person's own name, then the shop's.
 - **Aap**: an "Aapki profile" group with the person's name; Save floats only while there is something to save (the stuck "Save ho gaya" is gone); a new language changes the words in place, the new language's hello in between, with no reload.

@@ -1,6 +1,5 @@
 'use client';
 
-import type { ConfirmationResult } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -8,8 +7,10 @@ import { t } from '@ekbill/copy';
 import {
   Display,
   Field,
+  GhostButton,
   GuideHighlight,
   HeroPanel,
+  Icon,
   IconButton,
   Input,
   Meta,
@@ -19,23 +20,42 @@ import {
 } from '@ekbill/ui';
 
 import { useDraft } from '../draft';
-import type { OtpConfig } from './firebase';
 import { manifest } from './manifest';
 
 const PHONE_RE = /^[6-9]\d{9}$/;
 const EMPTY_LOGIN = { phone: '' };
+/** Seconds before another code may be asked for (Twilio sends at most five an hour to a number). */
+const RESEND_AFTER = 30;
+
+/** POSTs to one of the sign-in routes; answers the body, or throws the route's error key. */
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const json = (await res.json().catch(() => ({}))) as T & { error?: string };
+  if (!res.ok) throw new Error(json.error ?? 'otp.send.failed');
+  return json;
+}
+const errorKey = (e: unknown) =>
+  e instanceof Error && /^(otp|rate)\./.test(e.message) ? e.message : 'otp.send.failed';
 
 /**
  * Sign-in. In the build (switcher) the approved prototype: the code step
- * hands over to /dev/switch. With OTP on (Stage 10, `otp` given) the SMS goes
- * through Firebase and both steps stay on this screen, so the pending code is
- * not lost to a navigation; six digits confirm by themselves.
+ * hands over to /dev/switch. With OTP on (`otp`) EkBill's server has Twilio
+ * send the SMS and checks the code (19 Oct); both steps stay on this screen,
+ * so the pending code is not lost to a navigation; six digits confirm by
+ * themselves, and after 30 seconds another code can be asked for.
  */
-export function LoginScreen({ state: asked, otp }: { state: 'phone' | 'code'; otp?: OtpConfig | null }) {
+export function LoginScreen({ state: asked, otp = false }: { state: 'phone' | 'code'; otp?: boolean }) {
   const router = useRouter();
   const [otpStep, setOtpStep] = useState<'phone' | 'code'>('phone');
   const [busy, setBusy] = useState(false);
-  const [confirmation, setConfirmation] = useState<ConfirmationResult | null>(null);
+  // When another code may be asked for (a clock time, so a phone that slows the page's timers still counts right).
+  const [resendAt, setResendAt] = useState(0);
+  const [now, setNow] = useState(0);
+  const wait = Math.max(0, Math.ceil((resendAt - now) / 1000));
   const state = otp ? otpStep : asked;
   const guide = useTour(manifest.tour);
   const [login, setLogin] = useDraft<{ phone: string }>('login', EMPTY_LOGIN);
@@ -56,21 +76,26 @@ export function LoginScreen({ state: asked, otp }: { state: 'phone' | 'code'; ot
       );
       return;
     }
-    if (!confirmation || busy) return;
+    if (busy) return;
     const id = window.setTimeout(() => {
       setBusy(true);
-      void import('./firebase')
-        .then(({ confirmCode }) => confirmCode(confirmation, code))
-        .then((to) => router.push(to))
+      void post<{ to: string }>('/api/auth/otp/check', { phone: `+91${phone}`, code })
+        .then(({ to }) => router.push(to))
         .catch((e: unknown) => {
-          const key = e instanceof Error && e.message.startsWith('otp.') ? e.message : 'otp.invalid';
-          setError(t(key));
+          setError(t(errorKey(e)));
           setCode('');
         })
         .finally(() => setBusy(false));
     }, 0);
     return () => window.clearTimeout(id);
-  }, [code, state, router, otp, confirmation, busy, phone]);
+  }, [code, state, router, otp, busy, phone]);
+
+  // The resend count-down, read off the clock every half second while the code screen is up.
+  useEffect(() => {
+    if (!otp || state !== 'code' || !resendAt) return;
+    const id = window.setInterval(() => setNow(Date.now()), 500);
+    return () => window.clearInterval(id);
+  }, [otp, state, resendAt]);
 
   // With sign-in off no SMS comes: the code fills itself in, as the screen says it will, after a phone was typed here.
   useEffect(() => {
@@ -93,13 +118,15 @@ export function LoginScreen({ state: asked, otp }: { state: 'phone' | 'code'; ot
       return;
     }
     setBusy(true);
-    void import('./firebase')
-      .then(({ sendCode: send }) => send(otp, `+91${digits}`, 'otp-send'))
-      .then((c) => {
-        setConfirmation(c);
+    void post('/api/auth/otp/send', { phone: `+91${digits}` })
+      .then(() => {
+        setCode('');
+        setError(null);
+        setResendAt(Date.now() + RESEND_AFTER * 1000);
+        setNow(Date.now());
         setOtpStep('code');
       })
-      .catch(() => setError(t('otp.send.failed')))
+      .catch((e: unknown) => setError(t(errorKey(e))))
       .finally(() => setBusy(false));
   };
 
@@ -125,7 +152,7 @@ export function LoginScreen({ state: asked, otp }: { state: 'phone' | 'code'; ot
             data-testid="tour"
             onClick={guide.start}
           >
-            ?
+            <Icon name="help" size={20} />
           </button>
         </div>
       </header>
@@ -173,7 +200,15 @@ export function LoginScreen({ state: asked, otp }: { state: 'phone' | 'code'; ot
                 {error}
               </p>
             ) : null}
-            <Meta>{t('login.code.resend', { time: '0:30' })}</Meta>
+            {otp && wait <= 0 ? (
+              <div className="eb-actions">
+                <GhostButton data-guide="resend" disabled={busy} onClick={sendCode}>
+                  {t('login.code.resend.now')}
+                </GhostButton>
+              </div>
+            ) : (
+              <Meta>{t('login.code.resend', { time: `0:${String(otp ? wait : 30).padStart(2, '0')}` })}</Meta>
+            )}
           </>
         )}
         {otp ? null : (

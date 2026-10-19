@@ -28,8 +28,6 @@ Every direct dependency of every workspace, the version installed and the licenc
 | `@types/qrcode`             | runtime | ^1.5.5   | 1.5.5     | MIT        | packages/render                        |
 | `drizzle-orm`               | runtime | ^0.45.0  | 0.45.4    | Apache-2.0 | packages/db                            |
 | `fflate`                    | runtime | ^0.8.3   | 0.8.3     | MIT        | apps/web, packages/render              |
-| `firebase`                  | runtime | ^12.4.0  | 12.4.0    | Apache-2.0 | apps/web                               |
-| `firebase-admin`            | runtime | ^14.5.0  | 14.5.0    | Apache-2.0 | apps/web                               |
 | `next`                      | runtime | ^16.4.0  | 16.4.0    | MIT        | apps/web                               |
 | `pdfjs-dist`                | runtime | ^4.10.38 | 4.10.38   | Apache-2.0 | apps/worker                            |
 | `pg`                        | runtime | ^8.16.0  | 8.23.1    | MIT        | packages/db                            |

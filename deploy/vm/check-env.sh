@@ -42,11 +42,12 @@ else
 fi
 
 say "Secret Manager (project ${PROJECT:-unknown})"
-for s in ekbill-db-password ekbill-openai-api-key ekbill-gate-password; do
+for s in ekbill-db-password ekbill-openai-api-key ekbill-gate-password ekbill-twilio-api-key-secret ekbill-twilio-auth-token; do
   n="$(secret "$s" | wc -c)"
   if [ "$n" -gt 0 ]; then echo "  $s: has a value"; else echo "  $s: missing, empty or not readable from this VM"; fi
 done
-echo "  (up.sh takes OPENAI_API_KEY from .env when set there, else from ekbill-openai-api-key)"
+echo "  (up.sh takes OPENAI_API_KEY from .env when set there, else from ekbill-openai-api-key; the same for the"
+echo "   Twilio secret or token. The two Twilio secrets are optional: one of them, or the value in .env, is enough.)"
 
 # Inside a running container: each name set or not; secrets only as their length.
 inside() {
@@ -66,8 +67,8 @@ inside() {
 
 say "What the running app has"
 inside app AUTH_MODE SESSION_SECRET DATABASE_URL OPENAI_API_KEY OPENAI_BASE_URL OPENAI_TEXT_MODEL OPENAI_VISION_MODEL \
-  OPENAI_REALTIME_MODEL OPENAI_REALTIME_VOICE OPENAI_TRANSCRIBE_MODEL OPENAI_EMBED_MODEL FIREBASE_PROJECT_ID \
-  NEXT_PUBLIC_FIREBASE_API_KEY
+  OPENAI_REALTIME_MODEL OPENAI_REALTIME_VOICE OPENAI_TRANSCRIBE_MODEL OPENAI_EMBED_MODEL TWILIO_VERIFY_SERVICE_SID \
+  TWILIO_API_KEY_SID TWILIO_API_KEY_SECRET TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN OTP_FAKE_DIR
 
 say "What the running worker has (it reads photos and old bills)"
 inside worker DATABASE_URL OPENAI_API_KEY OPENAI_VISION_MODEL OPENAI_EMBED_MODEL
@@ -110,6 +111,36 @@ if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx app; th
       }
       console.log("  realtime models on this key: " + (realtime.length ? realtime.join(", ") : "none"));
     })().catch((e) => console.log("  could not reach OpenAI: " + e.message));'
+else
+  echo "  the app is not running (start it with deploy/vm/up.sh)"
+fi
+
+say "Twilio Verify (phone OTP), asked from inside the app with its own settings; no SMS is sent"
+if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx app; then
+  "${COMPOSE[@]}" exec -T app node -e '
+    const e = process.env;
+    const sid = (e.TWILIO_VERIFY_SERVICE_SID || "").trim();
+    const [user, pass] = e.TWILIO_API_KEY_SID && e.TWILIO_API_KEY_SECRET
+      ? [e.TWILIO_API_KEY_SID, e.TWILIO_API_KEY_SECRET]
+      : [e.TWILIO_ACCOUNT_SID || "", e.TWILIO_AUTH_TOKEN || ""];
+    if (e.OTP_FAKE_DIR) console.log("  WARNING: OTP_FAKE_DIR is set in the app: that is the tests sender, never for real use");
+    if (!sid && !user) {
+      console.log("  not set: fine while AUTH_MODE=switcher; AUTH_MODE=otp needs it");
+      process.exit(0);
+    }
+    if (!/^VA[0-9a-f]{32}$/i.test(sid)) { console.log("  TWILIO_VERIFY_SERVICE_SID is not a Verify service SID (VA + 32 characters)"); process.exit(0); }
+    if (!user || !pass) { console.log("  an API key SID and secret, or the account SID and auth token, are missing"); process.exit(0); }
+    const auth = "Basic " + Buffer.from(user + ":" + pass).toString("base64");
+    fetch("https://verify.twilio.com/v2/Services/" + sid, { headers: { authorization: auth } })
+      .then(async (r) => {
+        if (r.ok) {
+          const b = await r.json();
+          console.log("  the settings work: Verify service " + b.friendly_name + " (code length " + b.code_length + ")");
+        } else if (r.status === 401) console.log("  Twilio REFUSED the key/token (401): check the SID and the secret");
+        else if (r.status === 404) console.log("  the Verify service was NOT FOUND on this account (404): check TWILIO_VERIFY_SERVICE_SID");
+        else console.log("  Twilio answered HTTP " + r.status);
+      })
+      .catch((err) => console.log("  could not reach Twilio: " + err.message));'
 else
   echo "  the app is not running (start it with deploy/vm/up.sh)"
 fi

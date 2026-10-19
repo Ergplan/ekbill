@@ -1,17 +1,14 @@
 import { authMode } from '../../server/auth-mode';
-import { otpConfigOf } from '../../server/otp-config';
 import { LoginScreen } from '../../screens/login/Screen';
 import { one, type SearchParams } from '../../screens/viewer';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Sign-in. With AUTH_MODE=otp (Stage 10) the browser gets Firebase's public web config from here,
- * per request (not baked into the bundle); in the build's switcher mode none, and the screen is
- * the approved prototype.
+ * Sign-in. With AUTH_MODE=otp the screen asks EkBill's server for the SMS code (Twilio Verify, 19 Oct);
+ * in the build's switcher mode the screen is the approved prototype.
  */
 export default async function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const state = one((await searchParams).state) === 'code' ? 'code' : 'phone';
-  const otp = otpConfigOf(process.env, authMode() === 'otp');
-  return <LoginScreen state={state} otp={otp} />;
+  return <LoginScreen state={state} otp={authMode() === 'otp'} />;
 }

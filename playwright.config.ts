@@ -19,11 +19,8 @@ const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:3000';
 // The servers Playwright starts are the build's own: sign-in switched off, the local dev database.
 const serverEnv = {
   AUTH_MODE: process.env.AUTH_MODE ?? 'switcher',
-  // Stage 10's OTP journey: the emulator and the public web config (CI's otp job; empty otherwise).
-  FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID ?? '',
-  FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST ?? '',
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? '',
-  NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? '',
+  // The OTP journey: the tests' code sender, which sends no SMS (CI's otp job; empty otherwise).
+  OTP_FAKE_DIR: process.env.OTP_FAKE_DIR ?? '',
   DATABASE_URL: process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5440/ekbill2_dev',
   // Poocho and the voice session answer from the stand-in model: no model is called from the build.
   AI_TRANSPORT: 'fake',
@@ -33,7 +30,7 @@ const serverEnv = {
   RATE_RENDERS_PER_MIN: '0',
 };
 
-// @slow runs on demand (SLOW=1); @otp only against the Firebase Auth emulator (OTP=1, CI's otp job), and then alone.
+// @slow runs on demand (SLOW=1); @otp only with the tests' code sender (OTP=1, CI's otp job), and then alone.
 // The projects carry these (a project's own grep/grepInvert replaces the top-level one).
 const leftOut = [...(process.env.SLOW ? [] : [/@slow/]), ...(process.env.OTP ? [] : [/@otp/])];
 

@@ -48,7 +48,7 @@ describe('GET /api/health', () => {
     delete process.env.AUTH_MODE;
     const { GET } = await import('../../apps/web/app/api/health/route');
     const body = await (await GET(new Request('http://127.0.0.1:3000/api/health'))).json();
-    expect(body).toMatchObject({ authMode: 'otp', signIn: 'required' });
+    expect(body).toMatchObject({ authMode: 'otp', signIn: 'required', smsCodes: expect.any(String) });
     expect(body).not.toHaveProperty('databaseError');
   });
 });

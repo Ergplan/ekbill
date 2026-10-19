@@ -168,7 +168,6 @@
   "otp.send.failed": "The SMS did not go. Check the number and try again.",
   "otp.invalid": "That code is wrong. Type it again.",
   "otp.stale": "That took too long. Ask for a new code.",
-  "otp.noPhone": "This sign-in carried no phone number.",
   "otp.off": "Sign-in is off here.",
   "switch.title": "Who do you want to be?",
   "switch.sub": "Sign-in is off during the build. Pick a person.",
@@ -898,5 +897,9 @@
   "tour.home.star": "A new bill from here, in one tap.",
   "tour.home.about": "First tell us about yourself: your name, your shop. Then the bill.",
   "setup.shop": "Shop name",
-  "tour.aap.person": "Your profile: your name. Home greets you by it."
+  "tour.aap.person": "Your profile: your name. Home greets you by it.",
+  "login.code.resend.now": "Send the code again",
+  "otp.tooMany": "Too many codes asked for. Try again in a while.",
+  "otp.unavailable": "SMS is not set up yet. Try again in a while.",
+  "otp.phone": "Enter a 10-digit number"
 }

@@ -119,10 +119,15 @@ test('with sign-in off, a new phone at login is a new owner: the code fills itse
   await expect(page.getByLabel(/dukaan ka naam/i)).toBeVisible();
 });
 
-test('in the build the OTP door is closed (404) and the switcher is the door', async ({ request }) => {
-  const res = await request.post('/api/auth/otp', { data: { idToken: 'x'.repeat(40) } });
-  expect(res.status()).toBe(404);
-  expect(await res.json()).toEqual({ error: 'otp.off' });
+test('in the build both OTP doors are closed (404) and the switcher is the door', async ({ request }) => {
+  for (const [path, data] of [
+    ['/api/auth/otp/send', { phone: '9822012345' }],
+    ['/api/auth/otp/check', { phone: '9822012345', code: '123456' }],
+  ] as const) {
+    const res = await request.post(path, { data });
+    expect(res.status(), path).toBe(404);
+    expect(await res.json()).toEqual({ error: 'otp.off' });
+  }
   expect((await request.get('/dev/switch')).status()).toBe(200);
 });
 

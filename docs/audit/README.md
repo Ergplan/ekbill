@@ -18,7 +18,7 @@ Everything an outside auditor needs to judge EkBill v2 without the VM, its servi
 
 ## Run it from a clean clone
 
-Needs Node 22, npm, and a Postgres 16 with pgvector. Nothing else: no VM, no model, no Firebase, no secret. Every model call in the build goes through a stand-in (`AI_TRANSPORT=fake`).
+Needs Node 22, npm, and a Postgres 16 with pgvector. Nothing else: no VM, no model, no Twilio, no secret. Every model call in the build goes through a stand-in (`AI_TRANSPORT=fake`).
 
 ### 1. An ephemeral Postgres on port 5440
 
@@ -67,7 +67,7 @@ Playwright starts the dev server and the worker itself, seeds the build's people
 Left out by default:
 
 - **`@slow`**: the load run and the paid-model evals. Run with `SLOW=1`; the evals need a model key.
-- **`@otp`**: the phone sign-in. It needs the Firebase Auth emulator (Java plus `firebase-tools`); see the `otp` job in `.github/workflows/ci.yml`.
+- **`@otp`**: the phone sign-in, with the tests' code sender: an app started with `AUTH_MODE=otp OTP_FAKE_DIR=/tmp/ekbill-otp`, then `OTP=1 OTP_FAKE_DIR=/tmp/ekbill-otp npx playwright test tests/e2e/otp.spec.ts`; see the `otp` job in `.github/workflows/ci.yml`.
 
 ### 4. Coverage, if you want it
 

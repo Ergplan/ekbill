@@ -6,6 +6,7 @@ import { queueStatus, schemaStatus } from '@ekbill/db';
 
 import { authMode } from '../../../server/auth-mode';
 import { logRequest, requestId } from '../../../server/log';
+import { codeSender } from '../../../server/verify';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -47,6 +48,8 @@ export async function GET(request: Request) {
     builtAt: process.env.NEXT_PUBLIC_BUILD_STAMP ?? 'unknown',
     authMode: mode,
     signIn: mode === 'otp' ? 'required' : 'switched off - test data only',
+    // Who sends the sign-in SMS (19 Oct): twilio, the tests' stand-in, or nobody yet. Never a key.
+    smsCodes: codeSender()?.kind ?? 'not set up',
     database: db.ok ? 'ok' : 'FAILED',
     schema: db.version ?? 'none',
     lastBackup: lastBackup(),

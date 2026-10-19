@@ -1155,13 +1155,6 @@
     "mr": "खूप वेळ झाला. नवीन कोड मागवा.",
     "ta": "நேரம் அதிகமாகிவிட்டது. புது கோட் கேளுங்கள்."
   },
-  "otp.noPhone": {
-    "hi-Latn": "Is sign-in mein phone number nahi mila.",
-    "en": "This sign-in carried no phone number.",
-    "hi": "इस साइन-इन में फ़ोन नंबर नहीं मिला।",
-    "mr": "या साइन-इनमध्ये फोन नंबर मिळाला नाही.",
-    "ta": "இந்த லாகினில் போன் நம்பர் வரவில்லை."
-  },
   "otp.off": {
     "hi-Latn": "Sign-in abhi band hai.",
     "en": "Sign-in is off here.",
@@ -6271,5 +6264,33 @@
     "hi": "आपकी प्रोफ़ाइल: आपका नाम। होम पर इसी नाम से नमस्ते करेंगे।",
     "mr": "तुमची प्रोफाइल: तुमचं नाव. होमवर याच नावाने नमस्कार करू.",
     "ta": "உங்கள் சுயவிவரம்: உங்கள் பெயர். முகப்பில் இந்தப் பெயரால் வணக்கம் சொல்வோம்."
+  },
+  "login.code.resend.now": {
+    "hi-Latn": "Code dobara bhejo",
+    "en": "Send the code again",
+    "hi": "कोड दोबारा भेजो",
+    "mr": "कोड पुन्हा पाठवा",
+    "ta": "குறியீட்டை மீண்டும் அனுப்பு"
+  },
+  "otp.tooMany": {
+    "hi-Latn": "Bahut baar code maanga. Thodi der baad try karo.",
+    "en": "Too many codes asked for. Try again in a while.",
+    "hi": "बहुत बार कोड माँगा। थोड़ी देर बाद कोशिश करो।",
+    "mr": "खूप वेळा कोड मागितला. थोड्या वेळाने पुन्हा प्रयत्न करा.",
+    "ta": "பல முறை குறியீடு கேட்கப்பட்டது. சிறிது நேரம் கழித்து முயற்சிக்கவும்."
+  },
+  "otp.unavailable": {
+    "hi-Latn": "SMS abhi chalu nahi hai. Thodi der mein try karo.",
+    "en": "SMS is not set up yet. Try again in a while.",
+    "hi": "SMS अभी चालू नहीं है। थोड़ी देर में कोशिश करो।",
+    "mr": "SMS अजून सुरू नाही. थोड्या वेळाने प्रयत्न करा.",
+    "ta": "SMS இன்னும் தயாராகவில்லை. சிறிது நேரம் கழித்து முயற்சிக்கவும்."
+  },
+  "otp.phone": {
+    "hi-Latn": "10 digit ka number daalo",
+    "en": "Enter a 10-digit number",
+    "hi": "10 अंकों का नंबर डालो",
+    "mr": "10 अंकी नंबर टाका",
+    "ta": "10 இலக்க நம்பரைப் போடுங்கள்"
   }
 }

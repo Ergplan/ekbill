@@ -36,7 +36,7 @@ What EkBill protects, from whom, across which boundaries, and which security wor
 3. **App → Postgres**: every scoped transaction runs as `ekbill_app` (owns nothing) with `app.business_id`, `app.user_id`, `app.actor_kind` and `app.request_id` set locally; forced RLS, audit and no-delete triggers apply.
 4. **Worker → Postgres**: jobs act per business through the same `withTenant`, as `system` or `model`; cross-business reads return ids only (`packages/db/src/system.ts`).
 5. **App/worker → OpenAI**: through `packages/ai` only (versioned prompts, zod-checked answers, one `ai_calls` row per call). The browser talks to OpenAI only for the voice, with a short-lived secret minted by the server.
-6. **Browser → Firebase (OTP)**: the browser gets an ID token; the server verifies it and makes EkBill's own session. Firebase's token is not stored.
+6. **App → Twilio Verify (OTP)**: the server asks Twilio to SMS a code and to check the code typed; the browser only talks to EkBill. The API key secret (or auth token) lives in `.env` or Secret Manager, never in the browser or a log; the code is never stored. Indian mobiles only, per-number limits on sends and tries (SMS pumping).
 7. **VM → GCS**: nightly `pg_dump` to the bucket; restore and the restore drill read it.
 
 ## Deferred security (section 4.3), current state

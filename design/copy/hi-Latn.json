@@ -161,7 +161,6 @@
   "otp.send.failed": "SMS nahi gaya. Number dekh ke phir try karo.",
   "otp.invalid": "Code galat hai. Phir se daalo.",
   "otp.stale": "Der ho gayi. Naya code mangwao.",
-  "otp.noPhone": "Is sign-in mein phone number nahi mila.",
   "otp.off": "Sign-in abhi band hai.",
   "switch.title": "Kaun ban-na hai?",
   "switch.sub": "Build ke dauran sign-in band hai. Ek naam chuno.",
@@ -891,5 +890,9 @@
   "tour.home.star": "Naya bill yahan se, ek tap mein.",
   "tour.home.about": "Pehle apne baare mein batao: naam, dukaan. Phir bill.",
   "setup.shop": "Dukaan ka naam",
-  "tour.aap.person": "Aapki profile: aapka naam. Ghar pe isi naam se namaste karenge."
+  "tour.aap.person": "Aapki profile: aapka naam. Ghar pe isi naam se namaste karenge.",
+  "login.code.resend.now": "Code dobara bhejo",
+  "otp.tooMany": "Bahut baar code maanga. Thodi der baad try karo.",
+  "otp.unavailable": "SMS abhi chalu nahi hai. Thodi der mein try karo.",
+  "otp.phone": "10 digit ka number daalo"
 }

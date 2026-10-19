@@ -26,6 +26,22 @@ EKBILL_DB_PASSWORD="$(secret ekbill-db-password)"
 [ -n "$EKBILL_DB_PASSWORD" ] || { echo "ekbill-db-password has no value in Secret Manager."; exit 1; }
 if [ -z "${OPENAI_API_KEY:-}" ]; then OPENAI_API_KEY="$(secret ekbill-openai-api-key)"; fi
 echo "database password: present; OpenAI key: $([ -n "${OPENAI_API_KEY:-}" ] && echo present || echo 'not set (photo reading, voice and Poocho stay off)')"
+# Twilio Verify (phone OTP, 19 Oct): the API key's secret, or the auth token, from Secret Manager when .env has none.
+if [ -n "${TWILIO_API_KEY_SID:-}" ] && [ -z "${TWILIO_API_KEY_SECRET:-}" ]; then
+  TWILIO_API_KEY_SECRET="$(secret ekbill-twilio-api-key-secret)"
+fi
+if [ -n "${TWILIO_ACCOUNT_SID:-}" ] && [ -z "${TWILIO_AUTH_TOKEN:-}" ]; then
+  TWILIO_AUTH_TOKEN="$(secret ekbill-twilio-auth-token)"
+fi
+export TWILIO_VERIFY_SERVICE_SID="${TWILIO_VERIFY_SERVICE_SID:-}" TWILIO_API_KEY_SID="${TWILIO_API_KEY_SID:-}" \
+  TWILIO_API_KEY_SECRET="${TWILIO_API_KEY_SECRET:-}" TWILIO_ACCOUNT_SID="${TWILIO_ACCOUNT_SID:-}" \
+  TWILIO_AUTH_TOKEN="${TWILIO_AUTH_TOKEN:-}"
+twilio_secret=$([ -n "$TWILIO_API_KEY_SECRET$TWILIO_AUTH_TOKEN" ] && echo present || echo missing)
+echo "Twilio (phone OTP): service $([ -n "$TWILIO_VERIFY_SERVICE_SID" ] && echo set || echo 'not set'), secret $twilio_secret"
+if [ "${AUTH_MODE:-switcher}" = "otp" ] && { [ -z "$TWILIO_VERIFY_SERVICE_SID" ] || [ "$twilio_secret" = missing ]; }; then
+  echo "AUTH_MODE=otp needs Twilio's settings (see .env.example); without them nobody can sign in."
+  exit 1
+fi
 
 # The gate: off during the build (operator's decision, 15 Oct 2026); EKBILL_GATE=on deploy/vm/up.sh
 # puts the shared password from Secret Manager back in front of everything but /api/health.

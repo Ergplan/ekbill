@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 
 import { t } from '@ekbill/copy';
-import { Display, GhostButton, GuideHighlight, HeroPanel, Logo, Meta, PrimaryCTA, useTour } from '@ekbill/ui';
+import { Display, GhostButton, GuideHighlight, HeroPanel, Icon, Logo, Meta, PrimaryCTA, useTour } from '@ekbill/ui';
 
 import { manifest } from './manifest';
 
@@ -22,7 +22,7 @@ export function WelcomeScreen() {
             data-testid="tour"
             onClick={guide.start}
           >
-            ?
+            <Icon name="help" size={20} />
           </button>
         </div>
       </header>

@@ -6,9 +6,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 44    | 411    |
-| integration | 27    | 300    |
-| e2e         | 16    | 67     |
+| unit        | 44    | 414    |
+| integration | 27    | 303    |
+| e2e         | 16    | 68     |
 
 ## unit
 
@@ -449,11 +449,6 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - $name: the issued snapshot and the GSTR-1 built from it carry the same figures
 - $name: the form preview shows what the bill will say
 
-### `tests/unit/otp-config.test.ts`
-
-- an empty auth domain, as Compose passes it, falls back to the projectâ€™s own
-- none with OTP off, or without the key or the project
-
 ### `tests/unit/print-fields.test.ts`
 
 - a tax invoice on %s: place of supply with its code, and reverse charge
@@ -513,6 +508,14 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - clamps the margin to the canvas when the stroke touches an edge
 - ignores the faint antialiasing halo and an untouched canvas
 - sizes a data URL and steps the scale down by four fifths until a tenth
+
+### `tests/unit/verify.test.ts`
+
+- an API key and secret first, else the account SID and auth token; empty counts as unset
+- send: one form POST to Verifications, SMS, with Basic auth
+- send: Twilioâ€™s "too many" is tooMany; anything else refused; no network is unreachable
+- check: approved, wrong (still pending), or expired (404, or out of tries)
+- an Indian mobile in any common writing; nothing else
 
 ### `tests/unit/voice.test.ts`
 
@@ -685,15 +688,18 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 ### `tests/integration/otp-route.test.ts`
 
-- switcher: POST /api/auth/otp is 404 and /dev/switch/sharma signs in
-- otp: /dev/switch is 404, and a token that does not verify is 401 with no session
-- otp: any JSON body that is not an object is 401, never a 500 (Stage 10 review)
+- switcher: both OTP doors are 404 and /dev/switch/sharma signs in
+- otp with no sender configured: /dev/switch is 404 and the doors answer 503, not a 500
+- otp: a code goes out; a wrong code is 401 with no cookie; the right code signs in
+- otp: any JSON body that is not an object is a 400 or 401, never a 500 (Stage 10 review)
 
 ### `tests/integration/otp.test.ts`
 
-- a number EkBill has never seen becomes a person, with a session and no business: welcome
+- a number EkBill has never seen: the right code makes a person, a session and no business (welcome)
 - an invited number lands in the business with its role
-- a token that fails verification, is older than five minutes, or carries no phone signs nobody in
+- a wrong code, a run-out code, a malformed code or phone sign nobody in
+- five codes an hour per number, then "too many"; a sender that refuses says the SMS did not go
+- signInWithPhone: the same person each time
 
 ### `tests/integration/photos.test.ts`
 
@@ -999,7 +1005,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the theme persists per user: Sharma ji picks Harmony, Ravi stays Narangi, Sharma ji is still Harmony
 - the language is the personâ€™s: Ravi picks each of the five, the screens speak it, then Hinglish again
 - with sign-in off, a new phone at login is a new owner: the code fills itself in, then setup
-- in the build the OTP door is closed (404) and the switcher is the door
+- in the build both OTP doors are closed (404) and the switcher is the door
 - Aapki profile: the name said on Aap is the one Home greets by, and Naya bill is the star (19 Oct)
 
 ### `tests/e2e/kit.spec.ts` Ã—
@@ -1012,6 +1018,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - @otp a new number signs in with the SMS code and lands on welcome; the switcher is closed
 - @otp a wrong code says so and signs nobody in (â€¦)
 - @otp an owner already in EkBill signs in with their number and lands in their business
+- @otp after 30 seconds a new code can be asked for, and the new one signs in
 
 ### `tests/e2e/photo.spec.ts`
 
