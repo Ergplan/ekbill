@@ -103,6 +103,9 @@ if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx app; th
         const m = (process.env[k] || "").trim();
         let verdict = !m ? "(not set)" : have.has(m) ? m + "  ok" : m + "  NOT FOUND on this key";
         if (k === "OPENAI_REALTIME_MODEL" && m && !/realtime/.test(m)) verdict = m + "  NOT A REALTIME MODEL";
+        // An embedding model only measures how alike texts are; it cannot write an answer or read a photo (19 Oct).
+        if ((k === "OPENAI_TEXT_MODEL" || k === "OPENAI_VISION_MODEL") && /embedding/.test(m)) verdict = m + "  AN EMBEDDING MODEL, CANNOT ANSWER";
+        if (k === "OPENAI_EMBED_MODEL" && m && !/embedding/.test(m)) verdict = m + "  NOT AN EMBEDDING MODEL";
         console.log("  " + k.padEnd(28) + verdict.padEnd(44) + what);
       }
       console.log("  realtime models on this key: " + (realtime.length ? realtime.join(", ") : "none"));
