@@ -33,4 +33,4 @@ See `docs/ARCHITECTURE.md`. Decisions: `docs/DECISIONS.md`. What is knowingly mi
 
 ## On the VM
 
-`deploy/vm/up.sh` (compose project `ekbill2`). Backups: `deploy/vm/backup.sh`, scheduled by `deploy/vm/schedule-backup.sh`. Never touch the other products on the machine (CLAUDE.md rule 18).
+`deploy/vm/up.sh` (compose project `ekbill2`). `deploy/vm/check-env.sh` shows which settings and keys are set, in `.env`, Secret Manager and the running containers, and whether the OpenAI key works with each model it names; it never prints a secret. Backups: `deploy/vm/backup.sh`, scheduled by `deploy/vm/schedule-backup.sh`. Never touch the other products on the machine (CLAUDE.md rule 18).
