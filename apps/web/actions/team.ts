@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { ForbiddenError, NotFoundError, memberships } from '@ekbill/db';
+import { ForbiddenError, NEW_MEMBER_NAME, NotFoundError, memberships } from '@ekbill/db';
 import { toE164 } from '@ekbill/engine';
 
 import { log } from '../server/log';
@@ -38,7 +38,7 @@ export async function inviteMember(input: unknown): Promise<TeamResult<{ userId:
   try {
     const m = await memberships.invite(s.scope, {
       phoneE164: phone,
-      name: parsed.data.name?.trim() || 'Naya member',
+      name: parsed.data.name?.trim() || NEW_MEMBER_NAME,
       role: parsed.data.role,
     });
     log.info({ requestId: s.scope.requestId, role: m.role, status: m.status }, 'member invited');

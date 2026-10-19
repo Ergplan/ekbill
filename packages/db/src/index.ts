@@ -11,6 +11,9 @@ import { getPool } from './pool';
 export { closePool, getPool } from './pool';
 export { withTenant, withUser, type ActorKind, type Db, type Role, type TenantScope, type Tx } from './scope';
 export {
+  NEW_MEMBER_NAME,
+  NEW_USER_NAME,
+  isOwnName,
   SESSION_DAYS,
   acceptInvites,
   createSession,

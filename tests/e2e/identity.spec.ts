@@ -85,14 +85,19 @@ test('the language is the person’s: Ravi picks each of the five, the screens s
     { pick: 'English', lang: 'en-IN', home: 'Home' },
     { pick: 'Hinglish', lang: 'hi-Latn', home: 'Ghar' },
   ];
+  // The words change in place, with no reload (19 Oct: "the words transform into the selected language").
+  let loads = 0;
+  page.on('load', () => loads++);
   for (const step of steps) {
-    // A saved choice reloads the page, drawn in it.
     await page.getByRole('radio', { name: step.pick }).click();
     await expect(page.locator('html')).toHaveAttribute('lang', step.lang, { timeout: 15_000 });
-    await hydrated(page);
     await expect(page.getByRole('radio', { name: step.pick })).toBeChecked();
     await expect(page.locator('nav').first()).toContainText(step.home);
+    // The hello in between has gone, and the screen is not left blurred.
+    await expect(page.getByTestId('lang-swap')).toHaveCount(0, { timeout: 5_000 });
+    await expect(page.locator('html')).not.toHaveClass(/eb-lang-(out|in)/);
   }
+  expect(loads).toBe(0);
   // The server's text and the browser's agreed in every language: no hydration mismatch.
   expect(errors.filter((e) => /hydrat/i.test(e))).toEqual([]);
 });
@@ -111,7 +116,7 @@ test('with sign-in off, a new phone at login is a new owner: the code fills itse
   // No tap: the code arrives by itself, as the screen promises, and moves on.
   await expect(page).toHaveURL(/\/setup\/name/, { timeout: 15_000 });
   await hydrated(page);
-  await expect(page.getByLabel(/dukaan ka naam/)).toBeVisible();
+  await expect(page.getByLabel(/dukaan ka naam/i)).toBeVisible();
 });
 
 test('in the build the OTP door is closed (404) and the switcher is the door', async ({ request }) => {
@@ -119,4 +124,33 @@ test('in the build the OTP door is closed (404) and the switcher is the door', a
   expect(res.status()).toBe(404);
   expect(await res.json()).toEqual({ error: 'otp.off' });
   expect((await request.get('/dev/switch')).status()).toBe(200);
+});
+
+test('Aapki profile: the name said on Aap is the one Home greets by, and Naya bill is the star (19 Oct)', async ({
+  page,
+}) => {
+  await page.goto('/dev/switch/sharma?to=/');
+  await hydrated(page);
+  await expect(page.getByTestId('greeting')).toHaveText('Namaste, Sharma ji');
+  await expect(page.locator('[data-primary="true"]')).toHaveCount(1);
+  await expect(page.locator('.eb-star [data-primary="true"]')).toHaveText(/Naya bill banao/);
+  await page.locator('.eb-star [data-primary="true"]').click();
+  await expect(page).toHaveURL(/\/bills\/new/);
+  try {
+    await page.goto('/aap#person');
+    await hydrated(page);
+    await page.getByLabel('Aapka naam').fill('Ramesh Sharma');
+    await page.getByRole('button', { name: 'Theek hai' }).click();
+    await expect(page.locator('main')).toContainText('Ramesh Sharma');
+    await page.goto('/');
+    await hydrated(page);
+    await expect(page.getByTestId('greeting')).toHaveText('Namaste, Ramesh Sharma ji');
+  } finally {
+    // Leave Sharma ji as the seed has him.
+    await page.goto('/aap#person');
+    await hydrated(page);
+    await page.getByLabel('Aapka naam').fill('Sharma ji');
+    await page.getByRole('button', { name: 'Theek hai' }).click();
+    await expect(page.locator('main')).toContainText('Sharma ji');
+  }
 });

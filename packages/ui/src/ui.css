@@ -453,6 +453,23 @@
 .eb-topbar__titles {
   min-width: 0;
 }
+/* A top-bar control with its name under it (Theme, Madad, Aapki profile). */
+.eb-topbar__act {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.eb-topbar__cap {
+  font-size: var(--eb-type-tiny-size);
+  line-height: 1.1;
+  font-weight: var(--eb-weight-medium);
+  color: var(--eb-text-muted);
+  white-space: nowrap;
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .eb-topbar__title {
   font-size: var(--eb-type-title-size);
   font-weight: var(--eb-type-title-weight);
@@ -1452,7 +1469,7 @@
 
 /* ----------------------------------------------------------- v2 additions --- */
 .eb-guide__ring {
-  position: absolute;
+  position: fixed;
   pointer-events: none;
   border-radius: var(--eb-radius-row);
   box-shadow: var(--eb-shadow-guide);
@@ -1469,7 +1486,7 @@
   }
 }
 .eb-guide__caption {
-  position: absolute;
+  position: fixed;
   z-index: 31;
   display: flex;
   align-items: center;
@@ -2224,6 +2241,27 @@ main.eb-screen.eb-flow {
   font-weight: var(--eb-weight-medium);
   box-shadow: var(--eb-shadow-nav);
 }
+/* "Main yahan hoon…": a line by the mic, never the voice itself. */
+.eb-voice--hint {
+  /* Fixed at left: 50%, it would shrink to half the screen and wrap in four lines (19 Oct). */
+  width: max-content;
+  max-width: min(340px, calc(100vw - 32px));
+  padding: 12px 18px;
+  border-radius: var(--eb-radius-row);
+  text-align: center;
+  animation: eb-voice-hint 0.35s ease-out both;
+}
+@keyframes eb-voice-hint {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eb-voice--hint {
+    animation: none;
+  }
+}
 .eb-voice__stop {
   min-height: 44px;
   padding: 0 16px;
@@ -2250,4 +2288,130 @@ html:root:is([lang='hi'], [lang='mr'], [lang='ta']) {
 }
 :root:is([lang='hi'], [lang='mr'], [lang='ta']) :is(.eb-hero__eyebrow, .eb-line__label, .eb-settings__title) {
   letter-spacing: 0;
+}
+
+/* The hello on arrival (19 Oct: "Namaste Sharma ji", like an animation): each word rises in out of a blur after the
+   one before it; the name lands last, in the accent, with a small settle. Once a page load (Greeting). */
+.eb-greet__w {
+  display: inline-block;
+}
+.eb-greet--play .eb-greet__w {
+  animation: eb-greet 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--eb-greet-i, 0) * 140ms + 120ms);
+}
+.eb-greet--play .eb-greet__w.eb-emph {
+  animation-name: eb-greet-name;
+  animation-duration: 0.8s;
+}
+@keyframes eb-greet {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+    filter: blur(6px);
+  }
+}
+@keyframes eb-greet-name {
+  0% {
+    opacity: 0;
+    transform: translateY(0.45em) scale(0.94);
+    filter: blur(6px);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+    filter: blur(0);
+  }
+}
+
+/* The one thing to do first on Home (19 Oct: "the star"): Naya bill for someone who has billed before, "Apne baare mein
+   batao" for someone new. A soft glow breathes round it three times, then rests. */
+.eb-star {
+  display: grid;
+}
+.eb-star .eb-cta {
+  animation: eb-star 2.4s ease-in-out 0.9s 3;
+}
+@keyframes eb-star {
+  0%,
+  100% {
+    box-shadow: var(--eb-shadow-cta);
+  }
+  50% {
+    box-shadow: var(--eb-shadow-cta), var(--eb-shadow-guide);
+  }
+}
+
+/* A new language (19 Oct: "the words transform into the selected language, theatrics"): the screen's words blur
+   away, the hello of the new language rises in the middle, and the screen comes back already in it (langSwitch). */
+.eb-lang-out .eb-screen__body,
+.eb-lang-out .eb-topbar,
+.eb-lang-out .eb-tabbar {
+  filter: blur(7px);
+  opacity: 0.2;
+  transition:
+    filter 0.32s ease-in,
+    opacity 0.32s ease-in;
+}
+.eb-lang-in .eb-screen__body,
+.eb-lang-in .eb-topbar,
+.eb-lang-in .eb-tabbar {
+  animation: eb-lang-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes eb-lang-in {
+  from {
+    filter: blur(7px);
+    opacity: 0.2;
+    transform: translateY(6px);
+  }
+}
+.eb-langswap {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 0 24px;
+  pointer-events: none;
+}
+.eb-langswap__word {
+  font-size: var(--eb-type-display-size);
+  font-weight: var(--eb-type-display-emphasis);
+  letter-spacing: var(--eb-type-display-tracking);
+  color: var(--eb-accent);
+  text-align: center;
+  animation: eb-langswap-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.eb-langswap--out .eb-langswap__word {
+  animation: eb-langswap-out 0.4s ease-in both;
+}
+@keyframes eb-langswap-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+    filter: blur(8px);
+  }
+}
+@keyframes eb-langswap-out {
+  to {
+    opacity: 0;
+    transform: translateY(-12px) scale(1.06);
+    filter: blur(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eb-greet--play .eb-greet__w,
+  .eb-star .eb-cta,
+  .eb-lang-in .eb-screen__body,
+  .eb-lang-in .eb-topbar,
+  .eb-lang-in .eb-tabbar,
+  .eb-langswap__word,
+  .eb-langswap--out .eb-langswap__word {
+    animation: none;
+  }
+  .eb-lang-out .eb-screen__body,
+  .eb-lang-out .eb-topbar,
+  .eb-lang-out .eb-tabbar {
+    filter: none;
+    transition: none;
+  }
 }

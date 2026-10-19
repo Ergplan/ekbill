@@ -771,11 +771,11 @@
     "ta": "பின்னால்"
   },
   "action.tour": {
-    "hi-Latn": "Tour",
-    "en": "Tour",
-    "hi": "टूर",
-    "mr": "टूर",
-    "ta": "வழிகாட்டி"
+    "hi-Latn": "Madad",
+    "en": "Help",
+    "hi": "मदद",
+    "mr": "मदत",
+    "ta": "உதவி"
   },
   "action.mic": {
     "hi-Latn": "Bolke karo",
@@ -3018,11 +3018,11 @@
     "ta": "குரல்"
   },
   "aap.voice.sub": {
-    "hi-Latn": "Aate hi awaaz shuru ho",
-    "en": "Voice starts on arrival",
-    "hi": "आते ही आवाज़ शुरू हो",
-    "mr": "उघडताच आवाज सुरू",
-    "ta": "திறந்ததும் குரல் தொடங்கும்"
+    "hi-Latn": "Mic ke paas ek ishaara dikhao",
+    "en": "Show a hint by the mic",
+    "hi": "माइक के पास एक इशारा दिखाओ",
+    "mr": "माइकजवळ एक इशारा दाखवा",
+    "ta": "மைக் அருகே ஒரு குறிப்பு காட்டு"
   },
   "aap.voice.on": {
     "hi-Latn": "Chalu",
@@ -5657,11 +5657,11 @@
     "ta": "லோகோ, கையெழுத்து, டிசைன், பேப்பர்: பில் எப்படி இருக்கும்."
   },
   "tour.aap.voice": {
-    "hi-Latn": "Bolke: aate hi awaaz chalu ho ya nahi.",
-    "en": "Voice: whether it starts as soon as you open the app.",
-    "hi": "बोलके: आते ही आवाज़ चालू हो या नहीं।",
-    "mr": "बोलून: उघडताच आवाज सुरू व्हावा की नाही.",
-    "ta": "குரல்: திறந்ததும் குரல் தொடங்க வேண்டுமா."
+    "hi-Latn": "Bolke: chalu ho to mic ke paas ek ishaara dikhega. Awaaz tab hi shuru hoti hai jab aap mic dabao.",
+    "en": "Voice: when on, a hint shows by the mic. The voice starts only when you tap the mic.",
+    "hi": "बोलके: चालू हो तो माइक के पास एक इशारा दिखेगा। आवाज़ तभी शुरू होती है जब आप माइक दबाओ।",
+    "mr": "बोलून: चालू असल्यास माइकजवळ एक इशारा दिसेल. तुम्ही माइक दाबल्यावरच आवाज सुरू होतो.",
+    "ta": "குரல்: ஆன் என்றால் மைக் அருகே ஒரு குறிப்பு தெரியும். நீங்கள் மைக்கைத் தட்டினால் மட்டுமே குரல் தொடங்கும்."
   },
   "tour.aap.save": {
     "hi-Latn": "Kuch badla? Save karo.",
@@ -6173,5 +6173,103 @@
     "hi": "जितना काम हुआ उतना, हर बार",
     "mr": "जितकं काम झालं तितकं, प्रत्येक वेळी",
     "ta": "செய்த வேலைக்கு ஏற்ப, ஒவ்வொரு முறையும்"
+  },
+  "voice.hint": {
+    "hi-Latn": "Main yahan hoon. Madad chahiye to mic dabao aur mujhse baat karo.",
+    "en": "I am here. Need help? Tap the mic and talk to me.",
+    "hi": "मैं यहाँ हूँ। मदद चाहिए तो माइक दबाओ और मुझसे बात करो।",
+    "mr": "मी इथे आहे. मदत हवी असेल तर माइक दाबा आणि माझ्याशी बोला.",
+    "ta": "நான் இங்கே இருக்கிறேன். உதவி வேண்டுமா? மைக்கைத் தட்டி என்னிடம் பேசுங்கள்."
+  },
+  "nav.profile": {
+    "hi-Latn": "Aapki profile",
+    "en": "Your profile",
+    "hi": "आपकी प्रोफ़ाइल",
+    "mr": "तुमची प्रोफाइल",
+    "ta": "உங்கள் சுயவிவரம்"
+  },
+  "greet.hello": {
+    "hi-Latn": "Namaste",
+    "en": "Hello",
+    "hi": "नमस्ते",
+    "mr": "नमस्कार",
+    "ta": "வணக்கம்"
+  },
+  "home.star": {
+    "hi-Latn": "Naya bill banao",
+    "en": "Make a new bill",
+    "hi": "नया बिल बनाओ",
+    "mr": "नवीन बिल बनवा",
+    "ta": "புதிய பில் போடுங்கள்"
+  },
+  "home.about": {
+    "hi-Latn": "Apne baare mein batao",
+    "en": "Tell us about yourself",
+    "hi": "अपने बारे में बताओ",
+    "mr": "तुमच्याबद्दल सांगा",
+    "ta": "உங்களைப் பற்றிச் சொல்லுங்கள்"
+  },
+  "home.about.sub": {
+    "hi-Latn": "Naam aur dukaan ka naam. Ek minute.",
+    "en": "Your name and your shop. One minute.",
+    "hi": "नाम और दुकान का नाम। एक मिनट।",
+    "mr": "नाव आणि दुकानाचं नाव. एक मिनिट.",
+    "ta": "உங்கள் பெயரும் கடையின் பெயரும். ஒரு நிமிடம்."
+  },
+  "greet.named": {
+    "hi-Latn": "{name} ji",
+    "en": "{name}",
+    "hi": "{name} जी",
+    "mr": "{name} जी",
+    "ta": "{name}"
+  },
+  "aap.person": {
+    "hi-Latn": "Aapka naam",
+    "en": "Your name",
+    "hi": "आपका नाम",
+    "mr": "तुमचं नाव",
+    "ta": "உங்கள் பெயர்"
+  },
+  "aap.person.hint": {
+    "hi-Latn": "Ghar pe isi naam se namaste karenge",
+    "en": "Home greets you by this name",
+    "hi": "होम पर इसी नाम से नमस्ते करेंगे",
+    "mr": "होमवर याच नावाने नमस्कार करू",
+    "ta": "முகப்பில் இந்தப் பெயரால் வணக்கம் சொல்வோம்"
+  },
+  "aap.person.empty": {
+    "hi-Latn": "Abhi nahi bataya",
+    "en": "Not told yet",
+    "hi": "अभी नहीं बताया",
+    "mr": "अजून सांगितलं नाही",
+    "ta": "இன்னும் சொல்லவில்லை"
+  },
+  "tour.home.star": {
+    "hi-Latn": "Naya bill yahan se, ek tap mein.",
+    "en": "A new bill from here, in one tap.",
+    "hi": "नया बिल यहाँ से, एक टैप में।",
+    "mr": "नवीन बिल इथून, एका टॅपमध्ये.",
+    "ta": "புதிய பில் இங்கிருந்து, ஒரே தட்டில்."
+  },
+  "tour.home.about": {
+    "hi-Latn": "Pehle apne baare mein batao: naam, dukaan. Phir bill.",
+    "en": "First tell us about yourself: your name, your shop. Then the bill.",
+    "hi": "पहले अपने बारे में बताओ: नाम, दुकान। फिर बिल।",
+    "mr": "आधी तुमच्याबद्दल सांगा: नाव, दुकान. मग बिल.",
+    "ta": "முதலில் உங்களைப் பற்றிச் சொல்லுங்கள்: பெயர், கடை. பிறகு பில்."
+  },
+  "setup.shop": {
+    "hi-Latn": "Dukaan ka naam",
+    "en": "Shop name",
+    "hi": "दुकान का नाम",
+    "mr": "दुकानाचं नाव",
+    "ta": "கடையின் பெயர்"
+  },
+  "tour.aap.person": {
+    "hi-Latn": "Aapki profile: aapka naam. Ghar pe isi naam se namaste karenge.",
+    "en": "Your profile: your name. Home greets you by it.",
+    "hi": "आपकी प्रोफ़ाइल: आपका नाम। होम पर इसी नाम से नमस्ते करेंगे।",
+    "mr": "तुमची प्रोफाइल: तुमचं नाव. होमवर याच नावाने नमस्कार करू.",
+    "ta": "உங்கள் சுயவிவரம்: உங்கள் பெயர். முகப்பில் இந்தப் பெயரால் வணக்கம் சொல்வோம்."
   }
 }

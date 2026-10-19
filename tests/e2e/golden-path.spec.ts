@@ -144,7 +144,7 @@ test('(d) brand-new owner from welcome to the first bill on WhatsApp: 14 taps', 
   await expect(page).toHaveURL(/state=code/);
   await tap(page, c, () => page.getByLabel('6-digit code').fill('123456'));
   await expect(page).toHaveURL(/\/setup\/name/);
-  await tap(page, c, () => page.getByLabel(/dukaan ka naam/).fill('Naya Electricals'));
+  await tap(page, c, () => page.getByLabel(/dukaan ka naam/i).fill('Naya Electricals'));
   await tap(page, c, () => page.getByRole('button', { name: 'Aage' }).click());
   await expect(page).toHaveURL(/\/setup\/gst/);
   await tap(page, c, () => page.getByRole('radio', { name: 'Nahi', exact: true }).click());

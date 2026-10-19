@@ -180,7 +180,7 @@ describe('the session the server mints', () => {
     setRealtimeTransport(async () => ({ value: 'ek_secret', expiresAt: 123 }));
     const s = await mintVoiceSession({ businessName: 'X', customers: [], record });
     expect(s).toMatchObject({ secret: 'ek_secret', expiresAt: 123, fake: false });
-    expect(rows).toMatchObject([{ purpose: 'voice-session', promptVersion: 'voice/v2', outcome: 'ok' }]);
+    expect(rows).toMatchObject([{ purpose: 'voice-session', promptVersion: 'voice/v3', outcome: 'ok' }]);
     setRealtimeTransport(async () => {
       throw new Error('client_secrets 401');
     });

@@ -114,6 +114,9 @@ test('the tour lights up each guide id in turn (rule 17)', async ({ page }) => {
   await open(page, '/', 'narangi');
   await page.getByTestId('tour').click();
   await expect(page.locator('.eb-guide__ring')).toBeVisible();
+  // The star first (19 Oct), then the three questions.
+  await expect(page.locator('.eb-guide__caption')).toContainText('Naya bill');
+  await page.locator('.eb-guide__next').click();
   await expect(page.locator('.eb-guide__caption')).toContainText('Kiska bill');
   await page.locator('.eb-guide__next').click();
   await expect(page.locator('.eb-guide__caption')).toContainText('Kaccha bill');
@@ -123,7 +126,7 @@ test('the tour lights up each guide id in turn (rule 17)', async ({ page }) => {
 const SHEET_LABELS: Record<string, string[]> = {
   'bill-view': ['Poore', 'Kuch hissa', 'Cancel karke naya banao', 'Rakam kam karo'],
   bill: ['Chuno', 'Naya likho'],
-  home: ['Pehla bill banao', 'Naam dhoondo', 'GST'],
+  home: ['Pehla bill banao', 'Apne baare mein batao', 'Naam dhoondo', 'GST'],
   setup: ['Abhi nahi', 'Abhi bhar deta hoon', 'Badlo', 'Chalo, shuru karte hain'],
   login: ['Aage'],
   photo: ['Photo lo', 'Gallery se', 'Dobara lo', 'Naya bill likho'],
@@ -134,7 +137,7 @@ const SHEET_LABELS: Record<string, string[]> = {
   'bill-done': [],
   customer: [],
   gst: ['INV-042'],
-  aap: ['Bill number series'],
+  aap: ['Bill number series', 'Save karo'], // Save floats only while something is unsaved (19 Oct)
   dues: [],
 };
 

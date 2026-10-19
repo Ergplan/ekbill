@@ -72,7 +72,7 @@ const people = [
   { id: 'ravi', name: 'Ravi', phone: '+919822000002', business: 'sharma', role: 'staff' },
   { id: 'meera', name: 'Meera (CA)', phone: '+919822000003', business: 'sharma', role: 'accountant' },
   { id: 'gupta', name: 'Gupta ji', phone: '+919822000004', business: 'gupta', role: 'owner' },
-  { id: 'new', name: 'Naya owner', phone: '+919822000005', business: null, role: 'owner' },
+  { id: 'new', name: 'Naya user', phone: '+919822000005', business: null, role: 'owner' },
 ];
 const C = (id, business, name, contact, extra = {}) => ({
   id,

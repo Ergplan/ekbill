@@ -1,7 +1,7 @@
 import type { Locale } from '@ekbill/copy';
 import 'server-only';
 
-import { seedBusinessById, seedUserById, type Resolved } from '@ekbill/db';
+import { isOwnName, seedBusinessById, seedUserById, type Resolved } from '@ekbill/db';
 
 import { current } from '../server/session';
 import { loadBusiness, type LoadedBusiness } from './business';
@@ -126,12 +126,14 @@ export function shellOf(v: Viewer) {
   return {
     personId: v.person.id,
     personName: v.person.name,
+    // The person has said their name (a new sign-in is "Naya user", an invite "Naya member", until they do).
+    named: isOwnName(v.person.name),
     businessName: v.business?.name ?? v.session?.business?.tradeName ?? null,
     registration: v.business?.registration ?? null,
     role: v.role,
     as: v.as,
     language: v.language,
-    // "Bolke" (Aap): the voice starts on arrival.
+    // "Bolke" (Aap): a hint by the mic once a visit; the voice itself starts only on a tap (19 Oct).
     voice: v.business?.voiceOnArrival ?? false,
     // A signed-in member (not a look, not the demo): the voice can be minted for them.
     signedIn: Boolean(v.session?.scope) && !v.as,

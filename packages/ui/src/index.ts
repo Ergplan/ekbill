@@ -54,10 +54,12 @@ export {
 export { AttachmentRow, MessagePreview, TimelineEntry, ToneSegmented, type Tone } from './remind';
 export {
   ConfidenceField,
+  Greeting,
   GuideHighlight,
   SignaturePad,
   Stack,
   ThemeSwitch,
+  ThemeToggle,
   useTheme,
   useTour,
   type GuideStep,

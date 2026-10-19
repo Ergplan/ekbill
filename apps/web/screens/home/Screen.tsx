@@ -10,6 +10,7 @@ import {
   Card,
   ClientChip,
   Display,
+  Greeting,
   HeroPanel,
   IconChip,
   Meta,
@@ -35,26 +36,51 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
   const as = (href: string) => withAs(href, viewer.as);
   const [setup] = useDraft<{ name: string } | null>('setup', null);
   const shopName = data.kind === 'new' ? (data.businessName ?? setup?.name?.trim() ?? null) : null;
+  // The hello on arrival, by name once the person has said it (19 Oct: "Namaste Sharma ji" is for after sign-up;
+  // before it, the hello alone and "Apne baare mein batao" is the star).
+  // A name that already carries its "ji" (Sharma ji, Gupta ji) is not given a second one.
+  const honoured = /(^|\s)(ji|जी)$/i.test(data.personName.trim())
+    ? data.personName.trim()
+    : t('greet.named', { name: data.personName.trim() });
+  const greeting = viewer.named ? (
+    <Greeting hello={t('home.greeting').trim()} name={honoured} />
+  ) : (
+    <Greeting hello={t('greet.hello')} />
+  );
+  // Someone with no business yet answers the setup questions; someone with one says their name on Aap.
+  const about = (
+    <div className="eb-star" data-guide="about">
+      <PrimaryCTA onClick={() => router.push(as(data.businessName || shopName ? '/aap#person' : '/setup/name'))}>
+        {t('home.about')}
+      </PrimaryCTA>
+    </div>
+  );
 
   if (data.kind === 'new') {
     return (
       <AppShell
         viewer={{ ...viewer, businessName: shopName }}
         tab="home"
-        tour={manifest.tour.filter((s) => s.target === 'mic')}
+        tour={manifest.tour.filter((s) => s.target === 'mic' || (!viewer.named && s.target === 'about'))}
       >
         <section className="eb-heading">
-          <Display emphasis={shopName ?? data.personName}>{t('home.greeting')}</Display>
-          <Meta>{t('home.first.sub')}</Meta>
+          {greeting}
+          <Meta>{shopName ?? (viewer.named ? t('home.first.sub') : t('home.about.sub'))}</Meta>
         </section>
+        {viewer.named ? null : about}
         <HeroPanel
           eyebrow={t('home.first.eyebrow')}
           title={t('home.first.title')}
           sub={t('home.first.sub')}
           guide="first"
         >
-          <div className="eb-actions eb-actions--stack">
-            <PrimaryCTA onClick={() => router.push(as('/bills/new?first=1'))}>{t('home.first.cta')}</PrimaryCTA>
+          {/* One star (I9): the first bill once the person is known, else "Apne baare mein batao" above it. */}
+          <div className={viewer.named ? 'eb-actions eb-actions--stack eb-star' : 'eb-actions eb-actions--stack'}>
+            {viewer.named ? (
+              <PrimaryCTA onClick={() => router.push(as('/bills/new?first=1'))}>{t('home.first.cta')}</PrimaryCTA>
+            ) : (
+              <OutlineButton onClick={() => router.push(as('/bills/new?first=1'))}>{t('home.first.cta')}</OutlineButton>
+            )}
           </div>
         </HeroPanel>
         <Card title={t('home.sent.title')} action={<IconChip name="receipt" />}>
@@ -67,7 +93,12 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
   const canBill = data.kind !== 'accountant';
   const canRemind = data.kind !== 'accountant';
   const oldest = data.owed.rows[0];
-  const tour = manifest.tour.filter((s) => canBill || !['kiska-bill', 'photo'].includes(s.target));
+  const tour = manifest.tour.filter(
+    (s) =>
+      (canBill || !['kiska-bill', 'photo', 'star'].includes(s.target)) &&
+      (s.target !== 'about' || !viewer.named) &&
+      (s.target !== 'star' || viewer.named),
+  );
 
   return (
     <AppShell viewer={viewer} tab="home" tour={tour}>
@@ -79,7 +110,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
           </>
         ) : (
           <>
-            <Display emphasis={data.personName}>{t('home.greeting')}</Display>
+            {greeting}
             <Meta>
               {data.businessName} · {data.city}
               {data.kind === 'staff' ? ` · ${t('home.staff.note', { business: data.businessName ?? '' })}` : ''}
@@ -87,6 +118,15 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
           </>
         )}
       </section>
+
+      {/* The star (19 Oct): the one thing to do first. A new bill for someone known; their name for someone new. */}
+      {!viewer.named ? (
+        about
+      ) : canBill ? (
+        <div className="eb-star" data-guide="star">
+          <PrimaryCTA onClick={() => router.push(as('/bills/new'))}>{t('home.star')}</PrimaryCTA>
+        </div>
+      ) : null}
 
       {canBill ? (
         <HeroPanel

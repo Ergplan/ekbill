@@ -1,7 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 
+import { Icon } from './Icon';
 import { alphaBounds, dataUrlBytes, nextScale } from './trim';
 
 /* --------------------------------------------------------- GuideHighlight --- */
@@ -30,28 +41,30 @@ export function GuideHighlight({ step, onDone }: { step: GuideStep | null; onDon
       setBox(null);
       return;
     }
+    // Screen coordinates on a fixed ring: page coordinates put it below the field whenever the page scrolled in a box
+    // of its own or while a smooth scroll was still moving (19 Oct, the bill form's name field).
     const r = el.getBoundingClientRect();
-    setBox({
-      top: r.top + window.scrollY - 6,
-      left: r.left + window.scrollX - 6,
-      width: r.width + 12,
-      height: r.height + 12,
-    });
+    setBox({ top: r.top - 6, left: r.left - 6, width: r.width + 12, height: r.height + 12 });
   }, [step]);
   useLayoutEffect(() => {
     if (!step) return;
     const el = document.querySelector<HTMLElement>(`[data-guide="${CSS.escape(step.target)}"]`);
     el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    // Placed on the next frame, and again once the scroll has settled.
-    const frame = window.requestAnimationFrame(place);
-    const id = window.setTimeout(place, 350);
+    // Placed every frame while the scroll into view settles, then on any scroll (of the page or of a box: capture)
+    // and resize.
+    let frame = 0;
+    const until = performance.now() + 900;
+    const follow = () => {
+      place();
+      if (performance.now() < until) frame = window.requestAnimationFrame(follow);
+    };
+    frame = window.requestAnimationFrame(follow);
     window.addEventListener('resize', place);
-    window.addEventListener('scroll', place, { passive: true });
+    document.addEventListener('scroll', place, { passive: true, capture: true });
     return () => {
       window.cancelAnimationFrame(frame);
-      window.clearTimeout(id);
       window.removeEventListener('resize', place);
-      window.removeEventListener('scroll', place);
+      document.removeEventListener('scroll', place, { capture: true });
     };
   }, [step, place]);
   if (!step || !box) return null;
@@ -308,6 +321,59 @@ export function ThemeSwitch({
         </button>
       ))}
     </div>
+  );
+}
+
+/** The two looks in one tap, for the top bar: a sun on Narangi, a moon on Harmony (19 Oct: "colour modes top right"). */
+export function ThemeToggle({ label, onChange }: { label: string; onChange?: (theme: ThemeName) => void }) {
+  const theme = useSyncExternalStore(subscribeTheme, readTheme, serverTheme);
+  const next: ThemeName = theme === 'harmony' ? 'narangi' : 'harmony';
+  return (
+    <button
+      type="button"
+      className="eb-iconbtn"
+      aria-label={label}
+      aria-pressed={theme === 'harmony'}
+      data-guide="theme-toggle"
+      data-voice="safe"
+      onClick={() => {
+        persistTheme(next);
+        onChange?.(next);
+      }}
+    >
+      <Icon name={theme === 'harmony' ? 'moon' : 'sun'} size={20} />
+    </button>
+  );
+}
+
+// The hello plays once a page load: coming back to Home from another tab finds it already said.
+let greeted = false;
+
+/**
+ * The hello on arrival (19 Oct: "Namaste Sharma ji, like an animation"): the words rise in one after another, the
+ * name last and in the accent. Without a name ("Apne baare mein batao" has not been answered) it is the hello alone.
+ * Reduced motion shows the line still.
+ */
+export function Greeting({ hello, name }: { hello: string; name?: string | null }) {
+  const [play] = useState(() => !greeted);
+  useEffect(() => {
+    greeted = true;
+  }, []);
+  const words = hello.split(/\s+/).filter(Boolean);
+  const named = name ? name.split(/\s+/).filter(Boolean) : [];
+  const all = [...words.map((w) => ({ w, emph: false })), ...named.map((w) => ({ w, emph: true }))];
+  // Real spaces between the words, so a screen reader and a copy say "Namaste, Sharma ji", not "Namaste,Sharmaji".
+  return (
+    <h1 className={`eb-display eb-greet${play ? ' eb-greet--play' : ''}`} data-testid="greeting">
+      {all.map(({ w, emph }, i) => (
+        <Fragment key={`${i}-${w}`}>
+          {i > 0 ? ' ' : null}
+          <span className={`eb-greet__w${emph ? ' eb-emph' : ''}`} style={{ '--eb-greet-i': i } as CSSProperties}>
+            {w}
+          </span>
+        </Fragment>
+      ))}
+    </h1>
   );
 }
 

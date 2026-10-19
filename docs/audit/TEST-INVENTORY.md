@@ -8,7 +8,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 | ----------- | ----- | ------ |
 | unit        | 44    | 411    |
 | integration | 27    | 300    |
-| e2e         | 16    | 66     |
+| e2e         | 16    | 67     |
 
 ## unit
 
@@ -1000,6 +1000,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the language is the personâ€™s: Ravi picks each of the five, the screens speak it, then Hinglish again
 - with sign-in off, a new phone at login is a new owner: the code fills itself in, then setup
 - in the build the OTP door is closed (404) and the switcher is the door
+- Aapki profile: the name said on Aap is the one Home greets by, and Naya bill is the star (19 Oct)
 
 ### `tests/e2e/kit.spec.ts` Ã—
 

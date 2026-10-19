@@ -16,9 +16,11 @@ import {
 import {
   ChoiceList,
   Display,
+  Greeting,
   Field,
   GhostButton,
   GuideHighlight,
+  Icon,
   IconButton,
   Input,
   Meta,
@@ -30,12 +32,15 @@ import {
 } from '@ekbill/ui';
 
 import { finishSetup, setBusinessFile } from '../../actions/business';
+import { setName } from '../../actions/user';
 import { clearDraft, useDraft } from '../draft';
 import { useVoice } from '../voice/VoiceProvider';
 import { manifest, type SetupStep } from './manifest';
 
 export interface SetupDraft {
   name: string;
+  /** The person's own name (19 Oct: "Apne baare mein batao"), saved on them once the business is made. */
+  person?: string;
   gst: 'yes' | 'composition' | 'no' | 'unknown' | null;
   gstin: string;
   pan: string;
@@ -48,6 +53,7 @@ export interface SetupDraft {
 }
 const EMPTY: SetupDraft = {
   name: '',
+  person: '',
   gst: null,
   gstin: '',
   pan: '',
@@ -222,6 +228,9 @@ export function SetupScreen({ step }: { step: SetupStep }) {
         return;
       }
     }
+    // Their own name, so Home says "Namaste, <name> ji"; a name that does not save leaves the hello unnamed, no more.
+    const person = d.person?.trim();
+    if (person) await setName({ name: person }).catch(() => undefined);
     clearDraft('setup');
     router.push('/');
   };
@@ -257,23 +266,37 @@ export function SetupScreen({ step }: { step: SetupStep }) {
             data-testid="tour"
             onClick={guide.start}
           >
-            ?
+            <Icon name="help" size={20} />
           </button>
         </div>
       </header>
       <div className="eb-screen__body">
         {step === 'name' ? (
           <>
+            {/* "Apne baare mein batao" (19 Oct): the hello rises in, then the person's name and the shop's. */}
             <section className="eb-question" data-guide="hello">
-              <Meta>{t('setup.hello')}</Meta>
-              <Display as="h1">{t('setup.name.q')}</Display>
+              <Greeting hello={t('greet.hello')} />
+              <Display as="h2" size="title">
+                {t('home.about')}
+              </Display>
+              <Meta>{t('home.about.sub')}</Meta>
             </section>
-            <Field id="name" label={t('profile.name')} hint={t('setup.name.hint')} error={error}>
+            <Field id="person" label={t('aap.person')} hint={t('aap.person.hint')}>
+              <Input
+                id="person"
+                large
+                autoFocus
+                value={d.person ?? ''}
+                onChange={(e) => patch({ person: e.target.value })}
+                maxLength={80}
+                autoComplete="name"
+              />
+            </Field>
+            <Field id="name" label={t('setup.shop')} hint={t('setup.name.hint')} error={error}>
               <div data-guide="answer">
                 <Input
                   id="name"
                   large
-                  autoFocus
                   value={d.name}
                   onChange={(e) => patch({ name: e.target.value })}
                   onKeyDown={(e) => e.key === 'Enter' && advance()}

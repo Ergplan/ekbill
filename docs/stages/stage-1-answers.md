@@ -34,3 +34,16 @@ The operator wrote: "Keep building. Will do final review after full application 
 - **Customers**: only "Naya customer" floats; "Purane bills upload karo" sits after the list (floating under the main button let the list show between the two).
 - **Aap**: the logo and signature thumbnails are a row's height; "Logo hatao" is a row of its own words.
 - **Hindi, Marathi, Tamil**: no letter-spacing (it pulls vowel signs apart) and taller lines for headings.
+
+## 19 Oct 2026: the operator's walk of the live app (I10)
+
+The operator wrote, with two screenshots (the guide ring below "Customer ka naam" on the bill form; the header's globe and profile ring): "Voice Starts on its own ramdomly. check alignment. The voice experince is not so good when customer clicks screens very fast while the voice is talking. I think the Naya bill button should the star when opening the page after login for old users and apne baare mein batao for new customers. The voice should speak less like on login, mein yahan hoon agar aapko koi help chayiye then ye botton click karo aur mujhse baat karo. After that the conversation starts. 3 seconds of no response auto shuts the voice to save tokens. Add lables like Apki profile and do not know what the global map does. Cllick on language change is very bad. It sohuld be like a animation where the words tansform into the selected lanyage, theatrics. Save profile is stuck. Color modes should be on top right. Also there should be greeting on start like animation Namaste Sharmaji or which ever language they have selected." And then: "'Apne baare mein batao' for new ones, with an animated greeting ('Namaste Sharma ji' in their language). The app will not know the name of the user until they fill it. So Namaste Sharma ji is for users after sign up."
+
+The build agent takes these as the answer to change the approved design where they say, and re-records the baselines they move, both themes:
+
+- **The header, every screen**: three captioned controls top right: Theme (a sun or a moon, one tap), Madad (the tour; a help icon, not the globe) and Aapki profile (the ring).
+- **Home**: the hello rises in word by word, "Namaste, Sharma ji" in the person's language once they have said their name. Under it, the star: "Naya bill banao" for someone who has billed before, "Pehla bill banao" for a new business, and "Apne baare mein batao" (no name in the hello) for someone who has not said their name. This changes Stage 1 answer 8 only in adding the star; Home keeps its three cards.
+- **Setup, first step**: "Apne baare mein batao": the person's own name, then the shop's.
+- **Aap**: an "Aapki profile" group with the person's name; Save floats only while there is something to save (the stuck "Save ho gaya" is gone); a new language changes the words in place, the new language's hello in between, with no reload.
+- **The voice**: never starts by itself; a one-line hint by the mic once a visit ("Main yahan hoon…"); a five-word greeting when it starts; quiet when the owner opens screens themselves; it stops after 3 s with no one speaking and nothing playing.
+- **The guide ring**: fixed to the screen, so it stays on the field it names while the page scrolls.

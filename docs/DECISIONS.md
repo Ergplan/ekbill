@@ -773,3 +773,9 @@ Dated entries: decision, options, why, who asked. Newest at the bottom of each d
 - Decision: `npm run audit:coverage` measures vitest with v8 over the product source; the browser journeys are not merged in.
 - Why: the journeys run against a separate `next` process, whose coverage would need the server instrumented. The actions and screens read low for that reason, and COVERAGE.md says so; the journeys are listed in TEST-INVENTORY.md.
 - Asked by: master prompt Stage 11 (COVERAGE.md).
+
+## 19 Oct 2026: the voice waits to be asked; Home has a star; the language changes in place
+
+- Context: the operator's walk of the live app: the voice started on its own and kept talking while screens were tapped; no clear first action on Home; the language change was a reload; "Save" on Aap stuck; the globe icon unexplained.
+- Decision: the voice starts only on a tap of the mic (a hint by the mic once a visit when "Bolke" is on), greets in at most five words, cancels its reply when the owner navigates, and stops after 3 s idle (`IDLE_MS`; prompt `voice/v3`). Home greets by name (`Greeting`) once the person has said it (`isOwnName`: not "Naya user" or "Naya member") and has one star: Naya bill banao, Pehla bill banao, or "Apne baare mein batao" (setup's first step asks the person's own name; Aap's "Aapki profile" changes it). A language change saves, blurs the screen's words, shows the new language's hello, `router.refresh()`es and waits for `<html data-locale>` (falls back to a reload after 8 s). The header carries Theme, Madad and Aapki profile, captioned.
+- Consequences: one primary per screen still holds (the first-bill button is an outline while "Apne baare mein batao" is the star); the seeded `new` person is "Naya user" so the unnamed Home is in the baselines.

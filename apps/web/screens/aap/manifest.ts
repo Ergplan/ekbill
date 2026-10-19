@@ -5,7 +5,7 @@ export const manifest: ScreenManifest = {
   route: '/aap',
   title: 'Aap',
   purpose:
-    'Everything about the business and the app, in groups: dukaan, paise kaise dein, series, bill kaisa dikhe, theme, language, Bolke, team, app ki jaankari. One sticky Save.',
+    'Everything about the person, the business and the app, in groups: aapki profile (their own name), dukaan, paise kaise dein, series, bill kaisa dikhe, theme, language, Bolke, team, app ki jaankari. One sticky Save.',
   primary: { label: 'Save karo', to: '/aap', guide: 'save' },
   taps: [
     { label: 'Team', to: '/aap/team', guide: 'team' },
@@ -16,7 +16,10 @@ export const manifest: ScreenManifest = {
     { label: 'Mera bill thoda complex hai', to: '/help', guide: 'ask' },
   ],
   states: ['owner', 'staff', 'accountant', 'composition'],
+  // Save floats only while something is unsaved (19 Oct).
+  optionalGuides: ['save'],
   guides: [
+    'person',
     'dukaan',
     'paise',
     'series',
@@ -32,9 +35,13 @@ export const manifest: ScreenManifest = {
     'save',
   ],
   tour: [
+    { target: 'person', say: 'Aapki profile: aapka naam. Ghar pe isi naam se namaste karenge.' },
     { target: 'dukaan', say: 'Dukaan ka naam, PAN, GST: yeh sab bill pe chhapta hai.' },
     { target: 'look', say: 'Logo, signature, design, paper: bill kaisa dikhe.' },
-    { target: 'voice', say: 'Bolke: aate hi awaaz chalu ho ya nahi.' },
+    {
+      target: 'voice',
+      say: 'Bolke: chalu ho to mic ke paas ek ishaara dikhega. Awaaz tab hi shuru hoti hai jab aap mic dabao.',
+    },
     { target: 'save', say: 'Kuch badla? Save karo.' },
   ],
   roles: {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { LOCALES, LOCALE_NAMES, t, type Locale } from '@ekbill/copy';
 import {
@@ -45,10 +45,11 @@ import {
   saveProfile,
   setBusinessFile,
 } from '../../actions/business';
-import { setLanguage, setTheme } from '../../actions/user';
+import { setLanguage, setName, setTheme } from '../../actions/user';
 import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { AapData, SeriesRow } from './data';
+import { switchLanguage } from './langSwitch';
 import { manifest } from './manifest';
 
 const TURNOVER: Record<string, string> = {
@@ -88,7 +89,7 @@ interface Form {
   defaultPaymentTermsDays: number;
   voiceOnArrival: boolean;
 }
-type Editing = null | 'dukaan' | 'paise' | 'look' | 'series' | 'sign';
+type Editing = null | 'person' | 'dukaan' | 'paise' | 'look' | 'series' | 'sign';
 
 function formOf(p: NonNullable<AapData['profile']>): Form {
   return {
@@ -167,8 +168,42 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
   const [signatureUrl, setSignatureUrl] = useState<string | null>(data.signatureUrl);
   const [signatureDraft, setSignatureDraft] = useState<string | null>(null);
   const [look, setLook] = useState(profile?.look ?? null);
+  // The person's own name (19 Oct): Home greets them by it. "Naya user" (not said yet) shows as not told.
+  const [personName, setPersonName] = useState(viewer.named ? viewer.personName : '');
+  const [personDraft, setPersonDraft] = useState('');
+  const [personError, setPersonError] = useState<string | undefined>(undefined);
+  const openPerson = viewer.signedIn
+    ? () => {
+        setPersonDraft(personName);
+        setPersonError(undefined);
+        setEditing('person');
+      }
+    : undefined;
+  // Home's "Apne baare mein batao" lands here with the name sheet open.
+  useEffect(() => {
+    if (window.location.hash === '#person') openPerson?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const keepPerson = async () => {
+    const name = personDraft.trim();
+    if (!name) return;
+    const r = await setName({ name }).catch(() => ({ ok: false as const, error: 'error.generic' }));
+    if (!r.ok) {
+      setPersonError(t(r.error));
+      return;
+    }
+    setPersonName(r.value.name);
+    setEditing(null);
+    router.refresh();
+  };
   const logoDoor = useRef<HTMLInputElement>(null);
   const dirty = form !== null && JSON.stringify(form) !== savedForm;
+  // "Saved" says so for a moment, then goes; an error stays until the owner changes something.
+  useEffect(() => {
+    if (notice?.kind !== 'ok') return;
+    const id = window.setTimeout(() => setNotice((n) => (n?.kind === 'ok' ? null : n)), 4000);
+    return () => window.clearTimeout(id);
+  }, [notice]);
   const patch = (p: Partial<Form>) => {
     setNotice(null);
     setForm((cur) => (cur ? { ...cur, ...p } : cur));
@@ -191,7 +226,15 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
       return;
     }
     setSaving(true);
-    const r = await saveProfile(inputOf(form));
+    // A save that throws (the network, the server) says so and lets go of the button: it was left disabled for good.
+    let r: Awaited<ReturnType<typeof saveProfile>>;
+    try {
+      r = await saveProfile(inputOf(form));
+    } catch {
+      setSaving(false);
+      setNotice({ kind: 'error', text: t('error.generic') });
+      return;
+    }
     setSaving(false);
     if (!r.ok) {
       setNotice({
@@ -300,6 +343,10 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
           {!owner ? ` · ${t('aap.staff.note')}` : ''}
         </Meta>
       </section>
+
+      <SettingGroup title={t('nav.profile')} guide="person">
+        <SettingRow label={t('aap.person')} value={personName || t('aap.person.empty')} onClick={openPerson} />
+      </SettingGroup>
 
       <SettingGroup title={t('aap.dukaan')} guide="dukaan">
         <SettingRow label={t('aap.dukaan.name')} value={form?.tradeName || business.name} onClick={openIf('dukaan')} />
@@ -455,8 +502,8 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
         />
       </SettingGroup>
       <SettingGroup title={t('aap.lang')} guide="lang">
-        {/* Five languages, each in its own script; they wrap on a phone. A saved choice reloads the page, so every
-            screen is drawn in it (the layout reads the language once per page). */}
+        {/* Five languages, each in its own script; they wrap on a phone. A saved choice changes the words in place,
+            with the new language's hello in between (switchLanguage), not a reload (19 Oct). */}
         <div className="eb-settings__block">
           <FilterChips<Locale>
             label={t('aap.lang')}
@@ -469,10 +516,16 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
                 setLang(was);
                 setNotice({ kind: 'error', text });
               };
-              void setLanguage({ language: v }).then(
-                (r) => (r.ok ? window.location.reload() : undo(t(r.error))),
-                () => undo(t('error.generic')),
-              );
+              let refused = 'error.generic';
+              void switchLanguage(
+                v,
+                async () => {
+                  const r = await setLanguage({ language: v });
+                  if (!r.ok) refused = r.error;
+                  return r.ok;
+                },
+                () => router.refresh(),
+              ).then((ok) => (ok ? undefined : undo(t(refused))));
             }}
             options={LOCALES.map((l) => ({ value: l, label: LOCALE_NAMES[l] }))}
           />
@@ -514,7 +567,9 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
       </SettingGroup>
 
       {/* One primary on the screen (I9): while a sheet is open its Done is the one, not Save. */}
-      {owner && editing === null ? (
+      {/* Save floats only while there is something to save: the rows that save on their own (language, colours,
+          voice, the bill's look) left it on screen saying "nothing changed" or a disabled "Saved" (19 Oct). */}
+      {owner && editing === null && (dirty || notice) ? (
         <div className="eb-sticky">
           {notice ? (
             <p
@@ -525,17 +580,42 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
               {notice.text}
             </p>
           ) : null}
-          <PrimaryCTA
-            data-guide="save"
-            icon="check"
-            onClick={() => void save()}
-            disabled={saving || (form !== null && !dirty && notice?.kind === 'ok')}
-            aria-pressed={!dirty && notice?.kind === 'ok'}
-          >
-            {!dirty && notice?.kind === 'ok' ? t('aap.saved') : t('aap.save')}
-          </PrimaryCTA>
+          {dirty ? (
+            <PrimaryCTA data-guide="save" icon="check" onClick={() => void save()} disabled={saving}>
+              {t('aap.save')}
+            </PrimaryCTA>
+          ) : null}
         </div>
       ) : null}
+
+      {/* --- Aapki profile: the person's own name --- */}
+      <Sheet
+        open={editing === 'person'}
+        title={t('nav.profile')}
+        onClose={() => setEditing(null)}
+        closeLabel={t('aap.edit.close')}
+      >
+        <div className="eb-stack">
+          <Field id="person" label={t('aap.person')} hint={t('aap.person.hint')} error={personError}>
+            <Input
+              id="person"
+              value={personDraft}
+              maxLength={80}
+              autoComplete="name"
+              onChange={(e) => {
+                setPersonError(undefined);
+                setPersonDraft(e.target.value);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && void keepPerson()}
+            />
+          </Field>
+          <div className="eb-actions">
+            <PrimaryCTA icon="check" onClick={() => void keepPerson()} disabled={!personDraft.trim()}>
+              {t('aap.edit.done')}
+            </PrimaryCTA>
+          </div>
+        </div>
+      </Sheet>
 
       {/* --- Dukaan --- */}
       <Sheet

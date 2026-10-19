@@ -198,6 +198,17 @@ export async function userByPhone(phoneE164: string): Promise<{ id: string; them
   return row ?? null;
 }
 
+/** The name a person has until they say theirs: Home asks "Apne baare mein batao" and greets no one by it (19 Oct). */
+export const NEW_USER_NAME = 'Naya user';
+/** The same for someone invited without a name (the owner gave only a phone). */
+export const NEW_MEMBER_NAME = 'Naya member';
+
+/** A name the person has said themselves, not one of the two placeholders: Home greets them by it. */
+export function isOwnName(name: string): boolean {
+  const n = name.trim();
+  return n !== '' && n !== NEW_USER_NAME && n !== NEW_MEMBER_NAME;
+}
+
 /**
  * The person with this phone, made on their first sign-in (Stage 10, OTP): the phone is the
  * identity, the name a placeholder the welcome screen asks them to change.
@@ -207,7 +218,7 @@ export async function userForPhone(phoneE164: string): Promise<{ id: string; the
   if (found) return found;
   await db()
     .insert(schema.users)
-    .values({ phoneE164, name: 'Naya user' })
+    .values({ phoneE164, name: NEW_USER_NAME })
     .onConflictDoNothing({ target: schema.users.phoneE164 });
   return (await userByPhone(phoneE164))!;
 }

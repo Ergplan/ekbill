@@ -94,7 +94,7 @@ export const SEED = {
       key: 'new',
       id: '00000000-0000-4000-8000-000000000005',
       phone: '+919822000005',
-      name: 'Naya owner',
+      name: 'Naya user', // NEW_USER_NAME: a sign-in that has not said its name yet (19 Oct)
       theme: 'narangi',
       language: 'hi-Latn',
     },
@@ -555,4 +555,6 @@ export async function keepNewOwnerNew(client: pg.ClientBase): Promise<void> {
     ]);
     await client.query('update sessions set business_id = null, role = null where user_id = $1', [naya.id]);
   }
+  // And nameless again: the setup's "Aapka naam" (19 Oct) is asked afresh.
+  await client.query('update users set name = $2 where id = $1', [naya.id, naya.name]);
 }

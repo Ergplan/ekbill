@@ -5,8 +5,19 @@ import { useRouter } from 'next/navigation';
 import { useEffect, type ReactNode } from 'react';
 
 import { t, type Locale } from '@ekbill/copy';
-import { GuideHighlight, Icon, IconButton, Logo, ProfileRing, TabBar, useTour, type GuideStep } from '@ekbill/ui';
+import {
+  GuideHighlight,
+  Icon,
+  IconButton,
+  Logo,
+  ProfileRing,
+  TabBar,
+  ThemeToggle,
+  useTour,
+  type GuideStep,
+} from '@ekbill/ui';
 
+import { setTheme } from '../../actions/user';
 import { localTour } from '../tour';
 import type { Registration, Role } from '../types';
 import { useVoice } from '../voice/VoiceProvider';
@@ -16,13 +27,15 @@ import { tabsFor } from './nav';
 export interface ShellViewer {
   personId: string;
   personName: string;
+  /** The person has said their name; until then Home asks "Apne baare mein batao" (19 Oct). */
+  named?: boolean;
   businessName: string | null;
   registration: Registration | null;
   role: Role;
   as: string | null;
   /** The person's own language (users.language); the dictionary switch arrives with the Aap wiring in Stage 4. */
   language?: Locale;
-  /** "Bolke" on Aap: the voice starts on arrival (Stage 9). */
+  /** "Bolke" on Aap: a hint by the mic once a visit; the voice starts only on a tap (19 Oct). */
   voice?: boolean;
   /** A signed-in member, not a look or the demo. */
   signedIn?: boolean;
@@ -63,7 +76,7 @@ export function AppShell({
   const guide = useTour(localTour(tour));
   const voice = useVoice();
   const talk = voice?.available ? voice.toggle : guide.running ? guide.stop : guide.start;
-  // The VoiceProvider reads this on arrival ("Bolke": start talking at once).
+  // The VoiceProvider reads this for its one hint by the mic ("Bolke"); it never starts the voice by itself (19 Oct).
   useEffect(() => {
     document.documentElement.dataset.bolke = viewer.voice ? 'on' : 'off';
   }, [viewer.voice]);
@@ -98,19 +111,42 @@ export function AppShell({
             // No tab bar here (the photo's review): the mic sits in the top bar instead.
             <IconButton name="mic" label={t('action.mic')} data-guide="mic" data-voice="owner" onClick={voice.toggle} />
           ) : null}
+          {/* Each control in the top bar says what it is under it (19 Oct: "what does the globe do?"). The theme sits
+              on the tab roots, beside the profile; a screen with a back and its own actions has no room for it. */}
+          {!back ? (
+            <span className="eb-topbar__act">
+              <ThemeToggle
+                label={t('aap.theme')}
+                onChange={(theme) => void setTheme({ theme }).catch(() => undefined)}
+              />
+              <span className="eb-topbar__cap" aria-hidden="true">
+                {t('aap.theme')}
+              </span>
+            </span>
+          ) : null}
           {tour.length ? (
-            <button
-              type="button"
-              className="eb-iconbtn"
-              aria-label={t('action.tour')}
-              data-testid="tour"
-              onClick={guide.running ? guide.stop : guide.start}
-            >
-              <Icon name="globe" size={20} />
-            </button>
+            <span className="eb-topbar__act">
+              <button
+                type="button"
+                className="eb-iconbtn"
+                aria-label={t('action.tour')}
+                data-testid="tour"
+                onClick={guide.running ? guide.stop : guide.start}
+              >
+                <Icon name="help" size={20} />
+              </button>
+              <span className="eb-topbar__cap" aria-hidden="true">
+                {t('action.tour')}
+              </span>
+            </span>
           ) : null}
           {!back ? (
-            <ProfileRing initial={initial} label={t('nav.you')} onClick={() => router.push(withAs('/aap'))} />
+            <span className="eb-topbar__act">
+              <ProfileRing initial={initial} label={t('nav.profile')} onClick={() => router.push(withAs('/aap'))} />
+              <span className="eb-topbar__cap" aria-hidden="true">
+                {t('nav.profile')}
+              </span>
+            </span>
           ) : null}
         </div>
       </header>

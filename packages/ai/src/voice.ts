@@ -7,14 +7,14 @@ import { loadPrompt } from './prompts';
 /**
  * The voice (Stage 9; salvaged from the MVP's src/lib/voice/session.ts and
  * app/api/voice/session): the server mints a short-lived client secret for
- * one OpenAI Realtime session, with the instructions (prompts/voice/v2.md)
+ * one OpenAI Realtime session, with the instructions (prompts/voice/v3.md)
  * and the tools baked in so the page cannot widen them. The browser talks to
  * OpenAI over WebRTC with that secret; the real key never leaves the server.
  * Each mint is one ai_calls row (purpose voice-session). The tools act through
  * the browser: open a screen, light up, fill, press the safe items; nothing
  * that commits (rule 17, I6).
  */
-export const VOICE_PROMPT = { name: 'voice', version: 2 } as const;
+export const VOICE_PROMPT = { name: 'voice', version: 3 } as const;
 export const TRANSCRIBE_PROMPT = { name: 'voice-transcribe', version: 2 } as const;
 export const VOICE_LANGUAGE_PROMPT = { name: 'voice-language', version: 1 } as const;
 

@@ -40,7 +40,10 @@ export interface VoiceApi {
 const VoiceContext = createContext<VoiceApi | null>(null);
 export const useVoice = () => useContext(VoiceContext);
 
-const AUTO_KEY = 'ekbill.voice.auto';
+// The hint by the mic ("Main yahan hoon…"), once a session; the voice itself starts only on a tap (19 Oct).
+const HINT_KEY = 'ekbill.voice.hint';
+/** Silence this long after the voice has finished and nobody is speaking or tapping ends the session (cost). */
+export const IDLE_MS = 3000;
 
 const HREF: Record<string, string> = {
   home: '/',
@@ -54,15 +57,6 @@ const HREF: Record<string, string> = {
   gst: '/gst',
   photo: '/bills/photo',
 };
-
-function store(key: string, value?: string): string | null {
-  try {
-    if (value !== undefined) localStorage.setItem(key, value);
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
 
 /**
  * The manifest of the screen at a path: static routes before ones with a
@@ -109,6 +103,18 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
   const fake = useRef<FakeHook | null>(null);
   const openedByVoice = useRef<string | null>(null);
   const speaking = useRef('');
+  const [hint, setHint] = useState(false);
+  // What is going on in the conversation, for the idle timer: a reply being made, audio playing, a tool running,
+  // the owner speaking. Silence is all four at rest.
+  const responding = useRef(false);
+  const playing = useRef(false);
+  const tools = useRef(0);
+  const listening = useRef(false);
+  const idle = useRef<number | null>(null);
+  const clearIdle = useCallback(() => {
+    if (idle.current !== null) window.clearTimeout(idle.current);
+    idle.current = null;
+  }, []);
 
   const send = useCallback((event: unknown) => {
     if (fake.current) fake.current.sent.push(event);
@@ -121,6 +127,12 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
   const attempt = useRef(0);
   const stop = useCallback(() => {
     attempt.current += 1;
+    if (idle.current !== null) window.clearTimeout(idle.current);
+    idle.current = null;
+    responding.current = false;
+    playing.current = false;
+    tools.current = 0;
+    listening.current = false;
     channel.current?.close();
     pc.current?.getSenders().forEach((s) => s.track?.stop());
     pc.current?.close();
@@ -133,6 +145,11 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
     setState('idle');
   }, []);
   useEffect(() => () => stop(), [stop]);
+  const armIdle = useCallback(() => {
+    clearIdle();
+    if (responding.current || playing.current || tools.current > 0 || listening.current) return;
+    idle.current = window.setTimeout(() => stop(), IDLE_MS);
+  }, [clearIdle, stop]);
 
   const tellScreen = useCallback(
     (reason: string) =>
@@ -235,6 +252,24 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
       } catch {
         return;
       }
+      if (ev.type === 'input_audio_buffer.speech_started') {
+        listening.current = true;
+        clearIdle();
+      } else if (ev.type === 'input_audio_buffer.speech_stopped') {
+        listening.current = false;
+      } else if (ev.type === 'response.created') {
+        responding.current = true;
+        clearIdle();
+      } else if (ev.type === 'response.done') {
+        responding.current = false;
+        armIdle();
+      } else if (ev.type === 'output_audio_buffer.started') {
+        playing.current = true;
+        clearIdle();
+      } else if (ev.type === 'output_audio_buffer.stopped' || ev.type === 'output_audio_buffer.cleared') {
+        playing.current = false;
+        armIdle();
+      }
       if (ev.type === 'response.output_audio_transcript.delta') {
         speaking.current += ev.delta ?? '';
       } else if (ev.type === 'response.output_audio_transcript.done') {
@@ -246,17 +281,23 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
         } catch {
           // Not JSON: no arguments.
         }
-        const output = await runTool(ev.name ?? '', args);
+        tools.current += 1;
+        clearIdle();
+        const output = await runTool(ev.name ?? '', args).finally(() => {
+          tools.current -= 1;
+        });
         send({
           type: 'conversation.item.create',
           item: { type: 'function_call_output', call_id: ev.call_id, output: JSON.stringify(output) },
         });
         send({ type: 'response.create' });
       } else if (ev.type === 'error') {
-        setNote(t('voice.failed'));
+        // Cancelling a reply that had just ended is not a failure the owner needs to hear about.
+        const code = (ev.error as { code?: string } | undefined)?.code ?? '';
+        if (!/cancel/.test(code)) setNote(t('voice.failed'));
       }
     },
-    [runTool, send],
+    [runTool, send, clearIdle, armIdle],
   );
 
   const start = useCallback(async () => {
@@ -280,7 +321,6 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
         setState('error');
         return;
       }
-      store(AUTO_KEY, 'on');
       if (body.fake) {
         const hook: FakeHook = { sent: [], run: runTool };
         fake.current = hook;
@@ -325,7 +365,7 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
           type: 'response.create',
           response: {
             instructions:
-              'Greet the owner in a few words, say in one sentence what this screen is for, and show() the first useful thing.',
+              "Greet the owner in at most five words in the language you speak (like 'Haan ji, boliye?') and wait. Do not describe the screen.",
           },
         });
       };
@@ -367,37 +407,75 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
     return () => document.removeEventListener('click', onClick);
   }, [state, router]);
 
-  // A new screen while talking: tell the model what is on it, and carry on.
+  // A new screen while talking. One the voice opened: carry on with the task. One the owner opened: the voice stops
+  // mid-sentence and stays quiet, and is only told what is on the screen; tapping through screens quickly left it
+  // talking about screens already gone (19 Oct).
   useEffect(() => {
     if (state !== 'live') return;
-    const id = window.setTimeout(() => {
+    const byVoice = openedByVoice.current === window.location.pathname;
+    if (!byVoice) {
+      if (responding.current) send({ type: 'response.cancel' });
+      if (playing.current) send({ type: 'output_audio_buffer.clear' });
       setStep(null);
-      const byVoice = openedByVoice.current === window.location.pathname;
+    }
+    const id = window.setTimeout(() => {
       openedByVoice.current = null;
+      setStep(null);
       tellScreen(byVoice ? 'opened-by-voice' : 'opened-by-owner');
-      send({
-        type: 'response.create',
-        response: {
-          instructions: byVoice
-            ? 'The screen you opened is ready. Carry on with what the owner asked: show() the next thing to fill or tap and ask for it in one short question.'
-            : 'The owner opened this screen. In one short sentence say what they can do here and show() the first useful thing.',
-        },
-      });
+      if (byVoice)
+        send({
+          type: 'response.create',
+          response: {
+            instructions:
+              'The screen you opened is ready. Carry on with what the owner asked: show() the next thing to fill or tap and ask for it in one short question.',
+          },
+        });
     }, 900);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  // "Bolke" on arrival: an owner who switched voice on and used it on this phone before starts talking at once.
-  // Never in a browser driven by tests (the journeys start it with the mic).
+  // The owner busy on the screen (tapping, typing) is not silence.
   useEffect(() => {
-    if (!available || navigator.webdriver) return;
-    const on = document.documentElement.dataset.bolke === 'on';
-    if (!on || store(AUTO_KEY) !== 'on') return;
-    const id = window.setTimeout(() => void start(), 0);
+    if (state !== 'live') return;
+    const busy = () => {
+      if (idle.current !== null) armIdle();
+    };
+    document.addEventListener('pointerdown', busy);
+    document.addEventListener('keydown', busy);
+    return () => {
+      document.removeEventListener('pointerdown', busy);
+      document.removeEventListener('keydown', busy);
+    };
+  }, [state, armIdle]);
+
+  // The voice never starts by itself (it did on arrival for anyone who had used it on the phone, 19 Oct). Once a
+  // session, signed in, with "Bolke" on in Aap, a line by the mic says it is there; it goes on the first tap anywhere
+  // or after eight seconds.
+  useEffect(() => {
+    if (!available) return;
+    const id = window.setTimeout(() => {
+      if (document.documentElement.dataset.bolke !== 'on') return;
+      try {
+        if (sessionStorage.getItem(HINT_KEY)) return;
+        sessionStorage.setItem(HINT_KEY, '1');
+      } catch {
+        return;
+      }
+      setHint(true);
+    }, 1200);
     return () => window.clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [available]);
+  useEffect(() => {
+    if (!hint) return;
+    const off = () => setHint(false);
+    const id = window.setTimeout(off, 8000);
+    document.addEventListener('pointerdown', off, { once: true });
+    return () => {
+      window.clearTimeout(id);
+      document.removeEventListener('pointerdown', off);
+    };
+  }, [hint]);
 
   const api = useMemo<VoiceApi>(
     () => ({
@@ -424,6 +502,10 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
       ) : note ? (
         <div className="eb-voice" role="status" data-testid="voice-note">
           <span>{note}</span>
+        </div>
+      ) : hint && state === 'idle' ? (
+        <div className="eb-voice eb-voice--hint" role="status" data-testid="voice-hint">
+          <span>{t('voice.hint')}</span>
         </div>
       ) : null}
       <GuideHighlight step={step} />

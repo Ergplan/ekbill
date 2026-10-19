@@ -24,7 +24,7 @@ describe('sessions resolve to a scope (resolveScope)', () => {
     const naya = seedUser('new')!;
     const s = await createSession({ userId: naya.id, businessId: null });
     const r = await resolveScope(s.id, 'req-2');
-    expect(r?.user.name).toBe('Naya owner');
+    expect(r?.user.name).toBe('Naya user');
     expect(r?.business).toBeNull();
     expect(r?.scope).toBeNull();
     expect(await membershipsOf(naya.id)).toEqual([]);

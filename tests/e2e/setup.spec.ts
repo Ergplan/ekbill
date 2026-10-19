@@ -37,6 +37,9 @@ for (const theme of THEMES) {
   test(`a brand-new owner sets up a regular business with a signature (${theme})`, async ({ page }) => {
     await become(page, 'new', '/setup/name', theme);
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    // "Apne baare mein batao" (19 Oct): the person's own name, then the shop's.
+    await expect(page.getByTestId('greeting')).toHaveText(/Namaste/);
+    await page.getByLabel('Aapka naam').fill(`Ramesh ${theme}`);
     await page.getByLabel(/dukaan ka naam/i).fill(`Naya Traders ${theme}`);
     await page.getByRole('button', { name: 'Aage' }).click();
     await page.getByRole('radio', { name: 'Haan' }).first().click();
@@ -59,6 +62,9 @@ for (const theme of THEMES) {
     await expect(page).toHaveURL(/\/$/, { timeout: 20_000 });
     await hydrated(page);
     await expect(page.locator('main')).toContainText(`Naya Traders ${theme}`);
+    // Signed up and named: Home says Namaste by name, and the star is the first bill.
+    await expect(page.getByTestId('greeting')).toContainText(`Ramesh ${theme} ji`);
+    await expect(page.locator('.eb-star [data-primary="true"]')).toHaveText(/Pehla bill banao/);
     // Aap shows everything that was saved.
     await page.goto('/aap');
     await hydrated(page);
@@ -107,9 +113,8 @@ test('Aap: the owner edits the shop, Save works once, staff cannot save; the log
   await become(page, 'sharma', '/aap', 'narangi');
   const main = page.locator('main');
   await expect(main).toContainText('Sharma Electricals');
-  // Nothing changed yet.
-  await page.getByRole('button', { name: 'Save karo' }).click();
-  await expect(page.getByTestId('aap-notice')).toContainText('Kuch badla nahi');
+  // Nothing changed yet: no Save on the screen (it was there, saying "nothing changed" or a disabled "Saved").
+  await expect(page.getByRole('button', { name: 'Save karo' })).toHaveCount(0);
   // Edit the shop: a PIN code and an email this run alone would pick, then save once.
   const stamp = String(Date.now()).slice(-5);
   await page.getByText('Naam', { exact: true }).first().click();
@@ -121,7 +126,7 @@ test('Aap: the owner edits the shop, Save works once, staff cannot save; the log
   await page.getByRole('button', { name: 'Theek hai' }).click();
   await page.getByRole('button', { name: 'Save karo' }).click();
   await expect(page.getByTestId('aap-notice')).toContainText('Save ho gaya');
-  await expect(page.getByRole('button', { name: 'Save ho gaya' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Save karo' })).toHaveCount(0);
   // A wrong PIN is refused with the field named.
   await page.getByText('Naam', { exact: true }).first().click();
   await page.getByLabel('PIN code').fill('12');
