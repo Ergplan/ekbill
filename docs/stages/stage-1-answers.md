@@ -73,3 +73,16 @@ The build agent takes these as the answer to change the approved design where th
 - **Bills**: a "Kaccha (estimate)" chip lists the estimates, each with the pakka bill made from it.
 - **The bill's own page** (`/b/<link>`, new): what the customer opens from WhatsApp, with no sign-in.
 - **The demo**: a step on the kaccha bill after the pakka one; the WhatsApp step says the number is typed. The photo lines say "haath se likha bill" (a handwritten bill), as "kaccha bill" now means an estimate.
+
+## 20 Oct 2026, evening: a real application, GST item by item, the bill screen's navigation and "Bill badlo" (I10)
+
+The operator wrote, on the VM, signed out (the sample shop): "AAPKI PROFILE … why some links are not working?"; then, with a bill whose three lines carried different rates under one CGST and one SGST: "each item has different GST, do not club the GST, also GST should be item wise by default rather than clicking and selecting alag alag GST, Where is language change mode? I think you have confused testing environment a bit. The anchor navigation is missing in the bill screen, also there is no bill editing button immediately after the bill generation. Customer needs to go back to main screens of bills to modify the bill." And: "So give us a real application to test everything, not needed dummy application at this stage. If OTP is not linked then just say proceed without mobile registration." And: "But give us a fully functional application pleaseeee".
+
+The build agent takes these as the answer to change the approved design where they say, and re-records the baselines they move, both themes:
+
+- **No sample shop for a visitor**: signed out, every screen goes to the welcome; the sample stays only as a look (`?as=`, the demo and /flow).
+- **Welcome and sign-in, while SMS is off**: "Mobile ke bina aage badho" makes an account of one's own (a new person, then their own shop); a number typed on the sign-in is the account at once, with no code step, and the screen says SMS codes are not on yet.
+- **The bill form**: every line has its own GST rate from the start (an item's own rate when it has one); "Sab pe ek rate" stays in the GST sheet. The bottom navigation stays on the form, the "Bill banao" bar above it.
+- **The bill**: a GST column gives each line's rate, and the tax is one CGST and one SGST (or IGST) row per rate, in the form, on the screen and on the PDF.
+- **Bill ban gaya**: the bottom navigation stays; the owner has "Galti hai? Bill badlo" (the bill is cancelled, as GST requires, and the form opens again with the same customer and lines).
+- **Aap**: the language sits right under "Aapki profile".

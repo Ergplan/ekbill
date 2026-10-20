@@ -349,6 +349,37 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
       <SettingGroup title={t('nav.profile')} guide="person">
         <SettingRow label={t('aap.person')} value={personName || t('aap.person.empty')} onClick={openPerson} />
       </SettingGroup>
+      {/* The language right under the person (20 Oct: "Where is language change mode?"). */}
+      <SettingGroup title={t('aap.lang')} guide="lang">
+        {/* Five languages, each in its own script; they wrap on a phone. A saved choice changes the words in place,
+            with the new language's hello in between (switchLanguage), not a reload (19 Oct). */}
+        <div className="eb-settings__block">
+          <FilterChips<Locale>
+            label={t('aap.lang')}
+            value={lang}
+            onChange={(v) => {
+              const was = lang;
+              setLang(v);
+              // A save that fails says so and puts the choice back: the screen never shows what was not kept.
+              const undo = (text: string) => {
+                setLang(was);
+                setNotice({ kind: 'error', text });
+              };
+              let refused = 'error.generic';
+              void switchLanguage(
+                v,
+                async () => {
+                  const r = await setLanguage({ language: v });
+                  if (!r.ok) refused = r.error;
+                  return r.ok;
+                },
+                () => router.refresh(),
+              ).then((ok) => (ok ? undefined : undo(t(refused))));
+            }}
+            options={LOCALES.map((l) => ({ value: l, label: LOCALE_NAMES[l] }))}
+          />
+        </div>
+      </SettingGroup>
 
       <SettingGroup title={t('aap.dukaan')} guide="dukaan">
         <SettingRow label={t('aap.dukaan.name')} value={form?.tradeName || business.name} onClick={openIf('dukaan')} />
@@ -502,36 +533,6 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
             />
           }
         />
-      </SettingGroup>
-      <SettingGroup title={t('aap.lang')} guide="lang">
-        {/* Five languages, each in its own script; they wrap on a phone. A saved choice changes the words in place,
-            with the new language's hello in between (switchLanguage), not a reload (19 Oct). */}
-        <div className="eb-settings__block">
-          <FilterChips<Locale>
-            label={t('aap.lang')}
-            value={lang}
-            onChange={(v) => {
-              const was = lang;
-              setLang(v);
-              // A save that fails says so and puts the choice back: the screen never shows what was not kept.
-              const undo = (text: string) => {
-                setLang(was);
-                setNotice({ kind: 'error', text });
-              };
-              let refused = 'error.generic';
-              void switchLanguage(
-                v,
-                async () => {
-                  const r = await setLanguage({ language: v });
-                  if (!r.ok) refused = r.error;
-                  return r.ok;
-                },
-                () => router.refresh(),
-              ).then((ok) => (ok ? undefined : undo(t(refused))));
-            }}
-            options={LOCALES.map((l) => ({ value: l, label: LOCALE_NAMES[l] }))}
-          />
-        </div>
       </SettingGroup>
       <SettingGroup title={t('aap.voice')} guide="voice">
         <SettingRow

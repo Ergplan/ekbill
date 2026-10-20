@@ -1021,5 +1021,14 @@
   "tour.home.kaccha": "Kaccha bill means an estimate: the customer checks it first. It is not counted; later, one tap makes the pakka bill.",
   "demo.kaccha": "And this is the kaccha bill, an estimate: the customer checks it first. It is not counted, and once they agree, one tap makes the pakka bill.",
   "tour.bill.kind": "A pakka bill or a kaccha one (an estimate): choose here.",
-  "tour.bill-view.pakka": "Did the customer agree? Make the pakka bill: the same items are filled in."
+  "tour.bill-view.pakka": "Did the customer agree? Make the pakka bill: the same items are filled in.",
+  "login.guest": "Continue without a mobile number",
+  "login.nosms": "SMS codes are not switched on yet: enter your number and you are in. Or continue without a mobile number.",
+  "done.edit": "A mistake? Change the bill",
+  "done.edit.kaccha": "A mistake? Change the estimate",
+  "done.edit.q": "Change this bill?",
+  "done.edit.sub": "{number} will be cancelled (GST shows it as cancelled; a number is never reused) and a new bill opens with the same customer and items. Change it and make it again.",
+  "done.edit.sub.kaccha": "{number} will be cancelled and a new estimate opens with the same customer and items.",
+  "done.edit.go": "Yes, change it",
+  "done.edit.reason": "Changed right after making it"
 }

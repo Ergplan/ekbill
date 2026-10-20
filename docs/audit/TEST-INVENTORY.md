@@ -8,7 +8,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 | ----------- | ----- | ------ |
 | unit        | 46    | 426    |
 | integration | 29    | 325    |
-| e2e         | 20    | 84     |
+| e2e         | 21    | 88     |
 
 ## unit
 
@@ -1064,7 +1064,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the brand-new owner lands on welcome; an unknown person goes back to the list
 - the theme persists per user: Sharma ji picks Harmony, Ravi stays Narangi, Sharma ji is still Harmony
 - the language is the personâ€™s: Ravi picks each of the five, the screens speak it, then Hinglish again
-- with sign-in off, a new phone at login is a new owner: the code fills itself in, Home greets, then setup
+- with sign-in off, a new phone at login is a new owner, signed in at once: Home greets, then setup
 - in the build both OTP doors are closed (404) and the switcher is the door
 - Aapki profile: the name said on Aap is the one Home greets by, and Pakka bill is the star (19, 20 Oct)
 
@@ -1103,6 +1103,13 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 - the owner asks about Mehta Traders: an answer from the records, cited, and the record one tap away
 - the accountant asks too, in her English; a question about nothing says nothing was found
+
+### `tests/e2e/real-app.spec.ts`
+
+- signed out, no sample shop: the welcome, and an account of one's own without a mobile
+- with SMS off, a number typed on the sign-in is the account, signed in at once
+- GST item by item: each line its own rate from the start, the bill says each rate, and the heads are per rate
+- staff see no "Bill badlo" (cancel is the owner\'s)
 
 ### `tests/e2e/screens.spec.ts` Ã—
 

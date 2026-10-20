@@ -26,6 +26,8 @@ import { longDate } from '../fixtures';
 import { billFileName } from '../links';
 import { billFileUrl, prefetchFile } from '../share';
 import { WhatsAppSend } from '../wa-send';
+import { cancelBill } from '../../actions/bills';
+import { sayRefusal } from '../refusal';
 import type { BillDoneData } from './data';
 import { manifest } from './manifest';
 
@@ -65,6 +67,28 @@ export function BillDoneScreen({
   const [share, setShare] = useState<'pdf' | 'jpg'>(shareDefault);
   const [paperSize, setPaperSize] = useState<Size>(live ? (SIZE_OF[live.paperSize] ?? 'A4') : 'A4');
   const [sizeOpen, setSizeOpen] = useState(false);
+  // "Bill badlo" (20 Oct): an issued bill is never edited (I2); the owner cancels it here and the form opens again
+  // with the same customer and lines, as "Cancel karke naya banao" does on the bill's own screen.
+  const [editOpen, setEditOpen] = useState(false);
+  const [editBusy, setEditBusy] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const canEdit = Boolean(live) && viewer.role === 'owner';
+  const editBill = async () => {
+    if (!live || editBusy) return;
+    setEditBusy(true);
+    setEditError(null);
+    const r = await cancelBill({ id: live.documentId, cancelledReason: t('done.edit.reason') }).catch(() => ({
+      ok: false as const,
+      error: 'error.generic',
+    }));
+    setEditBusy(false);
+    if (!r.ok) {
+      setEditError(sayRefusal(r));
+      return;
+    }
+    const redo = `redo=${encodeURIComponent(live.number)}${kaccha ? '&kaccha=1' : ''}`;
+    router.push(as(live.customerId ? `/bills/new?customer=${live.customerId}&${redo}` : `/bills/new?new=1&${redo}`));
+  };
   // The file is fetched while the owner reads the bill, so the share tap hands it over at once (Stage 6 review).
   useEffect(() => {
     if (live) void prefetchFile(billFileUrl(live.documentId, share, paperSize));
@@ -96,6 +120,7 @@ export function BillDoneScreen({
           qty: String(l.quantityMilli / 1000),
           rate: l.unitPricePaise,
           amount: l.taxablePaise,
+          gst: computed.gstPaise > 0 ? `${l.gstBp / 100}%` : null,
         })),
       taxLines: computed.heads,
       totalPaise: computed.totalPaise,
@@ -106,7 +131,7 @@ export function BillDoneScreen({
   const fileName = billFileName(paper.number, share);
 
   return (
-    <AppShell viewer={viewer} tab="bills" tour={manifest.tour} noTabs>
+    <AppShell viewer={viewer} tab="bills" tour={manifest.tour}>
       <SuccessHeader
         title={t(kaccha ? 'done.kaccha.title' : 'done.title')}
         sub={t('done.sub', { number: paper.number, customer: paper.customer.name, amount: rupees(paper.totalPaise) })}
@@ -116,7 +141,7 @@ export function BillDoneScreen({
       </div>
       <div>
         <WhatsAppSend
-          buttonClassName="eb-sticky eb-sticky--bare"
+          buttonClassName="eb-sticky"
           title={`${paper.title} ${paper.number}`}
           text={t(kaccha ? 'done.wa.text.kaccha' : 'done.wa.text', {
             customer: paper.customer.name,
@@ -172,6 +197,13 @@ export function BillDoneScreen({
         ) : null}
       </div>
       <Meta>{t('bill.registers')}</Meta>
+      {canEdit ? (
+        <div className="eb-actions">
+          <GhostButton data-guide="edit" onClick={() => setEditOpen(true)}>
+            {t(kaccha ? 'done.edit.kaccha' : 'done.edit')}
+          </GhostButton>
+        </div>
+      ) : null}
       <div className="eb-actions">
         <GhostButton data-guide="home" onClick={() => router.push(as('/'))}>
           {t('done.home')}
@@ -191,6 +223,22 @@ export function BillDoneScreen({
           {t('done.again')}
         </GhostButton>
       </div>
+      <Sheet
+        open={editOpen}
+        title={t('done.edit.q')}
+        onClose={() => setEditOpen(false)}
+        closeLabel={t('action.cancel')}
+      >
+        <Meta>{t(kaccha ? 'done.edit.sub.kaccha' : 'done.edit.sub', { number: paper.number })}</Meta>
+        {editError ? (
+          <p className="eb-meta" role="alert">
+            {editError}
+          </p>
+        ) : null}
+        <OutlineButton disabled={editBusy} onClick={() => void editBill()}>
+          {t('done.edit.go')}
+        </OutlineButton>
+      </Sheet>
       <Sheet
         open={sizeOpen}
         title={t('done.size.q')}

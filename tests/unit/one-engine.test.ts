@@ -93,7 +93,13 @@ describe('computeTax (I4: the one tax calculation)', () => {
   it('rates per line are honoured', () => {
     const r = computeTax({ ...intra, lines: [line('A', '1', '100', 5), line('B', '1', '100', 18)] });
     expect(r.lines.map((l) => l.cgstPaise + l.statePaise)).toEqual([500, 1800]);
-    expect(r.heads.map((h) => h.label)).toEqual(['CGST', 'SGST']);
+    // Each rate its own heads (20 Oct: "do not club the GST").
+    expect(r.heads).toEqual([
+      { label: 'CGST 2.5%', paise: 250 },
+      { label: 'SGST 2.5%', paise: 250 },
+      { label: 'CGST 9%', paise: 900 },
+      { label: 'SGST 9%', paise: 900 },
+    ]);
   });
   it('refuses an unsafe product instead of returning a wrong total', () => {
     expect(() => computeTax({ ...intra, lines: [line('A', '100000000', '100000000', 18)] })).toThrow();
@@ -237,8 +243,10 @@ const FIXTURES: Fixture[] = [
       gstPaise: 41000,
       totalPaise: 341000,
       heads: [
-        { label: 'CGST', paise: 20500 },
-        { label: 'SGST', paise: 20500 },
+        { label: 'CGST 2.5%', paise: 2500 },
+        { label: 'SGST 2.5%', paise: 2500 },
+        { label: 'CGST 9%', paise: 18000 },
+        { label: 'SGST 9%', paise: 18000 },
       ],
     },
   },

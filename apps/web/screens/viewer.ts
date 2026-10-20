@@ -3,6 +3,8 @@ import 'server-only';
 
 import { DEMO_VERSION, isOwnName, seedBusinessById, seedUserById, type Resolved } from '@ekbill/db';
 
+import { redirect } from 'next/navigation';
+
 import { current } from '../server/session';
 import { loadBusiness, type LoadedBusiness } from './business';
 import { FIXTURE, type Business, type Person } from './fixtures';
@@ -67,21 +69,10 @@ export async function getViewer(searchParams?: SearchParams): Promise<Viewer> {
       loaded: null,
     };
   }
-  if (!session) {
-    // No session: the demo owner, read-only in spirit (every write needs a scope and answers auth.signed.out).
-    const person = FIXTURE.people[0]!;
-    const business = FIXTURE.businesses.find((b) => b.id === person.business) ?? null;
-    return {
-      person,
-      business,
-      role: person.role,
-      as: null,
-      session: null,
-      theme: 'narangi',
-      language: 'hi-Latn',
-      loaded: null,
-    };
-  }
+  // No session: the welcome screen (sign-in, the demo), never the sample shop dressed as one's own (20 Oct, the
+  // operator on the VM: the sample's Aap, language, voice and bills looked broken because nothing could be saved).
+  // The sample stays reachable as what it is: a look (?as=), as the demo and /flow use it.
+  if (!session) redirect('/welcome');
   const seedUser = seedUserById(session.user.id);
   const seedBusiness = session.business ? seedBusinessById(session.business.id) : null;
   const role: Role = session.role ?? 'owner';

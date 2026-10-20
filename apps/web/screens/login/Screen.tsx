@@ -129,8 +129,9 @@ export function LoginScreen({ state: asked, otp = false }: { state: 'phone' | 'c
       return;
     }
     setLogin({ phone: digits });
+    // No SMS set up (20 Oct): the number typed is the account, signed in at once; no code to wait for.
     if (!otp) {
-      router.push('/login?state=code');
+      router.push(`/dev/switch/${encodeURIComponent(`+91${digits}`)}?signin=1`);
       return;
     }
     setBusy(true);
@@ -198,11 +199,19 @@ export function LoginScreen({ state: asked, otp = false }: { state: 'phone' | 'c
                 />
               </div>
             </Field>
+            {otp ? null : <Meta>{t('login.nosms')}</Meta>}
             <div className="eb-sticky eb-sticky--bare">
               <PrimaryCTA data-guide="next" id="otp-send" disabled={busy} onClick={sendCode}>
                 {t('action.next')}
               </PrimaryCTA>
             </div>
+            {otp ? null : (
+              <div className="eb-actions">
+                <GhostButton data-guide="guest" onClick={() => router.push('/dev/switch/guest')}>
+                  {t('login.guest')}
+                </GhostButton>
+              </div>
+            )}
           </>
         ) : (
           <>

@@ -188,7 +188,12 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
               redoLines.map((l) => l.gstRate),
               defaultRate,
             )
-          : { mode: 'one' as const, rate: previous?.gstRate ?? defaultRate, perLine: [] }),
+          : // Each line its own rate from the start (20 Oct: "GST should be item wise by default").
+            {
+              mode: 'perline' as const,
+              rate: previous?.gstRate ?? defaultRate,
+              perLine: [previous?.gstRate ?? defaultRate],
+            }),
       },
       series: series?.prefix.replace(/[-/]+$/, '') ?? '',
       number,
@@ -304,7 +309,12 @@ function loadFixtureForm(
               redoBill.lines.map((l) => l.gstRate),
               defaultRate,
             )
-          : { mode: 'one' as const, rate: previous?.gstRate ?? defaultRate, perLine: [] }),
+          : // Each line its own rate from the start (20 Oct: "GST should be item wise by default").
+            {
+              mode: 'perline' as const,
+              rate: previous?.gstRate ?? defaultRate,
+              perLine: [previous?.gstRate ?? defaultRate],
+            }),
       },
       series: series.prefix,
       number,

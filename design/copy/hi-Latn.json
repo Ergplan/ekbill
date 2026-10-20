@@ -1014,5 +1014,14 @@
   "tour.home.kaccha": "Kaccha bill yaani estimate: customer pehle dekh le. Hisaab mein nahi judta; baad mein ek tap se pakka bill.",
   "demo.kaccha": "Aur yeh Kaccha bill, yaani estimate: customer pehle dekh le. Hisaab mein nahi judta, aur haan bolne pe ek tap mein pakka bill.",
   "tour.bill.kind": "Pakka bill ya kaccha (estimate): yahan chuno.",
-  "tour.bill-view.pakka": "Customer ne haan bola? Pakka bill banao: saamaan wahi bhar jaayega."
+  "tour.bill-view.pakka": "Customer ne haan bola? Pakka bill banao: saamaan wahi bhar jaayega.",
+  "login.guest": "Mobile ke bina aage badho",
+  "login.nosms": "SMS code abhi chalu nahi hai: number daalte hi aap andar. Ya bina mobile ke aage badho.",
+  "done.edit": "Galti hai? Bill badlo",
+  "done.edit.kaccha": "Galti hai? Estimate badlo",
+  "done.edit.q": "Bill badlein?",
+  "done.edit.sub": "{number} cancel ho jaayega (GST mein cancel dikhega, number dobara nahi lagta) aur isi customer aur saamaan ke saath naya bill khulega. Badal ke phir banao.",
+  "done.edit.sub.kaccha": "{number} cancel ho jaayega aur isi customer aur saamaan ke saath naya estimate khulega.",
+  "done.edit.go": "Haan, badlo",
+  "done.edit.reason": "Banate hi badla"
 }

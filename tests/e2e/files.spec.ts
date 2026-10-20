@@ -21,7 +21,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('photo bill: a photo from the library is read into the draft and shown on the review', async ({ page }) => {
-  await page.goto('/bills/photo');
+  await page.goto('/bills/photo?as=owner');
   await hydrated(page);
   // The two doors are real file inputs: the camera one asks the OS for the camera app.
   await expect(page.locator('input[data-guide="camera"]')).toHaveAttribute('capture', 'environment');
@@ -36,7 +36,7 @@ test('photo bill: a photo from the library is read into the draft and shown on t
 });
 
 test('photo bill: a file over 10 MB is refused with the words, nothing is read', async ({ page }) => {
-  await page.goto('/bills/photo');
+  await page.goto('/bills/photo?as=owner');
   await hydrated(page);
   await page.locator('input[data-guide="gallery"]').setInputFiles({
     name: 'huge.jpg',
@@ -44,11 +44,11 @@ test('photo bill: a file over 10 MB is refused with the words, nothing is read',
     buffer: Buffer.alloc(10 * 1024 * 1024 + 1),
   });
   await expect(page.getByText(/huge\.jpg badi hai/)).toBeVisible();
-  await expect(page).toHaveURL(/\/bills\/photo$/);
+  await expect(page).toHaveURL(/\/bills\/photo\?as=owner$/);
 });
 
 test('import: the chosen files (PDF, Excel, photo) are the ones the reading names', async ({ page }) => {
-  await page.goto('/customers/import');
+  await page.goto('/customers/import?as=owner');
   await hydrated(page);
   const door = page.locator('input[data-guide="files"]');
   await expect(door).toHaveAttribute('multiple', '');
@@ -79,7 +79,7 @@ test('aap: the logo comes from the files folder and shows on the row', async ({ 
 });
 
 test('@desktop photo bill: a laptop uses the live camera, with the browser’s own permission', async ({ page }) => {
-  await page.goto('/bills/photo');
+  await page.goto('/bills/photo?as=owner');
   await hydrated(page);
   await page.getByRole('radio', { name: 'Photo lo' }).click();
   await expect(page.locator('[data-guide="camera-live"]')).toBeVisible();

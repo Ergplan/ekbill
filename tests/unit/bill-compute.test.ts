@@ -45,7 +45,10 @@ describe('the bill form reads the engine (I4)', () => {
       sharma,
     );
     expect(c.lines.map((l) => l.igstPaise)).toEqual([500, 1800]);
-    expect(c.heads).toEqual([{ label: 'IGST', paise: 2300 }]);
+    expect(c.heads).toEqual([
+      { label: 'IGST 5%', paise: 500 },
+      { label: 'IGST 18%', paise: 1800 },
+    ]);
   });
   it('never taxes a composition business or a bill with GST switched off', () => {
     expect(

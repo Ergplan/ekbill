@@ -18,7 +18,9 @@ const ROLE_AS: Record<string, string> = { owner: 'owner', staff: 'staff', accoun
  * screens the pack drew, the pixel difference against its PNG is reported.
  */
 async function open(page: Page, url: string, theme: string, as?: string) {
-  const u = as ? `${url}${url.includes('?') ? '&' : '?'}as=${as}` : url;
+  // The sample shop is a look (20 Oct: signed out, every screen goes to the welcome): the owner's, unless named.
+  const look = as ?? (url.includes('as=') ? null : 'owner');
+  const u = look ? `${url}${url.includes('?') ? '&' : '?'}as=${look}` : url;
   await page.context().addCookies([{ name: 'eb-theme', value: theme, url: 'http://127.0.0.1:3000' }]);
   await page.goto(u);
   await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });

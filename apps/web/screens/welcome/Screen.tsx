@@ -8,7 +8,7 @@ import { Display, GhostButton, GuideHighlight, HeroPanel, Icon, Logo, Meta, Prim
 import { useDemo } from '../demo/DemoProvider';
 import { manifest } from './manifest';
 
-export function WelcomeScreen() {
+export function WelcomeScreen({ guest = false }: { guest?: boolean }) {
   const router = useRouter();
   const guide = useTour(manifest.tour);
   const demo = useDemo();
@@ -44,6 +44,11 @@ export function WelcomeScreen() {
             <PrimaryCTA data-guide="start" onClick={() => router.push('/login')}>
               {t('welcome.cta')}
             </PrimaryCTA>
+            {guest ? (
+              <GhostButton data-guide="guest" onClick={() => router.push('/dev/switch/guest')}>
+                {t('login.guest')}
+              </GhostButton>
+            ) : null}
           </div>
         </HeroPanel>
         <section className="eb-heading">

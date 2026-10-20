@@ -204,22 +204,7 @@ export function computeTax(input: TaxInput): TaxResult {
   const totalPaise = input.roundToRupee ? roundToRupee(totalBeforeRoundingPaise) : totalBeforeRoundingPaise;
   const roundOffPaise = totalPaise - totalBeforeRoundingPaise;
 
-  const rates = [...new Set(lines.filter((l) => l.gstBp && !l.blank).map((l) => l.gstBp))];
   const pct = (bp: number) => `${bp / 100}%`;
-  const heads: TaxResult['heads'] = [];
-  if (cgstPaise + statePaise + igstPaise > 0) {
-    if (!intra) heads.push({ label: rates.length === 1 ? `IGST ${pct(rates[0]!)}` : 'IGST', paise: igstPaise });
-    else {
-      heads.push({ label: rates.length === 1 ? `CGST ${pct(rates[0]! / 2)}` : 'CGST', paise: cgstPaise });
-      heads.push({
-        label: rates.length === 1 ? `${place.stateHead} ${pct(rates[0]! / 2)}` : place.stateHead,
-        paise: statePaise,
-      });
-    }
-  }
-  if (cessPaise > 0) heads.push({ label: 'Cess', paise: cessPaise });
-  if (roundOffPaise !== 0) heads.push({ label: 'Round off', paise: roundOffPaise });
-
   const groups = new Map<string, RateSummaryRow>();
   for (const l of lines) {
     if (l.blank) continue;
@@ -240,6 +225,29 @@ export function computeTax(input: TaxInput): TaxResult {
     row.cessPaise += l.cessPaise;
     groups.set(key, row);
   }
+  const rateSummary = [...groups.values()].sort((a, b) => a.gstBp - b.gstBp || a.cessBp - b.cessBp);
+  // The heads by rate (20 Oct, the operator: "each item has different GST, do not club the GST"): a bill with 5 %
+  // and 18 % lines says CGST 2.5 %, SGST 2.5 %, CGST 9 %, SGST 9 %, each with its own amount. One rate, one pair.
+  const byRate = new Map<number, { cgst: number; state: number; igst: number }>();
+  for (const r of rateSummary) {
+    if (!r.gstBp) continue;
+    const g = byRate.get(r.gstBp) ?? { cgst: 0, state: 0, igst: 0 };
+    g.cgst += r.cgstPaise;
+    g.state += r.statePaise;
+    g.igst += r.igstPaise;
+    byRate.set(r.gstBp, g);
+  }
+  const heads: TaxResult['heads'] = [];
+  for (const [bp, g] of [...byRate.entries()].sort((a, b) => a[0] - b[0])) {
+    if (!intra) {
+      if (g.igst) heads.push({ label: `IGST ${pct(bp)}`, paise: g.igst });
+    } else {
+      if (g.cgst) heads.push({ label: `CGST ${pct(bp / 2)}`, paise: g.cgst });
+      if (g.state) heads.push({ label: `${place.stateHead} ${pct(bp / 2)}`, paise: g.state });
+    }
+  }
+  if (cessPaise > 0) heads.push({ label: 'Cess', paise: cessPaise });
+  if (roundOffPaise !== 0) heads.push({ label: 'Round off', paise: roundOffPaise });
 
   return {
     lines,
@@ -257,7 +265,7 @@ export function computeTax(input: TaxInput): TaxResult {
     totalPaise,
     supply: place.supply,
     heads,
-    rateSummary: [...groups.values()].sort((a, b) => a.gstBp - b.gstBp || a.cessBp - b.cessBp),
+    rateSummary,
     headRoundingNote: headNotes.length ? headNotes.join(' ') : null,
     documentKind: kind,
     rulesApplied: [place.ruleId, kindRule.ruleId],

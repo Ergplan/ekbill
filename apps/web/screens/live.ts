@@ -158,6 +158,7 @@ export function paperOfDocument(doc: Document): PaperData {
         qty: l.unit ? `${l.quantityMilli / 1000} ${l.unit}` : String(l.quantityMilli / 1000),
         rate: l.unitPricePaise,
         amount: l.taxablePaise,
+        gst: s.totals.gstPaise > 0 ? `${l.gstBp / 100}%` : null,
       })),
     taxLines: s.totals.heads,
     totalPaise: s.totals.totalPaise,

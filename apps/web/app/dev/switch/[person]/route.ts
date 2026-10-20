@@ -1,3 +1,5 @@
+import { randomInt } from 'node:crypto';
+
 import type { Locale } from '@ekbill/copy';
 import { NextResponse } from 'next/server';
 
@@ -42,6 +44,22 @@ export async function GET(request: Request, { params }: { params: Promise<{ pers
   const id = requestId(request);
   if (authMode() !== 'switcher') return new NextResponse(null, { status: 404, headers: { 'x-request-id': id } });
   const { person } = await params;
+  // "Mobile ke bina aage badho" (20 Oct, the operator: no SMS yet, so a real account without a mobile): a fresh
+  // person with a number of their own that is no mobile (+91 5…, which no SIM has), then their own business.
+  if (person === 'guest') {
+    const guest = await userForPhone(`+915${String(randomInt(0, 1_000_000_000)).padStart(9, '0')}`);
+    const session = await createSession({
+      userId: guest.id,
+      businessId: null,
+      userAgent: request.headers.get('user-agent'),
+    });
+    const res = new NextResponse(null, { status: 303, headers: { Location: '/', 'x-request-id': id } });
+    res.cookies.set(sessionCookie(session.id, session.expiresAt));
+    res.cookies.set('eb-theme', guest.theme, { path: '/', maxAge: 31_536_000, sameSite: 'lax' });
+    res.cookies.set('eb-lang', guest.language, { path: '/', maxAge: 31_536_000, sameSite: 'lax' });
+    logRequest('GET /dev/switch/[person]', id, { person: 'guest', to: '/' });
+    return res;
+  }
   const seeded = seedUser(person);
   // Signing in from the login screen (?signin=1): a phone EkBill has not seen is a new person, as the OTP
   // sign-in makes one (userForPhone); typed on /dev/switch it is not, and goes back to the list.

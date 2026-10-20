@@ -11,7 +11,9 @@ export const manifest: ScreenManifest = {
     { label: 'Pehle demo dekho (45 sec)', to: '/', guide: 'demo' },
   ],
   states: ['default'],
-  guides: ['hero', 'start', 'demo'],
+  guides: ['hero', 'start', 'demo', 'guest'],
+  // "Mobile ke bina aage badho" while SMS codes are off (20 Oct).
+  optionalGuides: ['guest'],
   tour: [
     { target: 'hero', say: 'EkBill: bill banao, WhatsApp karo, paise lo.' },
     { target: 'start', say: 'Shuru karne ke liye yahan tap karo.' },

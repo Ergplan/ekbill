@@ -13,8 +13,9 @@ export const manifest: ScreenManifest = {
     { label: 'Isi customer ka aur ek', to: '/bills/new', guide: 'again' },
   ],
   states: ['default', 'composition'],
-  guides: ['paper', 'whatsapp', 'share', 'size', 'home', 'again', 'share-file', 'pakka'],
-  optionalGuides: ['share-file', 'pakka'],
+  guides: ['paper', 'whatsapp', 'share', 'size', 'home', 'again', 'share-file', 'pakka', 'edit'],
+  // "Bill badlo" (20 Oct): the owner's, on a bill just issued.
+  optionalGuides: ['share-file', 'pakka', 'edit'],
   tour: [
     { target: 'paper', say: 'Yeh bill customer ko aisa dikhega: English mein, saaf.' },
     { target: 'whatsapp', say: 'Customer ka number daalo: seedha unki WhatsApp chat khulegi. Send aap dabao.' },

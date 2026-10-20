@@ -74,12 +74,13 @@ test('(a) repeat bill to a regular customer, sent on WhatsApp: 4 taps, within 20
   // on the dev server the first visit compiles each screen, so the dev run warms them once and is not timed.
   const timed = process.env.E2E_PROD === '1';
   if (!timed) {
-    for (const path of ['/bills/new?customer=mehta', '/bills/new/done']) {
+    for (const path of ['/bills/new?customer=mehta&as=owner', '/bills/new/done?as=owner']) {
       await page.goto(path);
       await hydrated(page);
     }
   }
-  await page.goto('/');
+  // The sample shop, as a look (20 Oct: signed out is the welcome).
+  await page.goto('/?as=owner');
   await hydrated(page);
   const cdp = timed ? await throttle(page) : null;
   const started = Date.now();
@@ -111,7 +112,8 @@ test('(a) repeat bill to a regular customer, sent on WhatsApp: 4 taps, within 20
 
 test('(b) money came in, in full: 3 taps', async ({ page }) => {
   const c = { n: 0 };
-  await page.goto('/');
+  // The sample shop, as a look (20 Oct: signed out is the welcome).
+  await page.goto('/?as=owner');
   await hydrated(page);
   await tap(page, c, () => page.locator('.eb-owedrow').first().getByRole('link').click());
   await expect(page).toHaveURL(/\/bills\/INV-/);
@@ -125,7 +127,8 @@ test('(b) money came in, in full: 3 taps', async ({ page }) => {
 
 test('(c) bill from a photo: 3 taps plus the picker', async ({ page }) => {
   const c = { n: 0 };
-  await page.goto('/');
+  // The sample shop, as a look (20 Oct: signed out is the welcome).
+  await page.goto('/?as=owner');
   await hydrated(page);
   await tap(page, c, () => page.getByRole('link', { name: 'Photo se bill' }).click());
   await expect(page).toHaveURL(/\/bills\/photo/);
@@ -158,9 +161,9 @@ test('(d) brand-new owner from welcome to the first bill on WhatsApp: 16 taps', 
   await hydrated(page);
   await tap(page, c, () => page.getByRole('button', { name: 'Shuru karein' }).click());
   await tap(page, c, () => page.getByLabel('Phone number').fill('9822000005'));
-  await tap(page, c, () => page.getByRole('button', { name: 'Aage' }).click());
-  await expect(page).toHaveURL(/state=code/);
-  await tap(page, c, () => page.getByLabel('6-digit code').fill('123456'));
+  await tap(page, c, () => page.getByRole('button', { name: 'Aage', exact: true }).click());
+  // With SMS off (the build) the number signs in at once: the code step (one tap with OTP on) is not there.
+  c.n += 1;
   // Home greets a first-timer (20 Oct): no tour this time, then "Apne baare mein batao".
   await expect(page.getByTestId('demo-dialog')).toBeVisible({ timeout: 15_000 });
   await tap(page, c, () => page.getByTestId('demo-no').click());

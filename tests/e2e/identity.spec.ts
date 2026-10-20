@@ -102,7 +102,7 @@ test('the language is the person’s: Ravi picks each of the five, the screens s
   expect(errors.filter((e) => /hydrat/i.test(e))).toEqual([]);
 });
 
-test('with sign-in off, a new phone at login is a new owner: the code fills itself in, Home greets, then setup', async ({
+test('with sign-in off, a new phone at login is a new owner, signed in at once: Home greets, then setup', async ({
   page,
 }) => {
   const phone = `98${String(Date.now()).slice(-8)}`;
@@ -111,9 +111,8 @@ test('with sign-in off, a new phone at login is a new owner: the code fills itse
   await hydrated(page);
   await page.getByRole('button', { name: 'Shuru karein' }).click();
   await page.getByLabel('Phone number').fill(phone);
-  await page.getByRole('button', { name: 'Aage' }).click();
-  await expect(page).toHaveURL(/state=code/);
-  // No tap: the code arrives by itself, as the screen promises, and moves on: Home, with the greeting (20 Oct).
+  await page.getByRole('button', { name: 'Aage', exact: true }).click();
+  // No SMS (20 Oct): the number is the account at once, no code step; Home, with the greeting.
   await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/, { timeout: 15_000 });
   await hydrated(page);
   await expect(page.getByTestId('demo-dialog')).toContainText('Ek chhota sa app tour chalega?');

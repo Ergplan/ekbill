@@ -283,6 +283,8 @@ export interface PaperLine {
   qty: string;
   rate: number;
   amount: number;
+  /** The line's GST rate ("18%"), on a bill that charges GST: each item says its own (20 Oct). */
+  gst?: string | null;
 }
 
 export interface PaperData {
@@ -308,6 +310,7 @@ export interface PaperData {
  * for its two fixed colours). Stage 6 renders the real PDF from the same data.
  */
 export function InvoicePaper({ data }: { data: PaperData }) {
+  const gstColumn = data.lines.some((l) => l.gst);
   return (
     <article className="eb-paper" lang="en-IN">
       <header className="eb-paper__head">
@@ -335,6 +338,7 @@ export function InvoicePaper({ data }: { data: PaperData }) {
             <th>Description</th>
             <th className="eb-paper__num">Qty</th>
             <th className="eb-paper__num">Rate</th>
+            {gstColumn ? <th className="eb-paper__num">GST</th> : null}
             <th className="eb-paper__num">Amount</th>
           </tr>
         </thead>
@@ -344,6 +348,7 @@ export function InvoicePaper({ data }: { data: PaperData }) {
               <td>{l.description}</td>
               <td className="eb-paper__num">{l.qty}</td>
               <td className="eb-paper__num">{formatRupees(l.rate)}</td>
+              {gstColumn ? <td className="eb-paper__num">{l.gst ?? ''}</td> : null}
               <td className="eb-paper__num">{formatRupees(l.amount)}</td>
             </tr>
           ))}

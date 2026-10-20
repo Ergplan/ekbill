@@ -7132,5 +7132,68 @@
     "hi": "ग्राहक ने हाँ बोला? पक्का बिल बनाओ: सामान वही भर जाएगा।",
     "mr": "ग्राहक हो म्हणाला? पक्कं बिल बनवा: तेच सामान भरलं जाईल.",
     "ta": "வாடிக்கையாளர் சரி என்றாரா? பக்கா பில் போடுங்கள்: அதே பொருட்கள் நிரப்பப்படும்."
+  },
+  "login.guest": {
+    "hi-Latn": "Mobile ke bina aage badho",
+    "en": "Continue without a mobile number",
+    "hi": "मोबाइल के बिना आगे बढ़ो",
+    "mr": "मोबाइलशिवाय पुढे जा",
+    "ta": "மொபைல் இல்லாமல் தொடருங்கள்"
+  },
+  "login.nosms": {
+    "hi-Latn": "SMS code abhi chalu nahi hai: number daalte hi aap andar. Ya bina mobile ke aage badho.",
+    "en": "SMS codes are not switched on yet: enter your number and you are in. Or continue without a mobile number.",
+    "hi": "SMS कोड अभी चालू नहीं है: नंबर डालते ही आप अंदर। या बिना मोबाइल के आगे बढ़ो।",
+    "mr": "SMS कोड अजून सुरू नाही: नंबर टाकताच तुम्ही आत. किंवा मोबाइलशिवाय पुढे जा.",
+    "ta": "SMS குறியீடு இன்னும் இயக்கப்படவில்லை: எண்ணை உள்ளிட்டதும் உள்ளே. அல்லது மொபைல் இல்லாமல் தொடருங்கள்."
+  },
+  "done.edit": {
+    "hi-Latn": "Galti hai? Bill badlo",
+    "en": "A mistake? Change the bill",
+    "hi": "ग़लती है? बिल बदलो",
+    "mr": "चूक आहे? बिल बदला",
+    "ta": "தவறா? பில்லை மாற்றுங்கள்"
+  },
+  "done.edit.kaccha": {
+    "hi-Latn": "Galti hai? Estimate badlo",
+    "en": "A mistake? Change the estimate",
+    "hi": "ग़लती है? एस्टिमेट बदलो",
+    "mr": "चूक आहे? एस्टिमेट बदला",
+    "ta": "தவறா? மதிப்பீட்டை மாற்றுங்கள்"
+  },
+  "done.edit.q": {
+    "hi-Latn": "Bill badlein?",
+    "en": "Change this bill?",
+    "hi": "बिल बदलें?",
+    "mr": "बिल बदलायचं?",
+    "ta": "இந்த பில்லை மாற்றவா?"
+  },
+  "done.edit.sub": {
+    "hi-Latn": "{number} cancel ho jaayega (GST mein cancel dikhega, number dobara nahi lagta) aur isi customer aur saamaan ke saath naya bill khulega. Badal ke phir banao.",
+    "en": "{number} will be cancelled (GST shows it as cancelled; a number is never reused) and a new bill opens with the same customer and items. Change it and make it again.",
+    "hi": "{number} कैंसल हो जाएगा (GST में कैंसल दिखेगा, नंबर दोबारा नहीं लगता) और इसी ग्राहक और सामान के साथ नया बिल खुलेगा। बदलकर फिर बनाओ।",
+    "mr": "{number} रद्द होईल (GST मध्ये रद्द दिसेल, नंबर पुन्हा वापरला जात नाही) आणि याच ग्राहक आणि सामानासह नवीन बिल उघडेल. बदलून पुन्हा बनवा.",
+    "ta": "{number} ரத்தாகும் (GST-யில் ரத்து எனக் காட்டும்; எண் மீண்டும் பயன்படாது), அதே வாடிக்கையாளர், பொருட்களுடன் புதிய பில் திறக்கும். மாற்றி மீண்டும் போடுங்கள்."
+  },
+  "done.edit.sub.kaccha": {
+    "hi-Latn": "{number} cancel ho jaayega aur isi customer aur saamaan ke saath naya estimate khulega.",
+    "en": "{number} will be cancelled and a new estimate opens with the same customer and items.",
+    "hi": "{number} कैंसल हो जाएगा और इसी ग्राहक और सामान के साथ नया एस्टिमेट खुलेगा।",
+    "mr": "{number} रद्द होईल आणि याच ग्राहक आणि सामानासह नवीन एस्टिमेट उघडेल.",
+    "ta": "{number} ரத்தாகும், அதே வாடிக்கையாளர், பொருட்களுடன் புதிய மதிப்பீடு திறக்கும்."
+  },
+  "done.edit.go": {
+    "hi-Latn": "Haan, badlo",
+    "en": "Yes, change it",
+    "hi": "हाँ, बदलो",
+    "mr": "हो, बदला",
+    "ta": "ஆம், மாற்றுங்கள்"
+  },
+  "done.edit.reason": {
+    "hi-Latn": "Banate hi badla",
+    "en": "Changed right after making it",
+    "hi": "बनाते ही बदला",
+    "mr": "बनवताच बदलले",
+    "ta": "போட்டவுடன் மாற்றப்பட்டது"
   }
 }

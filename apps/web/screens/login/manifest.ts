@@ -11,9 +11,10 @@ export const manifest: ScreenManifest = {
     { label: 'Build ke dauran: /dev/switch se koi bhi bano', to: '/dev/switch' },
   ],
   states: ['phone', 'code'],
-  guides: ['phone', 'next', 'code', 'resend'],
+  guides: ['phone', 'next', 'code', 'resend', 'guest'],
   // The resend button shows once the 30 seconds are up, with sign-in on (19 Oct).
-  optionalGuides: ['code', 'resend'],
+  // "Mobile ke bina aage badho" while SMS codes are off (20 Oct).
+  optionalGuides: ['code', 'resend', 'guest'],
   tour: [
     { target: 'phone', say: 'Apna phone number likho. Isi se login hota hai.' },
     { target: 'next', say: 'Aage dabao, SMS se code aayega.' },

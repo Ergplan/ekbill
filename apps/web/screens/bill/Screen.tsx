@@ -318,8 +318,23 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
     writeDraft(`${viewer.personId}:issued`, { draft: d, computed: c, business, customer });
     router.push(as('/bills/new/done'));
   };
-  const setLine = (i: number, p: Partial<LineValue>) =>
-    patch({ lines: d.lines.map((l, j) => (j === i ? { ...l, ...p } : l)) });
+  const setLine = (i: number, p: Partial<LineValue>) => {
+    // A saved item with its own GST rate gives the line that rate (20 Oct: GST item by item, without choosing).
+    const item =
+      p.what !== undefined ? data.items.find((it) => it.name.toLowerCase() === p.what!.trim().toLowerCase()) : null;
+    const itemRate = item?.gstRate ?? null;
+    patch({
+      lines: d.lines.map((l, j) => (j === i ? { ...l, ...p } : l)),
+      ...(itemRate !== null && regular
+        ? {
+            gst: {
+              ...d.gst,
+              perLine: d.lines.map((_, j) => (j === i ? itemRate : (d.gst.perLine[j] ?? d.gst.rate))),
+            },
+          }
+        : {}),
+    });
+  };
   const addLine = () =>
     patch({
       lines: [...d.lines, { what: '', qty: '1', rate: '' }],
@@ -350,7 +365,6 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
       }
       sub={t('bill.number.today', { number: kaccha ? data.estimateNumber : d.number, date: dateLabel })}
       tour={manifest.tour.filter((s) => s.target !== 'repeat' || data.previous)}
-      noTabs
     >
       {data.fromEstimate ? (
         <Meta>{t('bill.from.estimate', { number: data.fromEstimate })}</Meta>

@@ -44,6 +44,7 @@ export function paperOfBill(business: Business, bill: Bill, customer: Customer |
       qty: String(l.quantityMilli / 1000),
       rate: l.unitPricePaise,
       amount: l.taxablePaise,
+      gst: tax.gstPaise > 0 ? `${l.gstBp / 100}%` : null,
     })),
     taxLines: tax.heads,
     totalPaise: tax.totalPaise,
