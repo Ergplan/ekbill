@@ -129,6 +129,8 @@ const SHEET_LABELS: Record<string, string[]> = {
   home: ['Pehla bill banao', 'Apne baare mein batao', 'Naam dhoondo', 'GST'],
   setup: ['Abhi nahi', 'Abhi bhar deta hoon', 'Badlo', 'Chalo, shuru karte hain'],
   login: ['Aage'],
+  // Paying shows only once the operator takes payments, for the owner (20 Oct); the sample is a look.
+  plan: ['UPI se ₹20 do', 'Payment ho gaya'],
   photo: ['Photo lo', 'Gallery se', 'Dobara lo', 'Naya bill likho'],
   import: ['Files chuno', 'N customers add karo'],
   team: ['Bhejo'],

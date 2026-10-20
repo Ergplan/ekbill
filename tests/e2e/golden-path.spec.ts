@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import pg from 'pg';
+
 import { goldenPaths } from '../../apps/web/screens/golden-paths';
 
 /**
@@ -132,9 +134,16 @@ test('(c) bill from a photo: 3 taps plus the picker', async ({ page }) => {
   expect(c.n).toBeLessThanOrEqual(budget('c').budget);
 });
 
-test('(d) brand-new owner from welcome to the first bill on WhatsApp: 14 taps', async ({ page }) => {
+test('(d) brand-new owner from welcome to the first bill on WhatsApp: 16 taps', async ({ page }) => {
   const c = { n: 0 };
   await stubShare(page);
+  // A first-timer has not seen the demo (the seed marks its people as having seen it).
+  const db = new pg.Client({
+    connectionString: process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5440/ekbill2_dev',
+  });
+  await db.connect();
+  await db.query("update users set demo_seen_version = 0 where phone_e164 = '+919822000005'");
+  await db.end();
   await page.goto('/dev/switch/new');
   await expect(page).toHaveURL(/\/welcome/);
   await hydrated(page);
@@ -143,6 +152,10 @@ test('(d) brand-new owner from welcome to the first bill on WhatsApp: 14 taps', 
   await tap(page, c, () => page.getByRole('button', { name: 'Aage' }).click());
   await expect(page).toHaveURL(/state=code/);
   await tap(page, c, () => page.getByLabel('6-digit code').fill('123456'));
+  // Home greets a first-timer (20 Oct): no tour this time, then "Apne baare mein batao".
+  await expect(page.getByTestId('demo-dialog')).toBeVisible({ timeout: 15_000 });
+  await tap(page, c, () => page.getByTestId('demo-no').click());
+  await tap(page, c, () => page.locator('.eb-star [data-primary="true"]').click());
   await expect(page).toHaveURL(/\/setup\/name/);
   await tap(page, c, () => page.getByLabel(/dukaan ka naam/i).fill('Naya Electricals'));
   await tap(page, c, () => page.getByRole('button', { name: 'Aage' }).click());

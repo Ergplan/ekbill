@@ -62,14 +62,14 @@ describe('GET /dev/switch/[person] (the build’s door while sign-in is off)', (
     expect(res.headers.get('set-cookie')).toBeNull();
   });
 
-  it('from the login screen (?signin=1) a new phone is a new owner, sent to setup; typed on the list it is not', async () => {
+  it('from the login screen (?signin=1) a new phone is a new owner, sent Home (the greeting, 20 Oct); typed on the list it is not', async () => {
     const phone = encodeURIComponent('+919800011122');
     const typed = await call(phone);
     expect(typed.headers.get('location')).toBe('/dev/switch');
     expect(typed.headers.get('set-cookie')).toBeNull();
     const res = await call(phone, '?signin=1');
     expect(res.status).toBe(303);
-    expect(res.headers.get('location')).toBe('/setup/name');
+    expect(res.headers.get('location')).toBe('/');
     const me = await resolveScope(sessionOf(res)!, 'r');
     expect(me?.user.phoneE164 ?? null).toBe('+919800011122');
     expect(me?.scope ?? null).toBeNull();

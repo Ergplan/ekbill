@@ -60,7 +60,7 @@ export async function checkCode(
   rawCode: unknown,
   sender: CodeSender,
   opts: { userAgent?: string | null; now?: number; requestId?: string; limits?: typeof PER_PHONE } = {},
-): Promise<{ sessionId: string; expiresAt: Date; userId: string; to: '/' | '/welcome' }> {
+): Promise<{ sessionId: string; expiresAt: Date; userId: string; to: '/' }> {
   const phone = mobileOf(rawPhone);
   if (!phone) throw new OtpError('otp.phone');
   if (typeof rawCode !== 'string' || !/^\d{4,10}$/.test(rawCode)) throw new OtpError('otp.invalid');
@@ -80,7 +80,7 @@ export async function checkCode(
 export async function signInWithPhone(
   phoneE164: string,
   opts: { userAgent?: string | null; requestId?: string } = {},
-): Promise<{ sessionId: string; expiresAt: Date; userId: string; to: '/' | '/welcome' }> {
+): Promise<{ sessionId: string; expiresAt: Date; userId: string; to: '/' }> {
   const user = await userForPhone(phoneE164);
   await acceptInvites(user.id, opts.requestId);
   const business = (await membershipsOf(user.id))[0] ?? null;
@@ -89,5 +89,6 @@ export async function signInWithPhone(
     businessId: business?.businessId ?? null,
     userAgent: opts.userAgent ?? null,
   });
-  return { sessionId: session.id, expiresAt: session.expiresAt, userId: user.id, to: business ? '/' : '/welcome' };
+  // Home either way (20 Oct): a first-timer is greeted there and offered the demo, then "Apne baare mein batao".
+  return { sessionId: session.id, expiresAt: session.expiresAt, userId: user.id, to: '/' };
 }

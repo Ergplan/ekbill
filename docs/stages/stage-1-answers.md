@@ -47,3 +47,15 @@ The build agent takes these as the answer to change the approved design where th
 - **Aap**: an "Aapki profile" group with the person's name; Save floats only while there is something to save (the stuck "Save ho gaya" is gone); a new language changes the words in place, the new language's hello in between, with no reload.
 - **The voice**: never starts by itself; a one-line hint by the mic once a visit ("Main yahan hoon…"); a five-word greeting when it starts; quiet when the owner opens screens themselves; it stops after 3 s with no one speaking and nothing playing.
 - **The guide ring**: fixed to the screen, so it stays on the field it names while the page scrolls.
+
+## 20 Oct 2026: the welcome, the app demo, the plan and refer-a-friend (I10)
+
+The operator wrote: "Now the experience First time user - After Login let us discuss the flow - The user sees the screen and a greeting precorded - Namaste , ekBill mein aapka swagat hai. Ek chota application tour chalega? Then a small window of Haan and Na If Haan then As kis language mein, then in the selected language 45 seconds demo across the application precorded in the selected language with focus on the fact that voice helps to fill everything, draft a script and glow the areas where demo moves, customer can stop the demo run anythimw and return to home screen. If demo run completed then It should end at Apne baare mein bataye section glowing if customer is first time. The voice should speak in hinglish by default. Also find a way to allow demo to old customers also since new features will be introduced or they may want to show the demo to a friend. Also we need refer a friend feature to get 25% discount on the monthly fee. We are keepng a monthly fee of INR 20, payment through UPI. 20 bills are free. Set it up."
+
+The build agent takes this as the answer to add, and re-records the baselines it moves, both themes:
+
+- **Aap**: an "Aapka plan" group (free bills left, or the month's end; "Dost ko jodo, 25% bachao"), and "App ka demo dekho" with Poocho.
+- **Aapka plan** (`/aap/plan`, new): the plan's state, paying ₹20 by UPI with the 12-digit reference, the referral link (WhatsApp, copy) and who joined, past payments.
+- **Welcome**: "Pehle demo dekho (45 sec)" for a visitor.
+- **Every sheet**: the dimmed backdrop now dims (its colour token did not exist, so it never had).
+- The greeting and the demo are overlays over Home and the sample screens; the seed's people have seen the demo, so no baseline shows them.

@@ -26,7 +26,9 @@ async function codeFor(phone: string): Promise<string> {
   throw new Error(`no code for ${phone}`);
 }
 
-test('@otp a new number signs in with the SMS code and lands on welcome; the switcher is closed', async ({ page }) => {
+test('@otp a new number signs in with the SMS code and lands on Home with the greeting; the switcher is closed', async ({
+  page,
+}) => {
   const digits = `98${String(Date.now()).slice(-8)}`;
   forget(`+91${digits}`);
   await page.goto('/login');
@@ -36,7 +38,7 @@ test('@otp a new number signs in with the SMS code and lands on welcome; the swi
   await expect(page.getByText('Code daalo')).toBeVisible({ timeout: 20_000 });
   const code = await codeFor(`+91${digits}`);
   await page.locator('[data-guide="code"] input').first().fill(code);
-  await expect(page).toHaveURL(/\/welcome$/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/, { timeout: 20_000 });
   expect((await page.request.get('/dev/switch')).status()).toBe(404);
   expect((await page.request.get('/dev/switch/sharma')).status()).toBe(404);
 });
@@ -98,7 +100,7 @@ test('@otp after 30 seconds a new code can be asked for, and the new one signs i
   await page.locator('[data-guide="resend"]').click();
   const second = await codeFor(phone);
   await page.locator('[data-guide="code"] input').first().fill(second);
-  await expect(page).toHaveURL(/\/welcome$/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/, { timeout: 20_000 });
 });
 
 test('@otp Android auto-fill (WebOTP): the code the phone reads from the SMS signs in with no typing', async ({
@@ -138,5 +140,5 @@ test('@otp Android auto-fill (WebOTP): the code the phone reads from the SMS sig
   await page.evaluate((c) => {
     (window as unknown as { __sms?: string }).__sms = c;
   }, code);
-  await expect(page).toHaveURL(/\/welcome$/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/, { timeout: 20_000 });
 });

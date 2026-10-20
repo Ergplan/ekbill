@@ -6,9 +6,12 @@ export const manifest: ScreenManifest = {
   title: 'Welcome',
   purpose: 'The pack’s hero: the promise in one line, one way in.',
   primary: { label: 'Shuru karein', to: '/login', guide: 'start' },
-  taps: [{ label: 'Pehle se account hai? Login', to: '/login' }],
+  taps: [
+    { label: 'Pehle se account hai? Login', to: '/login' },
+    { label: 'Pehle demo dekho (45 sec)', to: '/', guide: 'demo' },
+  ],
   states: ['default'],
-  guides: ['hero', 'start'],
+  guides: ['hero', 'start', 'demo'],
   tour: [
     { target: 'hero', say: 'EkBill: bill banao, WhatsApp karo, paise lo.' },
     { target: 'start', say: 'Shuru karne ke liye yahan tap karo.' },

@@ -25,6 +25,7 @@ export const manifest: ScreenManifest = {
   guides: [
     'star',
     'about',
+    'demo',
     'kiska-bill',
     'naya-customer',
     'photo',
@@ -35,7 +36,7 @@ export const manifest: ScreenManifest = {
     'mic',
     'first',
   ],
-  optionalGuides: ['first', 'search', 'star', 'about'],
+  optionalGuides: ['first', 'search', 'star', 'about', 'demo'],
   tour: [
     { target: 'star', say: 'Naya bill yahan se, ek tap mein.' },
     { target: 'about', say: 'Pehle apne baare mein batao: naam, dukaan. Phir bill.' },

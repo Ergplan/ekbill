@@ -14,6 +14,7 @@ import * as items from '../../packages/db/src/repos/items';
 import * as memberships from '../../packages/db/src/repos/memberships';
 import * as payments from '../../packages/db/src/repos/payments';
 import * as photos from '../../packages/db/src/repos/photos';
+import * as plan from '../../packages/db/src/repos/plan';
 import * as reminders from '../../packages/db/src/repos/reminders';
 import * as search from '../../packages/db/src/repos/search';
 import * as series from '../../packages/db/src/repos/series';
@@ -187,6 +188,20 @@ describe('tenancy (I1): every repository, business A against business B', () => 
     const a = await scopeFor('sharma', 'owner');
     const b = await otherBusiness('gupta');
     const { touched } = await photos.tenancyProbes[2]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it('plan: planOf counts only the business’s own payments and referrals', async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await plan.tenancyProbes[0]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it('plan: referralCode returns the business’s own code, never another’s', async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await plan.tenancyProbes[1]!.run(a, b);
     expect(touched).not.toContain(b.businessId);
     for (const id of touched) expect(id).toBe(a.businessId);
   });

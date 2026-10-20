@@ -10,6 +10,7 @@ import { voiceAvailable } from '@ekbill/ai';
 import { htmlLang, localeOf } from '@ekbill/copy';
 import { LocaleProvider } from '@ekbill/copy/provider';
 
+import { DemoProvider } from '../screens/demo/DemoProvider';
 import { VoiceProvider } from '../screens/voice/VoiceProvider';
 import { Hydrated } from './Hydrated';
 
@@ -48,7 +49,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body>
         {/* The voice (Stage 9) lives above the screens, so one conversation survives moving between them. */}
         <LocaleProvider locale={locale}>
-          <VoiceProvider available={voiceAvailable()}>{children}</VoiceProvider>
+          <VoiceProvider available={voiceAvailable()}>
+            {/* The app demo (20 Oct) walks several screens, so it lives up here too. */}
+            <DemoProvider>{children}</DemoProvider>
+          </VoiceProvider>
         </LocaleProvider>
         <Hydrated />
       </body>

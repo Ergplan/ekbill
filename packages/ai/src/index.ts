@@ -51,3 +51,12 @@ export {
   type VoiceLocale,
   type VoiceScreen,
 } from './voice';
+export {
+  setSpeechTransport,
+  speak,
+  speechConfig,
+  speechHash,
+  type SpeechConfig,
+  type SpeechLocale,
+  type SpeechTransport,
+} from './speech';

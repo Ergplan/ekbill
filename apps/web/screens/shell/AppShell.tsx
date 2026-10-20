@@ -29,6 +29,9 @@ export interface ShellViewer {
   personName: string;
   /** The person has said their name; until then Home asks "Apne baare mein batao" (19 Oct). */
   named?: boolean;
+  /** The app demo seen (20 Oct), and the current version: below it, the demo is offered once. */
+  demoSeen?: number;
+  demoVersion?: number;
   businessName: string | null;
   registration: Registration | null;
   role: Role;

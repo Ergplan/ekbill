@@ -74,10 +74,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ pers
   });
   // The person's settings as they are now (the users row), not as the seed first wrote them.
   const me = await resolveScope(session.id, id);
-  // No business yet: the login screen goes on to setup; the switcher list shows the welcome first.
-  const to =
-    internalPath(new URL(request.url).searchParams.get('to')) ??
-    (business ? '/' : signingIn ? '/setup/name' : '/welcome');
+  // No business yet: from the login screen, Home (the greeting and the demo, 20 Oct); from the switcher list, welcome.
+  const to = internalPath(new URL(request.url).searchParams.get('to')) ?? (business || signingIn ? '/' : '/welcome');
   const res = new NextResponse(null, { status: 303, headers: { Location: to, 'x-request-id': id } });
   res.cookies.set(sessionCookie(session.id, session.expiresAt));
   res.cookies.set('eb-theme', me?.user.theme ?? found.theme, { path: '/', maxAge: 31_536_000, sameSite: 'lax' });

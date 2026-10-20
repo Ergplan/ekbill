@@ -64,6 +64,12 @@ services:
       TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
       TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
       TWILIO_VERIFY_TEMPLATE_SID: ${TWILIO_VERIFY_TEMPLATE_SID:-}
+      # EkBill's own fee (20 Oct): the operator's UPI address owners pay ₹20 a month to. Empty: no fee is taken.
+      EKBILL_UPI_ID: ${EKBILL_UPI_ID:-}
+      EKBILL_UPI_NAME: ${EKBILL_UPI_NAME:-}
+      # The app demo's recorded voice (20 Oct): the speech model and voice; each line is recorded once and kept.
+      OPENAI_TTS_MODEL: ${OPENAI_TTS_MODEL:-}
+      OPENAI_TTS_VOICE: ${OPENAI_TTS_VOICE:-}
       SESSION_SECRET: ${SESSION_SECRET:-dev-only-not-a-secret-while-sign-in-is-off}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_VISION_MODEL: ${OPENAI_VISION_MODEL:-}

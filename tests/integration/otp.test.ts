@@ -12,7 +12,7 @@ import { scopeFor, seeded } from './helpers';
 
 /**
  * Phone OTP on v2's sessions (Stage 10; Twilio Verify from 19 Oct). A code the sender approves makes the phone the
- * identity: a new number becomes a person who lands on welcome; an invited number lands in the business. A wrong
+ * identity: a new number becomes a person who lands on Home (the greeting); an invited number lands in the business. A wrong
  * code, a code that has run out, a number that is not an Indian mobile, or too many tries sign nobody in.
  */
 seeded();
@@ -23,12 +23,12 @@ const fresh = (lead = '98') => `+91${lead}${String(Date.now()).slice(-8)}`;
 const roomy = { send: { max: 100, windowMs: 60_000 }, check: { max: 100, windowMs: 60_000 } };
 
 describe('sendCode and checkCode', () => {
-  it('a number EkBill has never seen: the right code makes a person, a session and no business (welcome)', async () => {
+  it('a number EkBill has never seen: the right code makes a person, a session and no business (Home)', async () => {
     const sender = fakeSender(dir);
     const phone = fresh();
     expect(await sendCode(phone.slice(3), sender, { limits: roomy })).toEqual({ phone });
     const r = await checkCode(phone, codeOf(phone), sender, { limits: roomy });
-    expect(r.to).toBe('/welcome');
+    expect(r.to).toBe('/');
     const row = (await getPool().query('select business_id from sessions where id = $1', [r.sessionId])).rows[0];
     expect(row.business_id).toBeNull();
     // The code is used up; a second sign-in needs a second code, and is the same person.

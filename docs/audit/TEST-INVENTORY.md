@@ -6,9 +6,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 44    | 415    |
-| integration | 27    | 303    |
-| e2e         | 16    | 69     |
+| unit        | 45    | 421    |
+| integration | 28    | 316    |
+| e2e         | 18    | 77     |
 
 ## unit
 
@@ -449,6 +449,15 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - $name: the issued snapshot and the GSTR-1 built from it carry the same figures
 - $name: the form preview shows what the bill will say
 
+### `tests/unit/plan.test.ts`
+
+- free for the first 20 bills, then due
+- a paid month covers its days, end day included; a claimed one counts at once; a rejected one never
+- a complimentary period wins while it lasts
+- the next month starts the day after what is paid, or today; months back to back run on
+- â‚¹20 a month; â‚¹15 when a referral is waiting (one per month)
+- a UPI reference is 12 digits; a referral code six of Aâ€“Z and 2â€“9
+
 ### `tests/unit/print-fields.test.ts`
 
 - a tax invoice on %s: place of supply with its code, and reverse charge
@@ -696,7 +705,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 ### `tests/integration/otp.test.ts`
 
-- a number EkBill has never seen: the right code makes a person, a session and no business (welcome)
+- a number EkBill has never seen: the right code makes a person, a session and no business (Home)
 - an invited number lands in the business with its role
 - a wrong code, a run-out code, a malformed code or phone sign nobody in
 - five codes an hour per number, then "too many"; a sender that refuses says the SMS did not go
@@ -714,6 +723,14 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - only one claim wins; a refused bill lets go; after the commit a claim answers the bill already made
 - is finished with that bill, not taken again; one whose draft was never issued makes the bill from it
 - refuses a model actor on documents and customers, and on every step but its own
+
+### `tests/integration/plan.test.ts`
+
+- 20 bills free; the 21st needs a paid month when payments are on; a claimed month lets it through
+- a UPI reference is used once, across businesses; staff cannot pay; a malformed one is refused
+- refer a friend: joined on sign-up, earned on the friendâ€™s first bill, â‚¹15 once; a rejection gives it back
+- an unknown code or the businessâ€™s own is ignored; the sign-up goes ahead
+- the operator can give a business months without a fee
 
 ### `tests/integration/poocho.test.ts`
 
@@ -854,6 +871,12 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - photos.discardReading: owner may
 - photos.discardReading: staff may
 - photos.discardReading: accountant may not
+- plan.claimPayment: owner may
+- plan.claimPayment: staff may not
+- plan.claimPayment: accountant may not
+- plan.referralCode: owner may
+- plan.referralCode: staff may
+- plan.referralCode: accountant may not
 - reminders.recordReminder: owner may
 - reminders.recordReminder: staff may
 - reminders.recordReminder: accountant may not
@@ -893,7 +916,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - gives staff and accountants their business and role; the brand-new owner has none and lands on welcome
 - lands on ?to= only when it is a plain internal path
 - sends an unknown person back to the list without a session
-- from the login screen (?signin=1) a new phone is a new owner, sent to setup; typed on the list it is not
+- from the login screen (?signin=1) a new phone is a new owner, sent Home (the greeting, 20 Oct); typed on the list it is not
 - echoes a callerâ€™s request id
 - is gone behind AUTH_MODE=otp
 
@@ -931,6 +954,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - photos: getExtraction cannot read another business's reading
 - photos: photoOf cannot fetch another business's photo
 - photos: recordCorrections cannot write to another business's reading
+- plan: planOf counts only the businessâ€™s own payments and referrals
+- plan: referralCode returns the businessâ€™s own code, never anotherâ€™s
 - reminders: recordReminder cannot reach another business's bill
 - search: search finds nothing of another business's records
 - series: listSeries lists only its own series
@@ -966,6 +991,14 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - import old bills and a party list: tick two, add them, see them
 - add an item with its SAC found by the lookup
 
+### `tests/e2e/demo.spec.ts`
+
+- a first-timer: greeted on Home, Haan, Hinglish, the walk on the sample business, ending at "Apne baare mein batao"
+- Na: no demo, the star is "Apne baare mein batao", and the greeting is not offered again
+- someone billing starts it from Aap in Tamil, stops it midway, and is Home in their own language
+- "naya kya hai": offered once to someone billing who has not seen it; Baad mein keeps it away
+- a visitor watches it from the welcome screen and is brought back to start
+
 ### `tests/e2e/files.spec.ts`
 
 - photo bill: a photo from the library is read into the draft and shown on the review
@@ -986,7 +1019,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - (a) repeat bill to a regular customer, sent on WhatsApp: 4 taps, within 20 s on Slow 3G / 4Ã— CPU
 - (b) money came in, in full: 3 taps
 - (c) bill from a photo: 3 taps plus the picker
-- (d) brand-new owner from welcome to the first bill on WhatsApp: 14 taps
+- (d) brand-new owner from welcome to the first bill on WhatsApp: 16 taps
 
 ### `tests/e2e/gst.spec.ts`
 
@@ -1005,7 +1038,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the brand-new owner lands on welcome; an unknown person goes back to the list
 - the theme persists per user: Sharma ji picks Harmony, Ravi stays Narangi, Sharma ji is still Harmony
 - the language is the personâ€™s: Ravi picks each of the five, the screens speak it, then Hinglish again
-- with sign-in off, a new phone at login is a new owner: the code fills itself in, then setup
+- with sign-in off, a new phone at login is a new owner: the code fills itself in, Home greets, then setup
 - in the build both OTP doors are closed (404) and the switcher is the door
 - Aapki profile: the name said on Aap is the one Home greets by, and Naya bill is the star (19 Oct)
 
@@ -1016,7 +1049,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 ### `tests/e2e/otp.spec.ts` Ã—
 
-- @otp a new number signs in with the SMS code and lands on welcome; the switcher is closed
+- @otp a new number signs in with the SMS code and lands on Home with the greeting; the switcher is closed
 - @otp a wrong code says so and signs nobody in (â€¦)
 - @otp an owner already in EkBill signs in with their number and lands in their business
 - @otp after 30 seconds a new code can be asked for, and the new one signs in
@@ -1027,6 +1060,12 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - (c) on real data: a kaccha bill photographed and made: 3 taps plus the picker
 - staff review the reading: confidences shown, a doubtful rate corrected, the correction kept
 - an unreadable date is lit and empty; a blurred photo and a photo of no bill say why
+
+### `tests/e2e/plan.spec.ts`
+
+- Verma pays â‚¹20 by UPI and gives the reference; the month starts; the reference cannot be used twice
+- the referral link: a friend who comes by it and sets up shows as joined on the referrerâ€™s plan
+- an unknown link is dropped quietly: the welcome screen, no cookie
 
 ### `tests/e2e/poocho.spec.ts`
 

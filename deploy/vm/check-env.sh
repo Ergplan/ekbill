@@ -68,7 +68,8 @@ inside() {
 say "What the running app has"
 inside app AUTH_MODE SESSION_SECRET DATABASE_URL OPENAI_API_KEY OPENAI_BASE_URL OPENAI_TEXT_MODEL OPENAI_VISION_MODEL \
   OPENAI_REALTIME_MODEL OPENAI_REALTIME_VOICE OPENAI_TRANSCRIBE_MODEL OPENAI_EMBED_MODEL TWILIO_VERIFY_SERVICE_SID \
-  TWILIO_API_KEY_SID TWILIO_API_KEY_SECRET TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN TWILIO_VERIFY_TEMPLATE_SID OTP_FAKE_DIR
+  TWILIO_API_KEY_SID TWILIO_API_KEY_SECRET TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN TWILIO_VERIFY_TEMPLATE_SID OTP_FAKE_DIR \
+  EKBILL_UPI_ID EKBILL_UPI_NAME OPENAI_TTS_MODEL OPENAI_TTS_VOICE
 
 say "What the running worker has (it reads photos and old bills)"
 inside worker DATABASE_URL OPENAI_API_KEY OPENAI_VISION_MODEL OPENAI_EMBED_MODEL
@@ -84,6 +85,7 @@ if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx app; th
       OPENAI_REALTIME_MODEL: "voice",
       OPENAI_TRANSCRIBE_MODEL: "the written copy of what is said (optional)",
       OPENAI_EMBED_MODEL: "Poocho search by meaning (optional)",
+      OPENAI_TTS_MODEL: "the app demo's recorded voice (empty: gpt-4o-mini-tts)",
     };
     if (!key) {
       console.log("  no OPENAI_API_KEY in the app: photo reading, Poocho answers and voice stay off");
@@ -101,7 +103,7 @@ if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx app; th
       // and is then refused when the phone connects ("Awaaz jud nahi paayi").
       const realtime = [...have].filter((id) => /realtime/.test(id)).sort();
       for (const [k, what] of Object.entries(uses)) {
-        const m = (process.env[k] || "").trim();
+        const m = (process.env[k] || (k === "OPENAI_TTS_MODEL" ? "gpt-4o-mini-tts" : "")).trim();
         let verdict = !m ? "(not set)" : have.has(m) ? m + "  ok" : m + "  NOT FOUND on this key";
         if (k === "OPENAI_REALTIME_MODEL" && m && !/realtime/.test(m)) verdict = m + "  NOT A REALTIME MODEL";
         // An embedding model only measures how alike texts are; it cannot write an answer or read a photo (19 Oct).
@@ -149,6 +151,21 @@ if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx app; th
       .catch((err) => console.log("  could not reach Twilio: " + err.message));'
 else
   echo "  the app is not running (start it with deploy/vm/up.sh)"
+fi
+
+say "The app demo's recordings (20 Oct)"
+if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx app; then
+  "${COMPOSE[@]}" exec -T app node -e '
+    const { Client } = require("pg");
+    const c = new Client({ connectionString: process.env.DATABASE_URL });
+    c.connect()
+      .then(() => c.query("select locale, count(*)::int as n from demo_audio group by locale order by locale"))
+      .then((r) => {
+        if (!r.rows.length) console.log("  none yet: up.sh records them after a deploy when there is an OpenAI key");
+        for (const row of r.rows) console.log("  " + row.locale.padEnd(8) + row.n + " line(s)");
+      })
+      .catch((e) => console.log("  could not read: " + e.message))
+      .finally(() => c.end());' 2>/dev/null || echo "  could not ask the app"
 fi
 
 say "The app's own health"

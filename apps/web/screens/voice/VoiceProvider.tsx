@@ -455,7 +455,8 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
   useEffect(() => {
     if (!available) return;
     const id = window.setTimeout(() => {
-      if (document.documentElement.dataset.bolke !== 'on') return;
+      // Not over the app demo (20 Oct), which has its own voice.
+      if (document.documentElement.dataset.bolke !== 'on' || document.documentElement.dataset.demo === 'on') return;
       try {
         if (sessionStorage.getItem(HINT_KEY)) return;
         sessionStorage.setItem(HINT_KEY, '1');
@@ -503,7 +504,7 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
         <div className="eb-voice" role="status" data-testid="voice-note">
           <span>{note}</span>
         </div>
-      ) : hint && state === 'idle' ? (
+      ) : hint && state === 'idle' && document.documentElement.dataset.demo !== 'on' ? (
         <div className="eb-voice eb-voice--hint" role="status" data-testid="voice-hint">
           <span>{t('voice.hint')}</span>
         </div>

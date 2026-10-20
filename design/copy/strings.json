@@ -6292,5 +6292,502 @@
     "hi": "10 अंकों का नंबर डालो",
     "mr": "10 अंकी नंबर टाका",
     "ta": "10 இலக்க நம்பரைப் போடுங்கள்"
+  },
+  "plan.title": {
+    "hi-Latn": "Aapka plan",
+    "en": "Your plan",
+    "hi": "आपका प्लान",
+    "mr": "तुमचा प्लान",
+    "ta": "உங்கள் திட்டம்"
+  },
+  "plan.free.title": {
+    "hi-Latn": "{left} bill abhi muft",
+    "en": "{left} free bills left",
+    "hi": "{left} बिल अभी मुफ़्त",
+    "mr": "{left} बिलं अजून मोफत",
+    "ta": "{left} இலவச பில்கள் மீதம்"
+  },
+  "plan.free.sub": {
+    "hi-Latn": "Pehle {free} bill muft. Phir ₹{fee} mahina, UPI se.",
+    "en": "The first {free} bills are free. Then ₹{fee} a month, by UPI.",
+    "hi": "पहले {free} बिल मुफ़्त। फिर ₹{fee} महीना, UPI से।",
+    "mr": "पहिली {free} बिलं मोफत. नंतर दरमहा ₹{fee}, UPI ने.",
+    "ta": "முதல் {free} பில்கள் இலவசம். பிறகு மாதம் ₹{fee}, UPI மூலம்."
+  },
+  "plan.comp.title": {
+    "hi-Latn": "Aapke liye muft",
+    "en": "Free for you",
+    "hi": "आपके लिए मुफ़्त",
+    "mr": "तुमच्यासाठी मोफत",
+    "ta": "உங்களுக்கு இலவசம்"
+  },
+  "plan.comp.sub": {
+    "hi-Latn": "{date} tak koi fees nahi.",
+    "en": "No fee until {date}.",
+    "hi": "{date} तक कोई फ़ीस नहीं।",
+    "mr": "{date} पर्यंत फी नाही.",
+    "ta": "{date} வரை கட்டணம் இல்லை."
+  },
+  "plan.paid.title": {
+    "hi-Latn": "Mahina chalu hai",
+    "en": "Your month is on",
+    "hi": "महीना चालू है",
+    "mr": "महिना चालू आहे",
+    "ta": "உங்கள் மாதம் நடப்பில் உள்ளது"
+  },
+  "plan.paid.sub": {
+    "hi-Latn": "{date} tak bill banate raho.",
+    "en": "Keep billing until {date}.",
+    "hi": "{date} तक बिल बनाते रहो।",
+    "mr": "{date} पर्यंत बिलं बनवत राहा.",
+    "ta": "{date} வரை பில் போடலாம்."
+  },
+  "plan.paid.checking": {
+    "hi-Latn": "Payment ki jaanch ho rahi hai. Tab tak sab chalu.",
+    "en": "We are checking the payment. Everything works meanwhile.",
+    "hi": "पेमेंट की जाँच हो रही है। तब तक सब चालू।",
+    "mr": "पेमेंटची तपासणी चालू आहे. तोपर्यंत सर्व चालू.",
+    "ta": "பணம் சரிபார்க்கப்படுகிறது. அதுவரை எல்லாம் இயங்கும்."
+  },
+  "plan.due.title": {
+    "hi-Latn": "Muft bills poore hue",
+    "en": "Your free bills are used up",
+    "hi": "मुफ़्त बिल पूरे हुए",
+    "mr": "मोफत बिलं संपली",
+    "ta": "இலவச பில்கள் முடிந்தன"
+  },
+  "plan.due.sub": {
+    "hi-Latn": "₹{fee} dekar agla mahina chalu karo.",
+    "en": "Pay ₹{fee} to start the next month.",
+    "hi": "₹{fee} देकर अगला महीना चालू करो।",
+    "mr": "₹{fee} भरून पुढचा महिना सुरू करा.",
+    "ta": "அடுத்த மாதம் தொடங்க ₹{fee} செலுத்துங்கள்."
+  },
+  "plan.count": {
+    "hi-Latn": "{n} / {free} muft bill bane",
+    "en": "{n} of {free} free bills made",
+    "hi": "{n} / {free} मुफ़्त बिल बने",
+    "mr": "{n} / {free} मोफत बिलं झाली",
+    "ta": "{free} இலவச பில்களில் {n} போடப்பட்டன"
+  },
+  "plan.pay.title": {
+    "hi-Latn": "₹{amount} do, mahina chalu",
+    "en": "Pay ₹{amount}, start the month",
+    "hi": "₹{amount} दो, महीना चालू",
+    "mr": "₹{amount} भरा, महिना सुरू",
+    "ta": "₹{amount} செலுத்தி மாதத்தைத் தொடங்குங்கள்"
+  },
+  "plan.pay.sub": {
+    "hi-Latn": "{start} se {end} tak. Kisi bhi UPI app se.",
+    "en": "From {start} to {end}. With any UPI app.",
+    "hi": "{start} से {end} तक। किसी भी UPI ऐप से।",
+    "mr": "{start} ते {end}. कोणत्याही UPI ॲपने.",
+    "ta": "{start} முதல் {end} வரை. எந்த UPI ஆப்பிலும்."
+  },
+  "plan.pay.discount": {
+    "hi-Latn": "Dost ki wajah se 25% chhoot: ₹{off} kam",
+    "en": "25% off thanks to a friend: ₹{off} less",
+    "hi": "दोस्त की वजह से 25% छूट: ₹{off} कम",
+    "mr": "मित्रामुळे 25% सूट: ₹{off} कमी",
+    "ta": "நண்பரால் 25% தள்ளுபடி: ₹{off} குறைவு"
+  },
+  "plan.pay.cta": {
+    "hi-Latn": "UPI se ₹{amount} do",
+    "en": "Pay ₹{amount} by UPI",
+    "hi": "UPI से ₹{amount} दो",
+    "mr": "UPI ने ₹{amount} भरा",
+    "ta": "UPI மூலம் ₹{amount} செலுத்துங்கள்"
+  },
+  "plan.pay.qr": {
+    "hi-Latn": "Ya yeh QR kisi doosre phone se scan karo",
+    "en": "Or scan this QR from another phone",
+    "hi": "या यह QR किसी दूसरे फ़ोन से स्कैन करो",
+    "mr": "किंवा हा QR दुसऱ्या फोनने स्कॅन करा",
+    "ta": "அல்லது இந்த QR-ஐ வேறு போனில் ஸ்கேன் செய்யுங்கள்"
+  },
+  "plan.pay.to": {
+    "hi-Latn": "UPI ID: {vpa} · note: {note}",
+    "en": "UPI ID: {vpa} · note: {note}",
+    "hi": "UPI ID: {vpa} · नोट: {note}",
+    "mr": "UPI ID: {vpa} · नोट: {note}",
+    "ta": "UPI ID: {vpa} · குறிப்பு: {note}"
+  },
+  "plan.utr.label": {
+    "hi-Latn": "UPI reference number (12 ank)",
+    "en": "UPI reference number (12 digits)",
+    "hi": "UPI रेफ़रेंस नंबर (12 अंक)",
+    "mr": "UPI संदर्भ क्रमांक (12 अंक)",
+    "ta": "UPI குறிப்பு எண் (12 இலக்கம்)"
+  },
+  "plan.utr.hint": {
+    "hi-Latn": "Payment ke baad UPI app mein dikhta hai (UTR).",
+    "en": "Your UPI app shows it after paying (UTR).",
+    "hi": "पेमेंट के बाद UPI ऐप में दिखता है (UTR)।",
+    "mr": "पेमेंटनंतर UPI ॲपमध्ये दिसतो (UTR).",
+    "ta": "பணம் செலுத்திய பின் UPI ஆப்பில் தெரியும் (UTR)."
+  },
+  "plan.utr.done": {
+    "hi-Latn": "Payment ho gaya",
+    "en": "I have paid",
+    "hi": "पेमेंट हो गया",
+    "mr": "पेमेंट झाले",
+    "ta": "பணம் செலுத்திவிட்டேன்"
+  },
+  "plan.utr.invalid": {
+    "hi-Latn": "12 ank ka UPI reference daalo.",
+    "en": "Enter the 12-digit UPI reference.",
+    "hi": "12 अंक का UPI रेफ़रेंस डालो।",
+    "mr": "12 अंकी UPI संदर्भ टाका.",
+    "ta": "12 இலக்க UPI குறிப்பை உள்ளிடுங்கள்."
+  },
+  "plan.utr.used": {
+    "hi-Latn": "Yeh reference pehle hi diya ja chuka hai.",
+    "en": "This reference has already been given.",
+    "hi": "यह रेफ़रेंस पहले ही दिया जा चुका है।",
+    "mr": "हा संदर्भ आधीच दिला गेला आहे.",
+    "ta": "இந்தக் குறிப்பு ஏற்கனவே கொடுக்கப்பட்டது."
+  },
+  "plan.claimed": {
+    "hi-Latn": "Shukriya! {date} tak mahina chalu.",
+    "en": "Thank you! Your month runs until {date}.",
+    "hi": "शुक्रिया! {date} तक महीना चालू।",
+    "mr": "धन्यवाद! {date} पर्यंत महिना चालू.",
+    "ta": "நன்றி! {date} வரை உங்கள் மாதம் நடப்பில்."
+  },
+  "plan.off": {
+    "hi-Latn": "Payment abhi shuru nahi hui. Tab tak bill banate raho.",
+    "en": "Payments have not started yet. Keep billing meanwhile.",
+    "hi": "पेमेंट अभी शुरू नहीं हुई। तब तक बिल बनाते रहो।",
+    "mr": "पेमेंट अजून सुरू झाले नाही. तोपर्यंत बिलं बनवत राहा.",
+    "ta": "பணம் செலுத்துதல் இன்னும் தொடங்கவில்லை. அதுவரை பில் போடுங்கள்."
+  },
+  "plan.ownerOnly": {
+    "hi-Latn": "Payment dukaan ke malik karte hain.",
+    "en": "The shop owner makes the payment.",
+    "hi": "पेमेंट दुकान के मालिक करते हैं।",
+    "mr": "पेमेंट दुकानाचे मालक करतात.",
+    "ta": "கடை உரிமையாளர் பணம் செலுத்துவார்."
+  },
+  "plan.required": {
+    "hi-Latn": "Muft bills poore hue. Aapka plan kholke ₹20 do, phir bill banao.",
+    "en": "Your free bills are used up. Open Your plan, pay ₹20, then make the bill.",
+    "hi": "मुफ़्त बिल पूरे हुए। आपका प्लान खोलकर ₹20 दो, फिर बिल बनाओ।",
+    "mr": "मोफत बिलं संपली. तुमचा प्लान उघडून ₹20 भरा, मग बिल बनवा.",
+    "ta": "இலவச பில்கள் முடிந்தன. உங்கள் திட்டத்தைத் திறந்து ₹20 செலுத்தி, பிறகு பில் போடுங்கள்."
+  },
+  "plan.refer.title": {
+    "hi-Latn": "Dost ko jodo, 25% bachao",
+    "en": "Bring a friend, save 25%",
+    "hi": "दोस्त को जोड़ो, 25% बचाओ",
+    "mr": "मित्राला जोडा, 25% वाचवा",
+    "ta": "நண்பரைச் சேர்த்து 25% சேமியுங்கள்"
+  },
+  "plan.refer.sub": {
+    "hi-Latn": "Har dost jo is link se jude aur pehla bill banaye: aapka ek mahina ₹15.",
+    "en": "Each friend who joins by this link and makes a first bill: one month for you at ₹15.",
+    "hi": "हर दोस्त जो इस लिंक से जुड़े और पहला बिल बनाए: आपका एक महीना ₹15।",
+    "mr": "या लिंकने जोडून पहिलं बिल बनवणाऱ्या प्रत्येक मित्रामागे: तुमचा एक महिना ₹15.",
+    "ta": "இந்த இணைப்பில் சேர்ந்து முதல் பில் போடும் ஒவ்வொரு நண்பருக்கும்: உங்களுக்கு ஒரு மாதம் ₹15."
+  },
+  "plan.refer.share": {
+    "hi-Latn": "WhatsApp pe bhejo",
+    "en": "Send on WhatsApp",
+    "hi": "WhatsApp पर भेजो",
+    "mr": "WhatsApp वर पाठवा",
+    "ta": "WhatsApp-ல் அனுப்புங்கள்"
+  },
+  "plan.refer.copy": {
+    "hi-Latn": "Link copy karo",
+    "en": "Copy the link",
+    "hi": "लिंक कॉपी करो",
+    "mr": "लिंक कॉपी करा",
+    "ta": "இணைப்பை நகலெடுங்கள்"
+  },
+  "plan.refer.copied": {
+    "hi-Latn": "Copy ho gaya",
+    "en": "Copied",
+    "hi": "कॉपी हो गया",
+    "mr": "कॉपी झाले",
+    "ta": "நகலெடுக்கப்பட்டது"
+  },
+  "plan.refer.stats": {
+    "hi-Latn": "{joined} jude · {earned} ne bill banaya · {left} chhoot baaki",
+    "en": "{joined} joined · {earned} made a bill · {left} discount left",
+    "hi": "{joined} जुड़े · {earned} ने बिल बनाया · {left} छूट बाकी",
+    "mr": "{joined} जोडले · {earned} नी बिल बनवलं · {left} सूट बाकी",
+    "ta": "{joined} சேர்ந்தனர் · {earned} பில் போட்டனர் · {left} தள்ளுபடி மீதம்"
+  },
+  "plan.refer.message": {
+    "hi-Latn": "Main apne bill EkBill se banata hoon: bolo aur bill ban jaata hai, WhatsApp pe chala jaata hai. 20 bill muft. Is link se judo: {link}",
+    "en": "I make my bills with EkBill: just speak and the bill is made, then it goes on WhatsApp. 20 bills free. Join with this link: {link}",
+    "hi": "मैं अपने बिल EkBill से बनाता हूँ: बोलो और बिल बन जाता है, WhatsApp पर चला जाता है। 20 बिल मुफ़्त। इस लिंक से जुड़ो: {link}",
+    "mr": "मी माझी बिलं EkBill ने बनवतो: बोला आणि बिल तयार, WhatsApp वर जातं. 20 बिलं मोफत. या लिंकने जोडा: {link}",
+    "ta": "நான் என் பில்களை EkBill-ல் போடுகிறேன்: பேசினால் பில் தயார், WhatsApp-ல் போகும். 20 பில்கள் இலவசம். இந்த இணைப்பில் சேருங்கள்: {link}"
+  },
+  "plan.history": {
+    "hi-Latn": "Pichhle payment",
+    "en": "Past payments",
+    "hi": "पिछले पेमेंट",
+    "mr": "मागील पेमेंट",
+    "ta": "முந்தைய பணம் செலுத்தல்கள்"
+  },
+  "plan.status.claimed": {
+    "hi-Latn": "Jaanch mein",
+    "en": "Being checked",
+    "hi": "जाँच में",
+    "mr": "तपासणीत",
+    "ta": "சரிபார்ப்பில்"
+  },
+  "plan.status.confirmed": {
+    "hi-Latn": "Mil gaya",
+    "en": "Received",
+    "hi": "मिल गया",
+    "mr": "मिळाले",
+    "ta": "கிடைத்தது"
+  },
+  "plan.status.rejected": {
+    "hi-Latn": "Nahi mila",
+    "en": "Not received",
+    "hi": "नहीं मिला",
+    "mr": "मिळाले नाही",
+    "ta": "கிடைக்கவில்லை"
+  },
+  "aap.plan": {
+    "hi-Latn": "Aapka plan",
+    "en": "Your plan",
+    "hi": "आपका प्लान",
+    "mr": "तुमचा प्लान",
+    "ta": "உங்கள் திட்டம்"
+  },
+  "aap.plan.free": {
+    "hi-Latn": "{left} bill muft bache",
+    "en": "{left} free bills left",
+    "hi": "{left} बिल मुफ़्त बचे",
+    "mr": "{left} बिलं मोफत उरली",
+    "ta": "{left} இலவச பில்கள் மீதம்"
+  },
+  "aap.plan.paid": {
+    "hi-Latn": "{date} tak chalu",
+    "en": "On until {date}",
+    "hi": "{date} तक चालू",
+    "mr": "{date} पर्यंत चालू",
+    "ta": "{date} வரை நடப்பில்"
+  },
+  "aap.plan.due": {
+    "hi-Latn": "₹{fee} dena baaki",
+    "en": "₹{fee} to pay",
+    "hi": "₹{fee} देना बाकी",
+    "mr": "₹{fee} भरायचे",
+    "ta": "₹{fee} செலுத்த வேண்டும்"
+  },
+  "aap.plan.comp": {
+    "hi-Latn": "Muft",
+    "en": "Free",
+    "hi": "मुफ़्त",
+    "mr": "मोफत",
+    "ta": "இலவசம்"
+  },
+  "aap.refer": {
+    "hi-Latn": "Dost ko jodo, 25% bachao",
+    "en": "Bring a friend, save 25%",
+    "hi": "दोस्त को जोड़ो, 25% बचाओ",
+    "mr": "मित्राला जोडा, 25% वाचवा",
+    "ta": "நண்பரைச் சேர்த்து 25% சேமியுங்கள்"
+  },
+  "tour.plan.status": {
+    "hi-Latn": "Kitne bill muft bache, ya mahina kab tak chalu.",
+    "en": "How many free bills are left, or how long your month runs.",
+    "hi": "कितने बिल मुफ़्त बचे, या महीना कब तक चालू।",
+    "mr": "किती बिलं मोफत उरली, किंवा महिना कधीपर्यंत चालू.",
+    "ta": "எத்தனை இலவச பில்கள் மீதம், அல்லது மாதம் எதுவரை."
+  },
+  "tour.plan.pay": {
+    "hi-Latn": "UPI se ₹20 do, phir 12 ank ka reference daalo.",
+    "en": "Pay ₹20 by UPI, then type the 12-digit reference.",
+    "hi": "UPI से ₹20 दो, फिर 12 अंक का रेफ़रेंस डालो।",
+    "mr": "UPI ने ₹20 भरा, मग 12 अंकी संदर्भ टाका.",
+    "ta": "UPI மூலம் ₹20 செலுத்தி, 12 இலக்க குறிப்பை உள்ளிடுங்கள்."
+  },
+  "tour.plan.refer": {
+    "hi-Latn": "Yeh link dost ko bhejo: har dost se ek mahina 25% sasta.",
+    "en": "Send this link to a friend: each friend makes a month 25% cheaper.",
+    "hi": "यह लिंक दोस्त को भेजो: हर दोस्त से एक महीना 25% सस्ता।",
+    "mr": "ही लिंक मित्राला पाठवा: प्रत्येक मित्रामागे एक महिना 25% स्वस्त.",
+    "ta": "இந்த இணைப்பை நண்பருக்கு அனுப்புங்கள்: ஒவ்வொரு நண்பரும் ஒரு மாதத்தை 25% மலிவாக்குவார்."
+  },
+  "demo.intro": {
+    "hi-Latn": "Namaste! EkBill mein aapka swagat hai. Ek chhota sa app tour chalega?",
+    "en": "Hello! Welcome to EkBill. Shall we take a short tour of the app?",
+    "hi": "नमस्ते! EkBill में आपका स्वागत है। एक छोटा सा ऐप टूर चलेगा?",
+    "mr": "नमस्कार! EkBill मध्ये तुमचं स्वागत आहे. एक छोटी ॲप टूर घेऊया?",
+    "ta": "வணக்கம்! EkBill-க்கு உங்களை வரவேற்கிறோம். ஒரு சிறிய ஆப் சுற்றுப்பயணம் போகலாமா?"
+  },
+  "demo.yes": {
+    "hi-Latn": "Haan",
+    "en": "Yes",
+    "hi": "हाँ",
+    "mr": "हो",
+    "ta": "ஆம்"
+  },
+  "demo.no": {
+    "hi-Latn": "Na",
+    "en": "No",
+    "hi": "ना",
+    "mr": "नको",
+    "ta": "வேண்டாம்"
+  },
+  "demo.lang": {
+    "hi-Latn": "Kis bhasha mein dekhna hai?",
+    "en": "Which language would you like?",
+    "hi": "किस भाषा में देखना है?",
+    "mr": "कोणत्या भाषेत पाहायचं?",
+    "ta": "எந்த மொழியில் பார்க்க விரும்புகிறீர்கள்?"
+  },
+  "demo.start": {
+    "hi-Latn": "Demo shuru karo",
+    "en": "Start the demo",
+    "hi": "डेमो शुरू करो",
+    "mr": "डेमो सुरू करा",
+    "ta": "டெமோவைத் தொடங்குங்கள்"
+  },
+  "demo.stop": {
+    "hi-Latn": "Demo band karo",
+    "en": "Stop the demo",
+    "hi": "डेमो बंद करो",
+    "mr": "डेमो थांबवा",
+    "ta": "டெமோவை நிறுத்துங்கள்"
+  },
+  "demo.label": {
+    "hi-Latn": "Demo · {n}/{total}",
+    "en": "Demo · {n}/{total}",
+    "hi": "डेमो · {n}/{total}",
+    "mr": "डेमो · {n}/{total}",
+    "ta": "டெமோ · {n}/{total}"
+  },
+  "demo.sample": {
+    "hi-Latn": "Namoona data: Sharma Electricals",
+    "en": "Sample data: Sharma Electricals",
+    "hi": "नमूना डेटा: Sharma Electricals",
+    "mr": "नमुना डेटा: Sharma Electricals",
+    "ta": "மாதிரித் தரவு: Sharma Electricals"
+  },
+  "demo.s1": {
+    "hi-Latn": "Yeh aapka Ghar hai. Naya bill yahan se, bas ek tap.",
+    "en": "This is your Home. A new bill starts here, in one tap.",
+    "hi": "यह आपका होम है। नया बिल यहाँ से, बस एक टैप।",
+    "mr": "हे तुमचं होम. नवीन बिल इथून, फक्त एका टॅपमध्ये.",
+    "ta": "இது உங்கள் முகப்பு. புதிய பில் இங்கிருந்து, ஒரே தட்டில்."
+  },
+  "demo.s2": {
+    "hi-Latn": "Aur yeh mic. Isse bolo, aur EkBill sab khud bhar dega.",
+    "en": "And this is the mic. Just speak, and EkBill fills everything in.",
+    "hi": "और यह माइक। इससे बोलो, और EkBill सब खुद भर देगा।",
+    "mr": "आणि हा माइक. यात बोला, EkBill सगळं स्वतः भरेल.",
+    "ta": "இது மைக். பேசுங்கள், EkBill எல்லாவற்றையும் தானே நிரப்பும்."
+  },
+  "demo.s3": {
+    "hi-Latn": "Jaise bolo: 'Mehta Traders ka bill, do pankhe, saadhe teen sau ke.' Naam, kaam, rate, sab apne aap bhar gaya.",
+    "en": "Say: 'A bill for Mehta Traders, two fans, three hundred and fifty each.' Name, work, rate: all filled in by itself.",
+    "hi": "जैसे बोलो: 'मेहता ट्रेडर्स का बिल, दो पंखे, साढ़े तीन सौ के।' नाम, काम, रेट, सब अपने आप भर गया।",
+    "mr": "असं बोला: 'मेहता ट्रेडर्सचं बिल, दोन पंखे, साडेतीनशेचे.' नाव, काम, दर, सगळं आपोआप भरलं.",
+    "ta": "இப்படிச் சொல்லுங்கள்: 'மேத்தா டிரேடர்ஸுக்கு பில், இரண்டு மின்விசிறி, தலா முன்னூற்றைம்பது.' பெயர், வேலை, விலை எல்லாம் தானாக நிரம்பும்."
+  },
+  "demo.s4": {
+    "hi-Latn": "GST bhi khud lag jaata hai. Hisaab aapko nahi lagana.",
+    "en": "GST is added by itself too. No sums for you to do.",
+    "hi": "GST भी खुद लग जाता है। हिसाब आपको नहीं लगाना।",
+    "mr": "GST सुद्धा आपोआप लागतो. हिशोब तुम्हाला करायचा नाही.",
+    "ta": "GST-யும் தானாகச் சேரும். நீங்கள் கணக்கிட வேண்டாம்."
+  },
+  "demo.s5": {
+    "hi-Latn": "Bill taiyaar. Ek tap mein WhatsApp pe customer ko.",
+    "en": "The bill is ready. One tap sends it to the customer on WhatsApp.",
+    "hi": "बिल तैयार। एक टैप में WhatsApp पर कस्टमर को।",
+    "mr": "बिल तयार. एका टॅपमध्ये WhatsApp वर ग्राहकाला.",
+    "ta": "பில் தயார். ஒரே தட்டில் WhatsApp-ல் வாடிக்கையாளருக்கு."
+  },
+  "demo.s6": {
+    "hi-Latn": "Kiske paise baaki hain, yahan dikhta hai. Bolo 'Mehta ko yaad dilao', reminder chala gaya.",
+    "en": "Who still owes you shows here. Say 'Remind Mehta', and the reminder goes.",
+    "hi": "किसके पैसे बाकी हैं, यहाँ दिखता है। बोलो 'मेहता को याद दिलाओ', रिमाइंडर चला गया।",
+    "mr": "कोणाचे पैसे बाकी आहेत, इथे दिसतं. बोला 'मेहतांना आठवण करून द्या', रिमाइंडर गेला.",
+    "ta": "யார் பணம் தர வேண்டும் என்பது இங்கே. 'மேத்தாவுக்கு நினைவூட்டு' என்று சொன்னால், நினைவூட்டல் போகும்."
+  },
+  "demo.s7": {
+    "hi-Latn": "Kaccha bill hai? Photo lo, EkBill padh ke bill bana dega.",
+    "en": "Have a handwritten bill? Take a photo, and EkBill reads it into a bill.",
+    "hi": "कच्चा बिल है? फ़ोटो लो, EkBill पढ़कर बिल बना देगा।",
+    "mr": "कच्चं बिल आहे? फोटो काढा, EkBill वाचून बिल बनवेल.",
+    "ta": "கையால் எழுதிய பில் உள்ளதா? போட்டோ எடுங்கள், EkBill படித்து பில் போடும்."
+  },
+  "demo.s8": {
+    "hi-Latn": "Mahine ke ant mein GST ka hisaab bhi taiyaar milega.",
+    "en": "At the end of the month, your GST summary is ready too.",
+    "hi": "महीने के अंत में GST का हिसाब भी तैयार मिलेगा।",
+    "mr": "महिन्याच्या शेवटी GST चा हिशोबही तयार मिळेल.",
+    "ta": "மாத இறுதியில் GST கணக்கும் தயாராக இருக்கும்."
+  },
+  "demo.end.new": {
+    "hi-Latn": "Bas itna hi! Ab apne baare mein batao, aur pehla bill banate hain.",
+    "en": "That is all! Now tell us about yourself, and let us make your first bill.",
+    "hi": "बस इतना ही! अब अपने बारे में बताओ, और पहला बिल बनाते हैं।",
+    "mr": "एवढंच! आता तुमच्याबद्दल सांगा, आणि पहिलं बिल बनवूया.",
+    "ta": "அவ்வளவுதான்! இப்போது உங்களைப் பற்றிச் சொல்லுங்கள், முதல் பில்லைப் போடுவோம்."
+  },
+  "demo.end": {
+    "hi-Latn": "Bas itna hi! Kuch bhi poochna ho, mic dabao aur bolo.",
+    "en": "That is all! For anything else, tap the mic and ask.",
+    "hi": "बस इतना ही! कुछ भी पूछना हो, माइक दबाओ और बोलो।",
+    "mr": "एवढंच! काहीही विचारायचं असेल, माइक दाबा आणि बोला.",
+    "ta": "அவ்வளவுதான்! எதுவும் கேட்க வேண்டுமானால், மைக்கைத் தட்டிப் பேசுங்கள்."
+  },
+  "demo.new.title": {
+    "hi-Latn": "Naya kya hai? 45 second ka demo",
+    "en": "What is new? A 45-second demo",
+    "hi": "नया क्या है? 45 सेकंड का डेमो",
+    "mr": "नवीन काय? 45 सेकंदांचा डेमो",
+    "ta": "புதியது என்ன? 45 விநாடி டெமோ"
+  },
+  "demo.new.sub": {
+    "hi-Latn": "Bolke bill, photo se bill, WhatsApp reminder: ek baar dekh lo.",
+    "en": "Bills by voice, bills from a photo, WhatsApp reminders: have a look.",
+    "hi": "बोलके बिल, फ़ोटो से बिल, WhatsApp रिमाइंडर: एक बार देख लो।",
+    "mr": "बोलून बिल, फोटोवरून बिल, WhatsApp रिमाइंडर: एकदा पाहा.",
+    "ta": "குரலில் பில், போட்டோவிலிருந்து பில், WhatsApp நினைவூட்டல்: ஒருமுறை பாருங்கள்."
+  },
+  "demo.new.later": {
+    "hi-Latn": "Baad mein",
+    "en": "Later",
+    "hi": "बाद में",
+    "mr": "नंतर",
+    "ta": "பிறகு"
+  },
+  "aap.demo": {
+    "hi-Latn": "App ka demo dekho",
+    "en": "Watch the app demo",
+    "hi": "ऐप का डेमो देखो",
+    "mr": "ॲपचा डेमो पाहा",
+    "ta": "ஆப் டெமோ பாருங்கள்"
+  },
+  "aap.demo.sub": {
+    "hi-Latn": "45 second, aawaz ke saath. Dost ko bhi dikhao.",
+    "en": "45 seconds, with voice. Show a friend too.",
+    "hi": "45 सेकंड, आवाज़ के साथ। दोस्त को भी दिखाओ।",
+    "mr": "45 सेकंद, आवाजासह. मित्रालाही दाखवा.",
+    "ta": "45 விநாடி, குரலுடன். நண்பருக்கும் காட்டுங்கள்."
+  },
+  "welcome.demo": {
+    "hi-Latn": "Pehle demo dekho (45 sec)",
+    "en": "Watch the demo first (45 sec)",
+    "hi": "पहले डेमो देखो (45 सेकंड)",
+    "mr": "आधी डेमो पाहा (45 सेकंद)",
+    "ta": "முதலில் டெமோ பாருங்கள் (45 விநாடி)"
+  },
+  "demo.end.visitor": {
+    "hi-Latn": "Bas itna hi! Shuru karne ke liye yahan dabao aur apna number daalo.",
+    "en": "That is all! To begin, tap here and enter your number.",
+    "hi": "बस इतना ही! शुरू करने के लिए यहाँ दबाओ और अपना नंबर डालो।",
+    "mr": "एवढंच! सुरू करण्यासाठी इथे दाबा आणि तुमचा नंबर टाका.",
+    "ta": "அவ்வளவுதான்! தொடங்க இங்கே தட்டி உங்கள் எண்ணை உள்ளிடுங்கள்."
   }
 }

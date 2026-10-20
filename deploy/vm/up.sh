@@ -62,6 +62,8 @@ EKBILL_DOMAIN="$(domain)"
 export EKBILL_DB_PASSWORD OPENAI_API_KEY EKBILL_GATE_HASH EKBILL_GATE_MODE EKBILL_DOMAIN
 export AUTH_MODE="${AUTH_MODE:-switcher}" SESSION_SECRET="${SESSION_SECRET:-}"
 export OPENAI_VISION_MODEL="${OPENAI_VISION_MODEL:-}" OPENAI_TEXT_MODEL="${OPENAI_TEXT_MODEL:-}" OPENAI_REALTIME_MODEL="${OPENAI_REALTIME_MODEL:-}"
+export OPENAI_TTS_MODEL="${OPENAI_TTS_MODEL:-}" OPENAI_TTS_VOICE="${OPENAI_TTS_VOICE:-}" EKBILL_UPI_ID="${EKBILL_UPI_ID:-}" EKBILL_UPI_NAME="${EKBILL_UPI_NAME:-}"
+echo "EkBill's fee: $([ -n "${EKBILL_UPI_ID:-}" ] && echo "taken by UPI to $EKBILL_UPI_ID" || echo 'not taken (EKBILL_UPI_ID empty): nobody is stopped at 20 bills')"
 echo "domain: $EKBILL_DOMAIN   auth mode: $AUTH_MODE"
 mkdir -p "$STATE_DIR"
 
@@ -86,6 +88,11 @@ fi
 if [ "$AUTH_MODE" = "switcher" ]; then
   say "Seeding the build's people and businesses (AUTH_MODE=switcher: test data only)"
   "${COMPOSE[@]}" exec -T -e AUTH_MODE=switcher app node --conditions=react-server --import tsx scripts/seed.mjs
+fi
+# The app demo's voice (20 Oct): every line recorded once, in the background (a line already kept costs nothing).
+if [ -n "${OPENAI_API_KEY:-}" ]; then
+  say "Recording the app demo's lines (in the background)"
+  "${COMPOSE[@]}" exec -T -d app node --import tsx scripts/demo-audio.mjs
 fi
 echo
 

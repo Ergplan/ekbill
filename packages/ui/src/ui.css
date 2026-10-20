@@ -1583,7 +1583,7 @@
   position: absolute;
   inset: 0;
   border: 0;
-  background: color-mix(in srgb, var(--eb-ink) 45%, transparent);
+  background: color-mix(in srgb, black 45%, transparent);
   cursor: pointer;
 }
 .eb-sheet__panel {
@@ -2413,5 +2413,138 @@ html:root:is([lang='hi'], [lang='mr'], [lang='ta']) {
   .eb-lang-out .eb-tabbar {
     filter: none;
     transition: none;
+  }
+}
+
+/* Aapka plan (20 Oct): the discount line, the UPI QR, the referral link, past payments. */
+.eb-plan__discount {
+  margin: 0;
+  font-weight: var(--eb-weight-bold);
+  color: var(--eb-accent-ink, var(--eb-ink));
+}
+.eb-plan__qr {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin: 0;
+}
+.eb-plan__qr img {
+  /* The QR carries its own white margin, so it scans on either theme. */
+  border-radius: var(--eb-radius-chip);
+}
+.eb-plan__link {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--eb-radius-field);
+  background: var(--eb-surface-2);
+  font-size: var(--eb-type-meta-size);
+  overflow-wrap: anywhere;
+}
+.eb-plan__history {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.eb-plan__history li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: baseline;
+  font-size: var(--eb-type-meta-size);
+}
+.eb-plan__status--rejected {
+  color: var(--eb-danger, var(--eb-ink));
+}
+
+/* The app demo (20 Oct): the greeting and the language over a dimmed screen; while it plays, a bar on top with
+   where it is and "Demo band karo", always in reach. */
+.eb-demo {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  align-items: end;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, black 45%, transparent);
+  animation: eb-demo-in 0.3s ease-out both;
+}
+.eb-demo__card {
+  display: grid;
+  gap: 16px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px;
+  border-radius: var(--eb-radius-card);
+  background: var(--eb-surface);
+  box-shadow: var(--eb-shadow-hero);
+  animation: eb-demo-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.eb-demo__hello {
+  margin: 0;
+  font-size: var(--eb-type-title-size);
+  font-weight: var(--eb-weight-medium);
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.eb-demo__answers {
+  display: grid;
+  gap: 8px;
+}
+.eb-demo-bar {
+  position: fixed;
+  z-index: 85;
+  top: calc(8px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  padding: 6px 6px 6px 14px;
+  border-radius: var(--eb-radius-pill);
+  background: var(--eb-ink-btn);
+  color: var(--eb-on-ink-btn);
+  box-shadow: var(--eb-shadow-nav);
+  font-size: var(--eb-type-meta-size);
+}
+.eb-demo-bar__label {
+  display: grid;
+  line-height: 1.2;
+  font-weight: var(--eb-weight-bold);
+}
+.eb-demo-bar__sample {
+  font-size: var(--eb-type-tiny-size);
+  font-weight: var(--eb-weight-medium);
+  opacity: 0.75;
+}
+.eb-demo-bar__stop {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--eb-radius-pill);
+  background: var(--eb-accent);
+  color: var(--eb-on-accent);
+  font-weight: var(--eb-weight-bold);
+}
+@keyframes eb-demo-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes eb-demo-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eb-demo,
+  .eb-demo__card {
+    animation: none;
   }
 }

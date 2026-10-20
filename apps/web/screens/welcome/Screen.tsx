@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { t } from '@ekbill/copy';
 import { Display, GhostButton, GuideHighlight, HeroPanel, Icon, Logo, Meta, PrimaryCTA, useTour } from '@ekbill/ui';
 
+import { useDemo } from '../demo/DemoProvider';
 import { manifest } from './manifest';
 
 export function WelcomeScreen() {
   const router = useRouter();
   const guide = useTour(manifest.tour);
+  const demo = useDemo();
   return (
     <main className="eb-screen">
       <header className="eb-topbar">
@@ -52,6 +54,10 @@ export function WelcomeScreen() {
         </section>
         <div className="eb-actions">
           <GhostButton onClick={() => router.push('/login')}>{t('welcome.have')}</GhostButton>
+          {/* The app demo for a visitor (20 Oct; a friend's link lands here): sample data, then back here. */}
+          <GhostButton data-guide="demo" onClick={() => demo?.start({ firstTime: false, visitor: true })}>
+            {t('welcome.demo')}
+          </GhostButton>
         </div>
       </div>
       <GuideHighlight step={guide.step} onDone={guide.next} />

@@ -27,6 +27,8 @@ Checks, as CI runs them: `npm run watch -- --once` (lint, format, types, unit, d
 
 The build runs with `AUTH_MODE=switcher` (`/dev/switch` signs in any seeded person: test data only). Phone OTP (Twilio Verify) is built and tested with a stand-in sender, and is switched on by the operator: Twilio's settings in `.env` (see `.env.example`), `deploy/vm/check-env.sh`, then `AUTH_MODE=otp` and `deploy/vm/up.sh`. For Android to fill the code in by itself, `deploy/vm/twilio-template.sh` prints the template request for Twilio Support.
 
+EkBill's own fee (20 bills free, then ₹20 a month by UPI, 25 % off a month per referred friend) is taken once `EKBILL_UPI_ID` is set in `.env`; `deploy/vm/payments.sh` lists the payments owners claim, to confirm or reject against the bank. The app demo's voice is recorded on the VM after each deploy (`OPENAI_TTS_MODEL`).
+
 ## Layout
 
 See `docs/ARCHITECTURE.md`. Decisions: `docs/DECISIONS.md`. What is knowingly missing: `docs/KNOWN-GAPS.md`. Stage reports and independent reviews: `docs/stages/`.

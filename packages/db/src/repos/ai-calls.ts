@@ -60,6 +60,17 @@ export async function recordUserAiCall(
   });
 }
 
+/** A call for nobody in particular (20 Oct: recording a line of the demo for a visitor who is not signed in). */
+export async function recordSystemAiCall(requestId: string, row: Parameters<typeof recordAiCall>[1]): Promise<string> {
+  return withUser({ userId: null, requestId, actorKind: 'system' }, async ({ db }) => {
+    const [r] = await db
+      .insert(schema.aiCalls)
+      .values({ businessId: null, userId: null, ...row, error: row.error?.slice(0, 300) ?? null })
+      .returning({ id: schema.aiCalls.id });
+    return r!.id;
+  });
+}
+
 /** The business's model calls, newest first (the cost per read in the stage report comes from here). */
 export async function listAiCalls(
   scope: TenantScope,

@@ -14,6 +14,7 @@ import * as items from '../../packages/db/src/repos/items';
 import * as memberships from '../../packages/db/src/repos/memberships';
 import * as payments from '../../packages/db/src/repos/payments';
 import * as photos from '../../packages/db/src/repos/photos';
+import * as plan from '../../packages/db/src/repos/plan';
 import * as reminders from '../../packages/db/src/repos/reminders';
 import * as search from '../../packages/db/src/repos/search';
 import * as series from '../../packages/db/src/repos/series';
@@ -441,6 +442,30 @@ describe('roles (I8): every repository write, every role', () => {
   it('photos.discardReading: accountant may not', async () => {
     const scope = await scopeFor('sharma', 'accountant');
     await expect(photos.roleProbes.discardReading(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('plan.claimPayment: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(plan.roleProbes.claimPayment(scope)).resolves.toBeDefined();
+  });
+  it('plan.claimPayment: staff may not', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(plan.roleProbes.claimPayment(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('plan.claimPayment: accountant may not', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(plan.roleProbes.claimPayment(scope)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+  it('plan.referralCode: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(plan.roleProbes.referralCode(scope)).resolves.toBeDefined();
+  });
+  it('plan.referralCode: staff may', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(plan.roleProbes.referralCode(scope)).resolves.toBeDefined();
+  });
+  it('plan.referralCode: accountant may not', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(plan.roleProbes.referralCode(scope)).rejects.toBeInstanceOf(ForbiddenError);
   });
   it('reminders.recordReminder: owner may', async () => {
     const scope = await scopeFor('sharma', 'owner');

@@ -1,7 +1,7 @@
 import type { Locale } from '@ekbill/copy';
 import 'server-only';
 
-import { isOwnName, seedBusinessById, seedUserById, type Resolved } from '@ekbill/db';
+import { DEMO_VERSION, isOwnName, seedBusinessById, seedUserById, type Resolved } from '@ekbill/db';
 
 import { current } from '../server/session';
 import { loadBusiness, type LoadedBusiness } from './business';
@@ -128,6 +128,9 @@ export function shellOf(v: Viewer) {
     personName: v.person.name,
     // The person has said their name (a new sign-in is "Naya user", an invite "Naya member", until they do).
     named: isOwnName(v.person.name),
+    // The app demo (20 Oct): the version this person has seen (a look or no session counts as seen), and the current.
+    demoSeen: v.session && !v.as ? v.session.user.demoSeenVersion : DEMO_VERSION,
+    demoVersion: DEMO_VERSION,
     businessName: v.business?.name ?? v.session?.business?.tradeName ?? null,
     registration: v.business?.registration ?? null,
     role: v.role,

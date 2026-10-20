@@ -17,6 +17,7 @@ export const REPOSITORIES = [
   'memberships',
   'payments',
   'photos',
+  'plan',
   'reminders',
   'search',
   'series',

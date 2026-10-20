@@ -48,7 +48,8 @@ export const goldenPaths: GoldenPath[] = [
   {
     id: 'd',
     name: '(d) Brand-new owner: welcome to the first bill handed to WhatsApp',
-    budget: 14,
+    // 14 until 20 Oct; the operator's first-run flow adds the greeting's "Na" and "Apne baare mein batao".
+    budget: 16,
     start: '/welcome',
     as: 'new',
     taps: [
@@ -56,6 +57,8 @@ export const goldenPaths: GoldenPath[] = [
       'Login → phone field (fill)',
       'Login → "Aage"',
       'Login → code field (fill; six digits move on by themselves)',
+      'Home → the greeting\'s "Na" (no tour this time)',
+      'Home → "Apne baare mein batao"',
       'Setup → dukaan ka naam (fill)',
       'Setup → "Aage"',
       'Setup → "Nahi" (GST mein registered? — answers and moves on)',

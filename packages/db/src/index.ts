@@ -24,6 +24,7 @@ export {
   deleteSessionsOf,
   membershipsOf,
   resolveScope,
+  setOwnSettings,
   type Resolved,
   type SessionUser,
 } from './auth';
@@ -55,6 +56,7 @@ export * as items from './repos/items';
 export * as memberships from './repos/memberships';
 export * as payments from './repos/payments';
 export * as photos from './repos/photos';
+export * as plan from './repos/plan';
 export * as reminders from './repos/reminders';
 export * as search from './repos/search';
 export * as series from './repos/series';
@@ -72,6 +74,9 @@ export {
 } from './seed';
 export * as schema from './schema';
 export { businessesWithBills, installationCounts, queueStatus } from './system';
+export { DEMO_VERSION } from './demo';
+export { demoAudioCount, demoAudioOf, keepDemoAudio } from './demo-audio';
+export { decidePayment, grantComp, listPayments, type ClaimedPayment } from './plan-admin';
 
 export interface SchemaStatus {
   ok: boolean;

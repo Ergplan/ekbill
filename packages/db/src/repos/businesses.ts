@@ -16,6 +16,7 @@ import * as schema from '../schema';
 import { withTenant, withUser, type Db, type TenantScope } from '../scope';
 import { allow, NotFoundError, type RoleProbe, type TenancyProbe } from './allow';
 import { PROBE_PNG, putFile } from './files';
+import { joinByReferral } from './plan';
 
 export interface Business {
   id: string;
@@ -352,6 +353,7 @@ export async function archive(scope: TenantScope): Promise<Business> {
 export async function createBusiness(
   who: { userId: string; requestId: string },
   input: { legalName: string; tradeName: string } | ProfileInput,
+  opts: { referralCode?: string | null } = {},
 ): Promise<BusinessProfile> {
   const profile = checked(
     'name' in input ? input : { name: input.legalName, tradeName: input.tradeName, gst: 'unknown' },
@@ -384,6 +386,8 @@ export async function createBusiness(
       padding: 3,
       includeFy: true,
     });
+    // Came by a friend's link (20 Oct): who referred it, and the friend's join row (an unknown code is ignored).
+    if (opts.referralCode) await joinByReferral(client, id, opts.referralCode);
     const [done] = await db
       .update(schema.businesses)
       .set({ defaultSeriesId: bills!.id })

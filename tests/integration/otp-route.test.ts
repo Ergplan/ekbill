@@ -69,7 +69,7 @@ describe('AUTH_MODE', () => {
     expect(wrong.headers.get('set-cookie')).toBeNull();
     const right = await check.POST(req('check', JSON.stringify({ phone: `+91${digits}`, code })));
     expect(right.status).toBe(200);
-    expect(await right.json()).toEqual({ to: '/welcome' });
+    expect(await right.json()).toEqual({ to: '/' });
     expect(right.headers.get('set-cookie')).toContain('eb-session=');
   });
 

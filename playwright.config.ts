@@ -21,6 +21,8 @@ const serverEnv = {
   AUTH_MODE: process.env.AUTH_MODE ?? 'switcher',
   // The OTP journey: the tests' code sender, which sends no SMS (CI's otp job; empty otherwise).
   OTP_FAKE_DIR: process.env.OTP_FAKE_DIR ?? '',
+  // EkBill's own fee is taken (20 Oct): the plan screen shows the UPI payment; the seed's busy businesses pay no fee.
+  EKBILL_UPI_ID: process.env.EKBILL_UPI_ID ?? 'ekbill.test@upi',
   DATABASE_URL: process.env.DATABASE_URL ?? 'postgres://postgres@127.0.0.1:5440/ekbill2_dev',
   // Poocho and the voice session answer from the stand-in model: no model is called from the build.
   AI_TRANSPORT: 'fake',

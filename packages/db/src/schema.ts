@@ -10,6 +10,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -48,6 +49,8 @@ export const users = pgTable(
     language: text('language').notNull().default('hi-Latn'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+    /** The app demo this person has seen or declined (20 Oct): 0 never; below DEMO_VERSION, "naya kya hai". */
+    demoSeenVersion: integer('demo_seen_version').notNull().default(0),
   },
   (t) => [
     check('users_theme', sql`${t.theme} in ('narangi', 'harmony', 'system')`),
@@ -110,6 +113,11 @@ export const businesses = pgTable(
     setupDoneAt: timestamp('setup_done_at', { withTimezone: true }),
     /** Stage 10: a business the load seed made; only these are ever removed (the load seed's own clean-up). */
     loadTest: boolean('load_test').notNull().default(false),
+    // --- 20 Oct: the plan (20 bills free, then ₹20 a month) and refer-a-friend ---
+    /** The business whose referral link this one joined by; null for most. */
+    referredBy: uuid('referred_by').references((): AnyPgColumn => businesses.id),
+    /** No fee until this date (the seed's businesses, a pilot the operator grants); null for none. */
+    planCompUntil: date('plan_comp_until', { mode: 'string' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid('created_by')
@@ -832,4 +840,99 @@ export const searchRecords = pgTable(
     index('search_records_embedding').using('hnsw', t.embedding.op('vector_cosine_ops')),
     check('search_records_kind', sql`${t.kind} in ('bill', 'customer', 'item')`),
   ],
+);
+
+/**
+ * Refer a friend (20 Oct): each business's code for its link (/r/<code>). Not tenant-scoped (a sign-up must find the
+ * business a code belongs to before it has one of its own); it holds the code and the business id, nothing else.
+ */
+export const referralCodes = pgTable(
+  'referral_codes',
+  {
+    code: text('code').primaryKey(),
+    businessId: uuid('business_id')
+      .notNull()
+      .unique()
+      .references(() => businesses.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [check('referral_codes_code', sql`${t.code} ~ '^[A-Z2-9]{6}$'`)],
+);
+
+/**
+ * A friend who joined by a business's link (the referrer's row, under the referrer's tenancy). It earns the referrer
+ * one month at 25 % off once the friend issues a first bill; a payment uses it up.
+ */
+export const referralJoins = pgTable(
+  'referral_joins',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    friendBusinessId: uuid('friend_business_id')
+      .notNull()
+      .unique()
+      .references(() => businesses.id),
+    joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
+    earnedAt: timestamp('earned_at', { withTimezone: true }),
+    usedPaymentId: uuid('used_payment_id'),
+  },
+  (t) => [
+    index('referral_joins_business').on(t.businessId),
+    check('referral_joins_not_self', sql`${t.businessId} <> ${t.friendBusinessId}`),
+    check('referral_joins_used_after_earned', sql`${t.usedPaymentId} is null or ${t.earnedAt} is not null`),
+  ],
+);
+
+/**
+ * EkBill's own fee (20 Oct): a month paid by UPI to EkBill. The owner pays in their UPI app and gives the UPI
+ * reference (UTR); the month starts at once ('claimed'), and the operator confirms or rejects it against the bank.
+ */
+export const planPayments = pgTable(
+  'plan_payments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    periodStart: date('period_start', { mode: 'string' }).notNull(),
+    periodEnd: date('period_end', { mode: 'string' }).notNull(),
+    amountPaise: integer('amount_paise').notNull(),
+    discountPaise: integer('discount_paise').notNull().default(0),
+    /** The 12-digit UPI reference the owner's app shows after paying. */
+    utr: text('utr').notNull().unique(),
+    /** claimed | confirmed | rejected */
+    status: text('status').notNull().default('claimed'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    decidedNote: text('decided_note'),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('plan_payments_business').on(t.businessId, t.periodEnd),
+    check('plan_payments_status', sql`${t.status} in ('claimed', 'confirmed', 'rejected')`),
+    check('plan_payments_amount', sql`${t.amountPaise} > 0 and ${t.discountPaise} >= 0`),
+    check('plan_payments_period', sql`${t.periodEnd} >= ${t.periodStart}`),
+    check('plan_payments_utr', sql`${t.utr} ~ '^[0-9]{12}$'`),
+  ],
+);
+
+/**
+ * The demo's recorded voice (20 Oct): each line in each language, made once by the speech model and kept, so every
+ * person hears the same recording and no line is paid for twice. Keyed by the text's hash: a changed line is new.
+ */
+export const demoAudio = pgTable(
+  'demo_audio',
+  {
+    locale: text('locale').notNull(),
+    lineId: text('line_id').notNull(),
+    textSha256: text('text_sha256').notNull(),
+    mime: text('mime').notNull(),
+    bytes: bytea('bytes').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.locale, t.lineId, t.textSha256] })],
 );

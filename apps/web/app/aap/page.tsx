@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { loadAap } from '../../screens/aap/data';
+import { loadAap, planSummaryOf } from '../../screens/aap/data';
 import { AapScreen } from '../../screens/aap/Screen';
 import { getViewer, shellOf, type SearchParams } from '../../screens/viewer';
 
@@ -10,5 +10,5 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
   const viewer = await getViewer(await searchParams);
   const data = loadAap(viewer, (process.env.NEXT_PUBLIC_BUILD_STAMP ?? 'dev').slice(0, 10));
   if (!data) redirect('/');
-  return <AapScreen data={data} viewer={shellOf(viewer)} />;
+  return <AapScreen data={{ ...data, plan: await planSummaryOf(viewer) }} viewer={shellOf(viewer)} />;
 }

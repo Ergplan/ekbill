@@ -5,6 +5,7 @@ import pg from 'pg';
 import fixture from '../../../tests/fixtures/v2.json';
 
 import * as schema from './schema';
+import { DEMO_VERSION } from './demo';
 
 /**
  * The build's people and businesses (AUTH_MODE=switcher lists them on
@@ -243,6 +244,14 @@ export interface SeedProfile {
 export type SeedUserKey = (typeof SEED.users)[number]['key'];
 export type SeedBusinessKey = (typeof SEED.businesses)[number]['key'];
 
+/**
+ * The build's businesses that carry many bills pay no fee (20 Oct): with payments switched on, the tests and the
+ * operator's walk-throughs would stop at the 21st bill. Verma Traders pays like anyone, to try the plan with.
+ */
+function compOf(key: string): string | null {
+  return key === 'verma' ? null : '2099-12-31';
+}
+
 export function seedUser(key: string) {
   return SEED.users.find((u) => u.key === key) ?? null;
 }
@@ -305,10 +314,24 @@ export async function seedBuild(
     for (const u of SEED.users) {
       await db
         .insert(schema.users)
-        .values({ id: u.id, phoneE164: u.phone, name: u.name, theme: u.theme, language: u.language })
+        .values({
+          id: u.id,
+          phoneE164: u.phone,
+          name: u.name,
+          theme: u.theme,
+          language: u.language,
+          demoSeenVersion: DEMO_VERSION,
+        })
         .onConflictDoUpdate({
           target: schema.users.id,
-          set: { phoneE164: u.phone, name: u.name, theme: u.theme, language: u.language },
+          // The build's people have seen the demo: it would stand over every journey the tests walk (20 Oct).
+          set: {
+            phoneE164: u.phone,
+            name: u.name,
+            theme: u.theme,
+            language: u.language,
+            demoSeenVersion: DEMO_VERSION,
+          },
         });
     }
     for (const b of SEED.businesses) {
@@ -331,10 +354,23 @@ export async function seedBuild(
       const profile: SeedProfile = b.profile ? { ...blank, ...b.profile } : blank;
       await db
         .insert(schema.businesses)
-        .values({ id: b.id, legalName: b.legalName, tradeName: b.tradeName, createdBy: owner.id, ...profile })
+        .values({
+          id: b.id,
+          legalName: b.legalName,
+          tradeName: b.tradeName,
+          createdBy: owner.id,
+          planCompUntil: compOf(b.key),
+          ...profile,
+        })
         .onConflictDoUpdate({
           target: schema.businesses.id,
-          set: { legalName: b.legalName, tradeName: b.tradeName, status: 'active', ...profile },
+          set: {
+            legalName: b.legalName,
+            tradeName: b.tradeName,
+            status: 'active',
+            planCompUntil: compOf(b.key),
+            ...profile,
+          },
         });
       // The numbering state (next_number, fy) is the business's own: a re-seed never rewinds it.
       let firstBillSeries: string | null = null;

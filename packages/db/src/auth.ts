@@ -19,6 +19,8 @@ export interface SessionUser {
   phoneE164: string;
   theme: 'narangi' | 'harmony' | 'system';
   language: 'hi-Latn' | 'en' | 'hi' | 'mr' | 'ta';
+  /** The app demo seen or declined (20 Oct); below DEMO_VERSION the demo is offered. */
+  demoSeenVersion: number;
 }
 export interface Resolved {
   sessionId: string;
@@ -48,6 +50,7 @@ export async function resolveScope(sessionId: string, requestId: string): Promis
         phoneE164: schema.users.phoneE164,
         theme: schema.users.theme,
         language: schema.users.language,
+        demoSeenVersion: schema.users.demoSeenVersion,
       },
     })
     .from(schema.sessions)
@@ -244,4 +247,19 @@ export async function membershipsOf(
       asc(schema.memberships.businessId),
     );
   return rows.map((r) => ({ ...r, role: r.role as Role }));
+}
+
+/**
+ * A person's own settings when they have no business yet (20 Oct: the demo's language at first sign-in, the demo
+ * seen): the users row is theirs and carries no business data, so this runs outside any tenant, like sign-in.
+ */
+export async function setOwnSettings(
+  userId: string,
+  patch: { language?: SessionUser['language']; demoSeenVersion?: number },
+): Promise<void> {
+  const set: Partial<typeof schema.users.$inferInsert> = {};
+  if (patch.language) set.language = patch.language;
+  if (patch.demoSeenVersion !== undefined) set.demoSeenVersion = Math.max(0, Math.trunc(patch.demoSeenVersion));
+  if (!Object.keys(set).length) return;
+  await db().update(schema.users).set(set).where(eq(schema.users.id, userId));
 }

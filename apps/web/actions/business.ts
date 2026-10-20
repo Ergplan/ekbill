@@ -1,12 +1,14 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 import { adoptBusiness, businesses, files, series, type TenantScope } from '@ekbill/db';
 import { ForbiddenError, NotFoundError } from '@ekbill/db';
 import { FILE_LIMITS, type Say } from '@ekbill/engine';
 
 import { log } from '../server/log';
+import { REFERRAL_COOKIE } from '../server/referral';
 import { current } from '../server/session';
 import { defaultSeriesInput, fileInput, lookInput, profileInput, seriesInput, seriesPatchInput } from './schema';
 import type { ActionResult } from './user';
@@ -56,7 +58,13 @@ export async function finishSetup(input: unknown): Promise<ProfileResult<{ busin
       return { ok: true, value: { businessId: saved.id } };
     }
     const requestId = `${me.sessionId}-setup`;
-    const created = await businesses.createBusiness({ userId: me.user.id, requestId }, asProfileInput(parsed.data));
+    // Came by a friend's link (/r/<code>, 20 Oct): the code the link left in a cookie; used once, then dropped.
+    const jar = await cookies();
+    const referralCode = jar.get(REFERRAL_COOKIE)?.value ?? null;
+    const created = await businesses.createBusiness({ userId: me.user.id, requestId }, asProfileInput(parsed.data), {
+      referralCode,
+    });
+    if (referralCode) jar.set(REFERRAL_COOKIE, '', { path: '/', maxAge: 0 });
     await adoptBusiness(me.sessionId, me.user.id, created.id);
     log.info({ requestId, businessId: created.id, userId: me.user.id }, 'business created by setup');
     revalidatePath('/', 'layout');

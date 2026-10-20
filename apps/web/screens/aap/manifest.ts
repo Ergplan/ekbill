@@ -14,12 +14,15 @@ export const manifest: ScreenManifest = {
     { label: 'Bill number series', to: '/aap', guide: 'series' },
     { label: 'Poocho', to: '/poocho', guide: 'ask' },
     { label: 'Mera bill thoda complex hai', to: '/help', guide: 'ask' },
+    { label: 'Aapka plan', to: '/aap/plan', guide: 'plan' },
+    { label: 'App ka demo dekho', to: '/', guide: 'ask' },
   ],
   states: ['owner', 'staff', 'accountant', 'composition'],
   // Save floats only while something is unsaved (19 Oct).
-  optionalGuides: ['save'],
+  optionalGuides: ['save', 'plan'],
   guides: [
     'person',
+    'plan',
     'dukaan',
     'paise',
     'series',

@@ -34,6 +34,7 @@ import * as schema from '../schema';
 import { withTenant, type Role, type TenantScope, type Tx } from '../scope';
 import { allow, NotFoundError, type RoleProbe, type TenancyProbe } from './allow';
 import { balancesIn } from './payments';
+import { countReferral, guardIssue } from './plan';
 import { configOf, type SeriesKind } from './series';
 
 /**
@@ -433,7 +434,10 @@ export async function listDocuments(
  * engine, allocates, writes. A refusal rolls everything back: no number is
  * spent on a bill that did not go out.
  */
-export async function issueDocument(scope: TenantScope, input: { id: string; today: string }): Promise<Document> {
+export async function issueDocument(
+  scope: TenantScope,
+  input: { id: string; today: string; enforcePlan?: boolean },
+): Promise<Document> {
   allow(scope, allowedRoles.issue, 'issue a bill');
   const today = assertCivilDate(input.today, 'today');
   return withTenant(scope, async (tx) => {
@@ -450,6 +454,8 @@ export async function issueDocument(scope: TenantScope, input: { id: string; tod
     if (series.kind !== wantKind)
       throw new DocumentStateError('series-kind', `series ${series.name} is for ${series.kind}s`);
 
+    // EkBill's own fee (20 Oct): past the free bills, a bill needs a paid month, once the operator takes payments.
+    if (draft.kind !== 'credit_note') await guardIssue(tx, { today, enforce: input.enforcePlan ?? false });
     const business = await businessRow(tx);
     let linked: { id: string; number: string; dateIso: string } | null = null;
     let creditablePaise: number | null = null;
@@ -611,6 +617,8 @@ export async function issueDocument(scope: TenantScope, input: { id: string; tod
           lastBilledAt: sql`greatest(coalesce(${schema.customers.lastBilledAt}, ${row!.issueDate}), ${row!.issueDate})`,
         })
         .where(eq(schema.customers.id, row!.customerId));
+    // A referred business's first bill earns its referrer a month at 25 % off (20 Oct).
+    if (row!.kind !== 'credit_note') await countReferral(tx);
     return asDocument(row!);
   });
 }

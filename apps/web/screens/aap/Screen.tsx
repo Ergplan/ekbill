@@ -50,6 +50,7 @@ import { withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { AapData, SeriesRow } from './data';
 import { switchLanguage } from './langSwitch';
+import { useDemo } from '../demo/DemoProvider';
 import { manifest } from './manifest';
 
 const TURNOVER: Record<string, string> = {
@@ -155,6 +156,7 @@ export function inputOf(f: Form): ProfileInput & { legalName: string } {
 export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer }) {
   const { business, profile, build, team } = data;
   const router = useRouter();
+  const demo = useDemo();
   const as = (href: string) => withAs(href, viewer.as);
   const owner = viewer.role === 'owner';
   const editable = owner && profile !== null;
@@ -558,7 +560,15 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
           <SettingRow label={t('items.title')} value="" href={as('/items')} />
         </SettingGroup>
       ) : null}
+      {data.plan ? (
+        <SettingGroup title={t('aap.plan')} guide="plan">
+          <SettingRow label={t('aap.plan')} value={t(data.plan.key, data.plan.params)} href={as('/aap/plan')} />
+          {viewer.role !== 'accountant' ? <SettingRow label={t('aap.refer')} value="" href={as('/aap/plan')} /> : null}
+        </SettingGroup>
+      ) : null}
       <SettingGroup title={t('aap.ask')} guide="ask">
+        {/* The app demo, again (20 Oct): new features, or to show a friend; sample data, never the owner's own. */}
+        <SettingRow label={t('aap.demo')} value={t('aap.demo.sub')} onClick={() => demo?.start({ firstTime: false })} />
         <SettingRow label={t('aap.ask')} value="" href={as('/poocho')} />
         {viewer.role !== 'accountant' ? <SettingRow label={t('aap.help')} value="" href={as('/help')} /> : null}
       </SettingGroup>

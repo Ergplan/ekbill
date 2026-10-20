@@ -7,6 +7,7 @@ import {
   NotFoundError,
   businesses,
   photos,
+  plan,
   customers,
   documents,
   items,
@@ -30,6 +31,7 @@ import {
 import { printAndKeep } from '@ekbill/render';
 
 import { log } from '../server/log';
+import { paymentsOn } from '../server/plan-config';
 import { enqueue } from '../server/queue';
 import { current } from '../server/session';
 import type { z } from 'zod';
@@ -79,6 +81,7 @@ function refused(e: unknown, draftId?: string): Refusal {
       draftId,
     };
   if (e instanceof documents.DocumentStateError) return { ok: false, error: `bill.state.${e.code}`, draftId };
+  if (e instanceof plan.PlanError) return { ok: false, error: e.key, draftId };
   if (e instanceof payments.PaymentError) return { ok: false, error: e.say.key, say: e.say };
   if (e instanceof customers.CustomerError) return { ok: false, error: e.say.key, field: e.field, say: e.say };
   if (e instanceof photos.PhotoError) return { ok: false, error: `photo.error.${e.code}` };
@@ -243,7 +246,8 @@ async function issueFrom(
       : await documents.createDraft(scope, draftInput);
     if (onDraft) await onDraft(draft.id);
     draftId = draft.id;
-    const issued = await documents.issueDocument(scope, { id: draft.id, today });
+    // EkBill's own fee (20 Oct): enforced once the operator takes payments (EKBILL_UPI_ID set).
+    const issued = await documents.issueDocument(scope, { id: draft.id, today, enforcePlan: paymentsOn() });
     const renderMs = await afterIssue(scope, issued.id, profile.look);
     log.info({ requestId: scope.requestId, documentId: issued.id, number: issued.number, renderMs }, 'bill issued');
     touched();

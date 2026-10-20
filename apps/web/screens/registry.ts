@@ -18,6 +18,7 @@ import { manifest as item } from './item/manifest';
 import { manifest as items } from './items/manifest';
 import { manifest as login } from './login/manifest';
 import { manifest as photo } from './photo/manifest';
+import { manifest as plan } from './plan/manifest';
 import { manifest as remind } from './remind/manifest';
 import { manifest as setup } from './setup/manifest';
 import { manifest as switchScreen } from './switch/manifest';
@@ -48,6 +49,7 @@ export const SCREENS: ScreenManifest[] = [
   item,
   gst,
   aap,
+  plan,
   team,
   ask,
   help,
@@ -77,6 +79,7 @@ export const SAMPLE_URL: Record<string, string> = {
   item: '/items/amc',
   gst: '/gst',
   aap: '/aap',
+  plan: '/aap/plan',
   team: '/aap/team',
   ask: '/poocho?state=answered',
   help: '/help',

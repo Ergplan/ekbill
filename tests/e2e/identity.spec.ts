@@ -102,7 +102,7 @@ test('the language is the person’s: Ravi picks each of the five, the screens s
   expect(errors.filter((e) => /hydrat/i.test(e))).toEqual([]);
 });
 
-test('with sign-in off, a new phone at login is a new owner: the code fills itself in, then setup', async ({
+test('with sign-in off, a new phone at login is a new owner: the code fills itself in, Home greets, then setup', async ({
   page,
 }) => {
   const phone = `98${String(Date.now()).slice(-8)}`;
@@ -113,7 +113,14 @@ test('with sign-in off, a new phone at login is a new owner: the code fills itse
   await page.getByLabel('Phone number').fill(phone);
   await page.getByRole('button', { name: 'Aage' }).click();
   await expect(page).toHaveURL(/state=code/);
-  // No tap: the code arrives by itself, as the screen promises, and moves on.
+  // No tap: the code arrives by itself, as the screen promises, and moves on: Home, with the greeting (20 Oct).
+  await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/, { timeout: 15_000 });
+  await hydrated(page);
+  await expect(page.getByTestId('demo-dialog')).toContainText('Ek chhota sa app tour chalega?');
+  await page.getByTestId('demo-no').click();
+  await expect(page.getByTestId('demo-dialog')).toHaveCount(0);
+  // "Apne baare mein batao" is the star; it opens the setup.
+  await page.locator('.eb-star [data-primary="true"]').click();
   await expect(page).toHaveURL(/\/setup\/name/, { timeout: 15_000 });
   await hydrated(page);
   await expect(page.getByLabel(/dukaan ka naam/i)).toBeVisible();

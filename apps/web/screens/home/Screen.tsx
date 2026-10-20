@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { t } from '@ekbill/copy';
 import {
@@ -10,6 +11,7 @@ import {
   Card,
   ClientChip,
   Display,
+  GhostButton,
   Greeting,
   HeroPanel,
   IconChip,
@@ -23,6 +25,8 @@ import {
   Stack,
 } from '@ekbill/ui';
 
+import { markDemoSeen } from '../../actions/user';
+import { useDemo } from '../demo/DemoProvider';
 import { useDraft } from '../draft';
 import { rupees } from '../money';
 import { billPath, withAs } from '../links';
@@ -36,6 +40,52 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
   const as = (href: string) => withAs(href, viewer.as);
   const [setup] = useDraft<{ name: string } | null>('setup', null);
   const shopName = data.kind === 'new' ? (data.businessName ?? setup?.name?.trim() ?? null) : null;
+  // The app demo (20 Oct): offered once to a first-timer here after sign-in; a "naya kya hai" card for someone
+  // already billing who has not seen this version of it.
+  const demo = useDemo();
+  // demoSeen is the session's own (a look or no session counts as seen), so a brand-new person with no business yet
+  // (no scope, not "signedIn" for the voice) is still greeted.
+  const firstRun = viewer.demoSeen === 0 && data.kind === 'new';
+  const [whatsNew, setWhatsNew] = useState(
+    !firstRun && viewer.demoSeen !== undefined && viewer.demoSeen < (viewer.demoVersion ?? 0),
+  );
+  useEffect(() => {
+    if (!firstRun || !demo) return;
+    try {
+      if (sessionStorage.getItem('ekbill.demo.offered')) return;
+      sessionStorage.setItem('ekbill.demo.offered', '1');
+    } catch {
+      // No storage: offer it anyway; the answer is kept on the server.
+    }
+    demo.offer();
+    // Once, on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const newCard = whatsNew ? (
+    <Card title={t('demo.new.title')} className="eb-card--demo">
+      <div data-guide="demo">
+        <Meta>{t('demo.new.sub')}</Meta>
+        <div className="eb-actions">
+          <AccentButton
+            onClick={() => {
+              setWhatsNew(false);
+              demo?.start({ firstTime: false });
+            }}
+          >
+            {t('aap.demo')}
+          </AccentButton>
+          <GhostButton
+            onClick={() => {
+              setWhatsNew(false);
+              void markDemoSeen().catch(() => undefined);
+            }}
+          >
+            {t('demo.new.later')}
+          </GhostButton>
+        </div>
+      </div>
+    </Card>
+  ) : null;
   // The hello on arrival, by name once the person has said it (19 Oct: "Namaste Sharma ji" is for after sign-up;
   // before it, the hello alone and "Apne baare mein batao" is the star).
   // A name that already carries its "ji" (Sharma ji, Gupta ji) is not given a second one.
@@ -127,6 +177,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
           <PrimaryCTA onClick={() => router.push(as('/bills/new'))}>{t('home.star')}</PrimaryCTA>
         </div>
       ) : null}
+      {newCard}
 
       {canBill ? (
         <HeroPanel
