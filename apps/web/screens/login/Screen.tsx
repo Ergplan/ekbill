@@ -90,6 +90,22 @@ export function LoginScreen({ state: asked, otp = false }: { state: 'phone' | 'c
     return () => window.clearTimeout(id);
   }, [code, state, router, otp, busy, phone]);
 
+  // Chrome on Android reads the SMS itself when its last line is "@<this site> #<code>" (WebOTP; the Twilio template
+  // deploy/vm/twilio-template.sh asks for) and offers the code; taken, it fills the six boxes and signs in as typed.
+  // A new code (resend) starts a new wait; leaving the step stops it. Safari needs none of this (one-time-code).
+  useEffect(() => {
+    if (!otp || state !== 'code' || !('OTPCredential' in window)) return;
+    const ac = new AbortController();
+    navigator.credentials
+      .get({ otp: { transport: ['sms'] }, signal: ac.signal } as CredentialRequestOptions)
+      .then((cred) => {
+        const got = (cred as { code?: string } | null)?.code ?? '';
+        if (/^\d{6}$/.test(got)) setCode(got);
+      })
+      .catch(() => undefined);
+    return () => ac.abort();
+  }, [otp, state, resendAt]);
+
   // The resend count-down, read off the clock every half second while the code screen is up.
   useEffect(() => {
     if (!otp || state !== 'code' || !resendAt) return;

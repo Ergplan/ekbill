@@ -50,7 +50,13 @@ function recorder(answers: Array<{ status: number; body: unknown }>) {
 }
 
 describe('twilioSender', () => {
-  const settings = { serviceSid: SERVICE, username: 'SK1', password: 'secret', baseUrl: 'https://verify.twilio.com' };
+  const settings = {
+    serviceSid: SERVICE,
+    username: 'SK1',
+    password: 'secret',
+    baseUrl: 'https://verify.twilio.com',
+    templateSid: null,
+  };
 
   it('send: one form POST to Verifications, SMS, with Basic auth', async () => {
     const r = recorder([{ status: 201, body: { status: 'pending' } }]);
@@ -62,6 +68,17 @@ describe('twilioSender', () => {
         form: { To: '+919822012345', Channel: 'sms' },
       },
     ]);
+  });
+
+  it('send: the custom template (Android auto-fill) when one is set; a malformed one is never sent', async () => {
+    const template = `HJ${'b'.repeat(32)}`;
+    const r = recorder([{ status: 201, body: { status: 'pending' } }]);
+    await twilioSender({ ...settings, templateSid: template }, r.fetchImpl).send('+919822012345');
+    expect(r.calls[0]!.form).toEqual({ To: '+919822012345', Channel: 'sms', TemplateSid: template });
+    const creds = { ...base, TWILIO_ACCOUNT_SID: 'AC1', TWILIO_AUTH_TOKEN: 't' };
+    expect(twilioSettingsOf({ ...creds, TWILIO_VERIFY_TEMPLATE_SID: template })?.templateSid).toBe(template);
+    expect(twilioSettingsOf({ ...creds, TWILIO_VERIFY_TEMPLATE_SID: 'HJ-not-a-sid' })?.templateSid).toBeNull();
+    expect(twilioSettingsOf(creds)?.templateSid).toBeNull();
   });
 
   it('send: Twilio’s "too many" is tooMany; anything else refused; no network is unreachable', async () => {

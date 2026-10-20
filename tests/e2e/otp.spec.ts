@@ -100,3 +100,43 @@ test('@otp after 30 seconds a new code can be asked for, and the new one signs i
   await page.locator('[data-guide="code"] input').first().fill(second);
   await expect(page).toHaveURL(/\/welcome$/, { timeout: 20_000 });
 });
+
+test('@otp Android auto-fill (WebOTP): the code the phone reads from the SMS signs in with no typing', async ({
+  page,
+}) => {
+  // Chrome on Android, imitated: headless Chromium receives no SMS, so navigator.credentials.get answers with the
+  // code the test hands it, as the phone would from an SMS whose last line is "@<domain> #<code>".
+  await page.addInitScript(() => {
+    const w = window as unknown as { OTPCredential: unknown; __sms?: string; __asked?: string[] };
+    w.OTPCredential = function OTPCredential() {};
+    Object.defineProperty(navigator, 'credentials', {
+      configurable: true,
+      value: {
+        get: (opts: { otp?: { transport: string[] }; signal?: AbortSignal }) =>
+          new Promise((resolve, reject) => {
+            if (!opts?.otp) return reject(new Error('not an otp request'));
+            w.__asked = opts.otp.transport;
+            opts.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+            const id = setInterval(() => {
+              if (!w.__sms) return;
+              clearInterval(id);
+              resolve({ type: 'otp', code: w.__sms });
+            }, 100);
+          }),
+      },
+    });
+  });
+  const digits = `92${String(Date.now()).slice(-8)}`;
+  forget(`+91${digits}`);
+  await page.goto('/login');
+  await hydrated(page);
+  await page.locator('#phone').fill(digits);
+  await page.locator('[data-guide="next"]').click();
+  await expect(page.getByText('Code daalo')).toBeVisible({ timeout: 20_000 });
+  expect(await page.evaluate(() => (window as unknown as { __asked?: string[] }).__asked)).toEqual(['sms']);
+  const code = await codeFor(`+91${digits}`);
+  await page.evaluate((c) => {
+    (window as unknown as { __sms?: string }).__sms = c;
+  }, code);
+  await expect(page).toHaveURL(/\/welcome$/, { timeout: 20_000 });
+});

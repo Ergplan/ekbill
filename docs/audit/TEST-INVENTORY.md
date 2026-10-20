@@ -6,9 +6,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 44    | 414    |
+| unit        | 44    | 415    |
 | integration | 27    | 303    |
-| e2e         | 16    | 68     |
+| e2e         | 16    | 69     |
 
 ## unit
 
@@ -513,6 +513,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 - an API key and secret first, else the account SID and auth token; empty counts as unset
 - send: one form POST to Verifications, SMS, with Basic auth
+- send: the custom template (Android auto-fill) when one is set; a malformed one is never sent
 - send: Twilioâ€™s "too many" is tooMany; anything else refused; no network is unreachable
 - check: approved, wrong (still pending), or expired (404, or out of tries)
 - an Indian mobile in any common writing; nothing else
@@ -1019,6 +1020,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - @otp a wrong code says so and signs nobody in (â€¦)
 - @otp an owner already in EkBill signs in with their number and lands in their business
 - @otp after 30 seconds a new code can be asked for, and the new one signs in
+- @otp Android auto-fill (WebOTP): the code the phone reads from the SMS signs in with no typing
 
 ### `tests/e2e/photo.spec.ts`
 

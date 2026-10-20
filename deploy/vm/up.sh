@@ -35,7 +35,7 @@ if [ -n "${TWILIO_ACCOUNT_SID:-}" ] && [ -z "${TWILIO_AUTH_TOKEN:-}" ]; then
 fi
 export TWILIO_VERIFY_SERVICE_SID="${TWILIO_VERIFY_SERVICE_SID:-}" TWILIO_API_KEY_SID="${TWILIO_API_KEY_SID:-}" \
   TWILIO_API_KEY_SECRET="${TWILIO_API_KEY_SECRET:-}" TWILIO_ACCOUNT_SID="${TWILIO_ACCOUNT_SID:-}" \
-  TWILIO_AUTH_TOKEN="${TWILIO_AUTH_TOKEN:-}"
+  TWILIO_AUTH_TOKEN="${TWILIO_AUTH_TOKEN:-}" TWILIO_VERIFY_TEMPLATE_SID="${TWILIO_VERIFY_TEMPLATE_SID:-}"
 twilio_secret=$([ -n "$TWILIO_API_KEY_SECRET$TWILIO_AUTH_TOKEN" ] && echo present || echo missing)
 echo "Twilio (phone OTP): service $([ -n "$TWILIO_VERIFY_SERVICE_SID" ] && echo set || echo 'not set'), secret $twilio_secret"
 if [ "${AUTH_MODE:-switcher}" = "otp" ] && { [ -z "$TWILIO_VERIFY_SERVICE_SID" ] || [ "$twilio_secret" = missing ]; }; then

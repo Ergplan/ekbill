@@ -25,7 +25,7 @@ Checks, as CI runs them: `npm run watch -- --once` (lint, format, types, unit, d
 
 ## Sign-in
 
-The build runs with `AUTH_MODE=switcher` (`/dev/switch` signs in any seeded person: test data only). Phone OTP (Twilio Verify) is built and tested with a stand-in sender, and is switched on by the operator: Twilio's settings in `.env` (see `.env.example`), `deploy/vm/check-env.sh`, then `AUTH_MODE=otp` and `deploy/vm/up.sh`.
+The build runs with `AUTH_MODE=switcher` (`/dev/switch` signs in any seeded person: test data only). Phone OTP (Twilio Verify) is built and tested with a stand-in sender, and is switched on by the operator: Twilio's settings in `.env` (see `.env.example`), `deploy/vm/check-env.sh`, then `AUTH_MODE=otp` and `deploy/vm/up.sh`. For Android to fill the code in by itself, `deploy/vm/twilio-template.sh` prints the template request for Twilio Support.
 
 ## Layout
 

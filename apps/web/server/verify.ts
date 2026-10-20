@@ -38,6 +38,12 @@ export interface TwilioSettings {
   username: string;
   password: string;
   baseUrl: string;
+  /**
+   * The custom Verify template (HJ…) whose SMS ends "@<domain> #<code>", so Chrome on Android fills the code in by
+   * itself (WebOTP). Twilio Support makes it (deploy/vm/twilio-template.sh writes the request). Unset: the
+   * service's default template, which may already be it.
+   */
+  templateSid: string | null;
 }
 
 /**
@@ -55,11 +61,14 @@ export function twilioSettingsOf(env: Record<string, string | undefined>): Twili
   const token = v('TWILIO_AUTH_TOKEN');
   const [username, password] = apiKey && apiSecret ? [apiKey, apiSecret] : account && token ? [account, token] : [];
   if (!username || !password) return null;
+  // A template SID that is not one is left out rather than sent: Twilio would refuse every SMS (60200).
+  const template = v('TWILIO_VERIFY_TEMPLATE_SID');
   return {
     serviceSid,
     username,
     password,
     baseUrl: (v('TWILIO_VERIFY_BASE_URL') || 'https://verify.twilio.com').replace(/\/$/, ''),
+    templateSid: /^HJ[0-9a-f]{32}$/i.test(template) ? template : null,
   };
 }
 
@@ -86,7 +95,11 @@ export function twilioSender(s: TwilioSettings, fetchImpl: Fetch = fetch): CodeS
   return {
     kind: 'twilio',
     async send(phoneE164) {
-      const r = await post('Verifications', { To: phoneE164, Channel: 'sms' });
+      const r = await post('Verifications', {
+        To: phoneE164,
+        Channel: 'sms',
+        ...(s.templateSid ? { TemplateSid: s.templateSid } : {}),
+      });
       if (r.status === 201 || r.status === 200) return;
       // 60203: too many sends to this number; 429: Twilio's own rate limit.
       if (r.status === 429 || r.body.code === 60203) throw new VerifyError('verify.tooMany', String(r.body.code ?? ''));

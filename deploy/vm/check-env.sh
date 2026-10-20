@@ -68,7 +68,7 @@ inside() {
 say "What the running app has"
 inside app AUTH_MODE SESSION_SECRET DATABASE_URL OPENAI_API_KEY OPENAI_BASE_URL OPENAI_TEXT_MODEL OPENAI_VISION_MODEL \
   OPENAI_REALTIME_MODEL OPENAI_REALTIME_VOICE OPENAI_TRANSCRIBE_MODEL OPENAI_EMBED_MODEL TWILIO_VERIFY_SERVICE_SID \
-  TWILIO_API_KEY_SID TWILIO_API_KEY_SECRET TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN OTP_FAKE_DIR
+  TWILIO_API_KEY_SID TWILIO_API_KEY_SECRET TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN TWILIO_VERIFY_TEMPLATE_SID OTP_FAKE_DIR
 
 say "What the running worker has (it reads photos and old bills)"
 inside worker DATABASE_URL OPENAI_API_KEY OPENAI_VISION_MODEL OPENAI_EMBED_MODEL
@@ -136,6 +136,12 @@ if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx app; th
         if (r.ok) {
           const b = await r.json();
           console.log("  the settings work: Verify service " + b.friendly_name + " (code length " + b.code_length + ")");
+          // Android fills the code in by itself only with the domain-bound template (deploy/vm/twilio-template.sh).
+          const tpl = (e.TWILIO_VERIFY_TEMPLATE_SID || "").trim();
+          if (tpl && !/^HJ[0-9a-f]{32}$/i.test(tpl)) console.log("  TWILIO_VERIFY_TEMPLATE_SID is not a template SID (HJ + 32 characters): it is IGNORED");
+          else if (tpl) console.log("  SMS template: " + tpl + " (from .env; Android auto-fill)");
+          else if (b.default_template_sid) console.log("  SMS template: the service default " + b.default_template_sid + " (Android auto-fill if it is the domain-bound one)");
+          else console.log("  no custom SMS template: Android will not fill the code in by itself (deploy/vm/twilio-template.sh)");
         } else if (r.status === 401) console.log("  Twilio REFUSED the key/token (401): check the SID and the secret");
         else if (r.status === 404) console.log("  the Verify service was NOT FOUND on this account (404): check TWILIO_VERIFY_SERVICE_SID");
         else console.log("  Twilio answered HTTP " + r.status);
