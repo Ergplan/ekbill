@@ -194,3 +194,15 @@ test('the voice asks for a bill while a bill form is open: the lines land on it,
   await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
   await expect(page.getByLabel('Kya kiya?').first()).not.toHaveValue('Fan regulator');
 });
+
+test('signed out, or on the sample shop, the mic walks the screen instead of answering "Pehle login karo" (20 Oct)', async ({
+  page,
+}) => {
+  await page.context().clearCookies();
+  await page.goto('/?as=owner');
+  await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
+  await page.locator('[data-guide="mic"]').click();
+  await expect(page.locator('.eb-guide__caption')).toContainText('Pakka bill');
+  await expect(page.getByText('Pehle login karo')).toHaveCount(0);
+  await expect(page.getByTestId('voice-live')).toHaveCount(0);
+});

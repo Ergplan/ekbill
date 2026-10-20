@@ -140,5 +140,7 @@ export function shellOf(v: Viewer) {
     voice: v.business?.voiceOnArrival ?? false,
     // A signed-in member (not a look, not the demo): the voice can be minted for them.
     signedIn: Boolean(v.session?.scope) && !v.as,
+    // Anyone signed in, a business or not yet (setup), and not a look: the mic is the voice's; else the tour's (20 Oct).
+    canTalk: Boolean(v.session) && !v.as,
   };
 }

@@ -8,7 +8,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 | ----------- | ----- | ------ |
 | unit        | 46    | 426    |
 | integration | 29    | 325    |
-| e2e         | 20    | 83     |
+| e2e         | 20    | 84     |
 
 ## unit
 
@@ -1134,3 +1134,4 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the voice cannot record money: the "Poore" choice on the money sheet is the ownerâ€™s
 - a tap on the mic while the voice is still connecting stops it for good (Stage 9 review)
 - the voice asks for a bill while a bill form is open: the lines land on it, and on no later form (Stage 9 review)
+- signed out, or on the sample shop, the mic walks the screen instead of answering "Pehle login karo" (20 Oct)

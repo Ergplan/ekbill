@@ -42,6 +42,8 @@ export interface ShellViewer {
   voice?: boolean;
   /** A signed-in member, not a look or the demo. */
   signedIn?: boolean;
+  /** Signed in (with a business or still setting one up), not a look: the voice can be minted. */
+  canTalk?: boolean;
 }
 
 /**
@@ -78,7 +80,9 @@ export function AppShell({
   const router = useRouter();
   const guide = useTour(localTour(tour));
   const voice = useVoice();
-  const talk = voice?.available ? voice.toggle : guide.running ? guide.stop : guide.start;
+  // The voice is a signed-in person's (its session is minted for them). Signed out, or on a look at the sample shop
+  // (?as=, the demo's screens), the mic walks the screen's tour instead of answering "Pehle login karo" (20 Oct).
+  const talk = voice?.available && viewer.canTalk ? voice.toggle : guide.running ? guide.stop : guide.start;
   // The VoiceProvider reads this for its one hint by the mic ("Bolke"); it never starts the voice by itself (19 Oct).
   useEffect(() => {
     document.documentElement.dataset.bolke = viewer.voice ? 'on' : 'off';
