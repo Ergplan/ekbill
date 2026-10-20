@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import pg from 'pg';
 
+import { DEMO_VERSION } from '../../packages/db/src/demo';
+
 /**
  * The welcome and the app demo (20 Oct). A first-timer is greeted on Home after sign-in ("Ek chhota sa app tour
  * chalega?"); Haan asks the language; the demo walks the sample business with the ring and the caption, fills the
@@ -49,14 +51,19 @@ test('a first-timer: greeted on Home, Haan, Hinglish, the walk on the sample bus
   await expect(page.getByRole('radio', { name: 'Hinglish' })).toBeChecked();
   await page.getByTestId('demo-start').click();
   const bar = page.getByTestId('demo-bar');
-  await expect(bar).toContainText('Demo · 1/8');
+  await expect(bar).toContainText('Demo · 1/9');
   await expect(bar).toContainText('Namoona data');
   await expect(page).toHaveURL(/as=owner/);
   await expect(page.locator('.eb-guide__caption')).toContainText('Yeh aapka Ghar hai');
+  await expect(page.locator('.eb-guide__caption')).toContainText('Pakka bill');
+  // Then the kaccha bill (20 Oct): which is which, beside the pakka one.
+  await page.locator('.eb-guide__next').click();
+  await expect(bar).toContainText('Demo · 2/9');
+  await expect(page.locator('.eb-guide__caption')).toContainText('Kaccha bill, yaani estimate');
   // On to the bill: its first line fills itself while the line is said.
   await page.locator('.eb-guide__next').click();
   await page.locator('.eb-guide__next').click();
-  await expect(bar).toContainText('Demo · 3/8');
+  await expect(bar).toContainText('Demo · 4/9');
   await expect(page).toHaveURL(/\/bills\/new\?customer=mehta&as=owner/);
   await expect(page.locator('#line-0-what')).toHaveValue('Ceiling fan', { timeout: 8_000 });
   await expect(page.locator('#line-0-rate')).toHaveValue('350', { timeout: 8_000 });
@@ -96,7 +103,7 @@ test('someone billing starts it from Aap in Tamil, stops it midway, and is Home 
   await page.getByTestId('demo-dialog').getByRole('radio', { name: 'தமிழ்' }).click();
   await page.getByTestId('demo-start').click();
   const bar = page.getByTestId('demo-bar');
-  await expect(bar).toContainText('டெமோ · 1/8');
+  await expect(bar).toContainText('டெமோ · 1/9');
   await expect(page.locator('.eb-guide__caption')).toContainText('இது உங்கள் முகப்பு');
   await page.locator('.eb-guide__next').click();
   await page.getByTestId('demo-stop').click();
@@ -115,14 +122,14 @@ test('"naya kya hai": offered once to someone billing who has not seen it; Baad 
     await hydrated(page);
     await expect(page.getByTestId('demo-dialog')).toHaveCount(0);
     const card = page.locator('[data-guide="demo"]');
-    await expect(card).toContainText('Bolke bill, photo se bill');
+    await expect(card).toContainText('Kaccha bill (estimate), number se seedha WhatsApp');
     await page.getByRole('button', { name: 'Baad mein' }).click();
     await expect(card).toHaveCount(0);
     await page.reload();
     await hydrated(page);
     await expect(page.locator('[data-guide="demo"]')).toHaveCount(0);
   } finally {
-    await sql("update users set demo_seen_version = 1 where phone_e164 = '+919822012345'");
+    await sql("update users set demo_seen_version = $1 where phone_e164 = '+919822012345'", [DEMO_VERSION]);
   }
 });
 
@@ -133,7 +140,7 @@ test('a visitor watches it from the welcome screen and is brought back to start'
   await hydrated(page);
   await page.getByRole('button', { name: 'Pehle demo dekho (45 sec)' }).click();
   await page.getByTestId('demo-start').click();
-  await expect(page.getByTestId('demo-bar')).toContainText('Demo · 1/8');
+  await expect(page.getByTestId('demo-bar')).toContainText('Demo · 1/9');
   await skipToEnd(page);
   await expect(page).toHaveURL(/\/welcome$/);
   await expect(page.locator('.eb-guide__caption')).toContainText('Shuru karne ke liye');

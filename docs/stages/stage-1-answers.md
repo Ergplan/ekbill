@@ -59,3 +59,17 @@ The build agent takes this as the answer to add, and re-records the baselines it
 - **Welcome**: "Pehle demo dekho (45 sec)" for a visitor.
 - **Every sheet**: the dimmed backdrop now dims (its colour token did not exist, so it never had).
 - The greeting and the demo are overlays over Home and the sample screens; the seed's people have seen the demo, so no baseline shows them.
+
+## 20 Oct 2026: kaccha bill and pakka bill, and WhatsApp to a typed number (I10)
+
+The operator wrote: "We need one more opening button kaccha bill bana hai (estimate) second pacca bill baanan hai (tax invoice). The opening guide should explain this." And then: "kaccha bill in India refers to estimates which are sent before exact invoice can be sent for buyer to check and somethings street vendors only give kcahha bill. Once more aspect is how to link the pplication so bill goes directly to user Watsapp by typing the number in the application, becuase shopkeeper may not have number stored in watspp of new custoemr and the bill sending process then becomes tedious."
+
+The build agent takes these as the answer to change the approved design where they say, and re-records the baselines they move, both themes:
+
+- **Home**: two opening buttons where the star was: "Pakka bill banao (tax invoice)" (the star; "Pakka bill banao" for a business without GST) and "Kaccha bill banao (estimate)" under it, with one line saying which is which. The first-run Home has the same pair in its hero ("Pehla bill banao" stays the pakka one). The tour opens on the two.
+- **The bill form**: "Pakka bill | Kaccha (estimate)" on top; an estimate's heading, number (EST-001) and button ("Estimate banao") are its own, with a line saying it counts in no GST return and no dues. A pakka bill made from an estimate says so on top and starts with its lines.
+- **Bill ban gaya**: the customer's WhatsApp number (theirs on record, or typed) above "WhatsApp pe bhejo", which opens that number's chat at once with the message and the bill's own link; "File share karo (PDF/JPG)" under it. An estimate's screen says "Estimate ban gaya!" and offers "Pakka bill banao".
+- **The bill view**: "WhatsApp dobara" opens a sheet with the same number and button. An estimate's view: "Kaccha bill (estimate)", its amount, "Pakka bill banao" (or the pakka bill made from it), and only its own cancel under "Galti ho gayi?".
+- **Bills**: a "Kaccha (estimate)" chip lists the estimates, each with the pakka bill made from it.
+- **The bill's own page** (`/b/<link>`, new): what the customer opens from WhatsApp, with no sign-in.
+- **The demo**: a step on the kaccha bill after the pakka one; the WhatsApp step says the number is typed. The photo lines say "haath se likha bill" (a handwritten bill), as "kaccha bill" now means an estimate.

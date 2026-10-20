@@ -21,8 +21,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
     state: one(sp.state),
     name: one(sp.name),
     redo: one(sp.redo),
+    kaccha: one(sp.kaccha) === '1',
+    from: one(sp.from),
   });
-  if (!first && !newCustomer && !data.customer) return <BillStartScreen pick={data.pick} viewer={shellOf(viewer)} />;
+  const kaccha = one(sp.kaccha) === '1';
+  if (!first && !newCustomer && !data.customer)
+    return <BillStartScreen pick={data.pick} kaccha={kaccha} viewer={shellOf(viewer)} />;
   // One form per bill asked for: a move to another customer's form (the voice from an open form, a chip) starts
   // that form afresh, with what was handed over to it, rather than keeping the last one's state.
   const key = [
@@ -31,6 +35,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
     first ? 'first' : '',
     one(sp.redo) ?? '',
     one(sp.name) ?? '',
+    kaccha ? 'kaccha' : '',
+    one(sp.from) ?? '',
   ].join('|');
   return <BillScreen key={key} data={data} viewer={shellOf(viewer)} />;
 }

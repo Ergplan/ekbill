@@ -35,7 +35,7 @@ import { withTenant, type Role, type TenantScope, type Tx } from '../scope';
 import { allow, NotFoundError, type RoleProbe, type TenancyProbe } from './allow';
 import { balancesIn } from './payments';
 import { countReferral, guardIssue } from './plan';
-import { configOf, type SeriesKind } from './series';
+import { ESTIMATE_SERIES, configOf, type SeriesKind } from './series';
 
 /**
  * Documents (I2, I3). A draft is the owner's working copy; issueDocument()
@@ -48,7 +48,9 @@ import { configOf, type SeriesKind } from './series';
  * an issued row's number, lines, totals and snapshot never change.
  * Corrections are new documents that link back: a credit note, a redo.
  */
-export type DocumentKindColumn = 'tax_invoice' | 'bill_of_supply' | 'credit_note';
+export type DocumentKindColumn = 'tax_invoice' | 'bill_of_supply' | 'credit_note' | 'estimate';
+/** The kinds that are a sale: what dues, the plan's count and "Pichle jaisa hi" read (not a note, not a kaccha bill). */
+export const BILL_KINDS = ['tax_invoice', 'bill_of_supply'] as const;
 export type DocumentStatus = 'draft' | 'issued' | 'cancelled';
 
 export interface Document {
@@ -75,6 +77,8 @@ export interface Document {
   issuedSnapshot: IssuedSnapshot | null;
   issuedAt: Date | null;
   linkedDocumentId: string | null;
+  /** The kaccha bill (estimate) this pakka bill was made from (20 Oct). */
+  fromEstimateId: string | null;
   irn: string | null;
   cancelledAt: Date | null;
   cancelledReason: string | null;
@@ -111,6 +115,10 @@ export interface DraftInput {
   roundToRupee?: boolean;
   /** Cancel-and-redo: the cancelled bill this one replaces, kept as its link (I2, Stage 6 review). */
   replaces?: string | null;
+  /** A kaccha bill (20 Oct): an estimate, numbered in its own series; never a sale. */
+  estimate?: boolean;
+  /** The pakka bill made from this estimate (20 Oct): the estimate's id. */
+  fromEstimateId?: string | null;
 }
 
 /** The engine said no: the blockers say why and what to do, in Say keys the screen renders. */
@@ -135,6 +143,7 @@ export class DocumentStateError extends Error {
       | 'series-kind'
       | 'credit-note-exists'
       | 'not-cancelled'
+      | 'not-an-estimate'
       | 'bad-lines',
     message: string,
   ) {
@@ -200,7 +209,13 @@ function customerOf(row: Row): IssueCustomer {
 function kindColumn(kind: Exclude<Assessment['kind'], 'blocked'>): DocumentKindColumn {
   if (kind === 'tax-invoice') return 'tax_invoice';
   if (kind === 'credit-note') return 'credit_note';
+  if (kind === 'estimate') return 'estimate';
   return 'bill_of_supply';
+}
+
+/** The series a document of this kind numbers in. */
+function seriesKindOf(kind: string): SeriesKind {
+  return kind === 'credit_note' ? 'credit_note' : kind === 'estimate' ? 'estimate' : 'bill';
 }
 
 async function businessRow(tx: Tx) {
@@ -234,6 +249,16 @@ function previewTotals(
 }
 
 async function seriesFor(tx: Tx, id: string | null | undefined, kind: SeriesKind) {
+  // A business set up before kaccha bills (20 Oct) gets its estimate series on its first estimate.
+  if (!id && kind === 'estimate') {
+    const has = await tx.db
+      .select({ id: schema.series.id })
+      .from(schema.series)
+      .where(and(eq(schema.series.kind, 'estimate'), eq(schema.series.active, true)))
+      .limit(1);
+    if (!has.length)
+      await tx.db.insert(schema.series).values(ESTIMATE_SERIES(tx.scope.businessId)).onConflictDoNothing();
+  }
   // No series named: the business's default bill series (Aap), else its oldest active one of the kind.
   if (!id && kind === 'bill') {
     const chosen = (
@@ -261,6 +286,21 @@ async function seriesFor(tx: Tx, id: string | null | undefined, kind: SeriesKind
   return row;
 }
 
+/** The estimate a pakka bill is made from: an issued kaccha bill of this business, else refused. */
+async function estimateOf(tx: Tx, id: string | null | undefined): Promise<string | null> {
+  if (!id) return null;
+  const row = (
+    await tx.db
+      .select({ id: schema.documents.id, kind: schema.documents.kind, status: schema.documents.status })
+      .from(schema.documents)
+      .where(eq(schema.documents.id, id))
+  )[0];
+  if (!row) throw new NotFoundError('estimate');
+  if (row.kind !== 'estimate' || row.status !== 'issued')
+    throw new DocumentStateError('not-an-estimate', 'a bill is made from an issued kaccha bill only');
+  return row.id;
+}
+
 /** The bill a redo replaces: a cancelled bill of this business (never a credit note), else refused. */
 async function replacedBill(tx: Tx, id: string | null | undefined): Promise<string | null> {
   if (!id) return null;
@@ -272,6 +312,7 @@ async function replacedBill(tx: Tx, id: string | null | undefined): Promise<stri
   )[0];
   if (!row) throw new NotFoundError('replaced bill');
   if (row.kind === 'credit_note') throw new DocumentStateError('not-a-bill', 'a credit note is not redone');
+  if (row.kind === 'estimate') throw new DocumentStateError('not-a-bill', 'a kaccha bill is not redone');
   if (row.status !== 'cancelled') throw new DocumentStateError('not-cancelled', 'only a cancelled bill is redone');
   return row.id;
 }
@@ -283,7 +324,8 @@ export async function createDraft(scope: TenantScope, input: DraftInput): Promis
   return withTenant(scope, async (tx) => {
     const business = await businessRow(tx);
     const seller = sellerOf(business);
-    const series = await seriesFor(tx, input.seriesId, 'bill');
+    const estimate = input.estimate === true;
+    const series = await seriesFor(tx, estimate ? null : input.seriesId, estimate ? 'estimate' : 'bill');
     const gstOn = input.gstOn ?? true;
     const customerState = input.customer.stateCode ?? null;
     const placeOfSupply = input.placeOfSupplyStateCode ?? customerState;
@@ -293,13 +335,17 @@ export async function createDraft(scope: TenantScope, input: DraftInput): Promis
       customerStateCode: placeOfSupply,
       roundToRupee: input.roundToRupee ?? false,
     });
-    const kind = (() => {
-      try {
-        return documentKind(seller.registration, gstOn, dateIso) === 'tax-invoice' ? 'tax_invoice' : 'bill_of_supply';
-      } catch {
-        return 'bill_of_supply';
-      }
-    })();
+    const kind = estimate
+      ? 'estimate'
+      : (() => {
+          try {
+            return documentKind(seller.registration, gstOn, dateIso) === 'tax-invoice'
+              ? 'tax_invoice'
+              : 'bill_of_supply';
+          } catch {
+            return 'bill_of_supply';
+          }
+        })();
     const [row] = await tx.db
       .insert(schema.documents)
       .values({
@@ -322,7 +368,8 @@ export async function createDraft(scope: TenantScope, input: DraftInput): Promis
         notes: input.notes ?? null,
         roundToRupee: input.roundToRupee ?? false,
         gstOn,
-        linkedDocumentId: await replacedBill(tx, input.replaces),
+        linkedDocumentId: estimate ? null : await replacedBill(tx, input.replaces),
+        fromEstimateId: estimate ? null : await estimateOf(tx, input.fromEstimateId),
         createdBy: scope.userId,
       })
       .returning();
@@ -330,7 +377,7 @@ export async function createDraft(scope: TenantScope, input: DraftInput): Promis
   });
 }
 
-export type DraftPatch = Partial<Omit<DraftInput, 'seriesId'>> & { seriesId?: string | null };
+export type DraftPatch = Partial<Omit<DraftInput, 'seriesId' | 'estimate'>> & { seriesId?: string | null };
 
 export async function updateDraft(scope: TenantScope, id: string, patch: DraftPatch): Promise<Document> {
   allow(scope, allowedRoles.updateDraft, 'change a bill');
@@ -343,8 +390,12 @@ export async function updateDraft(scope: TenantScope, id: string, patch: DraftPa
     if (current.kind === 'credit_note') allow(scope, allowedRoles.createCreditNote, 'change a credit note');
     const business = await businessRow(tx);
     const seller = sellerOf(business);
-    const kindOfSeries: SeriesKind = current.kind === 'credit_note' ? 'credit_note' : 'bill';
-    const series = patch.seriesId !== undefined ? await seriesFor(tx, patch.seriesId, kindOfSeries) : null;
+    const kindOfSeries = seriesKindOf(current.kind);
+    // A kaccha bill numbers in its own series only (the form sends the bill's series for both).
+    const series =
+      patch.seriesId !== undefined && kindOfSeries !== 'estimate'
+        ? await seriesFor(tx, patch.seriesId, kindOfSeries)
+        : null;
     const dateIso = patch.dateIso !== undefined ? assertCivilDate(patch.dateIso, 'bill date') : current.issueDate;
     const dueDate =
       patch.dueDateIso !== undefined
@@ -385,8 +436,11 @@ export async function updateDraft(scope: TenantScope, id: string, patch: DraftPa
         lines,
         totals,
         ...(patch.notes !== undefined ? { notes: patch.notes } : {}),
-        ...(patch.replaces !== undefined && current.kind !== 'credit_note'
+        ...(patch.replaces !== undefined && current.kind !== 'credit_note' && current.kind !== 'estimate'
           ? { linkedDocumentId: await replacedBill(tx, patch.replaces) }
+          : {}),
+        ...(patch.fromEstimateId !== undefined && current.kind !== 'credit_note' && current.kind !== 'estimate'
+          ? { fromEstimateId: await estimateOf(tx, patch.fromEstimateId) }
           : {}),
         roundToRupee,
         gstOn,
@@ -450,12 +504,14 @@ export async function issueDocument(
     const series = (await db.select().from(schema.series).where(eq(schema.series.id, draft.seriesId)).for('update'))[0];
     if (!series) throw new NotFoundError('series');
     if (!series.active) throw new DocumentStateError('series-inactive', `series ${series.name} is retired`);
-    const wantKind: SeriesKind = draft.kind === 'credit_note' ? 'credit_note' : 'bill';
+    const wantKind = seriesKindOf(draft.kind);
+    const estimate = draft.kind === 'estimate';
     if (series.kind !== wantKind)
       throw new DocumentStateError('series-kind', `series ${series.name} is for ${series.kind}s`);
 
     // EkBill's own fee (20 Oct): past the free bills, a bill needs a paid month, once the operator takes payments.
-    if (draft.kind !== 'credit_note') await guardIssue(tx, { today, enforce: input.enforcePlan ?? false });
+    // A kaccha bill is not a sale: never stopped by the plan, never counted in it.
+    if (draft.kind !== 'credit_note' && !estimate) await guardIssue(tx, { today, enforce: input.enforcePlan ?? false });
     const business = await businessRow(tx);
     let linked: { id: string; number: string; dateIso: string } | null = null;
     let creditablePaise: number | null = null;
@@ -473,8 +529,8 @@ export async function issueDocument(
           )[0]
         : undefined;
       if (!invoice) throw new NotFoundError('linked invoice');
-      if (invoice.kind === 'credit_note')
-        throw new DocumentStateError('not-a-bill', `${invoice.number} is a credit note, not a bill`);
+      if (invoice.kind === 'credit_note' || invoice.kind === 'estimate')
+        throw new DocumentStateError('not-a-bill', `${invoice.number} is not a bill`);
       if (invoice.status !== 'issued' || !invoice.number)
         throw new DocumentStateError('not-issued', `invoice ${invoice.number ?? invoice.id} is ${invoice.status}`);
       linked = { id: invoice.id, number: invoice.number, dateIso: invoice.issueDate };
@@ -495,7 +551,7 @@ export async function issueDocument(
 
     const prepared = prepareIssue(
       {
-        kind: draft.kind === 'credit_note' ? 'credit-note' : 'bill',
+        kind: draft.kind === 'credit_note' ? 'credit-note' : estimate ? 'estimate' : 'bill',
         dateIso: draft.issueDate,
         gstOn: draft.gstOn,
         lines: draft.lines as IssueLine[],
@@ -610,7 +666,7 @@ export async function issueDocument(
       .where(eq(schema.documents.id, draft.id))
       .returning();
     // The customer's directory order (Stage 6): the date of their latest bill, never moved back.
-    if (row!.customerId && row!.kind !== 'credit_note')
+    if (row!.customerId && row!.kind !== 'credit_note' && !estimate)
       await db
         .update(schema.customers)
         .set({
@@ -618,7 +674,7 @@ export async function issueDocument(
         })
         .where(eq(schema.customers.id, row!.customerId));
     // A referred business's first bill earns its referrer a month at 25 % off (20 Oct).
-    if (row!.kind !== 'credit_note') await countReferral(tx);
+    if (row!.kind !== 'credit_note' && !estimate) await countReferral(tx);
     return asDocument(row!);
   });
 }
@@ -689,8 +745,8 @@ export async function createCreditNote(scope: TenantScope, input: CreditNoteInpu
   return withTenant(scope, async (tx) => {
     const invoice = (await tx.db.select().from(schema.documents).where(eq(schema.documents.id, input.invoiceId)))[0];
     if (!invoice) throw new NotFoundError('invoice');
-    if (invoice.kind === 'credit_note')
-      throw new DocumentStateError('not-a-bill', `${invoice.number} is a credit note, not a bill`);
+    if (invoice.kind === 'credit_note' || invoice.kind === 'estimate')
+      throw new DocumentStateError('not-a-bill', `${invoice.number} is not a bill`);
     if (invoice.status !== 'issued' || !invoice.issuedSnapshot)
       throw new DocumentStateError('not-issued', `document ${invoice.number ?? invoice.id} is ${invoice.status}`);
     const snapshot = invoice.issuedSnapshot as IssuedSnapshot;
@@ -736,6 +792,8 @@ export async function createCreditNote(scope: TenantScope, input: CreditNoteInpu
 export type BillFilter = 'all' | 'due' | 'paid' | 'cancelled';
 export interface BillRow {
   id: string;
+  /** A kaccha bill: the pakka bill made from it, once issued (20 Oct). */
+  pakkaNumber: string | null;
   number: string;
   /** The year the number belongs to: a series without the year in its numbers starts again each April. */
   financialYear: string | null;
@@ -782,6 +840,8 @@ export async function listBills(
     since?: string;
     /** Only bills dated on or before this day (the daily dues: terms already ended). */
     until?: string;
+    /** The kaccha bills (estimates) instead of the bills (20 Oct); they owe nothing, so due and paid ask nothing. */
+    estimates?: boolean;
   } = {},
 ): Promise<BillRow[]> {
   return withTenant(scope, async (tx) => {
@@ -799,17 +859,20 @@ export async function listBills(
         seriesId: schema.documents.seriesId,
         totalPaise: sql<number>`coalesce((${schema.documents.totals}->>'totalPaise')::bigint, 0)`.mapWith(Number),
         linkedDocumentId: schema.documents.linkedDocumentId,
+        // Spelled out: in a select list Drizzle writes the column unqualified, and "id" would be the subquery's own.
+        pakkaNumber: sql<string | null>`(select b.number from documents b
+          where b.from_estimate_id = "documents"."id" and b.status = 'issued' order by b.issued_at limit 1)`,
       })
       .from(schema.documents)
       .where(
         and(
           eq(schema.documents.businessId, scope.businessId),
           ne(schema.documents.status, 'draft'),
-          ne(schema.documents.kind, 'credit_note'),
+          filter.estimates ? eq(schema.documents.kind, 'estimate') : inArray(schema.documents.kind, [...BILL_KINDS]),
           ...(filter.status === 'cancelled' ? [eq(schema.documents.status, 'cancelled')] : []),
           // Stage 10: dues and settled bills are chosen before the limit, so a business with more bills than the
           // limit still sees its oldest dues. The engine's balanceOf (below) still decides each row's status.
-          ...(filter.status === 'due' || filter.status === 'paid'
+          ...((filter.status === 'due' || filter.status === 'paid') && !filter.estimates
             ? [
                 eq(schema.documents.status, 'issued'),
                 filter.status === 'due' ? sql`${OUTSTANDING} > 0` : sql`${OUTSTANDING} <= 0`,
@@ -867,9 +930,11 @@ export async function listBills(
       totalPaise: r.totalPaise,
       balance: balances.get(r.id)!,
       linkedDocumentId: r.linkedDocumentId,
+      pakkaNumber: r.pakkaNumber,
       paidOn: lastPaid.get(r.id)?.date ?? null,
       method: lastPaid.get(r.id)?.method ?? null,
     }));
+    if (filter.estimates) return out;
     if (filter.status === 'due') return out.filter((r) => r.balance.status === 'due' || r.balance.status === 'partial');
     if (filter.status === 'paid') return out.filter((r) => r.balance.status === 'paid');
     return out;
@@ -922,7 +987,41 @@ export async function billView(scope: TenantScope, id: string) {
       .from(schema.remindersSent)
       .where(eq(schema.remindersSent.documentId, doc.id))
       .orderBy(desc(schema.remindersSent.createdAt));
-    return { document: asDocument(doc), balance, entries, creditNotes: creditNotes.map(asDocument), reminders };
+    // A kaccha bill: the pakka bills made from it. A pakka bill: the kaccha bill it was made from (20 Oct).
+    const pakka =
+      doc.kind === 'estimate'
+        ? await tx.db
+            .select({
+              id: schema.documents.id,
+              number: schema.documents.number,
+              financialYear: schema.documents.financialYear,
+              status: schema.documents.status,
+            })
+            .from(schema.documents)
+            .where(and(eq(schema.documents.fromEstimateId, doc.id), ne(schema.documents.status, 'draft')))
+            .orderBy(asc(schema.documents.issuedAt))
+        : [];
+    const estimate = doc.fromEstimateId
+      ? ((
+          await tx.db
+            .select({
+              id: schema.documents.id,
+              number: schema.documents.number,
+              financialYear: schema.documents.financialYear,
+            })
+            .from(schema.documents)
+            .where(eq(schema.documents.id, doc.fromEstimateId))
+        )[0] ?? null)
+      : null;
+    return {
+      document: asDocument(doc),
+      balance,
+      entries,
+      creditNotes: creditNotes.map(asDocument),
+      reminders,
+      pakka,
+      estimate,
+    };
   });
 }
 
@@ -973,7 +1072,7 @@ export async function lastBillFor(scope: TenantScope, customerId: string): Promi
           and(
             eq(schema.documents.customerId, customerId),
             eq(schema.documents.status, 'issued'),
-            ne(schema.documents.kind, 'credit_note'),
+            inArray(schema.documents.kind, [...BILL_KINDS]),
           ),
         )
         .orderBy(desc(schema.documents.issueDate), desc(schema.documents.issuedAt))

@@ -11,5 +11,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
   const viewer = await getViewer(sp);
   const data = await loadCustomerNew(viewer, { edit: one(sp.edit) });
   if (!data) redirect('/');
-  return <CustomerNewScreen viewer={shellOf(viewer)} initial={data.initial} id={data.id} live={data.live} />;
+  return (
+    <CustomerNewScreen
+      viewer={shellOf(viewer)}
+      initial={data.initial}
+      id={data.id}
+      live={data.live}
+      kaccha={one(sp.kaccha) === '1'}
+    />
+  );
 }

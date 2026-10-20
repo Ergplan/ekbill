@@ -6,9 +6,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 45    | 421    |
-| integration | 28    | 316    |
-| e2e         | 19    | 80     |
+| unit        | 46    | 426    |
+| integration | 29    | 325    |
+| e2e         | 20    | 83     |
 
 ## unit
 
@@ -164,6 +164,14 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - returns a well-formed civil date for an instant the caller passes (the engine has no clock)
 - resolves the date in Kolkata, not UTC
 - adds days across month and year boundaries
+
+### `tests/unit/engine-estimate.test.ts`
+
+- needs none of the invoice rules: no GSTIN, no place of supply, no HSN, no â‚¹50,000 details, no e-invoice
+- may be given by a seller who has not said whether they are registered (a street vendor)
+- still shows only right GST: every rate chosen, and one the law has on its date
+- from a composition dealer shows no GST
+- is prepared as an ESTIMATE snapshot, with its tax worked out and its legend
 
 ### `tests/unit/engine-files.test.ts`
 
@@ -646,6 +654,13 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the customer: address, State, email, PAN and notes survive a name change
 - the item: its description and "price includes GST" survive a rename
 
+### `tests/integration/estimates.test.ts`
+
+- number in their own series and count nowhere: not a bill, not GST, not the plan, no money
+- becomes a pakka bill with one tap: the bill links back to it, and it says which bill it became
+- a cancelled estimate makes no pakka bill, and is not redone
+- is one per bill, opens that bill alone with no session, and a made-up token opens nothing
+
 ### `tests/integration/gst-nil.test.ts`
 
 - is a bill of supply: its own title, no tax, no composition legend
@@ -769,6 +784,9 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - ai-calls.recordAiCall: owner may
 - ai-calls.recordAiCall: staff may
 - ai-calls.recordAiCall: accountant may
+- bill-links.linkFor: owner may
+- bill-links.linkFor: staff may
+- bill-links.linkFor: accountant may not
 - businesses.rename: owner may
 - businesses.rename: staff may not
 - businesses.rename: accountant may not
@@ -931,6 +949,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 ### `tests/integration/tenancy.test.ts`
 
 - ai-calls: listAiCalls sees nothing of another business's calls
+- bill-links: linkFor cannot make a link to another business's bill
+- bill-links: openLink opens only the business its token names
 - businesses: getBusiness returns only its own business
 - businesses: rename touches only its own business
 - customers: listCustomers lists only its own customers
@@ -974,7 +994,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 ### `tests/e2e/bills.spec.ts`
 
-- (a) on real data: repeat bill to Mehta Traders, the PDF handed to WhatsApp: 4 taps
+- (a) on real data: repeat bill to Mehta Traders, straight to their WhatsApp chat: 4 taps
 - (b) on real data: money came in, in full: 3 taps, and the dues move
 - staff make a bill for a new customer, record part of the money; the file downloads
 - a line naming a saved item carries its unit onto the bill
@@ -1046,7 +1066,13 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the language is the personâ€™s: Ravi picks each of the five, the screens speak it, then Hinglish again
 - with sign-in off, a new phone at login is a new owner: the code fills itself in, Home greets, then setup
 - in the build both OTP doors are closed (404) and the switcher is the door
-- Aapki profile: the name said on Aap is the one Home greets by, and Naya bill is the star (19 Oct)
+- Aapki profile: the name said on Aap is the one Home greets by, and Pakka bill is the star (19, 20 Oct)
+
+### `tests/e2e/kaccha.spec.ts`
+
+- Home: two opening buttons, and the guide says which is which
+- a kaccha bill for a new customer, sent to the number typed, made pakka in one tap; the link opens it
+- the voice opens a kaccha bill when the owner asks for an estimate
 
 ### `tests/e2e/kit.spec.ts` Ã—
 

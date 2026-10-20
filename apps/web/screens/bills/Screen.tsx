@@ -11,7 +11,7 @@ import { statusKey } from '../common';
 import { manifest } from './manifest';
 import type { BillsData } from './data';
 
-type Filter = 'all' | 'due' | 'paid' | 'cancelled';
+type Filter = 'all' | 'due' | 'paid' | 'cancelled' | 'kaccha';
 
 export function BillsScreen({ data, viewer }: { data: BillsData; viewer: ShellViewer }) {
   const as = (href: string) => withAs(href, viewer.as);
@@ -27,6 +27,9 @@ export function BillsScreen({ data, viewer }: { data: BillsData; viewer: ShellVi
     if (needle && !r.name.toLowerCase().includes(needle) && !r.number.toLowerCase().includes(needle)) return false;
     return true;
   });
+  const kaccha = data.estimates.filter(
+    (r) => !needle || r.name.toLowerCase().includes(needle) || r.number.toLowerCase().includes(needle),
+  );
   return (
     <AppShell viewer={viewer} tab="bills" tour={manifest.tour}>
       <section className="eb-heading">
@@ -50,6 +53,7 @@ export function BillsScreen({ data, viewer }: { data: BillsData; viewer: ShellVi
             { value: 'due', label: t('bills.filter.due') },
             { value: 'paid', label: t('bills.filter.paid') },
             { value: 'cancelled', label: t('bills.filter.cancelled') },
+            { value: 'kaccha', label: t('bills.filter.kaccha') },
           ]}
         />
       </div>
@@ -69,24 +73,48 @@ export function BillsScreen({ data, viewer }: { data: BillsData; viewer: ShellVi
           ))}
         </div>
       ) : null}
-      <div className="eb-card eb-rows" data-guide="list">
-        {rows.length ? (
-          rows.map((r) => (
-            <BillRow
-              key={r.number}
-              name={r.name}
-              index={r.index}
-              meta={`${r.number} · ${r.date.slice(8)}/${r.date.slice(5, 7)}`}
-              amountPaise={r.totalPaise}
-              status={r.status}
-              statusLabel={t(statusKey(r.status))}
-              href={as(billPath(r.number, '', r.fy))}
-            />
-          ))
-        ) : (
-          <EmptyState title={t('bills.none')} />
-        )}
-      </div>
+      {filter === 'kaccha' ? (
+        // Kaccha bills (20 Oct): estimates, kept apart from the bills; each says whether its pakka bill is made.
+        <div className="eb-card eb-rows" data-guide="list">
+          {kaccha.length ? (
+            kaccha.map((r) => (
+              <BillRow
+                key={r.number}
+                name={r.name}
+                index={r.index}
+                meta={`${r.number} · ${r.date.slice(8)}/${r.date.slice(5, 7)}${r.pakka ? ` → ${r.pakka}` : ''}`}
+                amountPaise={r.totalPaise}
+                status={r.status === 'cancelled' ? 'cancelled' : r.pakka ? 'paid' : 'sent'}
+                statusLabel={t(
+                  r.status === 'cancelled' ? 'status.cancelled' : r.pakka ? 'status.kaccha.done' : 'status.kaccha',
+                )}
+                href={as(billPath(r.number, '', r.fy))}
+              />
+            ))
+          ) : (
+            <EmptyState title={t('bills.kaccha.none')} />
+          )}
+        </div>
+      ) : (
+        <div className="eb-card eb-rows" data-guide="list">
+          {rows.length ? (
+            rows.map((r) => (
+              <BillRow
+                key={r.number}
+                name={r.name}
+                index={r.index}
+                meta={`${r.number} · ${r.date.slice(8)}/${r.date.slice(5, 7)}`}
+                amountPaise={r.totalPaise}
+                status={r.status}
+                statusLabel={t(statusKey(r.status))}
+                href={as(billPath(r.number, '', r.fy))}
+              />
+            ))
+          ) : (
+            <EmptyState title={t('bills.none')} />
+          )}
+        </div>
+      )}
     </AppShell>
   );
 }

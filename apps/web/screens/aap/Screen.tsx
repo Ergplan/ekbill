@@ -985,7 +985,7 @@ function SeriesEditor({
     padding: number;
     includeFy: boolean;
     nextNumber: number;
-    kind: 'bill' | 'credit_note';
+    kind: SeriesRow['kind'];
   }>(blank);
   const edit = (r: SeriesRow) => {
     setDraft({
@@ -1045,7 +1045,7 @@ function SeriesEditor({
         </Field>
         {open === 'new' ? (
           <Field id="s-kind" label={t('aap.series')}>
-            <Segmented<'bill' | 'credit_note'>
+            <Segmented<SeriesRow['kind']>
               label={t('aap.series')}
               value={draft.kind}
               onChange={(kind) => setDraft({ ...draft, kind })}
@@ -1107,7 +1107,7 @@ function SeriesEditor({
         {rows.map((r) => (
           <SettingRow
             key={r.id}
-            label={`${r.name}${r.kind === 'credit_note' ? ` · ${t('credit.title')}` : ''}${r.isDefault ? ` · ${t('aap.series.isDefault')}` : ''}${r.active ? '' : ` · ${t('aap.series.retired')}`}`}
+            label={`${r.name}${r.kind === 'credit_note' ? ` · ${t('credit.title')}` : r.kind === 'estimate' ? ` · ${t('bill.kind.kaccha')}` : ''}${r.isDefault ? ` · ${t('aap.series.isDefault')}` : ''}${r.active ? '' : ` · ${t('aap.series.retired')}`}`}
             value={formatNumber(
               { prefix: r.prefix, padding: r.padding, includeFinancialYear: r.includeFy },
               r.fy ?? '2026-27',

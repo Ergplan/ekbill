@@ -18,6 +18,8 @@ const BILL = '/bills/new?customer=mehta&as=owner';
 
 export const DEMO_STEPS: DemoStep[] = [
   { key: 'demo.s1', path: '/?as=owner', target: 'star' },
+  // The two opening buttons (20 Oct): the kaccha bill beside the pakka one, and which is which.
+  { key: 'demo.kaccha', path: '/?as=owner', target: 'kaccha' },
   { key: 'demo.s2', path: '/?as=owner', target: 'mic' },
   {
     key: 'demo.s3',

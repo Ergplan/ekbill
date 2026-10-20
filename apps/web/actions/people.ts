@@ -3,11 +3,18 @@
 import { revalidatePath } from 'next/cache';
 
 import { ForbiddenError, NotFoundError, customers, imports, items, type TenantScope } from '@ekbill/db';
-import { todayIst, type Say } from '@ekbill/engine';
+import { todayIst, type CustomerInput, type Say } from '@ekbill/engine';
 
 import { log } from '../server/log';
 import { current } from '../server/session';
-import { archiveCustomerInput, archiveItemInput, commitImportInput, customerInput, itemInput } from './schema';
+import {
+  archiveCustomerInput,
+  archiveItemInput,
+  commitImportInput,
+  customerInput,
+  customerPhoneInput,
+  itemInput,
+} from './schema';
 import type { ActionResult } from './user';
 
 /**
@@ -44,6 +51,26 @@ export async function saveCustomer(input: unknown): Promise<PeopleResult<{ id: s
     log.info({ requestId: s.scope.requestId, customerId: row.id, created: !id }, 'customer saved');
     revalidatePath('/customers');
     return { ok: true, value: { id: row.id } };
+  } catch (e) {
+    return refused(e);
+  }
+}
+
+/**
+ * The number typed where a bill goes to WhatsApp (20 Oct: a new customer's number is often not in the shop's
+ * phone), kept on the customer for the next bill. Only the number changes; the engine checks it as the customer
+ * screen does, and a number another customer has is refused in words.
+ */
+export async function rememberPhone(input: unknown): Promise<PeopleResult<{ phone: string | null }>> {
+  const parsed = customerPhoneInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'form.invalid' };
+  const s = await scoped();
+  if ('error' in s) return { ok: false, error: s.error };
+  try {
+    const row = await customers.updateCustomer(s.scope, parsed.data.id, { phone: parsed.data.phone } as CustomerInput);
+    log.info({ requestId: s.scope.requestId, customerId: row.id }, 'customer phone kept from the WhatsApp step');
+    revalidatePath('/customers');
+    return { ok: true, value: { phone: row.phone } };
   } catch (e) {
     return refused(e);
   }

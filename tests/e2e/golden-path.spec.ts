@@ -26,7 +26,7 @@ async function hydrated(page: Page) {
   await page.locator('html[data-hydrated]').waitFor({ timeout: 60_000 });
 }
 
-/** The share sheet is the last step of (a) and (d): a stub Web Share records the call, so the walk is measured up to the hand-off. */
+/** The hand-off is the last step of (a) and (d): a stub Web Share and window.open record it, so the walk is measured up to it. */
 async function stubShare(page: Page) {
   await page.addInitScript(() => {
     (window as unknown as { __shared: unknown[] }).__shared = [];
@@ -39,6 +39,15 @@ async function stubShare(page: Page) {
         return Promise.resolve();
       },
     });
+    // A customer whose number is known (20 Oct): their chat opens straight away (wa.me), with the bill's link.
+    window.open = ((url?: string | URL) => {
+      const u = String(url);
+      (window as unknown as { __shared: unknown[] }).__shared.push({
+        url: u,
+        text: decodeURIComponent(u.split('?text=')[1] ?? ''),
+      });
+      return { opener: null } as unknown as Window;
+    }) as typeof window.open;
   });
 }
 

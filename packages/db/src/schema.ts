@@ -266,7 +266,7 @@ export const series = pgTable(
       .notNull()
       .references(() => businesses.id),
     name: text('name').notNull(),
-    /** bill | credit_note: a credit note never takes a bill's number. */
+    /** bill | credit_note | estimate: a credit note never takes a bill's number, nor a kaccha bill (20 Oct). */
     kind: text('kind').notNull().default('bill'),
     prefix: text('prefix').notNull().default(''),
     padding: integer('padding').notNull().default(3),
@@ -280,7 +280,7 @@ export const series = pgTable(
   },
   (t) => [
     uniqueIndex('series_business_name').on(t.businessId, t.name),
-    check('series_kind', sql`${t.kind} in ('bill', 'credit_note')`),
+    check('series_kind', sql`${t.kind} in ('bill', 'credit_note', 'estimate')`),
     check('series_prefix', sql`${t.prefix} ~ '^[A-Za-z0-9/-]{0,10}$'`),
     check('series_padding', sql`${t.padding} between 1 and 8`),
     check('series_next_number', sql`${t.nextNumber} between 1 and 99999999`),
@@ -306,7 +306,10 @@ export const documents = pgTable(
     seriesId: uuid('series_id')
       .notNull()
       .references(() => series.id),
-    /** tax_invoice | bill_of_supply | credit_note: provisional on a draft, decided by the engine at issue. */
+    /**
+     * tax_invoice | bill_of_supply | credit_note: provisional on a draft, decided by the engine at issue. estimate
+     * (20 Oct): a kaccha bill, sent for the buyer to check before the bill; no supply, so never in GST, dues or the plan.
+     */
     kind: text('kind').notNull(),
     /** draft | issued | cancelled */
     status: text('status').notNull().default('draft'),
@@ -337,6 +340,8 @@ export const documents = pgTable(
     issuedAt: timestamp('issued_at', { withTimezone: true }),
     /** The invoice a credit note corrects, or the bill a redo replaces. */
     linkedDocumentId: uuid('linked_document_id').references((): AnyPgColumn => documents.id),
+    /** The kaccha bill (estimate) this pakka bill was made from (20 Oct). */
+    fromEstimateId: uuid('from_estimate_id').references((): AnyPgColumn => documents.id),
     /** The e-invoice portal's reference, once reported (Stage 8). */
     irn: text('irn'),
     cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
@@ -364,7 +369,8 @@ export const documents = pgTable(
       .where(sql`${t.number} is not null`),
     index('documents_business_status_date').on(t.businessId, t.status, t.issueDate),
     index('documents_linked').on(t.linkedDocumentId),
-    check('documents_kind', sql`${t.kind} in ('tax_invoice', 'bill_of_supply', 'credit_note')`),
+    index('documents_from_estimate').on(t.fromEstimateId),
+    check('documents_kind', sql`${t.kind} in ('tax_invoice', 'bill_of_supply', 'credit_note', 'estimate')`),
     check('documents_status', sql`${t.status} in ('draft', 'issued', 'cancelled')`),
     // A draft has no number; an issued or cancelled document has its number, its year, its time and its snapshot.
     check(
@@ -374,6 +380,10 @@ export const documents = pgTable(
     ),
     check('documents_cancelled_complete', sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null)`),
     check('documents_credit_note_linked', sql`${t.kind} <> 'credit_note' or ${t.linkedDocumentId} is not null`),
+    check(
+      'documents_from_estimate_bill',
+      sql`${t.fromEstimateId} is null or ${t.kind} in ('tax_invoice', 'bill_of_supply')`,
+    ),
   ],
 );
 
@@ -857,6 +867,30 @@ export const referralCodes = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [check('referral_codes_code', sql`${t.code} ~ '^[A-Z2-9]{6}$'`)],
+);
+
+/**
+ * A bill's own link (20 Oct): what the customer opens from WhatsApp to see the bill, with no sign-in. The token
+ * (128 random bits) is the only key; a row maps it to one issued document. Never changed or deleted.
+ */
+export const billLinks = pgTable(
+  'bill_links',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    token: text('token').notNull().unique(),
+    businessId: uuid('business_id')
+      .notNull()
+      .references(() => businesses.id),
+    documentId: uuid('document_id')
+      .notNull()
+      .unique()
+      .references(() => documents.id),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [check('bill_links_token', sql`${t.token} ~ '^[A-Za-z0-9_-]{22}$'`)],
 );
 
 /**

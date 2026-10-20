@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto';
 
-import { and, asc, eq, isNotNull, isNull, ne, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 
 import {
   PLAN,
@@ -45,12 +45,14 @@ export interface PlanView {
   referrals: { joined: number; earned: number; creditsLeft: number };
 }
 
-/** Bills issued so far: credit notes, drafts and cancelled bills left out. */
+/** Bills issued so far: credit notes, kaccha bills (estimates), drafts and cancelled bills left out. */
 async function billsIssued(tx: Tx): Promise<number> {
   const [row] = await tx.db
     .select({ n: sql<number>`count(*)`.mapWith(Number) })
     .from(schema.documents)
-    .where(and(eq(schema.documents.status, 'issued'), ne(schema.documents.kind, 'credit_note')));
+    .where(
+      and(eq(schema.documents.status, 'issued'), inArray(schema.documents.kind, ['tax_invoice', 'bill_of_supply'])),
+    );
   return row?.n ?? 0;
 }
 

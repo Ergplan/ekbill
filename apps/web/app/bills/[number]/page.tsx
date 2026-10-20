@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { loadBillView } from '../../../screens/bill-view/data';
 import { BillViewScreen } from '../../../screens/bill-view/Screen';
 import { getViewer, one, shellOf, type SearchParams } from '../../../screens/viewer';
+import { requestOrigin } from '../../../server/origin';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,7 @@ export default async function Page({
   const viewer = await getViewer(sp);
   if (!viewer.business) redirect('/');
   const { number } = await params;
-  const data = await loadBillView(viewer, number, one(sp.fy));
+  const data = await loadBillView(viewer, number, one(sp.fy), await requestOrigin());
   if (!data) notFound();
   return (
     <BillViewScreen

@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { loadBillDone, loadIssued } from '../../../../screens/bill-done/data';
 import { BillDoneScreen } from '../../../../screens/bill-done/Screen';
 import { getViewer, one, shellOf, type SearchParams } from '../../../../screens/viewer';
+import { requestOrigin } from '../../../../server/origin';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Sea
   const viewer = await getViewer(sp);
   const id = one(sp.id);
   if (id) {
-    const issued = await loadIssued(viewer, id);
+    const issued = await loadIssued(viewer, id, await requestOrigin());
     if (!issued) notFound();
     return (
       <BillDoneScreen fallback={issued.fallback} share={issued.share} live={issued.live} viewer={shellOf(viewer)} />

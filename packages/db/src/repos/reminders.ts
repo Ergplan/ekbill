@@ -25,11 +25,17 @@ export async function recordReminder(
   return withTenant(scope, async ({ db }) => {
     const doc = (
       await db
-        .select({ id: schema.documents.id, customerId: schema.documents.customerId, status: schema.documents.status })
+        .select({
+          id: schema.documents.id,
+          customerId: schema.documents.customerId,
+          status: schema.documents.status,
+          kind: schema.documents.kind,
+        })
         .from(schema.documents)
         .where(eq(schema.documents.id, input.documentId))
     )[0];
-    if (!doc || doc.status !== 'issued') throw new NotFoundError('document');
+    // A kaccha bill owes nothing: there is nothing to remind about (20 Oct).
+    if (!doc || doc.status !== 'issued' || doc.kind === 'estimate') throw new NotFoundError('document');
     const [row] = await db
       .insert(schema.remindersSent)
       .values({

@@ -138,14 +138,14 @@ test('in the build both OTP doors are closed (404) and the switcher is the door'
   expect((await request.get('/dev/switch')).status()).toBe(200);
 });
 
-test('Aapki profile: the name said on Aap is the one Home greets by, and Naya bill is the star (19 Oct)', async ({
+test('Aapki profile: the name said on Aap is the one Home greets by, and Pakka bill is the star (19, 20 Oct)', async ({
   page,
 }) => {
   await page.goto('/dev/switch/sharma?to=/');
   await hydrated(page);
   await expect(page.getByTestId('greeting')).toHaveText('Namaste, Sharma ji');
   await expect(page.locator('[data-primary="true"]')).toHaveCount(1);
-  await expect(page.locator('.eb-star [data-primary="true"]')).toHaveText(/Naya bill banao/);
+  await expect(page.locator('.eb-star [data-primary="true"]')).toHaveText(/Pakka bill banao/);
   await page.locator('.eb-star [data-primary="true"]').click();
   await expect(page).toHaveURL(/\/bills\/new/);
   try {

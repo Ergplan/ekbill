@@ -5,8 +5,8 @@ export const manifest: ScreenManifest = {
   route: '/',
   title: 'Ghar',
   purpose:
-    'A hello by name, one star (Naya bill banao; "Apne baare mein batao" until the person has said their name), then three questions: Kiska bill? Bheje hue bills. Kiske paise aane hain. The mic is the centre of the tab bar.',
-  primary: { label: 'Naya bill banao', to: '/bills/new', guide: 'star' },
+    'A hello by name, the two opening buttons (20 Oct: the star Pakka bill banao, a tax invoice; beside it Kaccha bill banao, an estimate for the customer to check first; "Apne baare mein batao" until the person has said their name), then three questions: Kiska bill? Bheje hue bills. Kiske paise aane hain. The mic is the centre of the tab bar.',
+  primary: { label: 'Pakka bill banao', to: '/bills/new', guide: 'star' },
   taps: [
     { label: 'Mehta Traders', to: '/bills/new', guide: 'kiska-bill' },
     { label: 'Naya customer', to: '/customers/new', guide: 'naya-customer' },
@@ -16,6 +16,7 @@ export const manifest: ScreenManifest = {
     { label: 'Yaad dilao', to: '/bills/[number]/remind', guide: 'paise' },
     { label: 'Sab dekho', to: '/dues', guide: 'paise' },
     { label: 'Pehla bill banao', to: '/bills/new', guide: 'first' },
+    { label: 'Kaccha bill banao (estimate)', to: '/bills/new', guide: 'kaccha' },
     { label: 'Apne baare mein batao', to: '/setup/[step]', guide: 'about' },
     { label: 'Bills', to: '/bills' },
     { label: 'GST', to: '/gst' },
@@ -24,6 +25,7 @@ export const manifest: ScreenManifest = {
   states: ['owner', 'staff', 'accountant', 'new', 'composition'],
   guides: [
     'star',
+    'kaccha',
     'about',
     'demo',
     'kiska-bill',
@@ -36,12 +38,16 @@ export const manifest: ScreenManifest = {
     'mic',
     'first',
   ],
-  optionalGuides: ['first', 'search', 'star', 'about', 'demo'],
+  optionalGuides: ['first', 'search', 'star', 'kaccha', 'about', 'demo'],
   tour: [
-    { target: 'star', say: 'Naya bill yahan se, ek tap mein.' },
+    { target: 'star', say: 'Pakka bill: asli bill, number ke saath. GST aur paise aane hain mein judta hai.' },
+    {
+      target: 'kaccha',
+      say: 'Kaccha bill yaani estimate: customer pehle dekh le. Hisaab mein nahi judta; baad mein ek tap se pakka bill.',
+    },
     { target: 'about', say: 'Pehle apne baare mein batao: naam, dukaan. Phir bill.' },
     { target: 'kiska-bill', say: 'Kiska bill banana hai? Naam pe tap karo.' },
-    { target: 'photo', say: 'Kaccha bill hai? Photo lo, hum padh lenge.' },
+    { target: 'photo', say: 'Haath se likha bill hai? Photo lo, hum padh lenge.' },
     { target: 'sent', say: 'Is mahine ke bheje hue bills yahan.' },
     { target: 'paise', say: 'Kiske paise aane hain: sabse purana sabse upar. Yaad dilao ek tap.' },
     { target: 'mic', say: 'Bolke bhi kar sakte ho. Main jo bolungi, wahi jagah chamkegi.' },
@@ -51,7 +57,7 @@ export const manifest: ScreenManifest = {
     staff: 'All three cards, with a note that they bill for the business.',
     accountant: 'Bheje hue bills and Kiske paise aane hain only; no Yaad dilao.',
   },
-  hidden: { accountant: ['star', 'kiska-bill', 'naya-customer', 'photo', 'search', 'remind'] },
+  hidden: { accountant: ['star', 'kaccha', 'kiska-bill', 'naya-customer', 'photo', 'search', 'remind'] },
   reference: { narangi: '02-home', harmony: '02-home' },
   tab: 'home',
 };

@@ -114,12 +114,14 @@ test('the tour lights up each guide id in turn (rule 17)', async ({ page }) => {
   await open(page, '/', 'narangi');
   await page.getByTestId('tour').click();
   await expect(page.locator('.eb-guide__ring')).toBeVisible();
-  // The star first (19 Oct), then the three questions.
-  await expect(page.locator('.eb-guide__caption')).toContainText('Naya bill');
+  // The two opening buttons first (20 Oct: pakka, then kaccha), then the three questions.
+  await expect(page.locator('.eb-guide__caption')).toContainText('Pakka bill');
+  await page.locator('.eb-guide__next').click();
+  await expect(page.locator('.eb-guide__caption')).toContainText('Kaccha bill yaani estimate');
   await page.locator('.eb-guide__next').click();
   await expect(page.locator('.eb-guide__caption')).toContainText('Kiska bill');
   await page.locator('.eb-guide__next').click();
-  await expect(page.locator('.eb-guide__caption')).toContainText('Kaccha bill');
+  await expect(page.locator('.eb-guide__caption')).toContainText('Haath se likha bill');
 });
 
 /** Tap labels that live inside a sheet or another state, so they are not in the default DOM text. */

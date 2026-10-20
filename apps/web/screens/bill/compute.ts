@@ -31,6 +31,8 @@ export interface BillDraft {
   series: string;
   number: string;
   date: string;
+  /** A kaccha bill (20 Oct): an estimate, numbered on its own; absent in drafts kept before it, so a pakka bill. */
+  kaccha?: boolean;
 }
 export interface BusinessForBill {
   name: string;

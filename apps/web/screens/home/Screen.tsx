@@ -98,6 +98,14 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
     <Greeting hello={t('greet.hello')} />
   );
   // Someone with no business yet answers the setup questions; someone with one says their name on Aap.
+  // The two opening buttons (20 Oct): a pakka bill (the real bill: a tax invoice for a GST business) is the star; a
+  // kaccha bill (an estimate the customer checks first, counted nowhere) beside it, and one line saying which is which.
+  const pakkaLabel = t(data.registration === 'regular' ? 'home.pakka.tax' : 'home.pakka');
+  const kaccha = (
+    <OutlineButton data-guide="kaccha" onClick={() => router.push(as('/bills/new?kaccha=1'))}>
+      {t('home.kaccha')}
+    </OutlineButton>
+  );
   const about = (
     <div className="eb-star" data-guide="about">
       <PrimaryCTA onClick={() => router.push(as(data.businessName || shopName ? '/aap#person' : '/setup/name'))}>
@@ -111,7 +119,9 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
       <AppShell
         viewer={{ ...viewer, businessName: shopName }}
         tab="home"
-        tour={manifest.tour.filter((s) => s.target === 'mic' || (!viewer.named && s.target === 'about'))}
+        tour={manifest.tour.filter(
+          (s) => ['mic', 'star', 'kaccha'].includes(s.target) || (!viewer.named && s.target === 'about'),
+        )}
       >
         <section className="eb-heading">
           {greeting}
@@ -125,12 +135,18 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
           guide="first"
         >
           {/* One star (I9): the first bill once the person is known, else "Apne baare mein batao" above it. */}
-          <div className={viewer.named ? 'eb-actions eb-actions--stack eb-star' : 'eb-actions eb-actions--stack'}>
-            {viewer.named ? (
-              <PrimaryCTA onClick={() => router.push(as('/bills/new?first=1'))}>{t('home.first.cta')}</PrimaryCTA>
-            ) : (
-              <OutlineButton onClick={() => router.push(as('/bills/new?first=1'))}>{t('home.first.cta')}</OutlineButton>
-            )}
+          <div className="eb-actions eb-actions--stack">
+            <div className={viewer.named ? 'eb-star' : undefined} data-guide="star">
+              {viewer.named ? (
+                <PrimaryCTA onClick={() => router.push(as('/bills/new?first=1'))}>{t('home.first.cta')}</PrimaryCTA>
+              ) : (
+                <OutlineButton onClick={() => router.push(as('/bills/new?first=1'))}>
+                  {t('home.first.cta')}
+                </OutlineButton>
+              )}
+            </div>
+            <div>{kaccha}</div>
+            <Meta>{t('home.kinds.note')}</Meta>
           </div>
         </HeroPanel>
         <Card title={t('home.sent.title')} action={<IconChip name="receipt" />}>
@@ -145,9 +161,9 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
   const oldest = data.owed.rows[0];
   const tour = manifest.tour.filter(
     (s) =>
-      (canBill || !['kiska-bill', 'photo', 'star'].includes(s.target)) &&
+      (canBill || !['kiska-bill', 'photo', 'star', 'kaccha'].includes(s.target)) &&
       (s.target !== 'about' || !viewer.named) &&
-      (s.target !== 'star' || viewer.named),
+      ((s.target !== 'star' && s.target !== 'kaccha') || viewer.named),
   );
 
   return (
@@ -173,8 +189,12 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
       {!viewer.named ? (
         about
       ) : canBill ? (
-        <div className="eb-star" data-guide="star">
-          <PrimaryCTA onClick={() => router.push(as('/bills/new'))}>{t('home.star')}</PrimaryCTA>
+        <div className="eb-actions eb-actions--stack">
+          <div className="eb-star" data-guide="star">
+            <PrimaryCTA onClick={() => router.push(as('/bills/new'))}>{pakkaLabel}</PrimaryCTA>
+          </div>
+          <div>{kaccha}</div>
+          <Meta>{t('home.kinds.note')}</Meta>
         </div>
       ) : null}
       {newCard}

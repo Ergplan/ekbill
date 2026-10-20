@@ -146,11 +146,14 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
     return () => window.removeEventListener(BUSINESS_EVENT, on);
   }, [setD]);
   const regular = business.registration === 'regular';
+  // A kaccha bill (20 Oct): an estimate for the customer to check first. A pakka bill made from one stays pakka.
+  const kaccha = Boolean(d.kaccha) && !data.fromEstimate;
   const rates = useMemo(() => ratesFor(d.date), [d.date]);
   const c = useMemo(() => compute(d, business), [d, business]);
 
   const checks: CheckItem[] = [];
-  if (regular && d.gst.on && (data.customer || d.customerName.trim()) && !d.customerState) {
+  // An estimate is no supply: it needs no place of supply (its GST, if shown, follows the seller's own State).
+  if (!kaccha && regular && d.gst.on && (data.customer || d.customerName.trim()) && !d.customerState) {
     checks.push({
       id: 'state',
       text: t('bill.check.state'),
@@ -183,7 +186,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
           address: data.customer?.address ?? null,
         },
         document: {
-          kind: 'bill',
+          kind: kaccha ? 'estimate' : 'bill',
           dateIso: d.date,
           gstOn: gstOnNow,
           placeOfSupplyStateCode: d.customerState ?? (gstOnNow ? null : business.stateCode),
@@ -210,7 +213,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
     action: whyButton(x.ruleId),
   });
   // The state is asked by the strip above; an empty form is not yet a bill to judge.
-  const covered = new Set(['missing-place-of-supply', 'no-lines']);
+  const covered = new Set(['missing-place-of-supply', 'no-lines', 'estimate-not-invoice']);
   if (assessment && linesOkForChecks(d))
     for (const b of assessment.blockers.filter((x) => !covered.has(x.code))) checks.push(asItem(b));
   const notes: CheckItem[] = odd.map((o) => ({
@@ -226,7 +229,8 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
   const rateOf = (i: number) => (d.gst.mode === 'perline' ? (d.gst.perLine[i] ?? d.gst.rate) : d.gst.rate);
   const issueLive = (confirmedDuplicate: boolean) => {
     const live = data.live!;
-    if (!confirmedDuplicate) {
+    // The duplicate guard reads bills; an estimate is meant to be sent before the bill, so it is not asked.
+    if (!confirmedDuplicate && !kaccha) {
       const dup = findDuplicate(
         {
           customerId: data.customer?.id ?? null,
@@ -261,7 +265,9 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
         issueDate: d.date,
         gstOn,
         lines: d.lines.map((l, i) => ({ what: l.what, qty: l.qty, rate: l.rate, gstRate: gstOn ? rateOf(i) : null })),
-        replaces: live.redoId,
+        replaces: kaccha ? null : live.redoId,
+        estimate: kaccha,
+        fromEstimateId: kaccha ? null : live.fromEstimateId,
       });
       if (r.ok) {
         clearDraft(draftKey);
@@ -273,17 +279,18 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
       setError(sayRefusal(r));
     });
   };
-  const duplicate = data.live
-    ? findDuplicate(
-        {
-          customerId: data.customer?.id ?? null,
-          customerName: d.customerName,
-          totalPaise: c.totalPaise,
-          today: data.live.today,
-        },
-        data.live.recent,
-      )
-    : null;
+  const duplicate =
+    data.live && !kaccha
+      ? findDuplicate(
+          {
+            customerId: data.customer?.id ?? null,
+            customerName: d.customerName,
+            totalPaise: c.totalPaise,
+            today: data.live.today,
+          },
+          data.live.recent,
+        )
+      : null;
 
   const make = () => {
     if (data.mode !== 'existing' && !d.customerName.trim()) {
@@ -336,11 +343,36 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
       viewer={viewer}
       tab="bills"
       back={data.customer ? '/' : '/bills/new'}
-      title={data.customer ? t('bill.title', { customer: data.customer.name }) : t('bill.make')}
-      sub={t('bill.number.today', { number: d.number, date: dateLabel })}
+      title={
+        data.customer
+          ? t(kaccha ? 'bill.kaccha.title' : 'bill.title', { customer: data.customer.name })
+          : t(kaccha ? 'bill.kaccha.new' : 'bill.make')
+      }
+      sub={t('bill.number.today', { number: kaccha ? data.estimateNumber : d.number, date: dateLabel })}
       tour={manifest.tour.filter((s) => s.target !== 'repeat' || data.previous)}
       noTabs
     >
+      {data.fromEstimate ? (
+        <Meta>{t('bill.from.estimate', { number: data.fromEstimate })}</Meta>
+      ) : data.redo ? null : (
+        // Pakka or kaccha (20 Oct): the Home button chose; the owner can still change it here.
+        <div data-guide="kind">
+          <Segmented<'pakka' | 'kaccha'>
+            label={t('bill.kind.q')}
+            value={kaccha ? 'kaccha' : 'pakka'}
+            onChange={(v) => {
+              patch({ kaccha: v === 'kaccha' });
+              // A draft a refused attempt left is of the other kind: the next attempt starts its own.
+              setDraftId(null);
+            }}
+            options={[
+              { value: 'pakka', label: t('bill.kind.pakka') },
+              { value: 'kaccha', label: t('bill.kind.kaccha') },
+            ]}
+          />
+        </div>
+      )}
+
       {data.mode !== 'existing' ? (
         <Field
           id="customer-name"
@@ -448,6 +480,7 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
         <GstHere onSaved={() => router.refresh()} />
       ) : null}
 
+      {kaccha ? <Meta>{t('bill.kaccha.note')}</Meta> : null}
       <CheckStrip items={[...checks, ...notes]} guide="checks" />
       {error && (linesOk === false || data.live) ? (
         <p className="eb-meta" role="alert" style={{ whiteSpace: 'pre-line' }}>
@@ -482,7 +515,9 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
       </div>
       <MakeBar
         guide="make"
-        label={pending ? t('bill.making') : t('bill.make')}
+        label={
+          pending ? t(kaccha ? 'bill.kaccha.making' : 'bill.making') : t(kaccha ? 'bill.kaccha.make' : 'bill.make')
+        }
         paise={c.totalPaise}
         disabled={!canMake || pending}
         onClick={make}

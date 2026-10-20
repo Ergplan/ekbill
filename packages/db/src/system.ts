@@ -15,7 +15,7 @@ export async function businessesWithBills(): Promise<Array<{ businessId: string;
        join businesses b on b.id = d.business_id
       -- Real, standing businesses only (Stage 11 review): the load seed's 500 would have the nightly index make
       -- embedding calls for synthetic bills, and an archived business has nobody to remind.
-      where d.status = 'issued' and d.kind <> 'credit_note' and b.status = 'active' and not b.load_test`,
+      where d.status = 'issued' and d.kind in ('tax_invoice', 'bill_of_supply') and b.status = 'active' and not b.load_test`,
   );
   return rows.map((r) => ({ businessId: r.business_id, ownerId: r.owner_id }));
 }

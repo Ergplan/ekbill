@@ -50,7 +50,8 @@ export interface AssessLine {
   hsnCode: string | null;
 }
 export interface AssessDocument {
-  kind: 'bill' | 'credit-note';
+  /** estimate (20 Oct): a kaccha bill, sent for the buyer to check before the bill; not a supply's document. */
+  kind: 'bill' | 'credit-note' | 'estimate';
   dateIso: CivilDate;
   gstOn: boolean;
   placeOfSupplyStateCode: string | null;
@@ -73,7 +74,7 @@ export interface Notice {
   ruleId: string | null;
 }
 export interface Assessment {
-  kind: DocumentKind | 'credit-note' | 'blocked';
+  kind: DocumentKind | 'credit-note' | 'estimate' | 'blocked';
   /** The heading printed on the document, in English (the paper is formal). */
   title: string;
   chargesGst: boolean;
@@ -86,18 +87,86 @@ export interface Assessment {
   legend: string | null;
 }
 
-export const TITLES: Record<DocumentKind | 'credit-note', string> = {
+export const TITLES: Record<DocumentKind | 'credit-note' | 'estimate', string> = {
   'tax-invoice': 'TAX INVOICE',
   'bill-of-supply': 'BILL OF SUPPLY',
   invoice: 'INVOICE',
   'credit-note': 'CREDIT NOTE',
+  estimate: 'ESTIMATE',
 };
+
+/** The line an estimate prints under its lines: what it is not (the paper is formal, so English). */
+export const ESTIMATE_LEGEND = 'This is an estimate, not a tax invoice. The bill follows once the work is agreed.';
+
+/**
+ * A kaccha bill (20 Oct): an estimate for the buyer to check before the bill, or all a street vendor gives. It is no
+ * supply's document, so none of the invoice rules apply (no GSTIN needed, no place of supply, no HSN digits, no
+ * B2C details, no e-invoice). It may still show GST for a registered seller, so the GST it shows is right: every
+ * rate chosen and one the law has on its date; a composition dealer shows none.
+ */
+function assessEstimate(business: AssessBusiness, document: AssessDocument, rules: RulePack): Assessment {
+  const blockers: Blocker[] = [];
+  const ruleIds = new Set<string>();
+  const block = (code: string, ruleId: string | null = null, params?: Record<string, string | number>) =>
+    blockers.push({
+      code,
+      message: say(`assess.${code}`, params),
+      whatYouCanDo: say(`assess.${code}.do`, params),
+      ruleId,
+    });
+  const chargesGst = business.registration === 'regular' && document.gstOn;
+  if (chargesGst) {
+    const missing = document.lines.filter((l) => !l.taxRateChosen).length;
+    if (missing > 0) block('rate-not-chosen', null, { n: missing });
+    const slab = slabCheck(document, rules);
+    if (slab) {
+      ruleIds.add(slab.ruleId);
+      if (slab.odd) block('rate-not-in-slabs', slab.ruleId, slab.odd);
+    }
+  }
+  if (business.registration === 'composition' && document.lines.some((l) => l.gstBp > 0)) {
+    const c = compositionRule(document.dateIso, rules);
+    block('composition-tax', c?.id ?? null);
+  }
+  return {
+    kind: 'estimate',
+    title: TITLES.estimate,
+    chargesGst,
+    canIssue: blockers.length === 0,
+    blockers,
+    notices: [{ code: 'estimate-not-invoice', message: say('assess.estimate-not-invoice'), ruleId: null }],
+    ruleIds: [...ruleIds],
+    legend: ESTIMATE_LEGEND,
+  };
+}
+
+/** The lines whose chosen rate the law does not have on the document's date (12 % after GST 2.0, say). */
+function slabCheck(
+  document: AssessDocument,
+  rules: RulePack,
+): { ruleId: string; odd: Record<string, string | number> | null } | null {
+  const slab = ruleOn('selectable-rates', document.dateIso, rules);
+  if (!slab?.ratesPercent) return null;
+  const allowed = new Set([...slab.ratesPercent, ...(slab.specialRatesPercent ?? [])].map((r) => Math.round(r * 100)));
+  const odd = document.lines.filter((l) => l.taxRateChosen && !allowed.has(l.gstBp));
+  return {
+    ruleId: slab.id,
+    odd: odd.length
+      ? {
+          n: odd.length,
+          rates: [...new Set(odd.map((l) => l.gstBp / 100))].join(', '),
+          allowed: slab.ratesPercent.join(', '),
+        }
+      : null,
+  };
+}
 
 export function assessDocument(
   input: { business: AssessBusiness; customer: AssessCustomer; document: AssessDocument; today: CivilDate },
   rules: RulePack = GST_RULES,
 ): Assessment {
   const { business, customer, document, today } = input;
+  if (document.kind === 'estimate') return assessEstimate(business, document, rules);
   const blockers: Blocker[] = [];
   const notices: Notice[] = [];
   const ruleIds = new Set<string>();
@@ -148,19 +217,10 @@ export function assessDocument(
     const missing = document.lines.filter((l) => !l.taxRateChosen).length;
     if (missing > 0) block('rate-not-chosen', null, { n: missing });
     // A rate the law does not have on the bill's date (12 % after GST 2.0, say) is refused, not printed.
-    const slab = ruleOn('selectable-rates', document.dateIso, rules);
-    if (slab?.ratesPercent) {
-      ruleIds.add(slab.id);
-      const allowed = new Set(
-        [...slab.ratesPercent, ...(slab.specialRatesPercent ?? [])].map((r) => Math.round(r * 100)),
-      );
-      const odd = document.lines.filter((l) => l.taxRateChosen && !allowed.has(l.gstBp));
-      if (odd.length)
-        block('rate-not-in-slabs', slab.id, {
-          n: odd.length,
-          rates: [...new Set(odd.map((l) => l.gstBp / 100))].join(', '),
-          allowed: slab.ratesPercent.join(', '),
-        });
+    const slab = slabCheck(document, rules);
+    if (slab) {
+      ruleIds.add(slab.ruleId);
+      if (slab.odd) block('rate-not-in-slabs', slab.ruleId, slab.odd);
     }
     // Every line nil-rated on a tax invoice: the document must be a bill of supply (s. 31(3)(c)), not a tax invoice
     // with no tax on it (Stage 3 review). The owner switches GST off for the bill, in one tap.

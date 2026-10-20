@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ForbiddenError } from '../../packages/db/src/repos/allow';
 import * as ai_calls from '../../packages/db/src/repos/ai-calls';
+import * as bill_links from '../../packages/db/src/repos/bill-links';
 import * as businesses from '../../packages/db/src/repos/businesses';
 import * as customers from '../../packages/db/src/repos/customers';
 import * as document_files from '../../packages/db/src/repos/document-files';
@@ -34,6 +35,18 @@ describe('roles (I8): every repository write, every role', () => {
   it('ai-calls.recordAiCall: accountant may', async () => {
     const scope = await scopeFor('sharma', 'accountant');
     await expect(ai_calls.roleProbes.recordAiCall(scope)).resolves.toBeDefined();
+  });
+  it('bill-links.linkFor: owner may', async () => {
+    const scope = await scopeFor('sharma', 'owner');
+    await expect(bill_links.roleProbes.linkFor(scope)).resolves.toBeDefined();
+  });
+  it('bill-links.linkFor: staff may', async () => {
+    const scope = await scopeFor('sharma', 'staff');
+    await expect(bill_links.roleProbes.linkFor(scope)).resolves.toBeDefined();
+  });
+  it('bill-links.linkFor: accountant may not', async () => {
+    const scope = await scopeFor('sharma', 'accountant');
+    await expect(bill_links.roleProbes.linkFor(scope)).rejects.toBeInstanceOf(ForbiddenError);
   });
   it('businesses.rename: owner may', async () => {
     const scope = await scopeFor('sharma', 'owner');

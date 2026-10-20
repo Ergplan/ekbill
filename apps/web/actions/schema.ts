@@ -111,6 +111,9 @@ export const customerInput = z.object({
 });
 // table: customers
 export const archiveCustomerInput = z.object({ id: z.string().uuid(), archived: z.boolean() });
+// table: customers
+/** The customer's WhatsApp number, typed where the bill is sent (20 Oct), kept for the next bill. */
+export const customerPhoneInput = z.object({ id: z.string().uuid(), phone: z.string().trim().min(1).max(30) });
 // table: items
 export const itemInput = z.object({
   id: z.string().uuid().nullable().optional(),
@@ -157,6 +160,10 @@ export const issueBillInput = z.object({
   lines: z.array(billLine).min(1).max(100),
   /** Cancel-and-redo: the cancelled bill this one replaces (its link, documents.linked_document_id). */
   replaces: z.string().uuid().nullable().optional(),
+  /** A kaccha bill (20 Oct): an estimate in its own series (documents.kind 'estimate'). */
+  estimate: z.boolean().optional(),
+  /** A pakka bill made from a kaccha bill: the estimate's id (documents.from_estimate_id). */
+  fromEstimateId: z.string().uuid().nullable().optional(),
 });
 // table: documents
 /** Cancel (owner): the reason stays on the bill; the number is never reused. */

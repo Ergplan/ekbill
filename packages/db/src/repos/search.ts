@@ -81,7 +81,7 @@ export async function refreshIndex(scope: TenantScope, opts: { limit?: number } 
          left join customers c on c.id = d.customer_id
          left join documents l on l.id = d.linked_document_id
          left join search_records s on s.business_id = d.business_id and s.kind = 'bill' and s.source_id = d.id
-        where d.status in ('issued', 'cancelled') and d.issued_snapshot is not null
+        where d.status in ('issued', 'cancelled') and d.issued_snapshot is not null and d.kind <> 'estimate'
           and (s.id is null or s.version <> ${BILL_VERSION})
         order by d.issue_date desc
         limit $1`,

@@ -2143,9 +2143,9 @@
     "ta": "போட்டோவிலிருந்து பில்"
   },
   "photo.pick.sub": {
-    "hi-Latn": "Kaccha bill ya purana bill: photo lo ya gallery se chuno.",
+    "hi-Latn": "Haath se likha ya purana bill: photo lo ya gallery se chuno.",
     "en": "A handwritten or old bill: take a photo or pick one.",
-    "hi": "कच्चा बिल या पुराना बिल: फ़ोटो लो या गैलरी से चुनो।",
+    "hi": "हाथ से लिखा या पुराना बिल: फ़ोटो लो या गैलरी से चुनो।",
     "mr": "हाताने लिहिलेलं किंवा जुनं बिल: फोटो काढा किंवा गॅलरीतून निवडा.",
     "ta": "கையால் எழுதிய அல்லது பழைய பில்: போட்டோ எடுங்கள் அல்லது தேர்வு செய்யுங்கள்."
   },
@@ -5685,11 +5685,11 @@
     "ta": "வாடிக்கையாளருக்கு பில் இப்படித் தெரியும்: ஆங்கிலத்தில், தெளிவாக."
   },
   "tour.bill-done.whatsapp": {
-    "hi-Latn": "WhatsApp pe bhejo. Yeh aap dabao, main nahi.",
-    "en": "Send it on WhatsApp. You tap this, not me.",
-    "hi": "WhatsApp पर भेजो। यह आप दबाओ, मैं नहीं।",
-    "mr": "WhatsApp वर पाठवा. हे तुम्ही दाबा, मी नाही.",
-    "ta": "WhatsApp-ல் அனுப்புங்கள். இதை நீங்கள் தட்டுங்கள், நான் அல்ல."
+    "hi-Latn": "Customer ka number daalo: seedha unki WhatsApp chat khulegi. Send aap dabao.",
+    "en": "Type the customer's number: their WhatsApp chat opens directly. You press Send.",
+    "hi": "ग्राहक का नंबर डालो: सीधे उनकी WhatsApp चैट खुलेगी। Send आप दबाओ।",
+    "mr": "ग्राहकाचा नंबर टाका: थेट त्यांची WhatsApp चॅट उघडेल. Send तुम्ही दाबा.",
+    "ta": "வாடிக்கையாளரின் எண்ணை உள்ளிடுங்கள்: நேரடியாக அவர்களின் WhatsApp சாட் திறக்கும். Send-ஐ நீங்கள் அழுத்துங்கள்."
   },
   "tour.bill-done.share": {
     "hi-Latn": "PDF ya photo: jo customer ko aasaan lage.",
@@ -5769,11 +5769,11 @@
     "ta": "எல்லாம் சரியா? பில் போடுங்கள். நான் அழுத்த மாட்டேன், நீங்கள் அழுத்துங்கள்."
   },
   "tour.bills.filters": {
-    "hi-Latn": "Sab, Baaki, Aa gaye, Cancel: ek tap mein chhaant lo.",
-    "en": "All, Due, Paid, Cancelled: sort them in one tap.",
-    "hi": "सब, बाक़ी, आ गए, कैंसल: एक टैप में छाँट लो।",
-    "mr": "सगळे, बाकी, आले, रद्द: एका टॅपमध्ये निवडा.",
-    "ta": "எல்லாம், பாக்கி, வந்தது, ரத்து: ஒரு தட்டில் பிரியுங்கள்."
+    "hi-Latn": "Sab, Baaki, Aa gaye, Cancel, Kaccha: ek tap mein chhaant lo.",
+    "en": "All, Due, Paid, Cancelled, Kaccha: sort them in one tap.",
+    "hi": "सब, बाक़ी, आ गए, कैंसल, कच्चा: एक टैप में छाँट लो।",
+    "mr": "सगळे, बाकी, आले, रद्द, कच्चं: एका टॅपमध्ये निवडा.",
+    "ta": "எல்லாம், பாக்கி, வந்தது, ரத்து, கச்சா: ஒரு தட்டில் பிரியுங்கள்."
   },
   "tour.bills.search": {
     "hi-Latn": "Naam ya bill number likho.",
@@ -5930,10 +5930,10 @@
     "ta": "யாருக்கு பில் போட வேண்டும்? பெயரைத் தட்டுங்கள்."
   },
   "tour.home.photo": {
-    "hi-Latn": "Kaccha bill hai? Photo lo, hum padh lenge.",
+    "hi-Latn": "Haath se likha bill hai? Photo lo, hum padh lenge.",
     "en": "A handwritten bill? Take a photo and we read it.",
-    "hi": "कच्चा बिल है? फ़ोटो लो, हम पढ़ लेंगे।",
-    "mr": "कच्चं बिल आहे? फोटो घ्या, आम्ही वाचू.",
+    "hi": "हाथ से लिखा बिल है? फ़ोटो लो, हम पढ़ लेंगे।",
+    "mr": "हाताने लिहिलेलं बिल आहे? फोटो घ्या, आम्ही वाचू.",
     "ta": "கையால் எழுதிய பில்லா? போட்டோ எடுங்கள், நாங்கள் படிப்போம்."
   },
   "tour.home.sent": {
@@ -6238,11 +6238,11 @@
     "ta": "இன்னும் சொல்லவில்லை"
   },
   "tour.home.star": {
-    "hi-Latn": "Naya bill yahan se, ek tap mein.",
-    "en": "A new bill from here, in one tap.",
-    "hi": "नया बिल यहाँ से, एक टैप में।",
-    "mr": "नवीन बिल इथून, एका टॅपमध्ये.",
-    "ta": "புதிய பில் இங்கிருந்து, ஒரே தட்டில்."
+    "hi-Latn": "Pakka bill: asli bill, number ke saath. GST aur paise aane hain mein judta hai.",
+    "en": "Pakka bill: the real bill, with its number. It counts in GST and in what you are owed.",
+    "hi": "पक्का बिल: असली बिल, नंबर के साथ। GST और पैसे आने हैं में जुड़ता है।",
+    "mr": "पक्कं बिल: खरं बिल, नंबरसह. GST आणि येणे बाकीत धरलं जातं.",
+    "ta": "பக்கா பில்: உண்மையான பில், எண்ணுடன். GST-யிலும் வர வேண்டிய பணத்திலும் சேரும்."
   },
   "tour.home.about": {
     "hi-Latn": "Pehle apne baare mein batao: naam, dukaan. Phir bill.",
@@ -6672,11 +6672,11 @@
     "ta": "மாதிரித் தரவு: Sharma Electricals"
   },
   "demo.s1": {
-    "hi-Latn": "Yeh aapka Ghar hai. Naya bill yahan se, bas ek tap.",
-    "en": "This is your Home. A new bill starts here, in one tap.",
-    "hi": "यह आपका होम है। नया बिल यहाँ से, बस एक टैप।",
-    "mr": "हे तुमचं होम. नवीन बिल इथून, फक्त एका टॅपमध्ये.",
-    "ta": "இது உங்கள் முகப்பு. புதிய பில் இங்கிருந்து, ஒரே தட்டில்."
+    "hi-Latn": "Yeh aapka Ghar hai. Pakka bill yahan se: asli bill, number ke saath, GST aur hisaab mein judta hai.",
+    "en": "This is your Home. The pakka bill starts here: the real bill, with its number, counted in GST and your accounts.",
+    "hi": "यह आपका होम है। पक्का बिल यहाँ से: असली बिल, नंबर के साथ, GST और हिसाब में जुड़ता है।",
+    "mr": "हे तुमचं होम. पक्कं बिल इथून: खरं बिल, नंबरसह, GST आणि हिशोबात धरलं जातं.",
+    "ta": "இது உங்கள் முகப்பு. பக்கா பில் இங்கிருந்து: உண்மையான பில், எண்ணுடன், GST-யிலும் கணக்கிலும் சேரும்."
   },
   "demo.s2": {
     "hi-Latn": "Aur yeh mic. Isse bolo, aur EkBill sab khud bhar dega.",
@@ -6700,11 +6700,11 @@
     "ta": "GST-யும் தானாகச் சேரும். நீங்கள் கணக்கிட வேண்டாம்."
   },
   "demo.s5": {
-    "hi-Latn": "Bill taiyaar. Ek tap mein WhatsApp pe customer ko.",
-    "en": "The bill is ready. One tap sends it to the customer on WhatsApp.",
-    "hi": "बिल तैयार। एक टैप में WhatsApp पर कस्टमर को।",
-    "mr": "बिल तयार. एका टॅपमध्ये WhatsApp वर ग्राहकाला.",
-    "ta": "பில் தயார். ஒரே தட்டில் WhatsApp-ல் வாடிக்கையாளருக்கு."
+    "hi-Latn": "Bill taiyaar. Customer ka number daalo, seedha unki WhatsApp chat khulegi, number save na ho tab bhi.",
+    "en": "The bill is ready. Type the customer's number and their WhatsApp chat opens directly, even if the number is not saved.",
+    "hi": "बिल तैयार। ग्राहक का नंबर डालो, सीधे उनकी WhatsApp चैट खुलेगी, नंबर सेव न हो तब भी।",
+    "mr": "बिल तयार. ग्राहकाचा नंबर टाका, थेट त्यांची WhatsApp चॅट उघडेल, नंबर सेव्ह नसला तरी.",
+    "ta": "பில் தயார். வாடிக்கையாளரின் எண்ணை உள்ளிடுங்கள், எண் சேமிக்காவிட்டாலும் நேரடியாக அவர்களின் WhatsApp சாட் திறக்கும்."
   },
   "demo.s6": {
     "hi-Latn": "Kiske paise baaki hain, yahan dikhta hai. Bolo 'Mehta ko yaad dilao', reminder chala gaya.",
@@ -6714,10 +6714,10 @@
     "ta": "யார் பணம் தர வேண்டும் என்பது இங்கே. 'மேத்தாவுக்கு நினைவூட்டு' என்று சொன்னால், நினைவூட்டல் போகும்."
   },
   "demo.s7": {
-    "hi-Latn": "Kaccha bill hai? Photo lo, EkBill padh ke bill bana dega.",
+    "hi-Latn": "Haath se likha bill hai? Photo lo, EkBill padh ke bill bana dega.",
     "en": "Have a handwritten bill? Take a photo, and EkBill reads it into a bill.",
-    "hi": "कच्चा बिल है? फ़ोटो लो, EkBill पढ़कर बिल बना देगा।",
-    "mr": "कच्चं बिल आहे? फोटो काढा, EkBill वाचून बिल बनवेल.",
+    "hi": "हाथ से लिखा बिल है? फ़ोटो लो, EkBill पढ़कर बिल बना देगा।",
+    "mr": "हाताने लिहिलेलं बिल आहे? फोटो काढा, EkBill वाचून बिल बनवेल.",
     "ta": "கையால் எழுதிய பில் உள்ளதா? போட்டோ எடுங்கள், EkBill படித்து பில் போடும்."
   },
   "demo.s8": {
@@ -6749,11 +6749,11 @@
     "ta": "புதியது என்ன? 45 விநாடி டெமோ"
   },
   "demo.new.sub": {
-    "hi-Latn": "Bolke bill, photo se bill, WhatsApp reminder: ek baar dekh lo.",
-    "en": "Bills by voice, bills from a photo, WhatsApp reminders: have a look.",
-    "hi": "बोलके बिल, फ़ोटो से बिल, WhatsApp रिमाइंडर: एक बार देख लो।",
-    "mr": "बोलून बिल, फोटोवरून बिल, WhatsApp रिमाइंडर: एकदा पाहा.",
-    "ta": "குரலில் பில், போட்டோவிலிருந்து பில், WhatsApp நினைவூட்டல்: ஒருமுறை பாருங்கள்."
+    "hi-Latn": "Kaccha bill (estimate), number se seedha WhatsApp, bolke bill: ek baar dekh lo.",
+    "en": "Kaccha bills (estimates), WhatsApp straight to a number, bills by voice: have a look.",
+    "hi": "कच्चा बिल (एस्टिमेट), नंबर से सीधे WhatsApp, बोलके बिल: एक बार देख लो।",
+    "mr": "कच्चं बिल (एस्टिमेट), नंबरवरून थेट WhatsApp, बोलून बिल: एकदा पाहा.",
+    "ta": "கச்சா பில் (மதிப்பீடு), எண்ணுக்கு நேரடியாக WhatsApp, குரலில் பில்: ஒருமுறை பாருங்கள்."
   },
   "demo.new.later": {
     "hi-Latn": "Baad mein",
@@ -6810,5 +6810,327 @@
     "hi": "GST सेव करो",
     "mr": "GST सेव्ह करा",
     "ta": "GST சேமி"
+  },
+  "home.pakka": {
+    "hi-Latn": "Pakka bill banao",
+    "en": "Make a pakka bill",
+    "hi": "पक्का बिल बनाओ",
+    "mr": "पक्कं बिल बनवा",
+    "ta": "பக்கா பில் போடுங்கள்"
+  },
+  "home.pakka.tax": {
+    "hi-Latn": "Pakka bill banao (tax invoice)",
+    "en": "Make a pakka bill (tax invoice)",
+    "hi": "पक्का बिल बनाओ (टैक्स इनवॉइस)",
+    "mr": "पक्कं बिल बनवा (टॅक्स इनव्हॉइस)",
+    "ta": "பக்கா பில் போடுங்கள் (வரி இன்வாய்ஸ்)"
+  },
+  "home.kaccha": {
+    "hi-Latn": "Kaccha bill banao (estimate)",
+    "en": "Make a kaccha bill (estimate)",
+    "hi": "कच्चा बिल बनाओ (एस्टिमेट)",
+    "mr": "कच्चं बिल बनवा (एस्टिमेट)",
+    "ta": "கச்சா பில் போடுங்கள் (மதிப்பீடு)"
+  },
+  "home.kinds.note": {
+    "hi-Latn": "Kaccha bill = estimate: customer pehle dekh le. GST ya hisaab mein nahi judta. Pakka bill = asli bill, number ke saath; GST aur paise aane hain mein judta hai.",
+    "en": "Kaccha bill = an estimate for the customer to check first; it is not counted in GST or your accounts. Pakka bill = the real bill, with its number; it counts in GST and in what you are owed.",
+    "hi": "कच्चा बिल = एस्टिमेट: ग्राहक पहले देख ले। GST या हिसाब में नहीं जुड़ता। पक्का बिल = असली बिल, नंबर के साथ; GST और पैसे आने हैं में जुड़ता है।",
+    "mr": "कच्चं बिल = एस्टिमेट: ग्राहक आधी पाहील. GST किंवा हिशोबात धरलं जात नाही. पक्कं बिल = खरं बिल, नंबरसह; GST आणि येणे बाकीत धरलं जातं.",
+    "ta": "கச்சா பில் = மதிப்பீடு: வாடிக்கையாளர் முதலில் பார்க்கட்டும். GST-யிலோ கணக்கிலோ சேராது. பக்கா பில் = உண்மையான பில், எண்ணுடன்; GST-யிலும் வர வேண்டிய பணத்திலும் சேரும்."
+  },
+  "bill.kind.q": {
+    "hi-Latn": "Kaunsa bill?",
+    "en": "Which bill?",
+    "hi": "कौन सा बिल?",
+    "mr": "कोणतं बिल?",
+    "ta": "எந்த பில்?"
+  },
+  "bill.kind.pakka": {
+    "hi-Latn": "Pakka bill",
+    "en": "Pakka bill",
+    "hi": "पक्का बिल",
+    "mr": "पक्कं बिल",
+    "ta": "பக்கா பில்"
+  },
+  "bill.kind.kaccha": {
+    "hi-Latn": "Kaccha (estimate)",
+    "en": "Kaccha (estimate)",
+    "hi": "कच्चा (एस्टिमेट)",
+    "mr": "कच्चं (एस्टिमेट)",
+    "ta": "கச்சா (மதிப்பீடு)"
+  },
+  "bill.kaccha.title": {
+    "hi-Latn": "Estimate: {customer}",
+    "en": "Estimate: {customer}",
+    "hi": "एस्टिमेट: {customer}",
+    "mr": "एस्टिमेट: {customer}",
+    "ta": "மதிப்பீடு: {customer}"
+  },
+  "bill.kaccha.new": {
+    "hi-Latn": "Naya estimate",
+    "en": "New estimate",
+    "hi": "नया एस्टिमेट",
+    "mr": "नवीन एस्टिमेट",
+    "ta": "புதிய மதிப்பீடு"
+  },
+  "bill.kaccha.make": {
+    "hi-Latn": "Estimate banao",
+    "en": "Make the estimate",
+    "hi": "एस्टिमेट बनाओ",
+    "mr": "एस्टिमेट बनवा",
+    "ta": "மதிப்பீடு போடுங்கள்"
+  },
+  "bill.kaccha.making": {
+    "hi-Latn": "Estimate ban raha hai…",
+    "en": "Making the estimate…",
+    "hi": "एस्टिमेट बन रहा है…",
+    "mr": "एस्टिमेट बनतंय…",
+    "ta": "மதிப்பீடு தயாராகிறது…"
+  },
+  "bill.kaccha.note": {
+    "hi-Latn": "Kaccha bill hai: customer dekh ke haan bolega, phir ek tap mein pakka bill. GST return aur paise aane hain mein nahi judta.",
+    "en": "This is a kaccha bill: the customer checks it, then one tap makes the pakka bill. It is not counted in GST returns or in what you are owed.",
+    "hi": "कच्चा बिल है: ग्राहक देखकर हाँ बोलेगा, फिर एक टैप में पक्का बिल। GST रिटर्न और पैसे आने हैं में नहीं जुड़ता।",
+    "mr": "कच्चं बिल आहे: ग्राहक पाहून हो म्हणेल, मग एका टॅपमध्ये पक्कं बिल. GST रिटर्न आणि येणे बाकीत धरलं जात नाही.",
+    "ta": "இது கச்சா பில்: வாடிக்கையாளர் பார்த்து சரி சொன்னதும், ஒரே தட்டில் பக்கா பில். GST ரிட்டர்னிலும் வர வேண்டிய பணத்திலும் சேராது."
+  },
+  "bill.from.estimate": {
+    "hi-Latn": "Estimate {number} se pakka bill: saamaan wahi bhara hai, chahe toh badlo.",
+    "en": "A pakka bill from estimate {number}: the same items are filled in; change them if you need to.",
+    "hi": "एस्टिमेट {number} से पक्का बिल: सामान वही भरा है, चाहो तो बदलो।",
+    "mr": "एस्टिमेट {number} वरून पक्कं बिल: तेच सामान भरलंय, हवं तर बदला.",
+    "ta": "மதிப்பீடு {number}-இலிருந்து பக்கா பில்: அதே பொருட்கள் நிரப்பப்பட்டுள்ளன, வேண்டுமானால் மாற்றுங்கள்."
+  },
+  "bill.state.not-an-estimate": {
+    "hi-Latn": "Yeh estimate ab pakka bill nahi ban sakta: woh cancel ho chuka hai. Naya bill banao.",
+    "en": "This estimate can no longer become a pakka bill: it was cancelled. Make a new bill.",
+    "hi": "यह एस्टिमेट अब पक्का बिल नहीं बन सकता: वह कैंसल हो चुका है। नया बिल बनाओ।",
+    "mr": "हे एस्टिमेट आता पक्कं बिल होऊ शकत नाही: ते रद्द झालंय. नवीन बिल बनवा.",
+    "ta": "இந்த மதிப்பீட்டை இனி பக்கா பில் ஆக்க முடியாது: அது ரத்து செய்யப்பட்டது. புதிய பில் போடுங்கள்."
+  },
+  "assess.estimate-not-invoice": {
+    "hi-Latn": "Yeh estimate hai, tax invoice nahi: GST return mein nahi judega.",
+    "en": "This is an estimate, not a tax invoice: it does not go into your GST return.",
+    "hi": "यह एस्टिमेट है, टैक्स इनवॉइस नहीं: GST रिटर्न में नहीं जुड़ेगा।",
+    "mr": "हे एस्टिमेट आहे, टॅक्स इनव्हॉइस नाही: GST रिटर्नमध्ये धरलं जाणार नाही.",
+    "ta": "இது மதிப்பீடு, வரி இன்வாய்ஸ் அல்ல: GST ரிட்டர்னில் சேராது."
+  },
+  "done.kaccha.title": {
+    "hi-Latn": "Estimate ban gaya!",
+    "en": "The estimate is ready!",
+    "hi": "एस्टिमेट बन गया!",
+    "mr": "एस्टिमेट तयार झालं!",
+    "ta": "மதிப்பீடு தயார்!"
+  },
+  "done.kaccha.next": {
+    "hi-Latn": "Customer haan bole, toh yahan se pakka bill.",
+    "en": "Once the customer agrees, make the pakka bill from here.",
+    "hi": "ग्राहक हाँ बोले, तो यहाँ से पक्का बिल।",
+    "mr": "ग्राहक हो म्हणाला की इथून पक्कं बिल.",
+    "ta": "வாடிக்கையாளர் சரி என்றதும், இங்கிருந்து பக்கா பில்."
+  },
+  "done.wa.text.kaccha": {
+    "hi-Latn": "Namaste {customer}! {business} se estimate {number} — {amount}. Dekh ke bataiye, phir pakka bill bhejenge.",
+    "en": "Hello {customer}! Estimate {number} from {business} — {amount}. Please check it; the bill follows once you agree.",
+    "hi": "नमस्ते {customer}! {business} से एस्टिमेट {number} — {amount}। देखकर बताइए, फिर पक्का बिल भेजेंगे।",
+    "mr": "नमस्कार {customer}! {business} कडून एस्टिमेट {number} — {amount}. पाहून सांगा, मग पक्कं बिल पाठवू.",
+    "ta": "வணக்கம் {customer}! {business}-இடமிருந்து மதிப்பீடு {number} — {amount}. பார்த்துச் சொல்லுங்கள், பிறகு பில் அனுப்புவோம்."
+  },
+  "done.wa.link": {
+    "hi-Latn": "Bill yahan dekhein: {link}",
+    "en": "See the bill here: {link}",
+    "hi": "बिल यहाँ देखें: {link}",
+    "mr": "बिल इथे पाहा: {link}",
+    "ta": "பில்லை இங்கே பாருங்கள்: {link}"
+  },
+  "wa.number": {
+    "hi-Latn": "Customer ka WhatsApp number",
+    "en": "The customer's WhatsApp number",
+    "hi": "ग्राहक का WhatsApp नंबर",
+    "mr": "ग्राहकाचा WhatsApp नंबर",
+    "ta": "வாடிக்கையாளரின் WhatsApp எண்"
+  },
+  "wa.number.hint": {
+    "hi-Latn": "Phone mein save na ho tab bhi chalega: seedha unki chat khulegi. Customer ke saath yaad rahega.",
+    "en": "It works even if the number is not saved in your phone: their chat opens directly. EkBill keeps it with the customer.",
+    "hi": "फ़ोन में सेव न हो तब भी चलेगा: सीधे उनकी चैट खुलेगी। ग्राहक के साथ याद रहेगा।",
+    "mr": "फोनमध्ये सेव्ह नसला तरी चालेल: थेट त्यांची चॅट उघडेल. ग्राहकासोबत लक्षात राहील.",
+    "ta": "உங்கள் போனில் சேமிக்காவிட்டாலும் பரவாயில்லை: நேரடியாக அவர்களின் சாட் திறக்கும். வாடிக்கையாளருடன் நினைவில் இருக்கும்."
+  },
+  "wa.number.error": {
+    "hi-Latn": "Yeh number sahi nahi lagta. 10 ank ka mobile number daalo.",
+    "en": "That does not look like a mobile number. Enter the 10-digit number.",
+    "hi": "यह नंबर सही नहीं लगता। 10 अंक का मोबाइल नंबर डालो।",
+    "mr": "हा नंबर बरोबर वाटत नाही. 10 अंकी मोबाइल नंबर टाका.",
+    "ta": "இந்த எண் சரியாகத் தெரியவில்லை. 10 இலக்க மொபைல் எண்ணை உள்ளிடுங்கள்."
+  },
+  "wa.file": {
+    "hi-Latn": "File share karo (PDF/JPG)",
+    "en": "Share the file (PDF/JPG)",
+    "hi": "फ़ाइल शेयर करो (PDF/JPG)",
+    "mr": "फाइल शेअर करा (PDF/JPG)",
+    "ta": "கோப்பைப் பகிருங்கள் (PDF/JPG)"
+  },
+  "wa.sent.to": {
+    "hi-Latn": "{phone} ki WhatsApp chat khul gayi. Wahan Send dabao.",
+    "en": "The WhatsApp chat with {phone} is open. Press Send there.",
+    "hi": "{phone} की WhatsApp चैट खुल गई। वहाँ Send दबाओ।",
+    "mr": "{phone} ची WhatsApp चॅट उघडली. तिथे Send दाबा.",
+    "ta": "{phone} உடனான WhatsApp சாட் திறந்தது. அங்கே Send அழுத்துங்கள்."
+  },
+  "view.kaccha.title": {
+    "hi-Latn": "Kaccha bill (estimate)",
+    "en": "Kaccha bill (estimate)",
+    "hi": "कच्चा बिल (एस्टिमेट)",
+    "mr": "कच्चं बिल (एस्टिमेट)",
+    "ta": "கச்சா பில் (மதிப்பீடு)"
+  },
+  "view.kaccha.sub": {
+    "hi-Latn": "Customer ke dekhne ke liye. GST ya paise aane hain mein nahi judta.",
+    "en": "For the customer to check. Not counted in GST or in what you are owed.",
+    "hi": "ग्राहक के देखने के लिए। GST या पैसे आने हैं में नहीं जुड़ता।",
+    "mr": "ग्राहकाने पाहण्यासाठी. GST किंवा येणे बाकीत धरलं जात नाही.",
+    "ta": "வாடிக்கையாளர் பார்ப்பதற்காக. GST-யிலோ வர வேண்டிய பணத்திலோ சேராது."
+  },
+  "view.kaccha.pakka": {
+    "hi-Latn": "Pakka bill banao",
+    "en": "Make the pakka bill",
+    "hi": "पक्का बिल बनाओ",
+    "mr": "पक्कं बिल बनवा",
+    "ta": "பக்கா பில் போடுங்கள்"
+  },
+  "view.kaccha.done": {
+    "hi-Latn": "Pakka bill ban gaya: {number}",
+    "en": "Pakka bill made: {number}",
+    "hi": "पक्का बिल बन गया: {number}",
+    "mr": "पक्कं बिल झालं: {number}",
+    "ta": "பக்கா பில் ஆனது: {number}"
+  },
+  "view.kaccha.cancel": {
+    "hi-Latn": "Estimate cancel karo",
+    "en": "Cancel the estimate",
+    "hi": "एस्टिमेट कैंसल करो",
+    "mr": "एस्टिमेट रद्द करा",
+    "ta": "மதிப்பீட்டை ரத்து செய்யுங்கள்"
+  },
+  "view.kaccha.cancelled": {
+    "hi-Latn": "Estimate cancel hua: {reason}",
+    "en": "Estimate cancelled: {reason}",
+    "hi": "एस्टिमेट कैंसल हुआ: {reason}",
+    "mr": "एस्टिमेट रद्द झालं: {reason}",
+    "ta": "மதிப்பீடு ரத்தானது: {reason}"
+  },
+  "view.from.estimate": {
+    "hi-Latn": "Estimate {number} se bana",
+    "en": "Made from estimate {number}",
+    "hi": "एस्टिमेट {number} से बना",
+    "mr": "एस्टिमेट {number} वरून बनलं",
+    "ta": "மதிப்பீடு {number}-இலிருந்து போடப்பட்டது"
+  },
+  "bills.filter.kaccha": {
+    "hi-Latn": "Kaccha (estimate)",
+    "en": "Kaccha (estimate)",
+    "hi": "कच्चा (एस्टिमेट)",
+    "mr": "कच्चं (एस्टिमेट)",
+    "ta": "கச்சா (மதிப்பீடு)"
+  },
+  "bills.kaccha.none": {
+    "hi-Latn": "Abhi koi kaccha bill nahi.",
+    "en": "No kaccha bills yet.",
+    "hi": "अभी कोई कच्चा बिल नहीं।",
+    "mr": "अजून कच्चं बिल नाही.",
+    "ta": "இன்னும் கச்சா பில் இல்லை."
+  },
+  "status.kaccha": {
+    "hi-Latn": "Kaccha",
+    "en": "Kaccha",
+    "hi": "कच्चा",
+    "mr": "कच्चं",
+    "ta": "கச்சா"
+  },
+  "status.kaccha.done": {
+    "hi-Latn": "Pakka ban gaya",
+    "en": "Made pakka",
+    "hi": "पक्का बन गया",
+    "mr": "पक्कं झालं",
+    "ta": "பக்கா ஆனது"
+  },
+  "link.title": {
+    "hi-Latn": "{title} {number}",
+    "en": "{title} {number}",
+    "hi": "{title} {number}",
+    "mr": "{title} {number}",
+    "ta": "{title} {number}"
+  },
+  "link.date": {
+    "hi-Latn": "Tareekh: {date}",
+    "en": "Date: {date}",
+    "hi": "तारीख़: {date}",
+    "mr": "तारीख: {date}",
+    "ta": "தேதி: {date}"
+  },
+  "link.cancelled": {
+    "hi-Latn": "Yeh bill cancel ho chuka hai.",
+    "en": "This bill has been cancelled.",
+    "hi": "यह बिल कैंसल हो चुका है।",
+    "mr": "हे बिल रद्द झालंय.",
+    "ta": "இந்த பில் ரத்து செய்யப்பட்டது."
+  },
+  "link.estimate": {
+    "hi-Latn": "Yeh kaccha bill (estimate) hai. Pakka bill baad mein aayega.",
+    "en": "This is a kaccha bill (estimate). The bill follows later.",
+    "hi": "यह कच्चा बिल (एस्टिमेट) है। पक्का बिल बाद में आएगा।",
+    "mr": "हे कच्चं बिल (एस्टिमेट) आहे. पक्कं बिल नंतर येईल.",
+    "ta": "இது கச்சா பில் (மதிப்பீடு). பில் பின்னர் வரும்."
+  },
+  "link.pay": {
+    "hi-Latn": "UPI se {amount} bharo",
+    "en": "Pay {amount} by UPI",
+    "hi": "UPI से {amount} भरो",
+    "mr": "UPI ने {amount} भरा",
+    "ta": "UPI மூலம் {amount} செலுத்துங்கள்"
+  },
+  "link.pdf": {
+    "hi-Latn": "PDF download karo",
+    "en": "Download the PDF",
+    "hi": "PDF डाउनलोड करो",
+    "mr": "PDF डाउनलोड करा",
+    "ta": "PDF பதிவிறக்குங்கள்"
+  },
+  "link.by": {
+    "hi-Latn": "EkBill se bana bill",
+    "en": "Made with EkBill",
+    "hi": "EkBill से बना बिल",
+    "mr": "EkBill ने बनवलेलं बिल",
+    "ta": "EkBill மூலம் போடப்பட்டது"
+  },
+  "tour.home.kaccha": {
+    "hi-Latn": "Kaccha bill yaani estimate: customer pehle dekh le. Hisaab mein nahi judta; baad mein ek tap se pakka bill.",
+    "en": "Kaccha bill means an estimate: the customer checks it first. It is not counted; later, one tap makes the pakka bill.",
+    "hi": "कच्चा बिल यानी एस्टिमेट: ग्राहक पहले देख ले। हिसाब में नहीं जुड़ता; बाद में एक टैप से पक्का बिल।",
+    "mr": "कच्चं बिल म्हणजे एस्टिमेट: ग्राहक आधी पाहील. हिशोबात धरलं जात नाही; नंतर एका टॅपमध्ये पक्कं बिल.",
+    "ta": "கச்சா பில் என்றால் மதிப்பீடு: வாடிக்கையாளர் முதலில் பார்க்கட்டும். கணக்கில் சேராது; பிறகு ஒரே தட்டில் பக்கா பில்."
+  },
+  "demo.kaccha": {
+    "hi-Latn": "Aur yeh Kaccha bill, yaani estimate: customer pehle dekh le. Hisaab mein nahi judta, aur haan bolne pe ek tap mein pakka bill.",
+    "en": "And this is the kaccha bill, an estimate: the customer checks it first. It is not counted, and once they agree, one tap makes the pakka bill.",
+    "hi": "और यह कच्चा बिल, यानी एस्टिमेट: ग्राहक पहले देख ले। हिसाब में नहीं जुड़ता, और हाँ बोलने पर एक टैप में पक्का बिल।",
+    "mr": "आणि हे कच्चं बिल, म्हणजे एस्टिमेट: ग्राहक आधी पाहील. हिशोबात धरलं जात नाही, आणि हो म्हटल्यावर एका टॅपमध्ये पक्कं बिल.",
+    "ta": "இது கச்சா பில், அதாவது மதிப்பீடு: வாடிக்கையாளர் முதலில் பார்க்கட்டும். கணக்கில் சேராது; சரி என்றதும் ஒரே தட்டில் பக்கா பில்."
+  },
+  "tour.bill.kind": {
+    "hi-Latn": "Pakka bill ya kaccha (estimate): yahan chuno.",
+    "en": "A pakka bill or a kaccha one (an estimate): choose here.",
+    "hi": "पक्का बिल या कच्चा (एस्टिमेट): यहाँ चुनो।",
+    "mr": "पक्कं बिल की कच्चं (एस्टिमेट): इथे निवडा.",
+    "ta": "பக்கா பில்லா, கச்சாவா (மதிப்பீடு): இங்கே தேர்வு செய்யுங்கள்."
+  },
+  "tour.bill-view.pakka": {
+    "hi-Latn": "Customer ne haan bola? Pakka bill banao: saamaan wahi bhar jaayega.",
+    "en": "Did the customer agree? Make the pakka bill: the same items are filled in.",
+    "hi": "ग्राहक ने हाँ बोला? पक्का बिल बनाओ: सामान वही भर जाएगा।",
+    "mr": "ग्राहक हो म्हणाला? पक्कं बिल बनवा: तेच सामान भरलं जाईल.",
+    "ta": "வாடிக்கையாளர் சரி என்றாரா? பக்கா பில் போடுங்கள்: அதே பொருட்கள் நிரப்பப்படும்."
   }
 }

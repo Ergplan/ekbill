@@ -6,6 +6,7 @@
  */
 export const REPOSITORIES = [
   'ai-calls',
+  'bill-links',
   'businesses',
   'customers',
   'document-files',

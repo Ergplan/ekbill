@@ -18,6 +18,8 @@
   "issueBillInput.customerLanguage": "customers.language (the customer the form adds)",
   "issueBillInput.lines": "derived: engine parseQuantity/parseMoney → documents.lines (IssueLine[])",
   "issueBillInput.replaces": "documents.linked_document_id (the cancelled bill a redo replaces)",
+  "issueBillInput.estimate": "documents.kind ('estimate': a kaccha bill, numbered in its own series)",
+  "issueBillInput.fromEstimateId": "documents.from_estimate_id (the kaccha bill a pakka bill is made from)",
   "creditNoteBillInput.amount": "derived: engine proportionalCredit → documents.lines of the credit note",
   "paymentInput.amount": "derived: engine parseMoney → payments.amount_paise",
   "reversalInput.id": "payments.id (the entry reversed)",

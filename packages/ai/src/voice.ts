@@ -14,7 +14,7 @@ import { loadPrompt } from './prompts';
  * the browser: open a screen, light up, fill, press the safe items; nothing
  * that commits (rule 17, I6).
  */
-export const VOICE_PROMPT = { name: 'voice', version: 4 } as const;
+export const VOICE_PROMPT = { name: 'voice', version: 5 } as const;
 export const TRANSCRIBE_PROMPT = { name: 'voice-transcribe', version: 2 } as const;
 export const VOICE_LANGUAGE_PROMPT = { name: 'voice-language', version: 1 } as const;
 
@@ -69,7 +69,7 @@ export const VOICE_TOOLS = [
     type: 'function',
     name: 'start_bill',
     description:
-      'Open the bill form for a customer with the lines filled in. The owner checks it and taps Bill banao; you do not make the bill. Use the customer name exactly as the owner said it; the app matches it to its list.',
+      'Open the bill form for a customer with the lines filled in: a pakka bill, or a kaccha bill (an estimate) when the owner asks for one. The owner checks it and taps Bill banao; you do not make the bill. Use the customer name exactly as the owner said it; the app matches it to its list.',
     parameters: {
       type: 'object',
       properties: {
@@ -89,6 +89,10 @@ export const VOICE_TOOLS = [
             },
             required: ['what', 'rate'],
           },
+        },
+        kaccha: {
+          type: 'boolean',
+          description: 'True for a kaccha bill (an estimate, quotation); false or absent for a pakka bill.',
         },
       },
       required: ['customer_name', 'lines'],

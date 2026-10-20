@@ -1,6 +1,6 @@
 import type { PaperData } from '@ekbill/ui';
 
-import { customers, documents } from '@ekbill/db';
+import { billLinks, customers, documents } from '@ekbill/db';
 
 import { billsOf, customerOf } from '../common';
 import { paperOfDocument, scopeOf } from '../live';
@@ -21,11 +21,15 @@ export interface BillDoneData {
     totalPaise: number;
     paper: PaperData;
     paperSize: 'a4' | 'a5' | '80mm' | '58mm';
+    /** A kaccha bill (estimate, 20 Oct): its own words, and "Pakka bill banao" from it. */
+    kaccha: boolean;
+    /** The bill's own link for the WhatsApp message (the customer opens it without signing in). */
+    link: string | null;
   } | null;
 }
 
 /** The done screen of a bill just issued, by its id (the form sends you here). */
-export async function loadIssued(viewer: Viewer, id: string): Promise<BillDoneData | null> {
+export async function loadIssued(viewer: Viewer, id: string, origin: string): Promise<BillDoneData | null> {
   const scope = scopeOf(viewer);
   if (!scope || !viewer.business || viewer.role === 'accountant') return null;
   const docId = await documents.findBill(scope, id);
@@ -34,6 +38,7 @@ export async function loadIssued(viewer: Viewer, id: string): Promise<BillDoneDa
   if (doc.status !== 'issued' || doc.kind === 'credit_note') return null;
   const customer = doc.customerId ? await customers.getCustomer(scope, doc.customerId).catch(() => null) : null;
   const paper = paperOfDocument(doc);
+  const token = await billLinks.linkFor(scope, doc.id).catch(() => null);
   return {
     fallback: paper,
     share: viewer.business.look.share,
@@ -46,6 +51,8 @@ export async function loadIssued(viewer: Viewer, id: string): Promise<BillDoneDa
       totalPaise: doc.totals?.totalPaise ?? 0,
       paper,
       paperSize: viewer.loaded?.profile.look.paper ?? 'a4',
+      kaccha: doc.kind === 'estimate',
+      link: token ? `${origin}/b/${token}` : null,
     },
   };
 }

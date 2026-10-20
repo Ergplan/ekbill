@@ -33,6 +33,14 @@ export function whatsAppLink(message: { text: string; phone?: string | null }): 
   return `https://wa.me/${digits}?text=${encodeURIComponent(message.text)}`;
 }
 
+/**
+ * Straight to one number's chat (20 Oct), saved in the phone or not: wa.me opens the chat by the number, where the
+ * share sheet lists saved contacts only. Call it in the tap itself (a popup needs the tap's moment).
+ */
+export function openWhatsAppChat(message: { text: string; phone: string }): 'opened' | 'cancelled' {
+  return openWhatsAppLink(message);
+}
+
 function openWhatsAppLink(message: { text: string; phone?: string | null }): 'opened' | 'cancelled' {
   if (typeof window === 'undefined') return 'cancelled';
   // Not the 'noopener' feature: with it window.open returns null even when the tab opened. Cut the opener by hand.

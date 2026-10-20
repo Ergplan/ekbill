@@ -60,7 +60,8 @@ export function billOfRow(viewer: Viewer, r: BillRow): Bill {
     cancelledReason: null,
     creditNote: null,
     waStatus: 'sent',
-    kind: r.kind === 'bill_of_supply' ? 'bill-of-supply' : 'tax-invoice',
+    kind: r.kind === 'bill_of_supply' ? 'bill-of-supply' : r.kind === 'estimate' ? 'estimate' : 'tax-invoice',
+    pakkaNumber: r.pakkaNumber,
   };
 }
 
@@ -87,12 +88,16 @@ export async function ledgerOf(
     status?: 'all' | 'due' | 'paid' | 'cancelled';
     since?: string;
     limit?: number;
+    /** The kaccha bills (estimates) instead of the bills (20 Oct). */
+    estimates?: boolean;
   } = {},
 ): Promise<Ledger> {
   const b = viewer.business;
   const scope = scopeOf(viewer);
   if (!b) return { live: Boolean(scope), today: todayOf(viewer), bills: [], rows: [] };
   if (!scope) {
+    // The fixtures hold no kaccha bills.
+    if (filter.estimates) return { live: false, today: TODAY, bills: [], rows: [] };
     const bills = billsOf(b).filter(
       (x) => (!filter.customerId || x.customer === filter.customerId) && (!filter.since || x.date >= filter.since),
     );

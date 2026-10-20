@@ -46,6 +46,7 @@ export {
   type SupplyDecision,
 } from './rules';
 export {
+  ESTIMATE_LEGEND,
   TITLES,
   assessDocument,
   type AssessBusiness,

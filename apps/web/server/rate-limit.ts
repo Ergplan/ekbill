@@ -49,7 +49,8 @@ export const isSignIn = (path: string) => path.startsWith('/dev/switch') || path
 export const isWrite = (method: string) => WRITE_METHODS.has(method.toUpperCase());
 /** The GETs that may start Chromium: a bill's file, and the CA pack (every PDF of the period). */
 export const isRender = (method: string, path: string) =>
-  method.toUpperCase() === 'GET' && (/^\/api\/documents\/[^/]+\/file$/.test(path) || path === '/api/gst/pack');
+  method.toUpperCase() === 'GET' &&
+  (/^\/api\/documents\/[^/]+\/file$/.test(path) || /^\/b\/[^/]+\/file$/.test(path) || path === '/api/gst/pack');
 
 /** The address a request came from: the first hop Caddy records, else what the connection says. */
 export function clientAddress(headers: Headers): string {

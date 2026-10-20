@@ -25,7 +25,8 @@ import {
 import { cancelBill, recordMoney, reverseMoney } from '../../actions/bills';
 import { rupees } from '../money';
 import { sayRefusal } from '../refusal';
-import { billFileUrl, handoffWithFile, prefetchFile } from '../share';
+import { billFileUrl, prefetchFile } from '../share';
+import { WhatsAppSend } from '../wa-send';
 import { billFileName, billPath, withAs } from '../links';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
 import { statusKey } from '../common';
@@ -49,6 +50,9 @@ export function BillViewScreen({
   const { bill } = data;
   const canMoney = viewer.role !== 'accountant';
   const canFix = viewer.role === 'owner';
+  // A kaccha bill (20 Oct): an estimate. No money, no reminder, no credit note: "Pakka bill banao" from it.
+  const kaccha = bill.kind === 'estimate';
+  const [waOpen, setWaOpen] = useState(false);
   const [paidOpen, setPaidOpen] = useState(openPaid && canMoney && bill.duePaise > 0);
   const [mode, setMode] = useState<'all' | 'part' | null>(null);
   const [amount, setAmount] = useState('');
@@ -122,6 +126,14 @@ export function BillViewScreen({
       ? `/bills/new?customer=${bill.customer}&redo=${encodeURIComponent(bill.number)}`
       : `/bills/new?new=1&name=${encodeURIComponent(data.customerName)}&redo=${encodeURIComponent(bill.number)}`;
   const cancelAndRedo = () => {
+    // An estimate is cancelled and stays so: a new one is made from Home, not as a redo.
+    if (kaccha && live) {
+      act(
+        () => cancelBill({ id: live.documentId, cancelledReason: reason }),
+        () => setCancelOpen(false),
+      );
+      return;
+    }
     if (live) {
       act(
         () => cancelBill({ id: live.documentId, cancelledReason: reason }),
@@ -131,27 +143,9 @@ export function BillViewScreen({
     }
     router.push(as(redoHref()));
   };
-  const shareAgain = () => {
-    if (!live) return;
-    void handoffWithFile({
-      phone: data.customerPhone,
-      title: `${data.paper.title} ${bill.number}`,
-      text: t('done.wa.text', {
-        customer: data.customerName,
-        business: data.paper.seller.name,
-        title: data.paper.title,
-        number: bill.number,
-        amount: rupees(bill.totalPaise),
-      }),
-      file: {
-        url: billFileUrl(live.documentId, data.share, live.paperSize),
-        name: fileName,
-        type: data.share === 'pdf' ? 'application/pdf' : 'image/jpeg',
-      },
-    }).then((r) => {
-      if (r === 'failed') setProblem(t('done.file.error'));
-    });
-  };
+  // "WhatsApp dobara": the number (the customer's, or typed now), then their chat straight away (20 Oct).
+  const shareAgain = () => setWaOpen(true);
+  const pakkaDone = live?.pakka.find((p) => p.status === 'issued') ?? null;
   const download = live ? (
     <a
       className="eb-btn eb-btn--ghost"
@@ -174,33 +168,77 @@ export function BillViewScreen({
       sub={`${bill.number} · ${shortDate(bill.date)}`}
       tour={manifest.tour}
     >
-      <section className="eb-heading" data-guide="amount">
-        <Display as="h1" size="title">
-          {status === 'cancelled'
-            ? t('view.cancelled', { reason: bill.cancelledReason ?? '' })
-            : status === 'paid'
-              ? t('view.paid.full')
-              : t('view.due')}
-        </Display>
-        {status !== 'cancelled' ? <MoneyHero paise={status === 'paid' ? bill.totalPaise : due} /> : null}
-        <div className="eb-actions">
-          <StatusPill status={status} label={t(statusKey(status))} />
-          {bill.paidOn && status !== 'cancelled' ? (
-            <Meta>
-              {t('view.paid.on', { date: shortDate(bill.paidOn), method: t(`view.paid.${bill.method ?? 'upi'}`) })}
-            </Meta>
+      {kaccha ? (
+        <>
+          <section className="eb-heading" data-guide="amount">
+            <Display as="h1" size="title">
+              {status === 'cancelled'
+                ? t('view.kaccha.cancelled', { reason: bill.cancelledReason ?? '' })
+                : t('view.kaccha.title')}
+            </Display>
+            {status !== 'cancelled' ? <MoneyHero paise={bill.totalPaise} /> : null}
+            <Meta>{t('view.kaccha.sub')}</Meta>
+            {pakkaDone ? (
+              <a className="eb-card__more" href={as(billPath(pakkaDone.number, '', pakkaDone.fy))} data-guide="pakka">
+                {t('view.kaccha.done', { number: pakkaDone.number })} →
+              </a>
+            ) : null}
+          </section>
+          {canMoney && status !== 'cancelled' ? (
+            <div className="eb-actions eb-actions--stack">
+              {pakkaDone ? null : (
+                <PrimaryCTA
+                  data-guide="pakka"
+                  onClick={() => router.push(as(`/bills/new?from=${live ? live.documentId : bill.number}`))}
+                >
+                  {t('view.kaccha.pakka')}
+                </PrimaryCTA>
+              )}
+              <div className="eb-actions">
+                <OutlineButton data-guide="wa" onClick={shareAgain}>
+                  {t('view.wa.again')}
+                </OutlineButton>
+                {download}
+              </div>
+            </div>
+          ) : (
+            <div className="eb-actions">{download}</div>
+          )}
+        </>
+      ) : (
+        <section className="eb-heading" data-guide="amount">
+          <Display as="h1" size="title">
+            {status === 'cancelled'
+              ? t('view.cancelled', { reason: bill.cancelledReason ?? '' })
+              : status === 'paid'
+                ? t('view.paid.full')
+                : t('view.due')}
+          </Display>
+          {status !== 'cancelled' ? <MoneyHero paise={status === 'paid' ? bill.totalPaise : due} /> : null}
+          <div className="eb-actions">
+            <StatusPill status={status} label={t(statusKey(status))} />
+            {bill.paidOn && status !== 'cancelled' ? (
+              <Meta>
+                {t('view.paid.on', { date: shortDate(bill.paidOn), method: t(`view.paid.${bill.method ?? 'upi'}`) })}
+              </Meta>
+            ) : null}
+            {last ? (
+              <Meta>
+                {t('view.paid.saved', { amount: rupees(recordedPaise), method: t(`view.paid.${last.method}`) })} ·{' '}
+                {t('view.paid.on', { date: shortDate(last.date) })}
+              </Meta>
+            ) : null}
+            {bill.waStatus ? <Meta>{bill.waStatus === 'read' ? t('view.wa.read') : t('view.wa.sent')}</Meta> : null}
+          </div>
+          {live?.fromEstimate ? (
+            <a className="eb-card__more" href={as(billPath(live.fromEstimate.number, '', live.fromEstimate.fy))}>
+              {t('view.from.estimate', { number: live.fromEstimate.number })} →
+            </a>
           ) : null}
-          {last ? (
-            <Meta>
-              {t('view.paid.saved', { amount: rupees(recordedPaise), method: t(`view.paid.${last.method}`) })} ·{' '}
-              {t('view.paid.on', { date: shortDate(last.date) })}
-            </Meta>
-          ) : null}
-          {bill.waStatus ? <Meta>{bill.waStatus === 'read' ? t('view.wa.read') : t('view.wa.sent')}</Meta> : null}
-        </div>
-      </section>
+        </section>
+      )}
 
-      {canMoney && status !== 'cancelled' && status !== 'paid' ? (
+      {kaccha ? null : canMoney && status !== 'cancelled' && status !== 'paid' ? (
         <div className="eb-actions eb-actions--stack">
           <PrimaryCTA data-guide="paid" icon="check" onClick={() => setPaidOpen(true)}>
             {t('dues.paid')}
@@ -282,13 +320,19 @@ export function BillViewScreen({
         <details className="eb-folded" data-guide="mistake">
           <summary>{t('view.mistake')}</summary>
           <div className="eb-folded__body">
-            {data.creditNote ? null : (
-              // A bill with a credit note is corrected already; it is not cancelled on top (the engine refuses).
-              <OutlineButton onClick={() => setCancelOpen(true)}>{t('view.cancel')}</OutlineButton>
+            {kaccha ? (
+              <OutlineButton onClick={() => setCancelOpen(true)}>{t('view.kaccha.cancel')}</OutlineButton>
+            ) : (
+              <>
+                {data.creditNote ? null : (
+                  // A bill with a credit note is corrected already; it is not cancelled on top (the engine refuses).
+                  <OutlineButton onClick={() => setCancelOpen(true)}>{t('view.cancel')}</OutlineButton>
+                )}
+                <OutlineButton onClick={() => router.push(as(billPath(bill.number, '/credit-note', bill.fy)))}>
+                  {t('view.credit')}
+                </OutlineButton>
+              </>
             )}
-            <OutlineButton onClick={() => router.push(as(billPath(bill.number, '/credit-note', bill.fy)))}>
-              {t('view.credit')}
-            </OutlineButton>
           </div>
         </details>
       ) : null}
@@ -357,9 +401,35 @@ export function BillViewScreen({
         )}
       </Sheet>
 
+      <Sheet open={waOpen} title={t('view.wa.again')} onClose={() => setWaOpen(false)} closeLabel={t('action.done')}>
+        <WhatsAppSend
+          guide="wa-sheet"
+          title={`${data.paper.title} ${bill.number}`}
+          text={t(kaccha ? 'done.wa.text.kaccha' : 'done.wa.text', {
+            customer: data.customerName,
+            business: data.paper.seller.name,
+            title: data.paper.title,
+            number: bill.number,
+            amount: rupees(bill.totalPaise),
+          })}
+          link={live?.link ?? null}
+          phone={data.customerPhone}
+          customerId={live?.customerId ?? null}
+          file={
+            live
+              ? {
+                  url: billFileUrl(live.documentId, data.share, live.paperSize),
+                  name: fileName,
+                  type: data.share === 'pdf' ? 'application/pdf' : 'image/jpeg',
+                }
+              : null
+          }
+        />
+      </Sheet>
+
       <Sheet
         open={cancelOpen}
-        title={t('view.cancel')}
+        title={kaccha ? t('view.kaccha.cancel') : t('view.cancel')}
         onClose={() => setCancelOpen(false)}
         closeLabel={t('action.cancel')}
       >

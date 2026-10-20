@@ -79,7 +79,10 @@ function prepare(input: PrintInput) {
   const s = input.snapshot;
   const accent = /^#[0-9a-fA-F]{6}$/.test(input.look.accent) ? input.look.accent : '#2f4a9e';
   const lines = s.lines.filter((l) => !l.blank);
-  const showGst = s.kind === 'tax-invoice' || (s.kind === 'credit-note' && s.totals.gstPaise > 0);
+  // A kaccha bill (estimate, 20 Oct) shows the GST it would carry, but none of an invoice's formal lines.
+  const showGst =
+    s.kind === 'tax-invoice' || ((s.kind === 'credit-note' || s.kind === 'estimate') && s.totals.gstPaise > 0);
+  const formal = s.kind !== 'estimate';
   const taxRows = s.totals.heads.filter((h) => h.label !== 'Round off');
   return {
     s,
@@ -87,6 +90,7 @@ function prepare(input: PrintInput) {
     accent,
     lines,
     showGst,
+    formal,
     taxRows,
     logo: safeImage(input.logoDataUrl),
     signature: safeImage(input.signatureDataUrl),
@@ -262,9 +266,9 @@ ${p.watermark ? `<div class="watermark">${escapeHtml(p.watermark)}</div>` : ''}
       </div>
     </div>
     ${
-      p.showGst && s.placeOfSupplyStateCode
+      p.showGst && p.formal && s.placeOfSupplyStateCode
         ? `<div class="party"><h3>Place of supply</h3><div>${escapeHtml(placeLabel(s.placeOfSupplyStateCode))}</div><div class="muted">${s.supply === 'intra' ? 'Within state' : 'Interstate'}</div><div class="muted">${REVERSE_CHARGE}</div></div>`
-        : p.showGst
+        : p.showGst && p.formal
           ? `<div class="party"><div class="muted">${REVERSE_CHARGE}</div></div>`
           : ''
     }
@@ -394,8 +398,8 @@ function receiptHtml(p: Prepared): string {
   ${s.customer.address ? `<div class="small">${escapeHtml(s.customer.address)}</div>` : ''}
   ${s.customer.stateCode ? `<div class="small">${escapeHtml(placeLabel(s.customer.stateCode))}</div>` : ''}
   ${s.customer.gstin ? `<div class="small">GSTIN: ${escapeHtml(s.customer.gstin)}</div>` : ''}
-  ${p.showGst && s.placeOfSupplyStateCode ? `<div class="small">Place of supply: ${escapeHtml(placeLabel(s.placeOfSupplyStateCode))}</div>` : ''}
-  ${p.showGst ? `<div class="small">${REVERSE_CHARGE}</div>` : ''}
+  ${p.showGst && p.formal && s.placeOfSupplyStateCode ? `<div class="small">Place of supply: ${escapeHtml(placeLabel(s.placeOfSupplyStateCode))}</div>` : ''}
+  ${p.showGst && p.formal ? `<div class="small">${REVERSE_CHARGE}</div>` : ''}
   ${s.linkedInvoice ? `<div class="small">Against invoice ${escapeHtml(s.linkedInvoice.number)} dated ${escapeHtml(formatDateShort(s.linkedInvoice.dateIso))}</div>` : ''}
   <hr>
   ${items}

@@ -77,6 +77,8 @@ export async function periodDocuments(scope: TenantScope, months: MonthPeriod[])
         and(
           eq(schema.documents.businessId, scope.businessId),
           inArray(schema.documents.status, ['issued', 'cancelled']),
+          // A kaccha bill (estimate, 20 Oct) is no supply: never in GSTR-1, 3B or the HSN summary.
+          inArray(schema.documents.kind, ['tax_invoice', 'bill_of_supply', 'credit_note']),
           isNotNull(schema.documents.issuedSnapshot),
           gte(schema.documents.issueDate, from),
           lte(schema.documents.issueDate, to),
@@ -177,7 +179,7 @@ export async function monthsWithBills(scope: TenantScope): Promise<MonthPeriod[]
   return withTenant(scope, async ({ client }) => {
     const r = await client.query<{ m: string }>(
       `select distinct to_char(issue_date, 'YYYY-MM') as m from documents
-        where business_id = $1 and status in ('issued', 'cancelled') order by m desc limit 36`,
+        where business_id = $1 and status in ('issued', 'cancelled') and kind <> 'estimate' order by m desc limit 36`,
       [scope.businessId],
     );
     return r.rows.map((x) => x.m);

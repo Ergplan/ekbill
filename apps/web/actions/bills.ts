@@ -239,11 +239,13 @@ async function issueFrom(
       gstOn: d.gstOn,
       lines,
       placeOfSupplyStateCode: placeOfSupply,
-      replaces: d.replaces ?? null,
+      replaces: d.estimate ? null : (d.replaces ?? null),
+      fromEstimateId: d.estimate ? null : (d.fromEstimateId ?? null),
     };
+    // A draft is a kaccha bill or a pakka one from its first save: a retry keeps what it was.
     const draft = draftId
       ? await documents.updateDraft(scope, draftId, draftInput)
-      : await documents.createDraft(scope, draftInput);
+      : await documents.createDraft(scope, { ...draftInput, estimate: d.estimate === true });
     if (onDraft) await onDraft(draft.id);
     draftId = draft.id;
     // EkBill's own fee (20 Oct): enforced once the operator takes payments (EKBILL_UPI_ID set).

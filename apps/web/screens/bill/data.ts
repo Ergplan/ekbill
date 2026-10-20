@@ -47,6 +47,10 @@ export interface BillFormData {
   mode: 'existing' | 'new-customer' | 'first';
   /** The bill this one replaces (cancel-and-redo: its lines start the draft), else null. */
   redo: string | null;
+  /** A pakka bill made from a kaccha bill (20 Oct): the estimate's number (its lines start the draft), else null. */
+  fromEstimate: string | null;
+  /** The number the next kaccha bill (estimate) takes, for the form's heading when the owner picks Kaccha. */
+  estimateNumber: string;
   /** Stage 6: the form issues for real (a session); null for a look at the fixtures. */
   live: {
     seriesId: string | null;
@@ -57,6 +61,8 @@ export interface BillFormData {
     lastLines: Array<{ description: string; unitPricePaise: number }>;
     /** The cancelled-and-redone bill's id. */
     redoId: string | null;
+    /** The kaccha bill this pakka bill is made from (20 Oct). */
+    fromEstimateId: string | null;
     /** The seller as assess() sees it: the form runs the issue's checks as the owner types (Stage 8). */
     seller: AssessBusiness;
   } | null;
@@ -71,6 +77,10 @@ export type BillFormOpts = {
   state: string | null;
   name?: string | null;
   redo?: string | null;
+  /** Kaccha bill banao (20 Oct): the form opens as an estimate. */
+  kaccha?: boolean;
+  /** Pakka bill from an estimate (20 Oct): the estimate's number. */
+  from?: string | null;
 };
 
 export async function loadBillForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFormData> {
@@ -94,7 +104,14 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
   const bills = loaded.series.filter((x) => x.kind === 'bill' && x.active);
   const series = bills.find((x) => x.id === loaded.profile.defaultSeriesId) ?? bills[0] ?? null;
   const number = series ? previewNumber(seriesRepo.configOf(series), today) : '';
-  const id = opts.customer ? customerIdOf(b.id, opts.customer) : null;
+  const estimates = loaded.series.find((x) => x.kind === 'estimate' && x.active) ?? null;
+  // A business set up before kaccha bills has no estimate series yet: its first estimate makes it, as EST-001.
+  const estimateNumber = estimates ? previewNumber(seriesRepo.configOf(estimates), today) : 'EST-001';
+  // A pakka bill from a kaccha bill: the estimate's lines and customer start the form (as a redo's do).
+  const fromId = opts.from ? await documents.findBill(scope, opts.from) : null;
+  const fromDoc = fromId ? await documents.getDocument(scope, fromId) : null;
+  const estimateDoc = fromDoc && fromDoc.kind === 'estimate' && fromDoc.status === 'issued' ? fromDoc : null;
+  const id = opts.customer ? customerIdOf(b.id, opts.customer) : (estimateDoc?.customerId ?? null);
   const row = id ? await customerRepo.getCustomer(scope, id).catch(() => null) : null;
   const previousDoc = row ? await documents.lastBillFor(scope, row.id) : null;
   const previousLines = previousDoc ? linesOf(previousDoc) : [];
@@ -135,7 +152,8 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
       customerName: r.name,
       totalPaise: x.totalPaise,
     }));
-  const redoLines = redoDoc ? linesOf(redoDoc) : null;
+  const redoLines = redoDoc ? linesOf(redoDoc) : estimateDoc ? linesOf(estimateDoc) : null;
+  const startedFrom = redoDoc ?? estimateDoc;
   return {
     business: {
       name: b.name,
@@ -160,11 +178,11 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
     previous,
     initial: {
       customer: row?.id ?? null,
-      customerName: row?.name ?? opts.name?.trim() ?? '',
+      customerName: row?.name ?? opts.name?.trim() ?? estimateDoc?.customerName ?? '',
       customerState,
       lines: redoLines?.length ? redoLines.map(toLine) : [{ what: '', qty: '1', rate: '' }],
       gst: {
-        on: registration === 'regular' && (redoDoc ? redoDoc.gstOn : true),
+        on: registration === 'regular' && (startedFrom ? startedFrom.gstOn : true),
         ...(redoLines?.length
           ? gstOfLines(
               redoLines.map((l) => l.gstRate),
@@ -175,6 +193,7 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
       series: series?.prefix.replace(/[-/]+$/, '') ?? '',
       number,
       date: today,
+      kaccha: Boolean(opts.kaccha) && !estimateDoc,
     },
     items: itemRows.map((i) => ({
       name: i.name,
@@ -185,6 +204,8 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
     pick: pick.map((c) => ({ id: c.id, name: c.name, index: avatarIndex(c.id) })),
     mode,
     redo: redoDoc?.number ?? null,
+    fromEstimate: estimateDoc?.number ?? null,
+    estimateNumber,
     live: {
       seriesId: series?.id ?? null,
       today,
@@ -193,6 +214,7 @@ async function loadLiveForm(viewer: Viewer, opts: BillFormOpts): Promise<BillFor
         ? previousDoc.lines.map((l) => ({ description: l.description, unitPricePaise: l.unitPricePaise }))
         : [],
       redoId,
+      fromEstimateId: estimateDoc?.id ?? null,
       seller: {
         registration: seller.registration,
         gstin: seller.gstin,
@@ -214,6 +236,7 @@ function loadFixtureForm(
     state: string | null;
     name?: string | null;
     redo?: string | null;
+    kaccha?: boolean;
   },
 ): BillFormData {
   const b = viewer.business;
@@ -286,6 +309,7 @@ function loadFixtureForm(
       series: series.prefix,
       number,
       date: TODAY,
+      kaccha: Boolean(opts.kaccha),
     },
     items: b
       ? FIXTURE.items
@@ -295,6 +319,8 @@ function loadFixtureForm(
     pick: pick.map((c) => ({ id: c.id, name: c.name, index: c.index })),
     mode,
     redo: redoBill?.number ?? null,
+    fromEstimate: null,
+    estimateNumber: 'EST-001',
     live: null,
   };
 }

@@ -19,7 +19,18 @@ import { allow, NotFoundError, type RoleProbe, type TenancyProbe } from './allow
  * (issueDocument locks the series row); here the owner adds, renames,
  * retires a series and moves its next number up, never down.
  */
-export type SeriesKind = 'bill' | 'credit_note';
+/** estimate (20 Oct): kaccha bills number on their own (EST-001), never in a bill's or a credit note's series. */
+export type SeriesKind = 'bill' | 'credit_note' | 'estimate';
+
+/** The series a business numbers its kaccha bills in: made with the business, or on its first estimate. */
+export const ESTIMATE_SERIES = (businessId: string) => ({
+  businessId,
+  name: 'Kaccha bills',
+  kind: 'estimate' as const,
+  prefix: 'EST-',
+  padding: 3,
+  includeFy: false,
+});
 
 export interface Series {
   id: string;

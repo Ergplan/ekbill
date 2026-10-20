@@ -1,5 +1,5 @@
 import { localeOf, type Locale } from '@ekbill/copy';
-import { NotFoundError, customers, documents } from '@ekbill/db';
+import { NotFoundError, billLinks, customers, documents } from '@ekbill/db';
 import { ageInDays } from '@ekbill/engine';
 import type { PaperData } from '@ekbill/ui';
 
@@ -40,10 +40,23 @@ export interface BillViewData {
     reminders: number;
     /** The paper the business prints on, for the download link. */
     paperSize: 'a4' | 'a5' | '80mm' | '58mm';
+    /** The bill's customer on record (the WhatsApp number typed is kept there). */
+    customerId: string | null;
+    /** The bill's own link for the WhatsApp message; null for the accountant (who does not share). */
+    link: string | null;
+    /** A kaccha bill: the pakka bills made from it (20 Oct). */
+    pakka: Array<{ number: string; fy: string | null; status: string }>;
+    /** A pakka bill made from a kaccha bill: that estimate. */
+    fromEstimate: { number: string; fy: string | null } | null;
   } | null;
 }
 
-export async function loadBillView(viewer: Viewer, number: string, fy?: string | null): Promise<BillViewData | null> {
+export async function loadBillView(
+  viewer: Viewer,
+  number: string,
+  fy?: string | null,
+  origin = '',
+): Promise<BillViewData | null> {
   const b = viewer.business;
   if (!b) return null;
   const scope = scopeOf(viewer);
@@ -78,6 +91,7 @@ export async function loadBillView(viewer: Viewer, number: string, fy?: string |
         linkedDocumentId: doc.linkedDocumentId,
         paidOn: lastPaid?.date ?? null,
         method: lastPaid?.method ?? null,
+        pakkaNumber: view.pakka.find((p) => p.status === 'issued')?.number ?? null,
       }),
       lines: linesOf(doc),
       subtotalPaise: doc.totals?.subtotalPaise ?? 0,
@@ -86,6 +100,10 @@ export async function loadBillView(viewer: Viewer, number: string, fy?: string |
       creditNote: note?.number ?? null,
     };
     const customer = doc.customerId ? await customers.getCustomer(scope, doc.customerId).catch(() => null) : null;
+    const token =
+      viewer.role === 'accountant' || doc.status === 'cancelled'
+        ? null
+        : await billLinks.linkFor(scope, doc.id).catch(() => null);
     return {
       bill,
       customerName: doc.customerName,
@@ -114,6 +132,10 @@ export async function loadBillView(viewer: Viewer, number: string, fy?: string |
         adjustedPaise: view.balance.adjustedPaise,
         reminders: view.reminders.length,
         paperSize: viewer.loaded?.profile.look.paper ?? 'a4',
+        customerId: doc.customerId,
+        link: token && origin ? `${origin}/b/${token}` : null,
+        pakka: view.pakka.map((p) => ({ number: p.number ?? '', fy: p.financialYear, status: p.status })),
+        fromEstimate: view.estimate ? { number: view.estimate.number ?? '', fy: view.estimate.financialYear } : null,
       },
     };
   }

@@ -101,7 +101,10 @@ export interface Bill {
   cancelledReason: string | null;
   creditNote: string | null;
   waStatus: 'sent' | 'read';
-  kind: 'tax-invoice' | 'bill-of-supply';
+  /** estimate (20 Oct): a kaccha bill; the fixtures have none, a session's documents may. */
+  kind: 'tax-invoice' | 'bill-of-supply' | 'estimate';
+  /** A kaccha bill: the pakka bill made from it, once issued. */
+  pakkaNumber?: string | null;
 }
 export interface Payment {
   id: string;

@@ -26,6 +26,7 @@ export function CustomerNewScreen({
   initial,
   id = null,
   live = false,
+  kaccha = false,
 }: {
   viewer: ShellViewer;
   initial: NewCustomerDraft | null;
@@ -33,9 +34,12 @@ export function CustomerNewScreen({
   id?: string | null;
   /** A real session writes the row; a look (?as=) plays the prototype. */
   live?: boolean;
+  /** Added on the way to a kaccha bill (20 Oct): the form it opens is an estimate. */
+  kaccha?: boolean;
 }) {
   const router = useRouter();
   const as = (href: string) => withAs(href, viewer.as);
+  const k = kaccha ? '&kaccha=1' : '';
   const [d, setD] = useState<NewCustomerDraft>(initial ?? { name: '', phone: '', gstin: '', lang: 'hi-Latn' });
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<{ field: string; text: string } | null>(null);
@@ -58,7 +62,7 @@ export function CustomerNewScreen({
     }
     if (!live) {
       writeDraft(`${viewer.personId}:new-customer`, d);
-      router.push(as(`/bills/new?new=1&name=${encodeURIComponent(d.name.trim())}`));
+      router.push(as(`/bills/new?new=1&name=${encodeURIComponent(d.name.trim())}${k}`));
       return;
     }
     const input = {
@@ -89,7 +93,7 @@ export function CustomerNewScreen({
       return;
     }
     writeDraft(`${viewer.personId}:new-customer`, { ...d, id: r.value.id });
-    router.push(as(`/bills/new?new=1&name=${encodeURIComponent(d.name.trim())}&customer=${r.value.id}`));
+    router.push(as(`/bills/new?new=1&name=${encodeURIComponent(d.name.trim())}&customer=${r.value.id}${k}`));
   };
   const errorFor = (field: string) => (fieldError?.field === field ? fieldError.text : undefined);
   return (

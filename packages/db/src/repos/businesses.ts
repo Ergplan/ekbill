@@ -17,6 +17,7 @@ import { withTenant, withUser, type Db, type TenantScope } from '../scope';
 import { allow, NotFoundError, type RoleProbe, type TenancyProbe } from './allow';
 import { PROBE_PNG, putFile } from './files';
 import { joinByReferral } from './plan';
+import { ESTIMATE_SERIES } from './series';
 
 export interface Business {
   id: string;
@@ -373,7 +374,8 @@ export async function createBusiness(
       invitedBy: who.userId,
       acceptedAt: sql`now()`,
     });
-    // Every business numbers from its first day: a bill series and a credit-note series (Aap changes them).
+    // Every business numbers from its first day: a bill series, a credit-note series and one for kaccha bills
+    // (estimates, 20 Oct); Aap changes them.
     const [bills] = await db
       .insert(schema.series)
       .values({ businessId: id, name: 'Bills', kind: 'bill', prefix: 'INV-', padding: 3, includeFy: true })
@@ -386,6 +388,7 @@ export async function createBusiness(
       padding: 3,
       includeFy: true,
     });
+    await db.insert(schema.series).values(ESTIMATE_SERIES(id));
     // Came by a friend's link (20 Oct): who referred it, and the friend's join row (an unknown code is ignored).
     if (opts.referralCode) await joinByReferral(client, id, opts.referralCode);
     const [done] = await db

@@ -24,7 +24,8 @@ export interface IssueLine extends TaxLineInput {
   taxRateChosen: boolean;
 }
 export interface IssueDraft {
-  kind: 'bill' | 'credit-note';
+  /** estimate (20 Oct): a kaccha bill; assessed and printed as one, never a supply's document. */
+  kind: 'bill' | 'credit-note' | 'estimate';
   dateIso: CivilDate;
   gstOn: boolean;
   lines: IssueLine[];
@@ -107,11 +108,14 @@ export function prepareIssue(
   today: CivilDate,
 ): PrepareResult {
   const lines = draft.lines.filter((l) => l.description.trim());
+  // A seller who has not said whether they are registered may still give a kaccha bill: it carries no GST.
+  const registration =
+    draft.kind === 'estimate' && business.registration === 'unknown' ? 'unregistered' : business.registration;
   let totals: TaxResult;
   try {
     totals = computeTax({
       lines,
-      registration: business.registration,
+      registration,
       gstOn: draft.gstOn,
       dateIso: draft.dateIso,
       sellerStateCode: business.stateCode,

@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 
 import * as ai_calls from '../../packages/db/src/repos/ai-calls';
+import * as bill_links from '../../packages/db/src/repos/bill-links';
 import * as businesses from '../../packages/db/src/repos/businesses';
 import * as customers from '../../packages/db/src/repos/customers';
 import * as document_files from '../../packages/db/src/repos/document-files';
@@ -27,6 +28,20 @@ describe('tenancy (I1): every repository, business A against business B', () => 
     const a = await scopeFor('sharma', 'owner');
     const b = await otherBusiness('gupta');
     const { touched } = await ai_calls.tenancyProbes[0]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it("bill-links: linkFor cannot make a link to another business's bill", async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await bill_links.tenancyProbes[0]!.run(a, b);
+    expect(touched).not.toContain(b.businessId);
+    for (const id of touched) expect(id).toBe(a.businessId);
+  });
+  it('bill-links: openLink opens only the business its token names', async () => {
+    const a = await scopeFor('sharma', 'owner');
+    const b = await otherBusiness('gupta');
+    const { touched } = await bill_links.tenancyProbes[1]!.run(a, b);
     expect(touched).not.toContain(b.businessId);
     for (const id of touched) expect(id).toBe(a.businessId);
   });

@@ -2555,3 +2555,24 @@ html:root:is([lang='hi'], [lang='mr'], [lang='ta']) {
   gap: 10px;
   text-align: start;
 }
+
+/* ------------------------------------------- the bill's own page (/b/<link>) --- */
+/* What the customer opens from WhatsApp (20 Oct): the amount large, the bill's picture at the width of the phone. */
+.eb-public__amount {
+  margin: 0;
+  font-size: var(--eb-type-display-size);
+  font-weight: var(--eb-weight-bold);
+  color: var(--eb-text);
+}
+.eb-public__paper {
+  margin: 0;
+  border-radius: var(--eb-radius-row);
+  overflow: hidden;
+  box-shadow: var(--eb-shadow-card);
+  background: var(--eb-invoice-paper);
+}
+.eb-public__paper img {
+  display: block;
+  width: 100%;
+  height: auto;
+}

@@ -191,7 +191,8 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
           const r = await voiceStartBill({ customerName: String(args.customer_name ?? ''), lines: args.lines });
           if (r.ok && r.href) {
             writePrefill({ lines: r.lines ?? [] });
-            navigate(r.href);
+            // A kaccha bill (an estimate, 20 Oct): the same form, opened as one.
+            navigate(args.kaccha === true ? `${r.href}${r.href.includes('?') ? '&' : '?'}kaccha=1` : r.href);
           }
           return { ok: r.ok, reply: r.reply };
         }

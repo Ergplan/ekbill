@@ -118,7 +118,9 @@ async function record(
       await tx.db.select().from(schema.documents).where(eq(schema.documents.id, input.documentId)).for('update')
     )[0];
     if (!doc) throw new NotFoundError('document');
-    if (doc.status !== 'issued' || doc.kind === 'credit_note') throw new PaymentError({ key: 'pay.error.notIssued' });
+    // Not a credit note, and not a kaccha bill (20 Oct): its money comes with the pakka bill made from it.
+    if (doc.status !== 'issued' || doc.kind === 'credit_note' || doc.kind === 'estimate')
+      throw new PaymentError({ key: 'pay.error.notIssued' });
     const before = (await balancesIn(tx, [doc.id])).get(doc.id)!;
     const problem = checkEntry({
       kind: input.kind,

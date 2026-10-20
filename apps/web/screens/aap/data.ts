@@ -9,7 +9,7 @@ import type { Viewer } from '../viewer';
 export interface SeriesRow {
   id: string;
   name: string;
-  kind: 'bill' | 'credit_note';
+  kind: 'bill' | 'credit_note' | 'estimate';
   prefix: string;
   padding: number;
   includeFy: boolean;

@@ -37,6 +37,12 @@ async function stubShare(page: Page) {
         return Promise.resolve();
       },
     });
+    // A customer whose number is known (20 Oct): wa.me opens their chat, with the message and the bill's link.
+    window.open = ((url?: string | URL) => {
+      const u = String(url);
+      w.__shared.push({ text: decodeURIComponent(u.split('?text=')[1] ?? ''), url: u } as never);
+      return { opener: null } as unknown as Window;
+    }) as typeof window.open;
   });
 }
 /** A new customer on a tax invoice: the CheckStrip asks their state; at the counter it is the shop's. */
@@ -47,7 +53,7 @@ async function sameState(page: Page) {
 const shared = (page: Page) =>
   page.evaluate(() => (window as unknown as { __shared: Array<{ text?: string; files?: string[] }> }).__shared);
 
-test('(a) on real data: repeat bill to Mehta Traders, the PDF handed to WhatsApp: 4 taps', async ({ page }) => {
+test('(a) on real data: repeat bill to Mehta Traders, straight to their WhatsApp chat: 4 taps', async ({ page }) => {
   const c = { n: 0 };
   await stubShare(page);
   await page.goto('/dev/switch/sharma?to=/');
@@ -62,11 +68,17 @@ test('(a) on real data: repeat bill to Mehta Traders, the PDF handed to WhatsApp
   await expect(page.locator('.eb-paper')).toContainText(/INV-\d{3}/);
   await tap(page, c, () => page.getByRole('button', { name: 'WhatsApp pe bhejo' }).click());
   await expect.poll(async () => (await shared(page)).length, { timeout: 20_000 }).toBe(1);
-  const [handed] = await shared(page);
+  // Mehta's number is on record (20 Oct): their chat opens by it, with the message and the bill's own link.
+  const [handed] = (await shared(page)) as Array<{ text?: string; url?: string }>;
+  expect(handed!.url).toMatch(/^https:\/\/wa\.me\/919822100001\?text=/);
   expect(handed!.text).toContain('Mehta Traders');
-  expect(handed!.files![0]).toMatch(/^INV-\d{3}\.pdf:application\/pdf:\d+$/);
+  expect(handed!.text).toMatch(/\/b\/[A-Za-z0-9_-]{22}/);
   expect(c.n).toBe(budget('a').taps.length);
   expect(c.n).toBeLessThanOrEqual(budget('a').budget);
+  // The file still goes by the share sheet, one tap more, for whoever wants the PDF in the chat.
+  await page.getByRole('button', { name: 'File share karo (PDF/JPG)' }).click();
+  await expect.poll(async () => (await shared(page)).length, { timeout: 20_000 }).toBe(2);
+  expect((await shared(page))[1]!.files![0]).toMatch(/^INV-\d{3}\.pdf:application\/pdf:\d+$/);
 });
 
 test('(b) on real data: money came in, in full: 3 taps, and the dues move', async ({ page }) => {

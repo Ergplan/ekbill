@@ -45,6 +45,7 @@ export type { PeriodDocument, Workings } from './repos/gst';
 export type { Import, ImportRow, FileReading, FileSummary } from './repos/imports';
 export { REPOSITORIES, type RepositoryName } from './repos/index';
 export * as aiCalls from './repos/ai-calls';
+export * as billLinks from './repos/bill-links';
 export * as businesses from './repos/businesses';
 export * as customers from './repos/customers';
 export * as documentFiles from './repos/document-files';
