@@ -23,7 +23,9 @@ export async function GET(request: Request) {
   const line = q.get('line') ?? '';
   if (!locale || !(LOCALES as readonly string[]).includes(locale) || !DEMO_LINES.includes(line))
     return NextResponse.json({ error: 'demo.unknown' }, { status: 400, headers: { 'x-request-id': id } });
-  const text = t(line, undefined, locale);
+  // Hinglish is spoken from the same words in Devanagari (20 Oct: Hindi in Latin letters came out with an English
+  // accent); the caption on screen stays in Latin letters.
+  const text = t(line, undefined, locale === 'hi-Latn' ? 'hi' : locale);
   const hash = speechHash(text, locale);
   const kept = await demoAudioOf(locale, line, hash);
   if (kept) return audio(kept, id);

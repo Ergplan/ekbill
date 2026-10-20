@@ -13,7 +13,7 @@ export type SpeechLocale = 'hi-Latn' | 'en' | 'hi' | 'mr' | 'ta';
 
 const STYLE: Record<SpeechLocale, string> = {
   'hi-Latn':
-    'Speak in warm, friendly Hinglish (everyday Hindi mixed with English words, written here in Latin letters) with a natural Indian accent, at a relaxed, clear pace, like a helpful shopkeeper friend.',
+    'Speak in warm, friendly everyday Hindi as people in Indian towns talk, with English words like bill, GST and WhatsApp said the Indian way, in a natural Indian accent, at a relaxed, clear pace, like a helpful shopkeeper friend.',
   en: 'Speak in clear, warm Indian English at a relaxed pace, like a helpful shopkeeper friend.',
   hi: 'Speak in warm, simple everyday Hindi at a relaxed, clear pace, like a helpful shopkeeper friend.',
   mr: 'Speak in warm, simple everyday Marathi at a relaxed, clear pace, like a helpful shopkeeper friend.',
@@ -63,7 +63,11 @@ const openAiSpeech: SpeechTransport = async ({ text, locale, config, signal }) =
       response_format: 'mp3',
     }),
   });
-  if (!res.ok) throw new Error(`audio/speech ${res.status}`);
+  if (!res.ok) {
+    // OpenAI's own words (a wrong model, no access, the rate limit), so the log says why a line was not recorded.
+    const body = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
+    throw new Error(`audio/speech ${res.status}: ${body?.error?.message ?? res.statusText}`.slice(0, 280));
+  }
   return { bytes: Buffer.from(await res.arrayBuffer()), mime: 'audio/mpeg' };
 };
 

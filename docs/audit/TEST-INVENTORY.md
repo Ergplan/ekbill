@@ -7,7 +7,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
 | unit        | 46    | 426    |
-| integration | 29    | 325    |
+| integration | 30    | 326    |
 | e2e         | 21    | 88     |
 
 ## unit
@@ -631,6 +631,10 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - reads one customer from the PDF and three from the CSV, recognises the one already there, and adds only what is ticked
 - a model may not add customers from an import (I6), and a reading never changes
 - says why a file gave nobody, and refuses an empty pick or a file over 8 MB
+
+### `tests/integration/demo-audio.test.ts`
+
+- is spoken, its call recorded as the system, and kept for everyone
 
 ### `tests/integration/documents.test.ts`
 

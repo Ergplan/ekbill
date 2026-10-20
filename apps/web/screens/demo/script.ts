@@ -52,12 +52,3 @@ export const DEMO_LINES: string[] = [
   ...DEMO_STEPS.map((s) => s.key),
   ...Object.values(DEMO_END).map((s) => s.key),
 ];
-
-/** The browser's own voice, where there is no recording: the language tag to look for. */
-export const SPEECH_LANG: Record<string, string> = {
-  'hi-Latn': 'en-IN',
-  en: 'en-IN',
-  hi: 'hi-IN',
-  mr: 'mr-IN',
-  ta: 'ta-IN',
-};

@@ -9,13 +9,13 @@ import { FilterChips, GhostButton, GuideHighlight, PrimaryCTA, type GuideStep } 
 import { markDemoSeen, setLanguage } from '../../actions/user';
 import { switchLanguage } from '../aap/langSwitch';
 import { fillItem } from '../voice/dom';
-import { DEMO_END, DEMO_STEPS, SPEECH_LANG, type DemoStep } from './script';
+import { DEMO_END, DEMO_STEPS, type DemoStep } from './script';
 
 /**
  * The app demo (20 Oct): lives above the screens (the root layout), like the voice, so one run walks several
  * screens. A first-timer is offered it on Home after sign-in ("Namaste, EkBill mein aapka swagat hai. Ek chhota sa
  * app tour chalega?" Haan / Na); Haan asks the language, then about 45 seconds across the sample business, each line
- * spoken (the recording; else the phone's own voice; else the caption alone) and its place lit. "Demo band karo"
+ * spoken (OpenAI's recording, made once and kept; else the caption alone, never the phone's own voice) and its place lit. "Demo band karo"
  * stops it anywhere and goes Home. Someone already billing starts it from Aap or a "naya kya hai" card; a visitor
  * from the welcome screen. It never touches the viewer's own records: every screen is the ?as=owner look.
  */
@@ -66,12 +66,14 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const hush = useCallback(() => {
     audio.current?.pause();
     audio.current = null;
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     skip.current?.();
     skip.current = null;
   }, []);
 
-  /** Speaks one line: the recording, else the phone's voice, else time to read the caption. Resolves when done. */
+  /**
+   * Speaks one line: the recording (OpenAI's voice, made once and kept), else time to read the caption. Never the
+   * phone's own voice (20 Oct, the operator: "in demo some weird voice is there"). Resolves when done.
+   */
   const say = useCallback(async (key: string, lang: Locale, mine: number): Promise<void> => {
     const text = t(key, undefined, lang);
     const skipped = new Promise<void>((r) => (skip.current = r));
@@ -89,22 +91,6 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         if (a.error?.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) noRecordings.current = true;
       }
       if (run.current !== mine) return;
-      // The phone's own voice, where it has one for the language.
-      const synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
-      const voice = synth?.getVoices().find((v) => v.lang.replace('_', '-').startsWith(SPEECH_LANG[lang] ?? 'en-IN'));
-      if (synth && voice) {
-        await new Promise<void>((resolve) => {
-          const u = new SpeechSynthesisUtterance(text);
-          u.voice = voice;
-          u.lang = voice.lang;
-          u.rate = 0.95;
-          u.onend = () => resolve();
-          u.onerror = () => resolve();
-          synth.speak(u);
-          window.setTimeout(resolve, text.length * 120 + 4000);
-        });
-        return;
-      }
       await reading;
     })();
     await Promise.race([spoken, skipped]);
