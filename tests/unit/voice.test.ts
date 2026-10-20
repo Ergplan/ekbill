@@ -157,7 +157,7 @@ describe('the session the server mints', () => {
     expect(voiceLanguage('xx' as never).name).toBe('Hinglish');
   });
 
-  it('no tool makes, saves, sends or pays: the voice opens, lights, fills and presses safe items only (rule 17)', () => {
+  it('no tool makes, sends or pays: the voice opens, lights, fills and presses safe items only (rule 17); the one save is the owner’s own business details, said where they are (20 Oct)', () => {
     const names = VOICE_TOOLS.map((t) => t.name);
     expect(names).toEqual([
       'start_bill',
@@ -168,10 +168,25 @@ describe('the session the server mints', () => {
       'show',
       'fill',
       'tap',
+      'update_business',
       'guide_steps',
     ]);
     expect(VOICE_TOOLS.find((t) => t.name === 'start_bill')!.description).toContain('you do not make the bill');
     expect(VOICE_TOOLS.find((t) => t.name === 'tap')!.description).toContain('Refused for OWNER-ONLY items');
+    // The operator's exception to rule 17: a GST number, PAN, UPI ID, address, city, pincode, phone or email of the
+    // business itself, nothing about a customer, a bill or money (the action is owner-only and checked by the engine).
+    const update = VOICE_TOOLS.find((t) => t.name === 'update_business')!;
+    expect(update.parameters.properties.field.enum).toEqual([
+      'gstin',
+      'pan',
+      'upi',
+      'address',
+      'city',
+      'pincode',
+      'phone',
+      'email',
+    ]);
+    expect(update.description).toContain('Do not send them to another screen for it.');
   });
 
   it('every mint is one ai_calls row; a refusal is an error row', async () => {
@@ -180,7 +195,7 @@ describe('the session the server mints', () => {
     setRealtimeTransport(async () => ({ value: 'ek_secret', expiresAt: 123 }));
     const s = await mintVoiceSession({ businessName: 'X', customers: [], record });
     expect(s).toMatchObject({ secret: 'ek_secret', expiresAt: 123, fake: false });
-    expect(rows).toMatchObject([{ purpose: 'voice-session', promptVersion: 'voice/v3', outcome: 'ok' }]);
+    expect(rows).toMatchObject([{ purpose: 'voice-session', promptVersion: 'voice/v4', outcome: 'ok' }]);
     setRealtimeTransport(async () => {
       throw new Error('client_secrets 401');
     });

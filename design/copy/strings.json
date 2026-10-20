@@ -6789,5 +6789,26 @@
     "hi": "बस इतना ही! शुरू करने के लिए यहाँ दबाओ और अपना नंबर डालो।",
     "mr": "एवढंच! सुरू करण्यासाठी इथे दाबा आणि तुमचा नंबर टाका.",
     "ta": "அவ்வளவுதான்! தொடங்க இங்கே தட்டி உங்கள் எண்ணை உள்ளிடுங்கள்."
+  },
+  "bill.gst.add": {
+    "hi-Latn": "GST number hai? Yahan daalo, bill mein GST lag jaayega",
+    "en": "Have a GST number? Add it here and this bill gets GST",
+    "hi": "GST नंबर है? यहाँ डालो, बिल में GST लग जाएगा",
+    "mr": "GST नंबर आहे? इथे टाका, बिलात GST लागेल",
+    "ta": "GST எண் உள்ளதா? இங்கே சேர்த்தால் இந்த பில்லில் GST சேரும்"
+  },
+  "bill.gst.add.hint": {
+    "hi-Latn": "15 akshar. Aapke dukaan ke profile mein bhi save ho jaayega.",
+    "en": "15 characters. It is saved to your shop profile too.",
+    "hi": "15 अक्षर। आपकी दुकान की प्रोफ़ाइल में भी सेव हो जाएगा।",
+    "mr": "15 अक्षरं. तुमच्या दुकानाच्या प्रोफाइलमध्येही सेव्ह होईल.",
+    "ta": "15 எழுத்துகள். உங்கள் கடை சுயவிவரத்திலும் சேமிக்கப்படும்."
+  },
+  "bill.gst.add.save": {
+    "hi-Latn": "GST save karo",
+    "en": "Save GST",
+    "hi": "GST सेव करो",
+    "mr": "GST सेव्ह करा",
+    "ta": "GST சேமி"
   }
 }

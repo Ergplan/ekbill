@@ -7,7 +7,8 @@ import { t } from '@ekbill/copy';
 import { GuideHighlight, type GuideStep } from '@ekbill/ui';
 
 import { voiceAsk, voiceRemind, voiceStartBill, voiceWhoOwes } from '../../actions/voice';
-import { writePrefill } from '../bill/prefill';
+import { saveBusinessDetail } from '../../actions/business';
+import { announceBusinessDetail, writePrefill } from '../bill/prefill';
 import { SCREENS } from '../registry';
 import { localTour } from '../tour';
 import type { ScreenManifest } from '../types';
@@ -225,6 +226,18 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
           }
           return tapItem(id);
         }
+        case 'update_business': {
+          // Captured where the owner is (20 Oct): saved on the business, and the screen redrawn with it.
+          const r = await saveBusinessDetail({
+            field: String(args.field ?? ''),
+            value: String(args.value ?? ''),
+            scheme: args.scheme === 'composition' ? 'composition' : 'regular',
+          }).catch(() => ({ ok: false as const, error: 'error.generic' }));
+          if (!r.ok) return { ok: false, reason: t(r.error) };
+          announceBusinessDetail(r.value.field);
+          router.refresh();
+          return { ok: true, saved: r.value.field, registration: r.value.registration };
+        }
         case 'guide_steps': {
           const m = manifestFor(window.location.pathname, window.location.search);
           return { steps: localTour(m?.tour ?? []).filter((s) => findItem(s.target)) };
@@ -233,7 +246,7 @@ export function VoiceProvider({ available, children }: { available: boolean; chi
           return { ok: false, reason: 'no such tool' };
       }
     },
-    [light, navigate],
+    [light, navigate, router],
   );
 
   const onEvent = useCallback(

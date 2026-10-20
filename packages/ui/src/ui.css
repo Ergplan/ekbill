@@ -2548,3 +2548,10 @@ html:root:is([lang='hi'], [lang='mr'], [lang='ta']) {
     animation: none;
   }
 }
+
+/* "GST number hai?" opened on the bill form (20 Oct): the field and its save, in the strip's place. */
+.eb-strip--form {
+  display: grid;
+  gap: 10px;
+  text-align: start;
+}

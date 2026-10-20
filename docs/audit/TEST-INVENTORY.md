@@ -8,7 +8,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 | ----------- | ----- | ------ |
 | unit        | 45    | 421    |
 | integration | 28    | 316    |
-| e2e         | 18    | 77     |
+| e2e         | 19    | 80     |
 
 ## unit
 
@@ -538,7 +538,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the instructions are the versioned prompt with the business and its customers; a name cannot break out
 - the body: ten minutes, the tools baked in; a transcript only when a transcription model is set
 - the voice starts in the person's language and the transcriber is told it, with its script
-- no tool makes, saves, sends or pays: the voice opens, lights, fills and presses safe items only (rule 17)
+- no tool makes, sends or pays: the voice opens, lights, fills and presses safe items only (rule 17); the one save is the ownerâ€™s own business details, said where they are (20 Oct)
 - every mint is one ai_calls row; a refusal is an error row
 - is off without a model and a key, and makes no row; the stand-in says it is fake
 - a rate the model did not hear is no line: null, empty or true never become â‚¹0 or â‚¹1
@@ -1020,6 +1020,12 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - (b) money came in, in full: 3 taps
 - (c) bill from a photo: 3 taps plus the picker
 - (d) brand-new owner from welcome to the first bill on WhatsApp: 16 taps
+
+### `tests/e2e/gst-here.spec.ts`
+
+- typed on the bill form: "GST number hai?", saved on the business, this billâ€™s GST on, no trip to Aap
+- said to the voice on the bill form: update_business saves it there and the form follows
+- staff cannot change the business: no "GST number hai?", and the voice is refused
 
 ### `tests/e2e/gst.spec.ts`
 

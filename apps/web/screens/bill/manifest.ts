@@ -16,8 +16,8 @@ export const manifest: ScreenManifest = {
     { label: 'Peeche', to: '/', guide: 'back' },
   ],
   states: ['existing', 'new-customer', 'first', 'composition', 'check-fail'],
-  guides: ['customer', 'repeat', 'line-0', 'add', 'gst', 'checks', 'total', 'make'],
-  optionalGuides: ['customer', 'checks'],
+  guides: ['customer', 'repeat', 'line-0', 'add', 'gst', 'gst-add', 'checks', 'total', 'make'],
+  optionalGuides: ['customer', 'checks', 'gst-add'],
   tour: [
     { target: 'repeat', say: 'Pichli baar jaisa hi? Haan dabao, sab bhar jaayega.' },
     { target: 'line-0', say: 'Kya kiya, kitna, rate. Rakam khud ban jaati hai.' },

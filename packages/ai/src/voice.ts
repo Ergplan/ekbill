@@ -14,7 +14,7 @@ import { loadPrompt } from './prompts';
  * the browser: open a screen, light up, fill, press the safe items; nothing
  * that commits (rule 17, I6).
  */
-export const VOICE_PROMPT = { name: 'voice', version: 3 } as const;
+export const VOICE_PROMPT = { name: 'voice', version: 4 } as const;
 export const TRANSCRIBE_PROMPT = { name: 'voice-transcribe', version: 2 } as const;
 export const VOICE_LANGUAGE_PROMPT = { name: 'voice-language', version: 1 } as const;
 
@@ -60,6 +60,9 @@ export const VOICE_SCREENS = [
   'photo',
 ] as const;
 export type VoiceScreen = (typeof VOICE_SCREENS)[number];
+
+/** The business details the voice saves where the owner is (20 Oct), matching apps/web/actions/business.ts. */
+export const BUSINESS_DETAIL_FIELDS = ['gstin', 'pan', 'upi', 'address', 'city', 'pincode', 'phone', 'email'] as const;
 
 export const VOICE_TOOLS = [
   {
@@ -157,6 +160,21 @@ export const VOICE_TOOLS = [
     description:
       'Press an item on the screen for the owner. Refused for OWNER-ONLY items (they make, save, send, pay or share): for those the ring goes round it and you ask the owner to tap it.',
     parameters: { type: 'object', properties: { item_id: { type: 'string' } }, required: ['item_id'] },
+  },
+  {
+    type: 'function',
+    name: 'update_business',
+    description:
+      "Save one detail of the owner's own business, right where you are, when the owner tells it to you: their GST number (they have GST after all), PAN, UPI ID, address, city, pincode, phone or email. Do not send them to another screen for it. The screen redraws with it (a bill form gets its GST choice at once). For a GST number, scheme is composition only if the owner said composition. Returns ok, or what is wrong to ask again.",
+    parameters: {
+      type: 'object',
+      properties: {
+        field: { type: 'string', enum: [...BUSINESS_DETAIL_FIELDS] },
+        value: { type: 'string', description: 'As the owner said it; a GST number or PAN in capitals, no spaces.' },
+        scheme: { type: 'string', enum: ['regular', 'composition'], description: 'Only for a GST number.' },
+      },
+      required: ['field', 'value'],
+    },
   },
   {
     type: 'function',

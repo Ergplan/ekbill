@@ -50,3 +50,12 @@ export function takePrefill(): BillPrefill | null {
     return null;
   }
 }
+
+/**
+ * Said when a detail of the business is saved where the owner is (20 Oct): by the voice's update_business or the
+ * bill form's own "GST number hai?". The detail ("gstin") rides along; a bill form open now turns its GST on.
+ */
+export const BUSINESS_EVENT = 'ekbill:business-updated';
+export function announceBusinessDetail(field: string): void {
+  window.dispatchEvent(new CustomEvent(BUSINESS_EVENT, { detail: { field } }));
+}

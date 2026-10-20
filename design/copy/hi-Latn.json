@@ -965,5 +965,8 @@
   "aap.demo": "App ka demo dekho",
   "aap.demo.sub": "45 second, aawaz ke saath. Dost ko bhi dikhao.",
   "welcome.demo": "Pehle demo dekho (45 sec)",
-  "demo.end.visitor": "Bas itna hi! Shuru karne ke liye yahan dabao aur apna number daalo."
+  "demo.end.visitor": "Bas itna hi! Shuru karne ke liye yahan dabao aur apna number daalo.",
+  "bill.gst.add": "GST number hai? Yahan daalo, bill mein GST lag jaayega",
+  "bill.gst.add.hint": "15 akshar. Aapke dukaan ke profile mein bhi save ho jaayega.",
+  "bill.gst.add.save": "GST save karo"
 }

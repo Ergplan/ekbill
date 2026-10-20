@@ -26,6 +26,7 @@ import {
   MakeBar,
   Meta,
   Money,
+  OutlineButton,
   RepeatCard,
   Segmented,
   Sheet,
@@ -40,7 +41,8 @@ import { sayRefusal } from '../refusal';
 import { withAs } from '../links';
 import { rupees } from '../money';
 import { AppShell, type ShellViewer } from '../shell/AppShell';
-import { PREFILL_EVENT, takePrefill } from './prefill';
+import { BUSINESS_EVENT, PREFILL_EVENT, announceBusinessDetail, takePrefill } from './prefill';
+import { saveBusinessDetail } from '../../actions/business';
 import {
   assessLinesOf,
   businessFromSetup,
@@ -133,6 +135,15 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
     place();
     window.addEventListener(PREFILL_EVENT, place);
     return () => window.removeEventListener(PREFILL_EVENT, place);
+  }, [setD]);
+  // A GST number given here (typed below, or said to the voice, 20 Oct): this bill turns its GST on at once.
+  useEffect(() => {
+    const on = (e: Event) => {
+      if ((e as CustomEvent<{ field?: string }>).detail?.field !== 'gstin') return;
+      setD((cur) => ({ ...cur, gst: { ...cur.gst, on: true } }));
+    };
+    window.addEventListener(BUSINESS_EVENT, on);
+    return () => window.removeEventListener(BUSINESS_EVENT, on);
   }, [setD]);
   const regular = business.registration === 'regular';
   const rates = useMemo(() => ratesFor(d.date), [d.date]);
@@ -433,6 +444,8 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
         </button>
       ) : business.registration === 'composition' ? (
         <Meta>{t('bill.bos.note')}</Meta>
+      ) : viewer.role === 'owner' && data.live ? (
+        <GstHere onSaved={() => router.refresh()} />
       ) : null}
 
       <CheckStrip items={[...checks, ...notes]} guide="checks" />
@@ -601,4 +614,58 @@ export function BillScreen({ data, viewer }: { data: BillFormData; viewer: Shell
 /** The checks speak once the form holds a line with something in it. */
 function linesOkForChecks(d: BillDraft): boolean {
   return d.lines.some((l) => l.what.trim() && l.rate.trim());
+}
+
+/**
+ * "GST number hai?" on the bill form of a business set up without GST (20 Oct: the owner found they had GST while
+ * making a bill). The number is saved on the business right here, the bill's GST comes on, and the form redraws
+ * with the GST choice; no trip to Aap. The voice does the same with update_business.
+ */
+function GstHere({ onSaved }: { onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState('');
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [busy, setBusy] = useState(false);
+  if (!open)
+    return (
+      <button type="button" className="eb-strip" data-guide="gst-add" data-voice="safe" onClick={() => setOpen(true)}>
+        {t('bill.gst.add')}
+      </button>
+    );
+  const save = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError(undefined);
+    const r = await saveBusinessDetail({ field: 'gstin', value }).catch(() => ({
+      ok: false as const,
+      error: 'error.generic',
+    }));
+    setBusy(false);
+    if (!r.ok) {
+      setError(t(r.error));
+      return;
+    }
+    announceBusinessDetail('gstin');
+    onSaved();
+  };
+  return (
+    <div className="eb-strip eb-strip--form" data-guide="gst-add">
+      <Field id="bill-gstin" label={t('profile.gst')} hint={t('bill.gst.add.hint')} error={error}>
+        <Input
+          id="bill-gstin"
+          value={value}
+          maxLength={15}
+          autoCapitalize="characters"
+          onChange={(e) => {
+            setError(undefined);
+            setValue(e.target.value.toUpperCase());
+          }}
+          onKeyDown={(e) => e.key === 'Enter' && void save()}
+        />
+      </Field>
+      <OutlineButton small disabled={busy || value.trim().length < 15} onClick={() => void save()}>
+        {t('bill.gst.add.save')}
+      </OutlineButton>
+    </div>
+  );
 }

@@ -972,5 +972,8 @@
   "aap.demo": "Watch the app demo",
   "aap.demo.sub": "45 seconds, with voice. Show a friend too.",
   "welcome.demo": "Watch the demo first (45 sec)",
-  "demo.end.visitor": "That is all! To begin, tap here and enter your number."
+  "demo.end.visitor": "That is all! To begin, tap here and enter your number.",
+  "bill.gst.add": "Have a GST number? Add it here and this bill gets GST",
+  "bill.gst.add.hint": "15 characters. It is saved to your shop profile too.",
+  "bill.gst.add.save": "Save GST"
 }

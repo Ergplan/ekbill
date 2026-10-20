@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 
 import { adoptBusiness, businesses, files, series, type TenantScope } from '@ekbill/db';
 import { ForbiddenError, NotFoundError } from '@ekbill/db';
-import { FILE_LIMITS, type Say } from '@ekbill/engine';
+import { FILE_LIMITS, checkGstin, compositionRule, todayIst, type ProfileInput, type Say } from '@ekbill/engine';
 
 import { log } from '../server/log';
 import { REFERRAL_COOKIE } from '../server/referral';
@@ -84,6 +84,56 @@ export async function saveProfile(input: unknown): Promise<ProfileResult<{ updat
     log.info({ requestId: s.scope.requestId, businessId: saved.id }, 'profile saved');
     revalidatePath('/', 'layout');
     return { ok: true, value: { updatedAt: saved.updatedAt.toISOString() } };
+  } catch (e) {
+    return refused(e);
+  }
+}
+
+/** The details that can be said or typed where the owner is (20 Oct), each saved on its own (a 'use server' file
+ * exports only its actions, so the list stays here; the voice tool's enum is packages/ai's BUSINESS_DETAIL_FIELDS). */
+const BUSINESS_DETAILS = ['gstin', 'pan', 'upi', 'address', 'city', 'pincode', 'phone', 'email'] as const;
+type BusinessDetail = (typeof BUSINESS_DETAILS)[number];
+
+/**
+ * One detail of the business, captured where the owner is (20 Oct: "I have GST" said on the bill screen should be
+ * taken there, not sent to the profile). A GST number makes the business GST-registered (regular, or composition
+ * when said) with the state and PAN it carries; every other detail is saved as it is. The engine checks it as Aap's
+ * save would; the screen redraws with it (a bill form gains its GST choice at once). Owner only.
+ */
+export async function saveBusinessDetail(
+  input: unknown,
+): Promise<ProfileResult<{ field: BusinessDetail; registration: string | null }>> {
+  const raw = input && typeof input === 'object' ? (input as Record<string, unknown>) : {};
+  const field = raw.field as BusinessDetail;
+  const value = typeof raw.value === 'string' ? raw.value.trim() : '';
+  if (!BUSINESS_DETAILS.includes(field) || !value || value.length > 200) return { ok: false, error: 'form.invalid' };
+  const s = await scoped();
+  if ('error' in s) return { ok: false, error: s.error };
+  let patch: Partial<ProfileInput>;
+  if (field === 'gstin') {
+    const c = checkGstin(value);
+    if (!c.ok)
+      return {
+        ok: false,
+        error: `setup.gstin.error.${c.problem === 'unknown-state' ? 'state' : (c.problem ?? 'format')}`,
+        field: 'gstin',
+      };
+    const composition = raw.scheme === 'composition';
+    patch = {
+      gst: composition ? 'composition' : 'regular',
+      gstin: c.normalised,
+      stateCode: c.stateCode ?? undefined,
+      pan: c.pan ?? undefined,
+      ...(composition ? { compositionLegend: compositionRule(todayIst(new Date()))?.legend ?? null } : {}),
+    };
+  } else {
+    patch = { [field]: field === 'pan' ? value.toUpperCase().replace(/\s/g, '') : value };
+  }
+  try {
+    const saved = await businesses.saveProfile(s.scope, patch as ProfileInput);
+    log.info({ requestId: s.scope.requestId, businessId: saved.id, field }, 'business detail saved in place');
+    revalidatePath('/', 'layout');
+    return { ok: true, value: { field, registration: saved.registrationType ?? null } };
   } catch (e) {
     return refused(e);
   }
