@@ -109,3 +109,49 @@ test('staff see no "Bill badlo" (cancel is the owner\'s)', async ({ page }) => {
   await hydrated(page);
   await expect(page.locator('[data-guide="edit"]')).toHaveCount(0);
 });
+
+test('after the first bill, with no name said, Home still has both opening buttons', async ({ page }) => {
+  // 21 Oct on the VM: past the first bill, Home showed "Apne baare mein batao" alone; no kaccha bill at all.
+  await page.context().clearCookies();
+  await page.goto('/welcome');
+  await hydrated(page);
+  await page.locator('[data-guide="guest"]').click();
+  await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/);
+  await hydrated(page);
+  await page.getByTestId('demo-no').click();
+  await page.locator('[data-guide="about"] [data-primary="true"]').click();
+  await expect(page).toHaveURL(/\/setup\/name/);
+  await hydrated(page);
+  await page.getByLabel(/dukaan ka naam/i).fill('Bina Naam Stores');
+  await page.getByRole('button', { name: 'Aage' }).click();
+  await page.getByRole('radio', { name: 'Nahi', exact: true }).click();
+  await page.getByRole('button', { name: 'Chalo, shuru karte hain' }).click();
+  await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/);
+  await hydrated(page);
+  await page.locator('[data-guide="star"] button').click();
+  await hydrated(page);
+  await page.getByLabel('Customer ka naam').fill('Pehla Grahak');
+  await page.getByLabel('Kya kiya?').first().fill('Repair');
+  await page.getByLabel('Rate (₹)').first().fill('400');
+  await page.getByRole('button', { name: /Bill banao/ }).click();
+  await expect(page).toHaveURL(/\/bills\/new\/done/, { timeout: 20_000 });
+
+  await page.goto('/');
+  await hydrated(page);
+  await expect(page.locator('[data-guide="about"]')).toBeVisible();
+  await expect(page.locator('[data-guide="star"]')).toContainText('Pakka bill banao');
+  await page.locator('[data-guide="kaccha"]').click();
+  await expect(page).toHaveURL(/\/bills\/new\?kaccha=1/);
+});
+
+test('a page from an older build reloads when the phone comes back to it', async ({ page }) => {
+  await page.goto('/dev/switch/sharma?to=/');
+  await hydrated(page);
+  await page.evaluate(() => ((window as unknown as { __old: boolean }).__old = true));
+  await page.route('**/api/build', (route) => route.fulfill({ json: { builtAt: 'a-newer-build' } }));
+  const reloaded = page.waitForEvent('load');
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await reloaded;
+  await hydrated(page);
+  expect(await page.evaluate(() => (window as unknown as { __old?: boolean }).__old ?? false)).toBe(false);
+});

@@ -162,8 +162,7 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
   const tour = manifest.tour.filter(
     (s) =>
       (canBill || !['kiska-bill', 'photo', 'star', 'kaccha'].includes(s.target)) &&
-      (s.target !== 'about' || !viewer.named) &&
-      ((s.target !== 'star' && s.target !== 'kaccha') || viewer.named),
+      (s.target !== 'about' || !viewer.named),
   );
 
   return (
@@ -185,13 +184,18 @@ export function HomeScreen({ data, viewer }: { data: HomeData; viewer: ShellView
         )}
       </section>
 
-      {/* The star (19 Oct): the one thing to do first. A new bill for someone known; their name for someone new. */}
-      {!viewer.named ? (
-        about
-      ) : canBill ? (
+      {/* The star (19 Oct): the one thing to do first. A new bill for someone known; their name for someone new.
+          The two opening buttons stay either way (21 Oct: with no name said, Home had no way to a bill but the
+          chips, and no kaccha bill at all). */}
+      {viewer.named ? null : about}
+      {canBill ? (
         <div className="eb-actions eb-actions--stack">
-          <div className="eb-star" data-guide="star">
-            <PrimaryCTA onClick={() => router.push(as('/bills/new'))}>{pakkaLabel}</PrimaryCTA>
+          <div className={viewer.named ? 'eb-star' : undefined} data-guide="star">
+            {viewer.named ? (
+              <PrimaryCTA onClick={() => router.push(as('/bills/new'))}>{pakkaLabel}</PrimaryCTA>
+            ) : (
+              <OutlineButton onClick={() => router.push(as('/bills/new'))}>{pakkaLabel}</OutlineButton>
+            )}
           </div>
           <div>{kaccha}</div>
           <Meta>{t('home.kinds.note')}</Meta>

@@ -8,7 +8,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 | ----------- | ----- | ------ |
 | unit        | 46    | 426    |
 | integration | 30    | 326    |
-| e2e         | 21    | 88     |
+| e2e         | 21    | 90     |
 
 ## unit
 
@@ -1114,6 +1114,8 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - with SMS off, a number typed on the sign-in is the account, signed in at once
 - GST item by item: each line its own rate from the start, the bill says each rate, and the heads are per rate
 - staff see no "Bill badlo" (cancel is the owner\'s)
+- after the first bill, with no name said, Home still has both opening buttons
+- a page from an older build reloads when the phone comes back to it
 
 ### `tests/e2e/screens.spec.ts` Ã—
 
