@@ -6,7 +6,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 
 | Suite       | Files | Titles |
 | ----------- | ----- | ------ |
-| unit        | 46    | 426    |
+| unit        | 47    | 428    |
 | integration | 30    | 326    |
 | e2e         | 21    | 90     |
 
@@ -74,6 +74,10 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - four equal groups and 2 paise: 2 paise, no negative part
 - any split adds up to the amount (a sweep of groups and amounts)
 - a â‚¹10 crore note on a â‚¹10 crore bill stays exact (BigInt)
+
+### `tests/unit/deploy-scripts.test.ts`
+
+- %s parses
 
 ### `tests/unit/engine-assess.test.ts`
 
@@ -548,6 +552,7 @@ Counts are the test titles written in each file; a title inside a loop (marked Ã
 - the voice starts in the person's language and the transcriber is told it, with its script
 - no tool makes, sends or pays: the voice opens, lights, fills and presses safe items only (rule 17); the one save is the ownerâ€™s own business details, said where they are (20 Oct)
 - every mint is one ai_calls row; a refusal is an error row
+- is off unless VOICE_LIVE=on, whatever the model and key (21 Oct: not in this version)
 - is off without a model and a key, and makes no row; the stand-in says it is fake
 - a rate the model did not hear is no line: null, empty or true never become â‚¹0 or â‚¹1
 - a reminder for a name two customers fit is asked about, never sent to one of them

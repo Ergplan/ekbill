@@ -19,7 +19,8 @@ export const manifest: ScreenManifest = {
   ],
   states: ['owner', 'staff', 'accountant', 'composition'],
   // Save floats only while something is unsaved (19 Oct).
-  optionalGuides: ['save', 'plan'],
+  // The voice's setting shows only where the live voice runs (off in this version, 21 Oct).
+  optionalGuides: ['save', 'plan', 'voice'],
   guides: [
     'person',
     'plan',

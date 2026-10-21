@@ -66,7 +66,7 @@ inside() {
 }
 
 say "What the running app has"
-inside app AUTH_MODE SESSION_SECRET DATABASE_URL OPENAI_API_KEY OPENAI_BASE_URL OPENAI_TEXT_MODEL OPENAI_VISION_MODEL \
+inside app AUTH_MODE VOICE_LIVE SESSION_SECRET DATABASE_URL OPENAI_API_KEY OPENAI_BASE_URL OPENAI_TEXT_MODEL OPENAI_VISION_MODEL \
   OPENAI_REALTIME_MODEL OPENAI_REALTIME_VOICE OPENAI_TRANSCRIBE_MODEL OPENAI_EMBED_MODEL TWILIO_VERIFY_SERVICE_SID \
   TWILIO_API_KEY_SID TWILIO_API_KEY_SECRET TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN TWILIO_VERIFY_TEMPLATE_SID OTP_FAKE_DIR \
   EKBILL_UPI_ID EKBILL_UPI_NAME OPENAI_TTS_MODEL OPENAI_TTS_VOICE
@@ -80,12 +80,12 @@ if "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx app; th
     const key = process.env.OPENAI_API_KEY;
     const base = (process.env.OPENAI_BASE_URL || "https://api.openai.com").replace(/\/$/, "");
     const uses = {
-      OPENAI_TEXT_MODEL: "Poocho answers, the contract helper",
-      OPENAI_VISION_MODEL: "photo to bill, old bills",
-      OPENAI_REALTIME_MODEL: "voice",
+      OPENAI_TEXT_MODEL: "Poocho answers",
+      OPENAI_VISION_MODEL: "photo to bill",
+      OPENAI_REALTIME_MODEL: process.env.VOICE_LIVE === "on" ? "live voice (ON: billed per minute)" : "live voice (off: VOICE_LIVE is not on)",
       OPENAI_TRANSCRIBE_MODEL: "the written copy of what is said (optional)",
       OPENAI_EMBED_MODEL: "Poocho search by meaning (optional)",
-      OPENAI_TTS_MODEL: "the app demo's recorded voice (empty: gpt-4o-mini-tts)",
+      OPENAI_TTS_MODEL: "the app demo recorded voice (empty: gpt-4o-mini-tts)",
     };
     if (!key) {
       console.log("  no OPENAI_API_KEY in the app: photo reading, Poocho answers and voice stay off");

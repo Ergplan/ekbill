@@ -51,6 +51,7 @@ import { AppShell, type ShellViewer } from '../shell/AppShell';
 import type { AapData, SeriesRow } from './data';
 import { switchLanguage } from './langSwitch';
 import { useDemo } from '../demo/DemoProvider';
+import { useVoice } from '../voice/VoiceProvider';
 import { manifest } from './manifest';
 
 const TURNOVER: Record<string, string> = {
@@ -309,7 +310,9 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
         )
         .join(' · ')
     : business.series.map((s) => `${s.prefix}-${String(s.next).padStart(3, '0')}`).join(' · ');
-  const tour = manifest.tour.filter((s) => owner || s.target !== 'save');
+  // The live voice is off in this version (21 Oct): its setting, and the tour's line about it, only where it runs.
+  const voiceOn = Boolean(useVoice()?.available);
+  const tour = manifest.tour.filter((s) => (owner || s.target !== 'save') && (voiceOn || s.target !== 'voice'));
   const gstLabel = (f: Form | null) => {
     const gst =
       f?.gst ??
@@ -534,22 +537,24 @@ export function AapScreen({ data, viewer }: { data: AapData; viewer: ShellViewer
           }
         />
       </SettingGroup>
-      <SettingGroup title={t('aap.voice')} guide="voice">
-        <SettingRow
-          label={t('aap.voice.sub')}
-          control={
-            <Segmented<'on' | 'off'>
-              label={t('aap.voice')}
-              value={(form ? form.voiceOnArrival : business.voiceOnArrival) ? 'on' : 'off'}
-              onChange={(v) => (editable && form ? patch({ voiceOnArrival: v === 'on' }) : undefined)}
-              options={[
-                { value: 'on', label: t('aap.voice.on') },
-                { value: 'off', label: t('aap.voice.off') },
-              ]}
-            />
-          }
-        />
-      </SettingGroup>
+      {voiceOn ? (
+        <SettingGroup title={t('aap.voice')} guide="voice">
+          <SettingRow
+            label={t('aap.voice.sub')}
+            control={
+              <Segmented<'on' | 'off'>
+                label={t('aap.voice')}
+                value={(form ? form.voiceOnArrival : business.voiceOnArrival) ? 'on' : 'off'}
+                onChange={(v) => (editable && form ? patch({ voiceOnArrival: v === 'on' }) : undefined)}
+                options={[
+                  { value: 'on', label: t('aap.voice.on') },
+                  { value: 'off', label: t('aap.voice.off') },
+                ]}
+              />
+            }
+          />
+        </SettingGroup>
+      ) : null}
 
       {owner ? (
         <SettingGroup title={t('aap.team')} guide="team">

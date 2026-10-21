@@ -314,9 +314,15 @@ const fakeRealtimeTransport: RealtimeTransport = async () => ({
   expiresAt: Math.floor(Date.now() / 1000) + 600,
 });
 
-/** Whether a voice session can be minted here at all (a model and a key, or the stand-in). */
+/**
+ * Whether a voice session can be minted here at all: VOICE_LIVE=on, and a model and a key (or the stand-in).
+ * Off unless switched on (21 Oct, the operator: "no voice of OpenAI in this version: at INR 20 per month it is not
+ * sustainable"; a live minute costs more than a month's fee). Off, the centre button is Madad and walks the screen.
+ */
 export function voiceAvailable(env: NodeJS.ProcessEnv = process.env): boolean {
-  if (override || env.AI_TRANSPORT === 'fake') return true;
+  if (override) return true;
+  if (env.VOICE_LIVE !== 'on') return false;
+  if (env.AI_TRANSPORT === 'fake') return true;
   const cfg = modelConfig(env);
   return Boolean(cfg.apiKey && cfg.realtimeModel);
 }

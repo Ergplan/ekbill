@@ -50,7 +50,7 @@ export const manifest: ScreenManifest = {
     { target: 'photo', say: 'Haath se likha bill hai? Photo lo, hum padh lenge.' },
     { target: 'sent', say: 'Is mahine ke bheje hue bills yahan.' },
     { target: 'paise', say: 'Kiske paise aane hain: sabse purana sabse upar. Yaad dilao ek tap.' },
-    { target: 'mic', say: 'Bolke bhi kar sakte ho. Main jo bolungi, wahi jagah chamkegi.' },
+    { target: 'mic', say: 'Yeh Madad hai. Kisi bhi screen pe dabao, woh screen samjha dega.' },
   ],
   roles: {
     owner: 'All three cards.',

@@ -64,6 +64,7 @@ jobs:
           E2E_PROD: '1'
           # As playwright.config.ts gives the servers it starts: the stand-in model, never a real one.
           AI_TRANSPORT: fake
+          VOICE_LIVE: 'on'
           AI_FAKE_DIR: ${{ github.workspace }}/tests/fixtures/bills/fake
           # Its own database, as locally: the integration suite leaves its records in ekbill2_test.
           DATABASE_URL: postgres://postgres@127.0.0.1:5440/ekbill2_dev

@@ -203,10 +203,25 @@ describe('the session the server mints', () => {
     expect(rows[1]).toMatchObject({ outcome: 'error', error: 'client_secrets 401' });
   });
 
+  it('is off unless VOICE_LIVE=on, whatever the model and key (21 Oct: not in this version)', () => {
+    expect(
+      voiceAvailable({ OPENAI_API_KEY: 'k', OPENAI_REALTIME_MODEL: 'gpt-realtime' } as unknown as NodeJS.ProcessEnv),
+    ).toBe(false);
+    expect(voiceAvailable({ AI_TRANSPORT: 'fake' } as unknown as NodeJS.ProcessEnv)).toBe(false);
+    expect(
+      voiceAvailable({
+        VOICE_LIVE: 'on',
+        OPENAI_API_KEY: 'k',
+        OPENAI_REALTIME_MODEL: 'gpt-realtime',
+      } as unknown as NodeJS.ProcessEnv),
+    ).toBe(true);
+  });
+
   it('is off without a model and a key, and makes no row; the stand-in says it is fake', async () => {
     const env = { ...process.env };
     delete process.env.OPENAI_REALTIME_MODEL;
     delete process.env.OPENAI_API_KEY;
+    process.env.VOICE_LIVE = 'on';
     try {
       expect(voiceAvailable()).toBe(false);
       const rows: AiCallRow[] = [];

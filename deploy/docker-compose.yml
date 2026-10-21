@@ -75,6 +75,9 @@ services:
       OPENAI_VISION_MODEL: ${OPENAI_VISION_MODEL:-}
       OPENAI_TEXT_MODEL: ${OPENAI_TEXT_MODEL:-}
       OPENAI_EMBED_MODEL: ${OPENAI_EMBED_MODEL:-}
+      # The live voice is off in this version (21 Oct: a minute of it costs more than the month's fee); on only with
+      # VOICE_LIVE=on, and a realtime model.
+      VOICE_LIVE: ${VOICE_LIVE:-}
       OPENAI_REALTIME_MODEL: ${OPENAI_REALTIME_MODEL:-}
       OPENAI_REALTIME_VOICE: ${OPENAI_REALTIME_VOICE:-}
       OPENAI_TRANSCRIBE_MODEL: ${OPENAI_TRANSCRIBE_MODEL:-}

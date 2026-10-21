@@ -162,7 +162,8 @@ export function AppShell({
         <TabBar
           items={tabs}
           current={tab ?? ''}
-          micLabel={t('action.mic')}
+          micLabel={t(voice?.available ? 'action.mic' : 'action.tour')}
+          micIcon={voice?.available ? 'mic' : 'help'}
           onMic={talk}
           renderLink={(item, inner, active) => (
             <Link href={withAs(item.href)} className="eb-tab" aria-current={active ? 'page' : undefined}>

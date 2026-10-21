@@ -5951,11 +5951,11 @@
     "ta": "யார் பணம் தர வேண்டும்: பழையது மேலே. நினைவூட்டல் ஒரு தட்டு."
   },
   "tour.home.mic": {
-    "hi-Latn": "Bolke bhi kar sakte ho. Main jo bolungi, wahi jagah chamkegi.",
-    "en": "You can speak too. Whatever I talk about lights up.",
-    "hi": "बोलके भी कर सकते हो। मैं जो बोलूँगी, वही जगह चमकेगी।",
-    "mr": "बोलूनही करू शकता. मी जे सांगेन, तीच जागा उजळेल.",
-    "ta": "பேசியும் செய்யலாம். நான் சொல்லும் இடம் ஒளிரும்."
+    "hi-Latn": "Yeh Madad hai. Kisi bhi screen pe dabao, woh screen samjha dega.",
+    "en": "This is Help. Tap it on any screen, and it walks you through that screen.",
+    "hi": "यह मदद है। किसी भी स्क्रीन पर दबाओ, वह स्क्रीन समझा देगा।",
+    "mr": "ही मदत. कोणत्याही स्क्रीनवर दाबा, ती स्क्रीन समजावून सांगेल.",
+    "ta": "இது உதவி. எந்தத் திரையிலும் தட்டுங்கள், அந்தத் திரையை விளக்கும்."
   },
   "tour.import.pick": {
     "hi-Latn": "PDF, photo, CSV ya Excel: jo bhi hai, chuno.",
@@ -6518,11 +6518,11 @@
     "ta": "{joined} சேர்ந்தனர் · {earned} பில் போட்டனர் · {left} தள்ளுபடி மீதம்"
   },
   "plan.refer.message": {
-    "hi-Latn": "Main apne bill EkBill se banata hoon: bolo aur bill ban jaata hai, WhatsApp pe chala jaata hai. 20 bill muft. Is link se judo: {link}",
-    "en": "I make my bills with EkBill: just speak and the bill is made, then it goes on WhatsApp. 20 bills free. Join with this link: {link}",
-    "hi": "मैं अपने बिल EkBill से बनाता हूँ: बोलो और बिल बन जाता है, WhatsApp पर चला जाता है। 20 बिल मुफ़्त। इस लिंक से जुड़ो: {link}",
-    "mr": "मी माझी बिलं EkBill ने बनवतो: बोला आणि बिल तयार, WhatsApp वर जातं. 20 बिलं मोफत. या लिंकने जोडा: {link}",
-    "ta": "நான் என் பில்களை EkBill-ல் போடுகிறேன்: பேசினால் பில் தயார், WhatsApp-ல் போகும். 20 பில்கள் இலவசம். இந்த இணைப்பில் சேருங்கள்: {link}"
+    "hi-Latn": "Main apne bill EkBill se banata hoon: ek minute mein bill, seedha WhatsApp pe. 20 bill muft. Is link se judo: {link}",
+    "en": "I make my bills with EkBill: a bill in a minute, straight on WhatsApp. 20 bills free. Join with this link: {link}",
+    "hi": "मैं अपने बिल EkBill से बनाता हूँ: एक मिनट में बिल, सीधे WhatsApp पर। 20 बिल मुफ़्त। इस लिंक से जुड़ो: {link}",
+    "mr": "मी माझी बिलं EkBill ने बनवतो: एका मिनिटात बिल, थेट WhatsApp वर. 20 बिलं मोफत. या लिंकने जोडा: {link}",
+    "ta": "நான் என் பில்களை EkBill-ல் போடுகிறேன்: ஒரு நிமிடத்தில் பில், நேரடியாக WhatsApp-ல். 20 பில்கள் இலவசம். இந்த இணைப்பில் சேருங்கள்: {link}"
   },
   "plan.history": {
     "hi-Latn": "Pichhle payment",
@@ -6679,18 +6679,18 @@
     "ta": "இது உங்கள் முகப்பு. பக்கா பில் இங்கிருந்து: உண்மையான பில், எண்ணுடன், GST-யிலும் கணக்கிலும் சேரும்."
   },
   "demo.s2": {
-    "hi-Latn": "Aur yeh mic. Isse bolo, aur EkBill sab khud bhar dega.",
-    "en": "And this is the mic. Just speak, and EkBill fills everything in.",
-    "hi": "और यह माइक। इससे बोलो, और EkBill सब खुद भर देगा।",
-    "mr": "आणि हा माइक. यात बोला, EkBill सगळं स्वतः भरेल.",
-    "ta": "இது மைக். பேசுங்கள், EkBill எல்லாவற்றையும் தானே நிரப்பும்."
+    "hi-Latn": "Aur yeh Madad ka button. Kahin atko, toh dabao: app khud dikha dega kya kahan hai.",
+    "en": "And this is the Help button. Stuck anywhere? Tap it, and the app shows you what is where.",
+    "hi": "और यह मदद का बटन। कहीं अटको, तो दबाओ: ऐप खुद दिखा देगा क्या कहाँ है।",
+    "mr": "आणि हे मदतीचं बटण. कुठे अडकलात, तर दाबा: ॲप स्वतः दाखवेल काय कुठे आहे.",
+    "ta": "இது உதவி பொத்தான். எங்காவது தடுமாறினால், தட்டுங்கள்: எது எங்கே என்று ஆப் காட்டும்."
   },
   "demo.s3": {
-    "hi-Latn": "Jaise bolo: 'Mehta Traders ka bill, do pankhe, saadhe teen sau ke.' Naam, kaam, rate, sab apne aap bhar gaya.",
-    "en": "Say: 'A bill for Mehta Traders, two fans, three hundred and fifty each.' Name, work, rate: all filled in by itself.",
-    "hi": "जैसे बोलो: 'मेहता ट्रेडर्स का बिल, दो पंखे, साढ़े तीन सौ के।' नाम, काम, रेट, सब अपने आप भर गया।",
-    "mr": "असं बोला: 'मेहता ट्रेडर्सचं बिल, दोन पंखे, साडेतीनशेचे.' नाव, काम, दर, सगळं आपोआप भरलं.",
-    "ta": "இப்படிச் சொல்லுங்கள்: 'மேத்தா டிரேடர்ஸுக்கு பில், இரண்டு மின்விசிறி, தலா முன்னூற்றைம்பது.' பெயர், வேலை, விலை எல்லாம் தானாக நிரம்பும்."
+    "hi-Latn": "Bas teen cheezein likho: kaam, kitne, rate. 'Ceiling fan, do, saadhe teen sau.' Total apne aap ban gaya.",
+    "en": "Just type three things: the work, how many, the rate. 'Ceiling fan, two, three hundred and fifty.' The total works itself out.",
+    "hi": "बस तीन चीज़ें लिखो: काम, कितने, रेट। 'सीलिंग फ़ैन, दो, साढ़े तीन सौ।' टोटल अपने आप बन गया।",
+    "mr": "फक्त तीन गोष्टी लिहा: काम, किती, दर. 'सीलिंग फॅन, दोन, साडेतीनशे.' एकूण आपोआप झालं.",
+    "ta": "மூன்றே விஷயங்கள் எழுதுங்கள்: வேலை, எத்தனை, விலை. 'சீலிங் ஃபேன், இரண்டு, முன்னூற்றைம்பது.' மொத்தம் தானாக வரும்."
   },
   "demo.s4": {
     "hi-Latn": "GST bhi khud lag jaata hai. Hisaab aapko nahi lagana.",
@@ -6707,11 +6707,11 @@
     "ta": "பில் தயார். வாடிக்கையாளரின் எண்ணை உள்ளிடுங்கள், எண் சேமிக்காவிட்டாலும் நேரடியாக அவர்களின் WhatsApp சாட் திறக்கும்."
   },
   "demo.s6": {
-    "hi-Latn": "Kiske paise baaki hain, yahan dikhta hai. Bolo 'Mehta ko yaad dilao', reminder chala gaya.",
-    "en": "Who still owes you shows here. Say 'Remind Mehta', and the reminder goes.",
-    "hi": "किसके पैसे बाकी हैं, यहाँ दिखता है। बोलो 'मेहता को याद दिलाओ', रिमाइंडर चला गया।",
-    "mr": "कोणाचे पैसे बाकी आहेत, इथे दिसतं. बोला 'मेहतांना आठवण करून द्या', रिमाइंडर गेला.",
-    "ta": "யார் பணம் தர வேண்டும் என்பது இங்கே. 'மேத்தாவுக்கு நினைவூட்டு' என்று சொன்னால், நினைவூட்டல் போகும்."
+    "hi-Latn": "Kiske paise baaki hain, yahan dikhta hai. Ek tap, aur reminder WhatsApp pe taiyaar.",
+    "en": "Who still owes you shows here. One tap, and the reminder is ready on WhatsApp.",
+    "hi": "किसके पैसे बाकी हैं, यहाँ दिखता है। एक टैप, और रिमाइंडर WhatsApp पर तैयार।",
+    "mr": "कोणाचे पैसे बाकी आहेत, इथे दिसतं. एक टॅप, आणि रिमाइंडर WhatsApp वर तयार.",
+    "ta": "யார் பணம் தர வேண்டும் என்பது இங்கே. ஒரே தட்டில், நினைவூட்டல் WhatsApp-ல் தயார்."
   },
   "demo.s7": {
     "hi-Latn": "Haath se likha bill hai? Photo lo, EkBill padh ke bill bana dega.",
@@ -6735,11 +6735,11 @@
     "ta": "அவ்வளவுதான்! இப்போது உங்களைப் பற்றிச் சொல்லுங்கள், முதல் பில்லைப் போடுவோம்."
   },
   "demo.end": {
-    "hi-Latn": "Bas itna hi! Kuch bhi poochna ho, mic dabao aur bolo.",
-    "en": "That is all! For anything else, tap the mic and ask.",
-    "hi": "बस इतना ही! कुछ भी पूछना हो, माइक दबाओ और बोलो।",
-    "mr": "एवढंच! काहीही विचारायचं असेल, माइक दाबा आणि बोला.",
-    "ta": "அவ்வளவுதான்! எதுவும் கேட்க வேண்டுமானால், மைக்கைத் தட்டிப் பேசுங்கள்."
+    "hi-Latn": "Bas itna hi! Kahin atko, toh Madad dabao.",
+    "en": "That is all! If you get stuck, tap Help.",
+    "hi": "बस इतना ही! कहीं अटको, तो मदद दबाओ।",
+    "mr": "एवढंच! कुठे अडकलात, तर मदत दाबा.",
+    "ta": "அவ்வளவுதான்! தடுமாறினால், உதவியைத் தட்டுங்கள்."
   },
   "demo.new.title": {
     "hi-Latn": "Naya kya hai? 45 second ka demo",
@@ -6749,11 +6749,11 @@
     "ta": "புதியது என்ன? 45 விநாடி டெமோ"
   },
   "demo.new.sub": {
-    "hi-Latn": "Kaccha bill (estimate), number se seedha WhatsApp, bolke bill: ek baar dekh lo.",
-    "en": "Kaccha bills (estimates), WhatsApp straight to a number, bills by voice: have a look.",
-    "hi": "कच्चा बिल (एस्टिमेट), नंबर से सीधे WhatsApp, बोलके बिल: एक बार देख लो।",
-    "mr": "कच्चं बिल (एस्टिमेट), नंबरवरून थेट WhatsApp, बोलून बिल: एकदा पाहा.",
-    "ta": "கச்சா பில் (மதிப்பீடு), எண்ணுக்கு நேரடியாக WhatsApp, குரலில் பில்: ஒருமுறை பாருங்கள்."
+    "hi-Latn": "Kaccha bill (estimate), number se seedha WhatsApp, har line ka apna GST: ek baar dekh lo.",
+    "en": "Kaccha bills (estimates), WhatsApp straight to a number, GST line by line: have a look.",
+    "hi": "कच्चा बिल (एस्टिमेट), नंबर से सीधे WhatsApp, हर लाइन का अपना GST: एक बार देख लो।",
+    "mr": "कच्चं बिल (एस्टिमेट), नंबरवरून थेट WhatsApp, प्रत्येक ओळीचा वेगळा GST: एकदा पाहा.",
+    "ta": "கச்சா பில் (மதிப்பீடு), எண்ணுக்கு நேரடியாக WhatsApp, ஒவ்வொரு வரிக்கும் தனி GST: ஒருமுறை பாருங்கள்."
   },
   "demo.new.later": {
     "hi-Latn": "Baad mein",

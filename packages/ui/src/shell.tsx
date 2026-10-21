@@ -76,12 +76,15 @@ export function TabBar({
   current,
   onMic,
   micLabel,
+  micIcon = 'mic',
   renderLink,
 }: {
   items: TabItem[];
   current: string;
   onMic?: () => void;
   micLabel: string;
+  /** The centre action's icon: the mic where the voice is live, else Madad (the screen's tour). */
+  micIcon?: IconName;
   renderLink?: (item: TabItem, children: ReactNode, active: boolean) => ReactNode;
 }) {
   const half = Math.ceil(items.length / 2);
@@ -106,7 +109,7 @@ export function TabBar({
     <nav className="eb-tabbar" aria-label="Tabs">
       {left.map(render)}
       <button type="button" className="eb-tabbar__mic" aria-label={micLabel} onClick={onMic} data-guide="mic">
-        <Icon name="mic" size={22} />
+        <Icon name={micIcon} size={22} />
       </button>
       {right.map(render)}
     </nav>
